@@ -234,7 +234,6 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
     <span class="hbtns">
       <button class="hjrn" id="sqBtn" data-act="sq">Search</button>
       <button class="hjrn" data-act="jn">Log</button>
-      <button class="mbtn" data-act="fs" aria-label="Fullscreen">⛶</button>
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
   </header>
@@ -974,21 +973,6 @@ document.addEventListener('click',function(e){
       buzz(10);tmrSave();tmrDraw();restNotify();break;
     case 'tr':
       TMR.b=0;TMR.ts=0;tmrSave();tmrDraw();restNotify();break;
-    case 'fs':
-      (function(){
-        try{
-          var de=document.documentElement;
-          if(!document.fullscreenElement&&!document.webkitFullscreenElement){
-            if(de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'});
-            else if(de.webkitRequestFullscreen)de.webkitRequestFullscreen();
-            else toast('Fullscreen not supported here');
-          }else{
-            if(document.exitFullscreen)document.exitFullscreen();
-            else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
-          }
-        }catch(err){toast('Fullscreen not supported here');}
-      })();
-      break;
     case 'fo':UI.favOnly=!UI.favOnly;render();break;
     case 'fv':
       (function(){
