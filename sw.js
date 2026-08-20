@@ -18,3 +18,10 @@ self.addEventListener('fetch',function(e){
     }).catch(function(){return caches.match(e.request).then(function(m){return m||caches.match('index.html');});})
   );
 });
+self.addEventListener('notificationclick',function(e){
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(function(cs){
+    for(var i=0;i<cs.length;i++){if('focus' in cs[i])return cs[i].focus();}
+    if(clients.openWindow)return clients.openWindow('.');
+  }));
+});

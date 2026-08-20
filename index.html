@@ -902,8 +902,33 @@ function tmrDraw(){
   var row=document.getElementById('trow');if(row)row.classList.toggle('run',!!TMR.ts);
   var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Stop':'Start';
 }
-setInterval(function(){if(TMR.ts)tmrDraw();},500);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)tmrDraw();});
+function restNotify(){
+  try{
+    if(!('serviceWorker' in navigator)||!('Notification' in window)||location.protocol!=='https:')return;
+    if(Notification.permission==='default'){
+      Notification.requestPermission().then(function(pm){if(pm==='granted')restNotify();});
+      return;
+    }
+    if(Notification.permission!=='granted')return;
+    navigator.serviceWorker.ready.then(function(reg){
+      if(TMR.ts){
+        reg.showNotification('Rest '+tmrFmt(tmrMs()),{tag:'rest',silent:true,renotify:false,requireInteraction:true,body:'Tap to return to Training Log',icon:'icon-192.png',badge:'icon-192.png'});
+      }else{
+        reg.getNotifications({tag:'rest'}).then(function(ns){for(var i=0;i<ns.length;i++)ns[i].close();});
+      }
+    }).catch(function(){});
+  }catch(e){}
+}
+var tmrTick=0;
+setInterval(function(){
+  if(!TMR.ts)return;
+  tmrDraw();
+  if(!(++tmrTick%20))restNotify();
+},500);
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden)tmrDraw();
+  else if(TMR.ts)restNotify();
+});
 window.addEventListener('pageshow',function(){tmrDraw();});
 function delMachine(id){
   var idx=-1,i;
@@ -937,9 +962,9 @@ document.addEventListener('click',function(e){
     case 'ts':
       if(TMR.ts){TMR.b+=Date.now()-TMR.ts;TMR.ts=0;}
       else{TMR.ts=Date.now();}
-      buzz(10);tmrSave();tmrDraw();break;
+      buzz(10);tmrSave();tmrDraw();restNotify();break;
     case 'tr':
-      TMR.b=0;TMR.ts=0;tmrSave();tmrDraw();break;
+      TMR.b=0;TMR.ts=0;tmrSave();tmrDraw();restNotify();break;
     case 'fs':
       (function(){
         try{
@@ -1210,7 +1235,6 @@ function syncBtns(){
 
 render();
 tmrDraw();
-/* PWA 서비스워커 (https에서만) */
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(function(){});
 }
