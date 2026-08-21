@@ -932,7 +932,7 @@ var IVs=120;
     if(o)for(var k in WTGT)if(+o[k]>=1)WTGT[k]=Math.min(60,Math.floor(+o[k]));
   }catch(e){}
 })();
-var WCODE={'CHEST':'C','BACK':'B','SHOULDERS':'S','LEGS':'L','ARMS·ETC':'A'};
+var WCODE={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
 function widgetSync(){
   try{
     if(!window.AndroidWidget||!AndroidWidget.sync)return;
@@ -968,7 +968,8 @@ function widgetSync(){
       v.push([nm,cnt[order[i]],WTGT[order[i]]]);
       var fq=0,dd;
       for(dd=0;dd<7;dd++)if(dset[dd][order[i]])fq++;
-      c.push([nm.slice(0,1),fq]);
+      var KOR={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
+      c.push([KOR[order[i]],fq]);
     }
     AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c}));
   }catch(e){}
