@@ -76,6 +76,8 @@ h1{font-size:20px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .tbtn{flex:0 0 auto;min-width:74px;height:40px;border:1px solid var(--line);border-radius:3px;background:linear-gradient(180deg,var(--plate2),var(--plate));box-shadow:inset 0 1px 0 var(--edge);color:var(--mut);font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
 .tbtn:active{color:var(--tx)}
 .trow.run .tbtn.go{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
+.trow.mark .tdig{border-color:var(--sig);box-shadow:inset 0 2px 6px rgba(0,0,0,.55),0 0 9px rgba(209,85,46,.35)}
+.trow.mark .tdig b{color:var(--sig)}
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn:active{color:var(--tx)}
 .mbtn.warn::after{content:'';position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--sig)}
@@ -459,7 +461,7 @@ function machStep(id){var m=machById(id);return (m&&m.st>0)?m.st:2.5;}
 function anyDirty(){for(var k in UI.dirty)if(UI.dirty[k])return true;return false;}
 function hasLogs(){for(var k in S.l){var a=S.l[k];if(a&&a.length)return true;}return false;}
 var toastT=null;
-function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms||12);}catch(e){}}
+function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms==null?12:ms);}catch(e){}}
 function toast(html,ms){
   var el=document.getElementById('toast');
   el.innerHTML=html;el.classList.add('on');
@@ -758,7 +760,7 @@ function renderSheet(){
       +'<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
       +'<textarea class="ta" id="ioTa">'+esc(JSON.stringify(S))+'</textarea>'
       +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">Copy</button>'
-      +'<button class="okbtn" data-act="ap">Apply Paste</button></div>'
+      +'<button class="okbtn" data-act="ap">Apply Input</button></div>'
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">'
@@ -988,10 +990,18 @@ function restNotify(){
     }).catch(function(){});
   }catch(e){}
 }
-var tmrTick=0;
+var tmrTick=0,tmrMark=0;
 setInterval(function(){
   if(!TMR.ts)return;
   tmrDraw();
+  /* 2분마다 강조: 숫자 레드 플래시 + 진동 */
+  var bkt=Math.floor(tmrMs()/120000);
+  if(bkt>tmrMark){
+    tmrMark=bkt;
+    buzz([60,90,60]);
+    var row=document.getElementById('trow');
+    if(row){row.classList.add('mark');setTimeout(function(){row.classList.remove('mark');},1400);}
+  }
   if(!(++tmrTick%10))restNotify();
 },500);
 document.addEventListener('visibilitychange',function(){
@@ -1031,9 +1041,9 @@ document.addEventListener('click',function(e){
     case 'ts':
       if(TMR.ts){TMR.b+=Date.now()-TMR.ts;TMR.ts=0;}
       else{TMR.ts=Date.now();}
-      buzz(10);tmrSave();tmrDraw();restNotify();break;
+      tmrMark=Math.floor(tmrMs()/120000);buzz(10);tmrSave();tmrDraw();restNotify();break;
     case 'tr':
-      TMR.b=0;TMR.ts=0;tmrSave();tmrDraw();restNotify();break;
+      TMR.b=0;TMR.ts=0;tmrMark=0;tmrSave();tmrDraw();restNotify();break;
     case 'fo':UI.favOnly=!UI.favOnly;render();break;
     case 'fv':
       (function(){
@@ -1177,14 +1187,6 @@ document.addEventListener('click',function(e){
       (function(){
         var el=document.getElementById('ioTa');
         if(!el){toast('Input box not found');return;}
-        /* APK: 클립보드 브리지가 있으면 버튼 한 번으로 지우고-붙여넣고-적용 */
-        if(window.AndroidClip&&AndroidClip.read){
-          try{
-            var ct=String(AndroidClip.read()||'');
-            if(ct.trim()){el.value=ct;}
-            else{toast('Clipboard is empty');return;}
-          }catch(e2){}
-        }
         var raw=String(el.value||'');
         /* 스마트따옴표·제로폭·BOM 정리 후 첫 { ~ 마지막 } 만 추출 */
         raw=raw.replace(/[\u201C\u201D\u2033]/g,'"').replace(/[\u2018\u2019\u2032]/g,"'")
