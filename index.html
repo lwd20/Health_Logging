@@ -193,6 +193,10 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .namein input::placeholder{color:var(--dim)}
 .okbtn{flex:0 0 auto;padding:0 16px;border-radius:3px;background:var(--plate2);border:1px solid var(--line);font-weight:800;font-size:11px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
 .okbtn.rdy{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
+.wtg{display:flex;gap:7px;margin:9px 0 8px}
+.wtg>div{flex:1;text-align:center}
+.wtg b{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
+.wtg input{width:100%;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:10px 0;text-align:center;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--tx);box-shadow:inset 0 2px 6px rgba(0,0,0,.55)}
 .ta{width:100%;height:110px;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--mut);resize:none;outline:0}
 .iorow{display:flex;gap:8px;margin-top:9px}
 .iorow .okbtn{flex:1;height:46px}
@@ -335,6 +339,7 @@ var canLS=false;try{localStorage.setItem('__t','1');localStorage.removeItem('__t
 var mem=null;
 var saveWarned=false;
 function save(){
+  widgetSync();
   var s=JSON.stringify(S);
   if(canLS){
     try{localStorage.setItem(KEY,s);}
@@ -757,6 +762,15 @@ function renderSheet(){
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">'
+      +'<div class="sh-l" style="margin-top:14px">Weekly targets · sets</div>'
+      +'<div class="wtg">'
+      +'<div><b>CHEST</b><input id="wt0" inputmode="numeric" maxlength="2" value="'+WTGT['CHEST']+'"></div>'
+      +'<div><b>BACK</b><input id="wt1" inputmode="numeric" maxlength="2" value="'+WTGT['BACK']+'"></div>'
+      +'<div><b>SHO</b><input id="wt2" inputmode="numeric" maxlength="2" value="'+WTGT['SHOULDERS']+'"></div>'
+      +'<div><b>LEGS</b><input id="wt3" inputmode="numeric" maxlength="2" value="'+WTGT['LEGS']+'"></div>'
+      +'<div><b>ARMS</b><input id="wt4" inputmode="numeric" maxlength="2" value="'+WTGT['ARMS·ETC']+'"></div>'
+      +'</div>'
+      +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
       +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
   }
@@ -901,6 +915,53 @@ function tmrDraw(){
   var row=document.getElementById('trow');if(row)row.classList.toggle('run',!!TMR.ts);
   var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Stop':'Start';
 }
+/* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
+var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
+(function(){
+  if(!canLS)return;
+  try{
+    var o=JSON.parse(localStorage.getItem(KEY+'.wt'));
+    if(o)for(var k in WTGT)if(+o[k]>=1)WTGT[k]=Math.min(60,Math.floor(+o[k]));
+  }catch(e){}
+})();
+var WCODE={'CHEST':'C','BACK':'B','SHOULDERS':'S','LEGS':'L','ARMS·ETC':'A'};
+function widgetSync(){
+  try{
+    if(!window.AndroidWidget||!AndroidWidget.sync)return;
+    var now=new Date();
+    var dow=(now.getDay()+6)%7; /* 월=0 */
+    var mon=new Date(now); mon.setDate(now.getDate()-dow);
+    function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+    var days=[],dset=[],i;
+    for(i=0;i<7;i++){var t=new Date(mon);t.setDate(mon.getDate()+i);days.push(iso(t));dset.push({});}
+    var cnt={'CHEST':0,'BACK':0,'SHOULDERS':0,'LEGS':0,'ARMS·ETC':0};
+    var pid={},k;
+    for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i].p;
+    for(k in S.l){
+      var p=pid[k];if(!p)continue;
+      var a=S.l[k],j;
+      for(j=0;j<a.length;j++){
+        var di=days.indexOf(a[j].d);
+        if(di<0)continue;
+        dset[di][p]=1;
+        if(cnt[p]!=null)cnt[p]+=a[j].s.length;
+      }
+    }
+    var order=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'];
+    var w=[],v=[];
+    for(i=0;i<7;i++){
+      var cs=[];
+      for(var q2=0;q2<order.length;q2++)if(dset[i][order[q2]])cs.push(WCODE[order[q2]]);
+      w.push(cs.join('·'));
+    }
+    for(i=0;i<order.length;i++){
+      var nm=order[i]==='ARMS·ETC'?'ARMS':order[i]==='SHOULDERS'?'SHOULDER':order[i];
+      v.push([nm,cnt[order[i]],WTGT[order[i]]]);
+    }
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v}));
+  }catch(e){}
+}
+
 function restNotify(){
   try{
     if(window.AndroidTimer){
@@ -1144,6 +1205,20 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
+    case 'wg':
+      (function(){
+        var ids=['wt0','wt1','wt2','wt3','wt4'],ks=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'],i;
+        for(i=0;i<5;i++){
+          var el=document.getElementById(ids[i]);if(!el)continue;
+          var n=Math.floor(+String(el.value).replace(/[^0-9]/g,''));
+          if(n>=1&&n<=60)WTGT[ks[i]]=n;
+        }
+        if(canLS){try{localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));}catch(e2){}}
+        widgetSync();
+        toast('<em>Targets saved</em>');
+        renderSheet();
+      })();
+      break;
     case 'rs':
       if(UI.arm==='rs'){
         UNDO={kind:'all',s:S};
@@ -1244,6 +1319,7 @@ function syncBtns(){
 
 render();
 tmrDraw();
+widgetSync();
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(function(){});
 }
