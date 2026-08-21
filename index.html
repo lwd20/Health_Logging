@@ -772,6 +772,7 @@ function renderSheet(){
       +'<div><b>LEGS</b><input id="wt3" inputmode="numeric" maxlength="2" value="'+WTGT['LEGS']+'"></div>'
       +'<div><b>ARMS</b><input id="wt4" inputmode="numeric" maxlength="2" value="'+WTGT['ARMS·ETC']+'"></div>'
       +'</div>'
+      +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
       +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
@@ -919,6 +920,11 @@ function tmrDraw(){
 }
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
+var IVs=120;
+(function(){
+  if(!canLS)return;
+  try{var n=Math.floor(+localStorage.getItem(KEY+'.iv'));if(n>=30&&n<=600)IVs=n;}catch(e){}
+})();
 (function(){
   if(!canLS)return;
   try{
@@ -956,11 +962,15 @@ function widgetSync(){
       for(var q2=0;q2<order.length;q2++)if(dset[i][order[q2]])cs.push(WCODE[order[q2]]);
       w.push(cs.join('·'));
     }
+    var c=[];
     for(i=0;i<order.length;i++){
       var nm=order[i]==='ARMS·ETC'?'ARMS':order[i]==='SHOULDERS'?'SHOULDER':order[i];
       v.push([nm,cnt[order[i]],WTGT[order[i]]]);
+      var fq=0,dd;
+      for(dd=0;dd<7;dd++)if(dset[dd][order[i]])fq++;
+      c.push([nm.slice(0,1),fq]);
     }
-    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v}));
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c}));
   }catch(e){}
 }
 
@@ -968,7 +978,10 @@ function restNotify(){
   try{
     if(window.AndroidTimer){
       try{
-        if(TMR.ts)window.AndroidTimer.start(tmrMs());
+        if(TMR.ts){
+          try{window.AndroidTimer.start(tmrMs(),IVs*1000);}
+          catch(e9){window.AndroidTimer.start(tmrMs());}
+        }
         else window.AndroidTimer.stop();
       }catch(e){}
       return;
@@ -994,8 +1007,8 @@ var tmrTick=0,tmrMark=0;
 setInterval(function(){
   if(!TMR.ts)return;
   tmrDraw();
-  /* 2분마다 강조: 숫자 레드 플래시 + 진동 */
-  var bkt=Math.floor(tmrMs()/120000);
+  /* 설정 주기마다 강조: 숫자 레드 플래시 + 진동 */
+  var bkt=Math.floor(tmrMs()/(IVs*1000));
   if(bkt>tmrMark){
     tmrMark=bkt;
     buzz([60,90,60]);
@@ -1041,7 +1054,7 @@ document.addEventListener('click',function(e){
     case 'ts':
       if(TMR.ts){TMR.b+=Date.now()-TMR.ts;TMR.ts=0;}
       else{TMR.ts=Date.now();}
-      tmrMark=Math.floor(tmrMs()/120000);buzz(10);tmrSave();tmrDraw();restNotify();break;
+      tmrMark=Math.floor(tmrMs()/(IVs*1000));buzz(10);tmrSave();tmrDraw();restNotify();break;
     case 'tr':
       TMR.b=0;TMR.ts=0;tmrMark=0;tmrSave();tmrDraw();restNotify();break;
     case 'fo':UI.favOnly=!UI.favOnly;render();break;
@@ -1215,8 +1228,16 @@ document.addEventListener('click',function(e){
           var n=Math.floor(+String(el.value).replace(/[^0-9]/g,''));
           if(n>=1&&n<=60)WTGT[ks[i]]=n;
         }
-        if(canLS){try{localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));}catch(e2){}}
-        widgetSync();
+        var ivEl=document.getElementById('iv0');
+        if(ivEl){
+          var nv=Math.floor(+String(ivEl.value).replace(/[^0-9]/g,''));
+          if(nv>=30&&nv<=600){IVs=nv;tmrMark=Math.floor(tmrMs()/(IVs*1000));}
+        }
+        if(canLS){
+          try{localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));}catch(e2){}
+          try{localStorage.setItem(KEY+'.iv',String(IVs));}catch(e3){}
+        }
+        widgetSync();restNotify();
         toast('<em>Targets saved</em>');
         renderSheet();
       })();
