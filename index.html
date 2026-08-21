@@ -963,12 +963,11 @@ function widgetSync(){
       w.push(cs.join('·'));
     }
     var c=[];
+    var KOR={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
     for(i=0;i<order.length;i++){
-      var nm=order[i]==='ARMS·ETC'?'ARMS':order[i]==='SHOULDERS'?'SHOULDER':order[i];
-      v.push([nm,cnt[order[i]],WTGT[order[i]]]);
+      v.push([KOR[order[i]],cnt[order[i]],WTGT[order[i]]]);
       var fq=0,dd;
       for(dd=0;dd<7;dd++)if(dset[dd][order[i]])fq++;
-      var KOR={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
       c.push([KOR[order[i]],fq]);
     }
     AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c}));
