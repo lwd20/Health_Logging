@@ -245,7 +245,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
   </header>
   <nav id="chips"></nav>
   <div class="trow" id="trow">
-    <span class="tdig"><i>Rest</i><b id="tmr">00:00</b></span>
+    <span class="tdig"><i>Recovery</i><b id="tmr">00:00</b></span>
     <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
     <button class="tbtn" data-act="tr">Reset</button>
   </div>
@@ -996,7 +996,7 @@ function restNotify(){
       if(TMR.ts){
         var st0=new Date(Date.now()-tmrMs());
         var hh=String(st0.getHours()).padStart(2,'0'),mm=String(st0.getMinutes()).padStart(2,'0');
-        reg.showNotification('Rest '+tmrFmt(tmrMs()),{tag:'rest',silent:true,renotify:false,requireInteraction:true,timestamp:st0.getTime(),body:'Started '+hh+':'+mm+' · tap to return',icon:'icon-192.png',badge:'icon-192.png'});
+        reg.showNotification('Recovery '+tmrFmt(tmrMs()),{tag:'rest',silent:true,renotify:false,requireInteraction:true,timestamp:st0.getTime(),body:'Started '+hh+':'+mm+' · tap to return',icon:'icon-192.png',badge:'icon-192.png'});
       }else{
         reg.getNotifications({tag:'rest'}).then(function(ns){for(var i=0;i<ns.length;i++)ns[i].close();});
       }
