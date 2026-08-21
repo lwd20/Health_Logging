@@ -1087,6 +1087,14 @@ document.addEventListener('click',function(e){
       else toast('Copy failed — select the text and copy manually');
       break;
     case 'fx':
+      if(window.AndroidFile&&AndroidFile.save){
+        try{
+          var okS=AndroidFile.save('plus25-'+today()+'.json',JSON.stringify(S));
+          if(okS){if(canLS)localStorage.setItem(KEY+'.bk',today());toast('<em>Saved</em> to Downloads');render();}
+          else toast('Save failed');
+        }catch(e3){toast('Save failed');}
+        break;
+      }
       try{
         var blob=new Blob([JSON.stringify(S)],{type:'application/json'});
         var al=document.createElement('a');
@@ -1108,6 +1116,14 @@ document.addEventListener('click',function(e){
       (function(){
         var el=document.getElementById('ioTa');
         if(!el){toast('Input box not found');return;}
+        /* APK: 클립보드 브리지가 있으면 버튼 한 번으로 지우고-붙여넣고-적용 */
+        if(window.AndroidClip&&AndroidClip.read){
+          try{
+            var ct=String(AndroidClip.read()||'');
+            if(ct.trim()){el.value=ct;}
+            else{toast('Clipboard is empty');return;}
+          }catch(e2){}
+        }
         var raw=String(el.value||'');
         /* 스마트따옴표·제로폭·BOM 정리 후 첫 { ~ 마지막 } 만 추출 */
         raw=raw.replace(/[\u201C\u201D\u2033]/g,'"').replace(/[\u2018\u2019\u2032]/g,"'")
