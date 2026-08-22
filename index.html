@@ -1020,14 +1020,16 @@ function aiPayload(){
       return e.d.slice(5)+' '+e.s.map(function(st){return st[0]+'x'+st[1];}).join(' ');
     })});
   }
-  return {thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT,favorites:favs};
+  var now=new Date();
+  var yo=['일','월','화','수','목','금','토'][now.getDay()];
+  return {today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT,favorites:favs};
 }
 
 function runAI(){
   AIOUT='분석 중...';
   UI.sheet='ai';
   render();
-        var prompt='당신은 경력 있는 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록: 날짜와 무게x반복 세트들)를 근거로 한국어 리포트를 써라.\n구성(각 섹션 제목 한 줄 후 내용):\n[금주 분석] 부위별 볼륨을 목표·지난주와 대조해 구체 수치로 4~6줄. 세션 빈도와 부위 배분의 특징도 짚어라.\n[평가] 잘한 점 2가지와 문제점 2가지. 감량기(-400~500kcal, 근손실 방지 최우선) 관점에서 회복·과훈련 위험을 판단하라.\n[정체 종목] 최근 3회 톱세트 무게와 반복이 모두 늘지 않은 종목만 종목명과 수치 근거를 들어 나열. 없으면 없다고 명시.\n[방향] 남은 요일에 할 일 2~3개와 다음 주 부위별 조정안을 구체 세트 수로 제시. 정체 종목엔 개별 처방(무게 유지/5% 감량 재빌드/반복 목표 변경 중 택1).\n규칙: 데이터에 없는 것은 추정하지 말 것. 단정적 문장. 마크다운 기호(별표·샵) 금지, 섹션 제목은 대괄호 그대로.\n\n'+JSON.stringify(aiPayload());
+        var prompt='당신은 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록)를 분석해 한국어 분석 보고서를 개조식으로 써라.\n문체: 각 항목은 완결된 보고서 문장 한 줄(20~50자, "-함/-됨/-요망" 종결). "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n판정 없이 사실만. "가슴은 21세트로 지난주 15세트 대비 6세트 증가함" 식 부위당 한 줄, 마지막에 "주 4일 총 103세트 수행함" 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n목표 대비 판정은 전부 여기. "어깨는 목표 20세트를 7세트 초과하여 회복 부담 우려됨" 식으로 과다·부족 각 한 줄(해당 없으면 생략), 이어서 긍정 요소 한 줄과 주의 요소 한 줄(감량기 -400~500kcal 회복 관점).\n[정체 종목]\n"시티드 레그컬(GYM80)은 최근 3회 12kg에 머물러 정체로 판단됨" 식 한 줄씩. 없으면 "정체 종목 없음".\n[방향]\n"남은 기간:" 이미 수행한 세트는 되돌릴 수 없다. 오늘 날짜와 남은 요일 기준으로 추가/중단만 지시("어깨는 금주 추가 자극 없이 마무리 요망, 팔 6세트 추가 요망" 식). 초과 부위에 감축 표현 금지.\n"다음 주:" 부위별 세트 조정·재배분은 여기서만, 정체 종목 처방 1개 포함.\n규칙: 항목당 한 줄 엄수, 장황한 근거 서술 금지, 마크다운 기호 금지.\n\n'+JSON.stringify(aiPayload());
         function gcall(model,retry){
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(AK),{
             method:'POST',
