@@ -184,6 +184,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:20;opacity:0;pointer-events:none;transition:opacity .18s}
 .ov.on{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:linear-gradient(180deg,var(--plate2),var(--plate));border-top:1px solid var(--edge);border-radius:8px 8px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .22s ease;max-height:82dvh;overflow-y:auto}
+.sheet.tall{height:88dvh;max-height:88dvh}
 .sheet.on{transform:none}
 .grab{display:block;width:100%;padding:2px 0 12px;border:0;background:none}
 .grab::before{content:'';display:block;width:44px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
@@ -196,7 +197,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .okbtn{flex:0 0 auto;padding:0 16px;border-radius:3px;background:var(--plate2);border:1px solid var(--line);font-weight:800;font-size:11px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
 .okbtn.rdy{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
 .akin{width:100%;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);box-shadow:inset 0 2px 6px rgba(0,0,0,.55);margin:8px 0}
-#aiOut{white-space:pre-wrap;line-height:1.65;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none;max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#aiOut{white-space:pre-wrap;line-height:1.65;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none;max-height:calc(88dvh - 165px);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #aiOut.show{display:block}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
@@ -716,14 +717,7 @@ function renderSheet(){
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
-    if(!AK){
-      h+='<div class="note" style="margin-top:4px">Gemini API 키를 한 번만 저장하면 이후엔 버튼 한 번으로 분석됩니다. (aistudio.google.com에서 무료 발급)</div>';
-      h+='<input id="ak" type="password" class="akin" placeholder="Gemini API key (AIza...)">';
-      h+='<button class="okbtn" data-act="aisave" style="width:100%">Save &amp; Analyze</button>';
-    }else{
-      h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
-      h+='<button class="okbtn" data-act="akclr" style="width:100%;margin-top:10px;opacity:.6">Change API key</button>';
-    }
+    h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
   }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div><div class="wrapchips">';
@@ -789,10 +783,14 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
+      +'<div class="sh-l" style="margin-top:16px">Gemini API key</div>'
+      +'<input id="ak" type="password" class="akin" placeholder="AIza..." value="'+AK.replace(/"/g,'')+'">'
+      +'<button class="okbtn" data-act="aksv" style="width:100%">Save key</button>'
       +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
   }
   sh.innerHTML=h;ov.classList.add('on');sh.classList.add('on');
+  sh.classList.toggle('tall',UI.sheet==='ai');
 }
 
 /* ── 동작 ── */
@@ -1034,7 +1032,7 @@ function runAI(){
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(AK),{
             method:'POST',
             headers:{'content-type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:2048}})
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingBudget:0}}})
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
             try{
@@ -1298,23 +1296,18 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
-    case 'aisave':
+    case 'aksv':
       (function(){
         var el=document.getElementById('ak');
         var k=el?String(el.value).trim():'';
         if(!k){toast('Enter Gemini key');return;}
         AK=k;
         if(canLS){try{localStorage.setItem(KEY+'.ak',k);}catch(e2){}}
-        runAI();
+        toast('<em>Key saved</em>');
       })();
       break;
-    case 'akclr':
-      AK='';AIOUT='';
-      if(canLS){try{localStorage.removeItem(KEY+'.ak');}catch(e2){}}
-      render();
-      break;
     case 'ai':
-      if(!AK){UI.sheet='ai';render();break;}
+      if(!AK){UI.sheet='data';render();toast('Save your Gemini key in settings first');break;}
       runAI();
       break;
     case 'wg':
