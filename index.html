@@ -1063,7 +1063,7 @@ function runAI(){
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
             method:'POST',
             headers:{'content-type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingBudget:0}}})
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingLevel:"low"}}})
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
             try{
