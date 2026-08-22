@@ -717,6 +717,12 @@ function renderSheet(){
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
+    h+='<div class="wrapchips" style="margin-top:2px">';
+    var lmk;
+    for(lmk in LMN){
+      h+='<button class="chip'+(LM===lmk?' on':'')+'" data-act="lmsel" data-v="'+lmk+'">'+LMN[lmk]+'</button>';
+    }
+    h+='</div>';
     h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
   }
   if(UI.sheet==='add'){
@@ -783,9 +789,11 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
-      +'<div class="sh-l" style="margin-top:16px">Gemini API key</div>'
-      +'<input id="ak" type="password" class="akin" placeholder="AIza..." value="'+AK.replace(/"/g,'')+'">'
-      +'<button class="okbtn" data-act="aksv" style="width:100%">Save key</button>'
+      +'<div class="sh-l" style="margin-top:16px">API keys</div>'
+      +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
+      +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
+      +'<input id="aka" type="password" class="akin" placeholder="Claude key (sk-ant-...)" value="'+KS.ant.replace(/"/g,'')+'">'
+      +'<button class="okbtn" data-act="aksv" style="width:100%">Save keys</button>'
       +'<div class="sh-l" style="margin-top:16px">AI prompt</div>'
       +'<textarea id="pr" class="akin" style="min-height:150px;resize:vertical;font-size:11px;line-height:1.55;font-family:var(--mono)">'+(PR||DEFPR).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>'
       +'<div style="display:flex;gap:8px"><button class="okbtn" data-act="prsv" style="flex:1">Save prompt</button><button class="okbtn" data-act="prrs" style="flex:1;opacity:.65">Reset default</button></div>'
@@ -937,11 +945,25 @@ function tmrDraw(){
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
 var IVs=120;
-var AK='',AIOUT='',PR='';
-var DEFPR='당신은 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록)를 분석해 한국어 분석 보고서를 개조식으로 써라.\n문체: 각 항목은 완결된 보고서 문장 한 줄(20~50자, "-함/-됨/-요망" 종결). "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n판정 없이 사실만. "가슴은 21세트로 지난주 15세트 대비 6세트 증가함" 식 부위당 한 줄, 마지막에 "주 4일 총 103세트 수행함" 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n목표 대비 판정은 전부 여기. "어깨는 목표 20세트를 7세트 초과하여 회복 부담 우려됨" 식으로 과다·부족 각 한 줄(해당 없으면 생략), 이어서 긍정 요소 한 줄과 주의 요소 한 줄(감량기 -400~500kcal 회복 관점).\n[정체 종목]\n"시티드 레그컬(GYM80)은 최근 3회 12kg에 머물러 정체로 판단됨" 식 한 줄씩. 없으면 "정체 종목 없음".\n[방향]\n"남은 기간:" 이미 수행한 세트는 되돌릴 수 없다. 오늘 날짜와 남은 요일 기준으로 추가/중단만 지시("어깨는 금주 추가 자극 없이 마무리 요망, 팔 6세트 추가 요망" 식). 초과 부위에 감축 표현 금지.\n"다음 주:" 부위별 세트 조정·재배분은 여기서만, 정체 종목 처방 1개 포함.\n규칙: 항목당 한 줄 엄수, 장황한 근거 서술 금지, 마크다운 기호 금지.\n\n';
+var AK='',AIOUT='',PR='',LM='gem';
+var KS={gem:'',oai:'',ant:''};
+var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
+var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 2주 기록(날짜별 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
 (function(){
   if(!canLS)return;
-  try{var k=localStorage.getItem(KEY+'.ak');if(k)AK=k;}catch(e){}
+  try{
+    KS.gem=localStorage.getItem(KEY+'.ak.gem')||'';
+    KS.oai=localStorage.getItem(KEY+'.ak.oai')||'';
+    KS.ant=localStorage.getItem(KEY+'.ak.ant')||'';
+    var lm=localStorage.getItem(KEY+'.lm');if(lm&&KS[lm]!==undefined)LM=lm;
+    /* 구버전 단일 키 이관 */
+    var old=localStorage.getItem(KEY+'.ak');
+    if(old){
+      var slot=/^sk-ant/.test(old)?'ant':(/^sk-/.test(old)?'oai':'gem');
+      if(!KS[slot]){KS[slot]=old;localStorage.setItem(KEY+'.ak.'+slot,old);}
+      localStorage.removeItem(KEY+'.ak');
+    }
+  }catch(e){}
   try{var pr=localStorage.getItem(KEY+'.pr');if(pr)PR=pr;}catch(e){}
 })();
 (function(){
@@ -1019,7 +1041,9 @@ function aiPayload(){
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(!m.f)continue;
-    var a=(S.l[m.i]||[]).slice().sort(function(x,y){return x.d<y.d?1:-1;}).slice(0,3);
+    var lim=new Date();lim.setDate(lim.getDate()-14);
+    var liso=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
+    var a=(S.l[m.i]||[]).filter(function(e){return e.d>=liso;}).sort(function(x,y){return x.d<y.d?1:-1;}).slice(0,5);
     if(!a.length)continue;
     favs.push({n:m.n+(m.b?' '+m.b:''),p:m.p,r:a.map(function(e){
       return e.d.slice(5)+' '+e.s.map(function(st){return st[0]+'x'+st[1];}).join(' ');
@@ -1036,7 +1060,7 @@ function runAI(){
   render();
         var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
         function gcall(model,retry){
-          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(AK),{
+          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
             method:'POST',
             headers:{'content-type':'application/json'},
             body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingBudget:0}}})
@@ -1054,7 +1078,43 @@ function runAI(){
             AIOUT=t.trim();renderSheet();
           }).catch(function(e3){AIOUT='요청 실패: '+e3.message;renderSheet();});
         }
-        gcall('gemini-2.5-flash',true);
+        function done(t,err){
+          AIOUT=(t&&t.trim())||(err?('오류: '+err):'응답 없음');
+          renderSheet();
+        }
+        if(LM==='ant'){
+          fetch('https://api.anthropic.com/v1/messages',{
+            method:'POST',
+            headers:{
+              'content-type':'application/json',
+              'x-api-key':KS.ant,
+              'anthropic-version':'2023-06-01',
+              'anthropic-dangerous-direct-browser-access':'true'
+            },
+            body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,messages:[{role:'user',content:prompt}]})
+          }).then(function(r){return r.json();}).then(function(d){
+            var t='';
+            if(d&&d.content)for(var i=0;i<d.content.length;i++)t+=(d.content[i].text||'');
+            done(t,d&&d.error&&d.error.message);
+          }).catch(function(e3){done('',e3.message);});
+        }else if(LM==='oai'){
+          var ocall=function(model,retry){
+            fetch('https://api.openai.com/v1/chat/completions',{
+              method:'POST',
+              headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
+              body:JSON.stringify({model:model,max_completion_tokens:2048,messages:[{role:'user',content:prompt}]})
+            }).then(function(r){return r.json();}).then(function(d){
+              var t='';
+              try{t=d.choices[0].message.content||'';}catch(e4){}
+              var em=d&&d.error&&d.error.message;
+              if(!t&&retry&&em&&(em.indexOf('model')>=0||em.indexOf('not exist')>=0)){ocall('gpt-4o-mini',false);return;}
+              done(t,em);
+            }).catch(function(e3){done('',e3.message);});
+          };
+          ocall('gpt-5-mini',true);
+        }else{
+          gcall('gemini-2.5-flash',true);
+        }
 }
 
 function restNotify(){
@@ -1326,16 +1386,29 @@ document.addEventListener('click',function(e){
       break;
     case 'aksv':
       (function(){
-        var el=document.getElementById('ak');
-        var k=el?String(el.value).trim():'';
-        if(!k){toast('Enter Gemini key');return;}
-        AK=k;
-        if(canLS){try{localStorage.setItem(KEY+'.ak',k);}catch(e2){}}
-        toast('<em>Key saved</em>');
+        var m={gem:'akg',oai:'ako',ant:'aka'},any=false;
+        for(var sl in m){
+          var el=document.getElementById(m[sl]);
+          if(!el)continue;
+          var k=String(el.value).trim();
+          KS[sl]=k;
+          if(canLS){try{
+            if(k)localStorage.setItem(KEY+'.ak.'+sl,k);
+            else localStorage.removeItem(KEY+'.ak.'+sl);
+          }catch(e2){}}
+          if(k)any=true;
+        }
+        toast(any?'<em>Keys saved</em>':'Enter at least one key');
       })();
       break;
+    case 'lmsel':
+      LM=v;
+      if(canLS){try{localStorage.setItem(KEY+'.lm',v);}catch(e2){}}
+      if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
+      runAI();
+      break;
     case 'ai':
-      if(!AK){UI.sheet='data';render();toast('Save your Gemini key in settings first');break;}
+      if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
       runAI();
       break;
     case 'wg':
