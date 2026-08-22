@@ -1,4 +1,4 @@
-var C='tlog-v1';
+var C='tlog-v2';
 var CORE=['.','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(C).then(function(c){return c.addAll(CORE);}).then(function(){return self.skipWaiting();}));
@@ -10,8 +10,11 @@ self.addEventListener('activate',function(e){
 });
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET')return;
+  /* 앱 본체(index)는 항상 서버 재검증 — 페이지 캐시(10분)로 구버전이 남는 문제 차단 */
+  var isDoc=e.request.mode==='navigate'||e.request.url.indexOf('index.html')>=0||e.request.url.slice(-1)==='/';
+  var req=isDoc?new Request(e.request.url,{cache:'no-cache'}):e.request;
   e.respondWith(
-    fetch(e.request).then(function(r){
+    fetch(req).then(function(r){
       var cp=r.clone();
       caches.open(C).then(function(c){c.put(e.request,cp);});
       return r;
