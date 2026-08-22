@@ -196,7 +196,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .okbtn{flex:0 0 auto;padding:0 16px;border-radius:3px;background:var(--plate2);border:1px solid var(--line);font-weight:800;font-size:11px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
 .okbtn.rdy{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
 .akin{width:100%;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);box-shadow:inset 0 2px 6px rgba(0,0,0,.55);margin:8px 0}
-#aiOut{white-space:pre-wrap;line-height:1.6;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none}
+#aiOut{white-space:pre-wrap;line-height:1.65;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none;max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #aiOut.show{display:block}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
@@ -241,6 +241,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
       <div class="hdate" id="hdate"></div>
     </div>
     <span class="hbtns">
+      <button class="hjrn" data-act="ai">Analyze</button>
       <button class="hjrn" id="sqBtn" data-act="sq">Search</button>
       <button class="hjrn" data-act="jn">Log</button>
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
@@ -713,6 +714,17 @@ function renderSheet(){
   var ov=document.getElementById('ov'),sh=document.getElementById('sheet');
   if(!UI.sheet){ov.classList.remove('on');sh.classList.remove('on');return;}
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
+  if(UI.sheet==='ai'){
+    h+='<div class="sh-t">Analyze</div>';
+    if(!AK){
+      h+='<div class="note" style="margin-top:4px">Gemini API 키를 한 번만 저장하면 이후엔 버튼 한 번으로 분석됩니다. (aistudio.google.com에서 무료 발급)</div>';
+      h+='<input id="ak" type="password" class="akin" placeholder="Gemini API key (AIza...)">';
+      h+='<button class="okbtn" data-act="aisave" style="width:100%">Save &amp; Analyze</button>';
+    }else{
+      h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
+      h+='<button class="okbtn" data-act="akclr" style="width:100%;margin-top:10px;opacity:.6">Change API key</button>';
+    }
+  }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div><div class="wrapchips">';
     for(var i=0;i<PARTS.length;i++){
@@ -777,10 +789,6 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
-      +'<div class="sh-l" style="margin-top:16px">AI weekly summary</div>'
-      +'<input id="ak" type="password" class="akin" placeholder="Gemini API key (AIza...)" value="'+AK.replace(/"/g,'')+'">'
-      +'<button class="okbtn" data-act="ai" style="width:100%">Analyze week</button>'
-      +'<div id="aiOut" class="'+(AIOUT?'show':'')+'">'+AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>'
       +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
   }
@@ -1015,6 +1023,33 @@ function aiPayload(){
     })});
   }
   return {thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT,favorites:favs};
+}
+
+function runAI(){
+  AIOUT='분석 중...';
+  UI.sheet='ai';
+  render();
+        var prompt='당신은 경력 있는 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록: 날짜와 무게x반복 세트들)를 근거로 한국어 리포트를 써라.\n구성(각 섹션 제목 한 줄 후 내용):\n[금주 분석] 부위별 볼륨을 목표·지난주와 대조해 구체 수치로 4~6줄. 세션 빈도와 부위 배분의 특징도 짚어라.\n[평가] 잘한 점 2가지와 문제점 2가지. 감량기(-400~500kcal, 근손실 방지 최우선) 관점에서 회복·과훈련 위험을 판단하라.\n[정체 종목] 최근 3회 톱세트 무게와 반복이 모두 늘지 않은 종목만 종목명과 수치 근거를 들어 나열. 없으면 없다고 명시.\n[방향] 남은 요일에 할 일 2~3개와 다음 주 부위별 조정안을 구체 세트 수로 제시. 정체 종목엔 개별 처방(무게 유지/5% 감량 재빌드/반복 목표 변경 중 택1).\n규칙: 데이터에 없는 것은 추정하지 말 것. 단정적 문장. 마크다운 기호(별표·샵) 금지, 섹션 제목은 대괄호 그대로.\n\n'+JSON.stringify(aiPayload());
+        function gcall(model,retry){
+          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(AK),{
+            method:'POST',
+            headers:{'content-type':'application/json'},
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:2048}})
+          }).then(function(r){return r.json();}).then(function(d){
+            var t='';
+            try{
+              var ps=d.candidates[0].content.parts;
+              for(var i=0;i<ps.length;i++)t+=(ps[i].text||'');
+            }catch(e4){}
+            if(!t){
+              var em=(d&&d.error&&d.error.message)?d.error.message:'';
+              if(retry&&em.indexOf('not found')>=0){gcall('gemini-flash-latest',false);return;}
+              t=em?('오류: '+em):'응답 없음';
+            }
+            AIOUT=t.trim();renderSheet();
+          }).catch(function(e3){AIOUT='요청 실패: '+e3.message;renderSheet();});
+        }
+        gcall('gemini-2.5-flash',true);
 }
 
 function restNotify(){
@@ -1263,36 +1298,24 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
-    case 'ai':
+    case 'aisave':
       (function(){
         var el=document.getElementById('ak');
         var k=el?String(el.value).trim():'';
-        if(!k){toast('Enter API key first');return;}
+        if(!k){toast('Enter Gemini key');return;}
         AK=k;
         if(canLS){try{localStorage.setItem(KEY+'.ak',k);}catch(e2){}}
-        AIOUT='분석 중...';renderSheet();
-        var prompt='당신은 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록: 날짜와 무게x반복 세트들)를 분석해 한국어로 답하라. 형식: ① 금주 분석 2~3줄(볼륨·빈도·지난주 대비) ② 정체 종목(최근 3회 톱세트 무게·반복이 늘지 않은 것만, 없으면 없다고 명시) ③ 방향 2~3줄(남은 요일과 다음 주에 뭘 조정할지). 감량기(-400~500kcal, 근손실 방지 우선)임을 감안. 짧고 단정적으로, 마크다운 기호 없이.\n\n'+JSON.stringify(aiPayload());
-        function gcall(model,retry){
-          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(k),{
-            method:'POST',
-            headers:{'content-type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:900}})
-          }).then(function(r){return r.json();}).then(function(d){
-            var t='';
-            try{
-              var ps=d.candidates[0].content.parts;
-              for(var i=0;i<ps.length;i++)t+=(ps[i].text||'');
-            }catch(e4){}
-            if(!t){
-              var em=(d&&d.error&&d.error.message)?d.error.message:'';
-              if(retry&&em.indexOf('not found')>=0){gcall('gemini-flash-latest',false);return;}
-              t=em?('오류: '+em):'응답 없음';
-            }
-            AIOUT=t.trim();renderSheet();
-          }).catch(function(e3){AIOUT='요청 실패: '+e3.message;renderSheet();});
-        }
-        gcall('gemini-2.5-flash',true);
+        runAI();
       })();
+      break;
+    case 'akclr':
+      AK='';AIOUT='';
+      if(canLS){try{localStorage.removeItem(KEY+'.ak');}catch(e2){}}
+      render();
+      break;
+    case 'ai':
+      if(!AK){UI.sheet='ai';render();break;}
+      runAI();
       break;
     case 'wg':
       (function(){
