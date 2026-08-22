@@ -195,6 +195,9 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .namein input::placeholder{color:var(--dim)}
 .okbtn{flex:0 0 auto;padding:0 16px;border-radius:3px;background:var(--plate2);border:1px solid var(--line);font-weight:800;font-size:11px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
 .okbtn.rdy{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
+.akin{width:100%;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);box-shadow:inset 0 2px 6px rgba(0,0,0,.55);margin:8px 0}
+#aiOut{white-space:pre-wrap;line-height:1.6;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none}
+#aiOut.show{display:block}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
 .wtg b{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
@@ -774,6 +777,10 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
+      +'<div class="sh-l" style="margin-top:16px">AI weekly summary</div>'
+      +'<input id="ak" type="password" class="akin" placeholder="Gemini API key (AIza...)" value="'+AK.replace(/"/g,'')+'">'
+      +'<button class="okbtn" data-act="ai" style="width:100%">Analyze week</button>'
+      +'<div id="aiOut" class="'+(AIOUT?'show':'')+'">'+AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>'
       +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
   }
@@ -921,6 +928,11 @@ function tmrDraw(){
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
 var IVs=120;
+var AK='',AIOUT='';
+(function(){
+  if(!canLS)return;
+  try{var k=localStorage.getItem(KEY+'.ak');if(k)AK=k;}catch(e){}
+})();
 (function(){
   if(!canLS)return;
   try{var n=Math.floor(+localStorage.getItem(KEY+'.iv'));if(n>=30&&n<=600)IVs=n;}catch(e){}
@@ -972,6 +984,37 @@ function widgetSync(){
     }
     AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c}));
   }catch(e){}
+}
+
+function aiPayload(){
+  var pid={},i;
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  function weekOf(off){
+    var now=new Date();var dow=(now.getDay()+6)%7;
+    var mon=new Date(now);mon.setDate(now.getDate()-dow-off*7);
+    function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+    var days=[];for(var q=0;q<7;q++){var t=new Date(mon);t.setDate(mon.getDate()+q);days.push(iso(t));}
+    var cnt={};
+    for(var k in S.l){
+      var m=pid[k];if(!m)continue;
+      for(var j=0;j<S.l[k].length;j++){
+        if(days.indexOf(S.l[k][j].d)<0)continue;
+        cnt[m.p]=(cnt[m.p]||0)+S.l[k][j].s.length;
+      }
+    }
+    return cnt;
+  }
+  var favs=[];
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(!m.f)continue;
+    var a=(S.l[m.i]||[]).slice().sort(function(x,y){return x.d<y.d?1:-1;}).slice(0,3);
+    if(!a.length)continue;
+    favs.push({n:m.n+(m.b?' '+m.b:''),p:m.p,r:a.map(function(e){
+      return e.d.slice(5)+' '+e.s.map(function(st){return st[0]+'x'+st[1];}).join(' ');
+    })});
+  }
+  return {thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT,favorites:favs};
 }
 
 function restNotify(){
@@ -1218,6 +1261,37 @@ document.addEventListener('click',function(e){
         var c=0,k;for(k in S.l)if(S.l[k]&&S.l[k].length)c++;
         toast('<em>Restored</em> '+S.m.length+' ex · '+c+' days');
         render();
+      })();
+      break;
+    case 'ai':
+      (function(){
+        var el=document.getElementById('ak');
+        var k=el?String(el.value).trim():'';
+        if(!k){toast('Enter API key first');return;}
+        AK=k;
+        if(canLS){try{localStorage.setItem(KEY+'.ak',k);}catch(e2){}}
+        AIOUT='분석 중...';renderSheet();
+        var prompt='당신은 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 3회 기록: 날짜와 무게x반복 세트들)를 분석해 한국어로 답하라. 형식: ① 금주 분석 2~3줄(볼륨·빈도·지난주 대비) ② 정체 종목(최근 3회 톱세트 무게·반복이 늘지 않은 것만, 없으면 없다고 명시) ③ 방향 2~3줄(남은 요일과 다음 주에 뭘 조정할지). 감량기(-400~500kcal, 근손실 방지 우선)임을 감안. 짧고 단정적으로, 마크다운 기호 없이.\n\n'+JSON.stringify(aiPayload());
+        function gcall(model,retry){
+          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(k),{
+            method:'POST',
+            headers:{'content-type':'application/json'},
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:900}})
+          }).then(function(r){return r.json();}).then(function(d){
+            var t='';
+            try{
+              var ps=d.candidates[0].content.parts;
+              for(var i=0;i<ps.length;i++)t+=(ps[i].text||'');
+            }catch(e4){}
+            if(!t){
+              var em=(d&&d.error&&d.error.message)?d.error.message:'';
+              if(retry&&em.indexOf('not found')>=0){gcall('gemini-flash-latest',false);return;}
+              t=em?('오류: '+em):'응답 없음';
+            }
+            AIOUT=t.trim();renderSheet();
+          }).catch(function(e3){AIOUT='요청 실패: '+e3.message;renderSheet();});
+        }
+        gcall('gemini-2.5-flash',true);
       })();
       break;
     case 'wg':
