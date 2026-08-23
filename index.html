@@ -818,6 +818,8 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
+      +'<div class="sh-l" style="margin-top:16px">Widget opacity · <b id="woV">'+WOP+'%</b></div>'
+      +'<input id="wo" type="range" min="0" max="100" step="5" value="'+WOP+'" style="width:100%;margin:10px 0 2px;accent-color:#cfa648">'
       +'<div class="sh-l" style="margin-top:16px">API keys</div>'
       +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
       +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
@@ -975,7 +977,11 @@ function tmrDraw(){
 }
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
-var IVs=120;
+var IVs=120,WOP=100;
+(function(){
+  if(!canLS)return;
+  try{var o=parseInt(localStorage.getItem(KEY+'.wo'),10);if(!isNaN(o))WOP=Math.max(0,Math.min(100,o));}catch(e){}
+})();
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
@@ -1086,7 +1092,7 @@ function widgetSync(){
     }
     lw.sort(function(x,y2){return x[2]-y2[2];});
     lw=lw.slice(0,6);
-    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw}));
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,o:WOP}));
   }catch(e){}
 }
 
@@ -1736,6 +1742,15 @@ document.addEventListener('keydown',function(e){
 });
 
 document.addEventListener('input',function(e){
+  if(e.target.id==='wo'){
+    var val=Math.max(0,Math.min(100,parseInt(e.target.value,10)||0));
+    WOP=val;
+    var lb=document.getElementById('woV');
+    if(lb)lb.textContent=val+'%';
+    if(canLS){try{localStorage.setItem(KEY+'.wo',String(val));}catch(e9){}}
+    widgetSync();
+    return;
+  }
   if(e.target.id==='q'){UI.q=e.target.value;renderChips();renderList();return;}
   if(e.target.id==='inW'){UI.w=e.target.value;syncBtns();}
   if(e.target.id==='inR'){UI.r=e.target.value;syncBtns();}
