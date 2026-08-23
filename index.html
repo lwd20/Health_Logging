@@ -1054,7 +1054,39 @@ function widgetSync(){
       for(dd=0;dd<7;dd++)if(dset[dd][order[i]])fq++;
       c.push([KOR[order[i]],fq]);
     }
-    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c}));
+    /* 오늘 세션(td) — 오늘 기록한 종목과 세트 요약 */
+    var tdISO=iso(now),td=[];
+    for(k in S.l){
+      var mm=null,z;
+      for(z=0;z<S.m.length;z++)if(S.m[z].i===k){mm=S.m[z];break;}
+      if(!mm)continue;
+      var arr=S.l[k],y;
+      for(y=0;y<arr.length;y++){
+        if(arr[y].d!==tdISO||!arr[y].s.length)continue;
+        var st=arr[y].s,top=st[0],q3;
+        for(q3=1;q3<st.length;q3++){
+          if(st[q3][0]>top[0]||(st[q3][0]===top[0]&&st[q3][1]>top[1]))top=st[q3];
+        }
+        td.push([mm.n,top[0]+'x'+top[1],st.length]);
+      }
+    }
+    /* 즐겨찾기 직전 톱세트(lw) — 마지막 수행일 기준 */
+    var lw=[];
+    for(i=0;i<S.m.length;i++){
+      var m2=S.m[i];
+      if(!m2.f)continue;
+      var a2=(S.l[m2.i]||[]).slice().sort(function(x,y2){return x.d<y2.d?1:-1;});
+      if(!a2.length||!a2[0].s.length)continue;
+      var s2=a2[0].s,tp=s2[0],q4;
+      for(q4=1;q4<s2.length;q4++){
+        if(s2[q4][0]>tp[0]||(s2[q4][0]===tp[0]&&s2[q4][1]>tp[1]))tp=s2[q4];
+      }
+      var dd2=Math.round((new Date(tdISO)-new Date(a2[0].d))/86400000);
+      lw.push([m2.n,tp[0]+'x'+tp[1],dd2]);
+    }
+    lw.sort(function(x,y2){return x[2]-y2[2];});
+    lw=lw.slice(0,6);
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw}));
   }catch(e){}
 }
 
