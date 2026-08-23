@@ -1124,11 +1124,20 @@ function runAI(){
   UI.sheet='ai';
   render();
         var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
-        function gcall(model,retry){
+        /* 3.x 계열은 thinkingLevel, 2.5 계열은 thinkingBudget — 모델명으로 분기 */
+        var GCHAIN=['gemini-3.7-flash','gemini-3.6-flash','gemini-flash-latest','gemini-2.5-flash'];
+        function gcfg(model){
+          var g={maxOutputTokens:8192};
+          if(/gemini-[3-9]|flash-latest/.test(model))g.thinkingConfig={thinkingLevel:'LOW'};
+          else g.thinkingConfig={thinkingBudget:0};
+          return g;
+        }
+        function gcall(idx){
+          var model=GCHAIN[idx];
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
             method:'POST',
             headers:{'content-type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingBudget:0}}})
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gcfg(model)})
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
             try{
@@ -1137,7 +1146,8 @@ function runAI(){
             }catch(e4){}
             if(!t){
               var em=(d&&d.error&&d.error.message)?d.error.message:'';
-              if(retry&&em.indexOf('not found')>=0){gcall('gemini-flash-latest',false);return;}
+              var swap=/not found|not supported|does not exist|invalid|unsupported/i.test(em);
+              if(swap&&idx+1<GCHAIN.length){gcall(idx+1);return;}
               t=em?('오류: '+em):'응답 없음';
             }
             aiSave(t.trim());
@@ -1177,7 +1187,7 @@ function runAI(){
           };
           ocall('gpt-5-mini',true);
         }else{
-          gcall('gemini-2.5-flash',true);
+          gcall(0);
         }
 }
 
