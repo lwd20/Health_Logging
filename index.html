@@ -820,6 +820,10 @@ function renderSheet(){
       +'<button class="okbtn" data-act="wg" style="width:100%">Save targets</button>'
       +'<div class="sh-l" style="margin-top:16px">Widget opacity · <b id="woV">'+WOP+'%</b></div>'
       +'<input id="wo" type="range" min="0" max="100" step="5" value="'+WOP+'" style="width:100%;margin:10px 0 2px;accent-color:#cfa648">'
+      +'<div class="wrapchips" style="margin-top:10px">'
+      +'<button class="chip'+(WLT?'':' on')+'" data-act="wlt" data-v="0">Dark text</button>'
+      +'<button class="chip'+(WLT?' on':'')+'" data-act="wlt" data-v="1">Light bg text</button>'
+      +'</div>'
       +'<div class="sh-l" style="margin-top:16px">API keys</div>'
       +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
       +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
@@ -977,10 +981,11 @@ function tmrDraw(){
 }
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
-var IVs=120,WOP=100;
+var IVs=120,WOP=100,WLT=0;
 (function(){
   if(!canLS)return;
   try{var o=parseInt(localStorage.getItem(KEY+'.wo'),10);if(!isNaN(o))WOP=Math.max(0,Math.min(100,o));}catch(e){}
+  try{WLT=localStorage.getItem(KEY+'.wlt')==='1'?1:0;}catch(e){}
 })();
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIC={d:'',n:0};
@@ -1092,7 +1097,7 @@ function widgetSync(){
     }
     lw.sort(function(x,y2){return x[2]-y2[2];});
     lw=lw.slice(0,6);
-    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,o:WOP}));
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,o:WOP,k:WLT}));
   }catch(e){}
 }
 
@@ -1638,6 +1643,12 @@ document.addEventListener('click',function(e){
       break;
     case 'ai':
       UI.sheet='ai';render();
+      break;
+    case 'wlt':
+      WLT=(v==='1')?1:0;
+      if(canLS){try{localStorage.setItem(KEY+'.wlt',String(WLT));}catch(e2){}}
+      widgetSync();
+      render();
       break;
     case 'wg':
       (function(){
