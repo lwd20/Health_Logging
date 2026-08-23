@@ -186,7 +186,15 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:linear-gradient(180deg,var(--plate2),var(--plate));border-top:1px solid var(--edge);border-radius:8px 8px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .22s ease;max-height:82dvh;overflow-y:auto}
 .sheet.tall{height:88dvh;max-height:88dvh}
 .sheet.on{transform:none}
-.grab{display:block;width:100%;padding:2px 0 12px;border:0;background:none}
+.grab{display:block;width:100%;padding:8px 0 12px;border:0;background:none;touch-action:none;cursor:grab}
+.sheet.drag{transition:none}
+.exitbox{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.72)}
+.exitbox.on{display:flex}
+.exitcard{width:100%;max-width:320px;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid var(--edge);border-radius:8px;padding:20px 18px 16px;box-shadow:0 18px 46px rgba(0,0,0,.6)}
+.exitcard p{font-size:13px;color:var(--tx);line-height:1.5;margin-bottom:16px;text-align:center}
+.exitcard .row2{display:flex;gap:9px}
+.exitcard .row2 button{flex:1;padding:11px 0;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.14em;border:1px solid var(--line);background:var(--inset);color:var(--tx)}
+.exitcard .row2 button.pri{background:linear-gradient(180deg,#ddbb59,#a9862b);color:#1a1200;border-color:#8f7022}
 .grab::before{content:'';display:block;width:44px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
 .sh-t{font-size:12px;font-weight:900;margin-bottom:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
 .sh-l{font-size:9.5px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
@@ -265,6 +273,15 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 <div class="foot"><button class="addm" data-act="ad">＋ Add Exercise</button></div>
 
 <div class="ov" id="ov" data-act="cl"></div>
+<div class="exitbox" id="exitBox">
+  <div class="exitcard">
+    <p>앱을 종료하시겠습니까?</p>
+    <div class="row2">
+      <button data-act="exitno">취소</button>
+      <button class="pri" data-act="exityes">종료</button>
+    </div>
+  </div>
+</div>
 <div class="sheet" id="sheet"></div>
 <div class="toast" id="toast"></div>
 
@@ -713,7 +730,13 @@ function lineChips(){
 /* ── 시트 ── */
 function renderSheet(){
   var ov=document.getElementById('ov'),sh=document.getElementById('sheet');
-  if(!UI.sheet){ov.classList.remove('on');sh.classList.remove('on');return;}
+  if(!UI.sheet){
+    ov.classList.remove('on');sh.classList.remove('on');
+    sh.style.height='';sh.style.transform='';
+    if(NAV)navDrop();
+    return;
+  }
+  navPush();
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
@@ -723,6 +746,12 @@ function renderSheet(){
       h+='<button class="chip'+(LM===lmk?' on':'')+'" data-act="lmsel" data-v="'+lmk+'">'+LMN[lmk]+'</button>';
     }
     h+='</div>';
+    var td=todayISO(),used=(AIC.d===td?AIC.n:0);
+    h+='<div class="note" style="margin:8px 2px 0;display:flex;gap:10px">'
+      +'<span>'+(AIAT?('Last '+AIAT+(AIBY?' · '+AIBY:'')):'No analysis yet')+'</span>'
+      +'<span style="margin-left:auto">&nbsp;Today '+used+' calls</span></div>';
+    h+='<button class="okbtn" data-act="airun" style="width:100%;margin:8px 0 2px"'+(AIRUN?' disabled':'')+'>'
+      +(AIRUN?'Analyzing...':(AIOUT?'Re-analyze with '+LMN[LM]:'Run analysis with '+LMN[LM]))+'</button>';
     h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
   }
   if(UI.sheet==='add'){
@@ -802,6 +831,8 @@ function renderSheet(){
   }
   sh.innerHTML=h;ov.classList.add('on');sh.classList.add('on');
   sh.classList.toggle('tall',UI.sheet==='ai');
+  sh.style.height='';sh.style.transform='';
+  grabBind();
 }
 
 /* ── 동작 ── */
@@ -945,7 +976,8 @@ function tmrDraw(){
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
 var IVs=120;
-var AK='',AIOUT='',PR='',LM='gem';
+var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
+var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
 var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
 var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 즐겨찾기 종목 최근 2주 기록(날짜별 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
@@ -965,6 +997,13 @@ var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코
     }
   }catch(e){}
   try{var pr=localStorage.getItem(KEY+'.pr');if(pr)PR=pr;}catch(e){}
+  try{
+    AIOUT=localStorage.getItem(KEY+'.aiout')||'';
+    AIAT=localStorage.getItem(KEY+'.aiat')||'';
+    AIBY=localStorage.getItem(KEY+'.aiby')||'';
+    var c=localStorage.getItem(KEY+'.aic');
+    if(c){var pj=JSON.parse(c);if(pj&&pj.d)AIC=pj;}
+  }catch(e){}
 })();
 (function(){
   if(!canLS)return;
@@ -1054,7 +1093,33 @@ function aiPayload(){
   return {today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT,favorites:favs};
 }
 
+function todayISO(){
+  var t=new Date();
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+function aiCount(){
+  var td=todayISO();
+  if(AIC.d!==td)AIC={d:td,n:0};
+  AIC.n++;
+  if(canLS){try{localStorage.setItem(KEY+'.aic',JSON.stringify(AIC));}catch(e){}}
+}
+function aiSave(txt){
+  AIRUN=false;
+  AIOUT=txt;
+  var t=new Date();
+  AIAT=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  AIBY=LMN[LM];
+  if(canLS){try{
+    localStorage.setItem(KEY+'.aiout',txt);
+    localStorage.setItem(KEY+'.aiat',AIAT);
+    localStorage.setItem(KEY+'.aiby',AIBY);
+  }catch(e){}}
+  renderSheet();
+}
 function runAI(){
+  if(AIRUN)return;
+  AIRUN=true;
+  aiCount();
   AIOUT='분석 중...';
   UI.sheet='ai';
   render();
@@ -1063,7 +1128,7 @@ function runAI(){
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
             method:'POST',
             headers:{'content-type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingLevel:"minimal"}}})
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingBudget:0}}})
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
             try{
@@ -1075,12 +1140,11 @@ function runAI(){
               if(retry&&em.indexOf('not found')>=0){gcall('gemini-flash-latest',false);return;}
               t=em?('오류: '+em):'응답 없음';
             }
-            AIOUT=t.trim();renderSheet();
-          }).catch(function(e3){AIOUT='요청 실패: '+e3.message;renderSheet();});
+            aiSave(t.trim());
+          }).catch(function(e3){aiSave('요청 실패: '+e3.message);});
         }
         function done(t,err){
-          AIOUT=(t&&t.trim())||(err?('오류: '+err):'응답 없음');
-          renderSheet();
+          aiSave((t&&t.trim())||(err?('오류: '+err):'응답 없음'));
         }
         if(LM==='ant'){
           fetch('https://api.anthropic.com/v1/messages',{
@@ -1113,8 +1177,88 @@ function runAI(){
           };
           ocall('gpt-5-mini',true);
         }else{
-          gcall('gemini-3.6-flash',true);
+          gcall('gemini-2.5-flash',true);
         }
+}
+
+/* ── 뒤로가기: 시트 열림 = 뒤로 닫기 / 메인 = 종료 확인 ── */
+var NAV=false,NAVSKIP=false;
+function navPush(){
+  if(NAV)return;
+  try{history.pushState({sheet:1},'');NAV=true;}catch(e){}
+}
+function navDrop(){
+  if(!NAV)return;
+  NAV=false;
+  NAVSKIP=true;
+  try{history.back();}catch(e){NAVSKIP=false;}
+}
+function exitAsk(on){
+  var b=document.getElementById('exitBox');
+  if(b)b.classList.toggle('on',!!on);
+}
+(function(){
+  try{history.replaceState({base:1},'');history.pushState({guard:1},'');}catch(e){}
+  window.addEventListener('popstate',function(){
+    /* 앱이 스스로 닫으며 발생시킨 back은 무시 */
+    if(NAVSKIP){NAVSKIP=false;return;}
+    if(UI.sheet){
+      NAV=false;
+      UI.sheet=null;UI.arm=null;render();
+      return;
+    }
+    if(document.getElementById('exitBox').classList.contains('on')){
+      exitAsk(false);
+      return;
+    }
+    exitAsk(true);
+    try{history.pushState({guard:1},'');}catch(e){}
+  });
+})();
+
+/* ── 시트 그랩 드래그: 아래로 끌면 닫기, 위로 끌면 최대 높이 ── */
+function grabBind(){
+  var sh=document.getElementById('sheet');
+  var g=sh?sh.querySelector('.grab'):null;
+  if(!g||g.dataset.bound)return;
+  g.dataset.bound='1';
+  var y0=0,dy=0,drag=false,h0=0;
+  function down(e){
+    var t=e.touches?e.touches[0]:e;
+    y0=t.clientY;dy=0;drag=true;
+    h0=sh.getBoundingClientRect().height;
+    sh.classList.add('drag');
+  }
+  function move(e){
+    if(!drag)return;
+    var t=e.touches?e.touches[0]:e;
+    dy=t.clientY-y0;
+    if(dy>0){
+      sh.style.transform='translateY('+dy+'px)';
+    }else{
+      var grow=Math.min(-dy,window.innerHeight*0.9-h0);
+      if(grow>0)sh.style.height=(h0+grow)+'px';
+    }
+    if(e.cancelable)e.preventDefault();
+  }
+  function up(){
+    if(!drag)return;
+    drag=false;
+    sh.classList.remove('drag');
+    sh.style.transform='';
+    if(dy>90){
+      navDrop();
+      UI.sheet=null;UI.arm=null;render();
+    }
+  }
+  g.addEventListener('touchstart',down,{passive:true});
+  g.addEventListener('touchmove',move,{passive:false});
+  g.addEventListener('touchend',up);
+  g.addEventListener('touchcancel',up);
+  g.addEventListener('mousedown',function(e){down(e);
+    var mm=function(ev){move(ev);},mu=function(){up();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};
+    document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
+  });
 }
 
 function restNotify(){
@@ -1301,6 +1445,14 @@ document.addEventListener('click',function(e){
       break;
     case 'mn':UI.sheet='data';render();break;
     case 'cl':UI.sheet=null;UI.arm=null;render();break;
+    case 'exitno':exitAsk(false);break;
+    case 'exityes':
+      exitAsk(false);
+      try{
+        if(window.AndroidApp&&AndroidApp.exit)AndroidApp.exit();
+        else window.close();
+      }catch(e2){}
+      break;
     case 'pp':UI.addPart=v;render();break;
     case 'pre':addMachine(v,UI.addPart,t.getAttribute('data-b')||'',t.getAttribute('data-l')||'');break;
     case 'am':addMachine(UI.addName,UI.addPart,UI.addBrand,UI.addLine);UI.addName='';UI.addLine='';render();break;
@@ -1404,12 +1556,15 @@ document.addEventListener('click',function(e){
     case 'lmsel':
       LM=v;
       if(canLS){try{localStorage.setItem(KEY+'.lm',v);}catch(e2){}}
+      render();
+      break;
+    case 'airun':
+      if(AIRUN){toast('Already running');break;}
       if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
       runAI();
       break;
     case 'ai':
-      if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
-      runAI();
+      UI.sheet='ai';render();
       break;
     case 'wg':
       (function(){
