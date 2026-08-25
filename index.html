@@ -199,13 +199,36 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .sh-t{font-size:12px;font-weight:900;margin-bottom:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
 .sh-l{font-size:9.5px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
+.gmwrap{position:relative;margin-top:7px}
+.gmbtn{width:100%;display:flex;align-items:center;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;color:#d9b356;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.05em;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)}
+.gmbtn::after{content:'';margin-left:auto;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #9a8a63;transition:transform .15s}
+.gmbtn.open{border-color:#8f7022}
+.gmbtn.open::after{transform:rotate(180deg)}
+.gmpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid #8f7022;border-radius:4px;box-shadow:0 16px 38px rgba(0,0,0,.65);overflow:hidden}
+.gmpop button{width:100%;display:flex;align-items:center;padding:13px 14px;background:none;border:0;border-top:1px solid var(--line);color:var(--tx);font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.05em;text-align:left}
+.gmpop .grp{padding:10px 14px 5px;font-size:8.5px;font-weight:800;letter-spacing:.26em;color:var(--dim);background:rgba(0,0,0,.22);border-top:1px solid var(--line)}
+.gmpop .grp:first-child{border-top:0}
+.gmpop button{border-top:0;padding-left:18px}
+.gmpop button.on{color:#e3b95a;background:rgba(207,166,72,.08)}
+.gmpop button.on::after{content:'';margin-left:auto;width:6px;height:6px;border-radius:50%;background:#cfa648;box-shadow:0 0 6px rgba(207,166,72,.6)}
+.aimeta{display:flex;align-items:baseline;margin:11px 2px 0;font-size:9.5px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .namerow{display:flex;gap:8px;margin-top:2px}
 .namein{flex:1;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-size:16px}
 .namein input::placeholder{color:var(--dim)}
 .okbtn{flex:0 0 auto;padding:0 16px;border-radius:3px;background:var(--plate2);border:1px solid var(--line);font-weight:800;font-size:11px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
 .okbtn.rdy{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent;color:#1a1200}
 .akin{width:100%;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);box-shadow:inset 0 2px 6px rgba(0,0,0,.55);margin:8px 0}
-#aiOut{white-space:pre-wrap;line-height:1.65;font-size:12px;color:var(--tx);background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;display:none;max-height:calc(88dvh - 165px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#aiOut{line-height:1.72;font-size:12.5px;color:var(--tx);margin-top:6px;display:none;max-height:calc(88dvh - 172px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 2px 10px}
+.ai-h{margin:18px 0 9px;padding-top:13px;border-top:1px solid var(--line);font-size:9.5px;font-weight:800;letter-spacing:.26em;color:#c9a44e}
+.ai-h:first-child{margin-top:6px;padding-top:0;border-top:0}
+.ai-p{margin:3px 0;font-variant-numeric:tabular-nums}
+.ai-b{display:flex;gap:9px;margin:5px 0}
+.ai-b i{flex:0 0 10px;height:1px;background:#8f7022;margin-top:10px}
+.ai-b span{flex:1}
+.ai-empty{margin:26px 0 14px;text-align:center;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:700}
+.ai-load{margin:12px 2px 2px;font-size:9.5px;font-weight:800;letter-spacing:.26em;color:#c9a44e}
+.ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
+@keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 #aiOut.show{display:block}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
@@ -740,27 +763,32 @@ function renderSheet(){
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
-    h+='<div class="wrapchips" style="margin-top:2px">';
-    var lmk;
-    for(lmk in LMN){
-      h+='<button class="chip'+(LM===lmk?' on':'')+'" data-act="lmsel" data-v="'+lmk+'">'+LMN[lmk]+'</button>';
-    }
-    h+='</div>';
-    if(LM==='gem'){
-      h+='<div class="wrapchips" style="margin-top:6px">';
-      var gmk;
-      for(gmk in GMN){
-        h+='<button class="chip'+(GM===gmk?' on':'')+'" data-act="gmsel" data-v="'+gmk+'" style="font-size:10px;padding:5px 10px">'+GMN[gmk]+'</button>';
+    h+='<div class="gmwrap" style="margin-top:4px">';
+    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'+engLabel()+'</button>';
+    if(GMOPEN){
+      h+='<div class="gmpop">';
+      var grps=engGroups(),gi,ii;
+      var cur=(LM==='gem'?'gem|'+GM:LM+'|');
+      for(gi=0;gi<grps.length;gi++){
+        h+='<div class="grp">'+grps[gi].name+'</div>';
+        for(ii=0;ii<grps[gi].items.length;ii++){
+          var it=grps[gi].items[ii];
+          h+='<button class="'+(cur===it.v?'on':'')+'" data-act="gmpick" data-v="'+it.v+'">'+it.label+'</button>';
+        }
       }
       h+='</div>';
     }
+    h+='</div>';
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
-    h+='<div class="note" style="margin:8px 2px 0;display:flex;gap:10px">'
-      +'<span>'+(AIAT?('Last '+AIAT+(AIBY?' · '+AIBY:'')):'No analysis yet')+'</span>'
-      +'<span style="margin-left:auto">&nbsp;Today '+used+' calls</span></div>';
-    h+='<button class="okbtn" data-act="airun" style="width:100%;margin:8px 0 2px"'+(AIRUN?' disabled':'')+'>'
-      +(AIRUN?'Analyzing...':(AIOUT?'Re-analyze with '+LMN[LM]:'Run analysis with '+LMN[LM]))+'</button>';
-    h+='<div id="aiOut" class="show">'+(AIOUT?AIOUT.replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+'</div>';
+    h+='<div class="aimeta">'
+      +'<span>'+(AIAT?(AIBY+' · '+AIAT):'Ready')+'</span>'
+      +'<span style="margin-left:auto">Today '+used+'/20</span></div>';
+    h+='<button class="savebtn'+(AIRUN?' dis':'')+'" data-act="airun" style="height:46px;letter-spacing:.22em"'+(AIRUN?' disabled':'')+'>'
+      +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
+    if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
+    h+='<div id="aiOut" class="show">'
+      +(AIOUT?aiFmt(AIOUT):(AIRUN?'':'<div class="ai-empty">NO REPORT YET</div>'))
+      +'</div>';
   }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div><div class="wrapchips">';
@@ -990,6 +1018,25 @@ var KS={gem:'',oai:'',ant:''};
 var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
 var GM='gemini-3.7-flash';
 var GMN={'gemini-3.7-flash':'3.7','gemini-3.6-flash':'3.6','gemini-flash-latest':'Latest','gemini-2.5-flash':'2.5'};
+var GMOPEN=false;
+var GML={'gemini-3.7-flash':'Gemini 3.7 Flash','gemini-3.6-flash':'Gemini 3.6 Flash','gemini-flash-latest':'Gemini Flash · Latest','gemini-2.5-flash':'Gemini 2.5 Flash'};
+function engGroups(){
+  return [
+    {name:'GEMINI',items:[
+      {v:'gem|gemini-3.7-flash',label:'3.7 Flash'},
+      {v:'gem|gemini-3.6-flash',label:'3.6 Flash'},
+      {v:'gem|gemini-flash-latest',label:'Flash · Latest'},
+      {v:'gem|gemini-2.5-flash',label:'2.5 Flash'}
+    ]},
+    {name:'GPT',items:[{v:'oai|',label:'5 Mini'}]},
+    {name:'CLAUDE',items:[{v:'ant|',label:'Sonnet 4.6'}]}
+  ];
+}
+function engLabel(){
+  if(LM==='gem')return GML[GM];
+  if(LM==='oai')return 'GPT 5 Mini';
+  return 'Claude Sonnet 4.6';
+}
 var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
 (function(){
   if(!canLS)return;
@@ -1161,6 +1208,19 @@ function aiPayload(){
   return {exercises:exs,log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
 }
 
+function aiFmt(txt){
+  var esc=String(txt).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  var lines=esc.split(/\n/),out='',i,ln,m;
+  for(i=0;i<lines.length;i++){
+    ln=lines[i].trim();
+    if(!ln)continue;
+    m=ln.match(/^\[(.+)\]$/);
+    if(m){out+='<div class="ai-h">'+m[1]+'</div>';continue;}
+    if(ln.indexOf('- ')===0){out+='<div class="ai-b"><i></i><span>'+ln.slice(2)+'</span></div>';continue;}
+    out+='<div class="ai-p">'+ln+'</div>';
+  }
+  return out;
+}
 function todayISO(){
   var t=new Date();
   return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
@@ -1188,7 +1248,6 @@ function runAI(){
   if(AIRUN)return;
   AIRUN=true;
   aiCount();
-  AIOUT='분석 중...';
   UI.sheet='ai';
   render();
         var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
@@ -1413,6 +1472,7 @@ function syncFromDom(){
   el=document.getElementById('q');if(el)UI.q=el.value;
 }
 document.addEventListener('click',function(e){
+  if(GMOPEN&&!e.target.closest('.gmwrap')){GMOPEN=false;renderSheet();}
   var t=e.target.closest('[data-act]');if(!t)return;
   syncFromDom();
   var act=t.getAttribute('data-act'),v=t.getAttribute('data-v');
@@ -1524,7 +1584,7 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
-    case 'cl':UI.sheet=null;UI.arm=null;render();break;
+    case 'cl':UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
     case 'exitno':exitAsk(false);break;
     case 'exityes':
       exitAsk(false);
@@ -1633,15 +1693,22 @@ document.addEventListener('click',function(e){
         toast(any?'<em>Keys saved</em>':'Enter at least one key');
       })();
       break;
-    case 'gmsel':
-      GM=v;
-      if(canLS){try{localStorage.setItem(KEY+'.gm',v);}catch(e2){}}
-      render();
+    case 'gmopen':
+      GMOPEN=!GMOPEN;
+      renderSheet();
       break;
-    case 'lmsel':
-      LM=v;
-      if(canLS){try{localStorage.setItem(KEY+'.lm',v);}catch(e2){}}
-      render();
+    case 'gmpick':
+      (function(){
+        var parts=v.split('|');
+        LM=parts[0];
+        if(LM==='gem'&&parts[1]&&GMN[parts[1]]){
+          GM=parts[1];
+          if(canLS){try{localStorage.setItem(KEY+'.gm',GM);}catch(e2){}}
+        }
+        if(canLS){try{localStorage.setItem(KEY+'.lm',LM);}catch(e2){}}
+        GMOPEN=false;
+        renderSheet();
+      })();
       break;
     case 'airun':
       if(AIRUN){toast('Already running');break;}
