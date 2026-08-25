@@ -199,11 +199,17 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .sh-t{font-size:12px;font-weight:900;margin-bottom:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
 .sh-l{font-size:9.5px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
-.gmwrap{position:relative;margin-top:7px}
-.gmbtn{width:100%;display:flex;align-items:center;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;color:#d9b356;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.05em;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)}
-.gmbtn::after{content:'';margin-left:auto;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #9a8a63;transition:transform .15s}
-.gmbtn.open{border-color:#8f7022}
+.console{margin-top:6px;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid var(--edge);border-radius:6px;padding:2px 14px 13px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
+.gmwrap{position:relative}
+.gmbtn{width:100%;display:flex;align-items:center;gap:10px;padding:14px 0;background:none;border:0;border-bottom:1px solid var(--line)}
+.gmbtn .clab{font-size:8.5px;letter-spacing:.26em;color:var(--dim);font-weight:800}
+.gmbtn .cval{margin-left:auto;color:#d9b356;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.03em}
+.gmbtn::after{content:'';margin-left:2px;width:0;height:0;border-left:4.5px solid transparent;border-right:4.5px solid transparent;border-top:5.5px solid #9a8a63;transition:transform .15s}
 .gmbtn.open::after{transform:rotate(180deg)}
+.cmeta{display:flex;align-items:baseline;padding:11px 1px 0;font-size:9px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.anlbtn{width:100%;height:41px;margin-top:12px;border-radius:3px;background:linear-gradient(180deg,#d6b155,#9a7a25);border:1px solid #6e5617;color:#181000;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
+.anlbtn:active{background:linear-gradient(180deg,#c2a047,#87691d)}
+.anlbtn.dis{background:var(--plate);color:var(--dim);border:1px solid var(--line);box-shadow:none}
 .gmpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid #8f7022;border-radius:4px;box-shadow:0 16px 38px rgba(0,0,0,.65);overflow:hidden}
 .gmpop button{width:100%;display:flex;align-items:center;padding:13px 14px;background:none;border:0;border-top:1px solid var(--line);color:var(--tx);font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.05em;text-align:left}
 .gmpop .grp{padding:10px 14px 5px;font-size:8.5px;font-weight:800;letter-spacing:.26em;color:var(--dim);background:rgba(0,0,0,.22);border-top:1px solid var(--line)}
@@ -221,12 +227,23 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 #aiOut{line-height:1.72;font-size:12.5px;color:var(--tx);margin-top:6px;display:none;max-height:calc(88dvh - 172px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 2px 10px}
 .ai-h{margin:18px 0 9px;padding-top:13px;border-top:1px solid var(--line);font-size:9.5px;font-weight:800;letter-spacing:.26em;color:#c9a44e}
 .ai-h:first-child{margin-top:6px;padding-top:0;border-top:0}
-.ai-p{margin:3px 0;font-variant-numeric:tabular-nums}
-.ai-b{display:flex;gap:9px;margin:5px 0}
-.ai-b i{flex:0 0 10px;height:1px;background:#8f7022;margin-top:10px}
+.ai-p{margin:4px 0;font-variant-numeric:tabular-nums}
+.ai-b{display:flex;gap:10px;margin:6px 0}
+.ai-b i{flex:0 0 4px;height:4px;border-radius:50%;background:#8f7022;margin-top:9px}
 .ai-b span{flex:1}
+.ai-row{margin:11px 0}
+.ai-row .t{display:flex;align-items:baseline}
+.ai-row .nm{font-weight:800;font-size:12.5px}
+.ai-row .num{margin-left:auto;font-family:var(--mono);font-size:13px;color:#e3b95a;font-weight:700}
+.ai-row .num em{font-style:normal;color:var(--dim);font-weight:400}
+.ai-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden}
+.ai-bar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#a9862b,#e3b95a)}
+.ai-sub{margin-top:5px;font-size:10.5px;color:var(--dim)}
+.ai-total{display:flex;align-items:baseline;margin:14px 0 2px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--mut)}
+.ai-total .num{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:#e3b95a}
+.ai-total .num em{font-style:normal;color:var(--dim);font-weight:400}
 .ai-empty{margin:26px 0 14px;text-align:center;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:700}
-.ai-load{margin:12px 2px 2px;font-size:9.5px;font-weight:800;letter-spacing:.26em;color:#c9a44e}
+.ai-load{margin:11px 1px 0;font-size:9.5px;font-weight:800;letter-spacing:.26em;color:#c9a44e}
 .ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
 @keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 #aiOut.show{display:block}
@@ -763,8 +780,11 @@ function renderSheet(){
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
-    h+='<div class="gmwrap" style="margin-top:4px">';
-    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'+engLabel()+'</button>';
+    var td=todayISO(),used=(AIC.d===td?AIC.n:0);
+    h+='<div class="console">';
+    h+='<div class="gmwrap">';
+    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
+      +'<span class="clab">ENGINE</span><span class="cval">'+engLabel()+'</span></button>';
     if(GMOPEN){
       h+='<div class="gmpop">';
       var grps=engGroups(),gi,ii;
@@ -779,13 +799,13 @@ function renderSheet(){
       h+='</div>';
     }
     h+='</div>';
-    var td=todayISO(),used=(AIC.d===td?AIC.n:0);
-    h+='<div class="aimeta">'
+    h+='<div class="cmeta">'
       +'<span>'+(AIAT?(AIBY+' · '+AIAT):'Ready')+'</span>'
-      +'<span style="margin-left:auto">Today '+used+'/20</span></div>';
-    h+='<button class="savebtn'+(AIRUN?' dis':'')+'" data-act="airun" style="height:46px;letter-spacing:.22em"'+(AIRUN?' disabled':'')+'>'
+      +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
+    h+='<button class="anlbtn'+(AIRUN?' dis':'')+'" data-act="airun"'+(AIRUN?' disabled':'')+'>'
       +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
+    h+='</div>';
     h+='<div id="aiOut" class="show">'
       +(AIOUT?aiFmt(AIOUT):(AIRUN?'':'<div class="ai-empty">NO REPORT YET</div>'))
       +'</div>';
@@ -1210,12 +1230,32 @@ function aiPayload(){
 
 function aiFmt(txt){
   var esc=String(txt).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  var lines=esc.split(/\n/),out='',i,ln,m;
+  var lines=esc.split(/\n/),out='',i,ln,m,sec='';
   for(i=0;i<lines.length;i++){
     ln=lines[i].trim();
     if(!ln)continue;
     m=ln.match(/^\[(.+)\]$/);
-    if(m){out+='<div class="ai-h">'+m[1]+'</div>';continue;}
+    if(m){sec=m[1];out+='<div class="ai-h">'+m[1]+'</div>';continue;}
+    if(sec.indexOf('금주')>=0||sec.indexOf('분석')>=0){
+      /* 합계 줄: 주간 총 15/100세트, ... */
+      m=ln.match(/^(주간\s*총|총)\s*(\d+)\s*\/\s*(\d+)\s*세트[,\s]*(.*)$/);
+      if(m){
+        out+='<div class="ai-total"><span>TOTAL'+(m[4]?' · '+m[4]:'')+'</span>'
+          +'<span class="num">'+m[2]+'<em>/'+m[3]+'</em></span></div>';
+        continue;
+      }
+      /* 부위 줄: 하체 6/20세트(세부...) */
+      m=ln.match(/^(\S{1,8})\s*(?:총)?\s*(\d+)\s*\/\s*(\d+)\s*세트\s*(?:\((.*)\))?$/);
+      if(m){
+        var pc=Math.max(0,Math.min(100,m[3]>0?Math.round(m[2]*100/m[3]):0));
+        out+='<div class="ai-row"><div class="t"><span class="nm">'+m[1]+'</span>'
+          +'<span class="num">'+m[2]+'<em>/'+m[3]+'</em></span></div>'
+          +'<div class="ai-bar"><i style="width:'+pc+'%"></i></div>'
+          +(m[4]?('<div class="ai-sub">'+m[4]+'</div>'):'')
+          +'</div>';
+        continue;
+      }
+    }
     if(ln.indexOf('- ')===0){out+='<div class="ai-b"><i></i><span>'+ln.slice(2)+'</span></div>';continue;}
     out+='<div class="ai-p">'+ln+'</div>';
   }
