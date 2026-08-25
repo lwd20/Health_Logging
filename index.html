@@ -230,14 +230,23 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .ai-p{margin:4px 0;font-variant-numeric:tabular-nums}
 .ai-b{display:flex;gap:10px;margin:6px 0}
 .ai-b i{flex:0 0 4px;height:4px;border-radius:50%;background:#8f7022;margin-top:9px}
+.ai-b.neg i{background:var(--sig);box-shadow:0 0 5px rgba(209,85,46,.45)}
 .ai-b span{flex:1}
 .ai-row{margin:11px 0}
 .ai-row .t{display:flex;align-items:baseline}
 .ai-row .nm{font-weight:800;font-size:12.5px}
 .ai-row .num{margin-left:auto;font-family:var(--mono);font-size:13px;color:#e3b95a;font-weight:700}
 .ai-row .num em{font-style:normal;color:var(--dim);font-weight:400}
-.ai-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden}
-.ai-bar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#a9862b,#e3b95a)}
+.ai-bar{position:relative;height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin-top:7px}
+.ai-bar b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#a9862b,#e3b95a);transition:width .7s cubic-bezier(.2,.75,.25,1)}
+.ai-bar .mk{position:absolute;top:-2.5px;bottom:-2.5px;width:1px;background:#d8cfb6;opacity:.5}
+.ai-mast{display:flex;align-items:baseline;gap:10px;margin:14px 1px 4px;padding-bottom:10px;border-bottom:1px solid var(--line);position:relative}
+.ai-mast::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:1px;background:var(--line)}
+.ai-mast .tt{font-size:11px;font-weight:900;letter-spacing:.3em;color:#c9a44e}
+.ai-mast .mt{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.ai-mast .nav{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;background:var(--plate2);color:var(--mut);font-size:10px;line-height:1}
+.ai-mast .nav:disabled{opacity:.3}
+.hl{font-family:var(--mono);color:#e3b95a;font-weight:700}
 .ai-sub{margin-top:5px;font-size:10.5px;color:var(--dim)}
 .ai-total{display:flex;align-items:baseline;margin:14px 0 2px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--mut)}
 .ai-total .num{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:#e3b95a}
@@ -806,9 +815,20 @@ function renderSheet(){
       +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
     h+='</div>';
-    h+='<div id="aiOut" class="show">'
-      +(AIOUT?aiFmt(AIOUT):(AIRUN?'':'<div class="ai-empty">NO REPORT YET</div>'))
-      +'</div>';
+    var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
+    h+='<div id="aiOut" class="show">';
+    if(cur){
+      h+='<div class="ai-mast"><span class="tt">WEEKLY REPORT</span>'
+        +'<span class="mt">'
+        +'<button class="nav" data-act="aiprev"'+(AIVIEW+1<AIH.length?'':' disabled')+'>&#9664;</button>'
+        +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+'</span>'
+        +'<button class="nav" data-act="ainext"'+(AIVIEW>0?'':' disabled')+'>&#9654;</button>'
+        +'</span></div>';
+      h+=aiFmt(cur.o);
+    }else if(!AIRUN){
+      h+='<div class="ai-empty">NO REPORT YET</div>';
+    }
+    h+='</div>';
   }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div><div class="wrapchips">';
@@ -889,6 +909,16 @@ function renderSheet(){
   sh.classList.toggle('tall',UI.sheet==='ai');
   sh.style.height='';sh.style.transform='';
   grabBind();
+  if(UI.sheet==='ai'&&AIFRESH){
+    (function(){
+      var bars=sh.querySelectorAll('.ai-bar b');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        var i2;
+        for(i2=0;i2<bars.length;i2++)bars[i2].style.width=bars[i2].getAttribute('data-w')+'%';
+      });});
+      AIFRESH=false;
+    })();
+  }
 }
 
 /* ── 동작 ── */
@@ -1033,6 +1063,8 @@ function tmrDraw(){
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10};
 var IVs=120;
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
+var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
+var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
 var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
@@ -1081,6 +1113,10 @@ var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코
     AIBY=localStorage.getItem(KEY+'.aiby')||'';
     var c=localStorage.getItem(KEY+'.aic');
     if(c){var pj=JSON.parse(c);if(pj&&pj.d)AIC=pj;}
+    var hh=localStorage.getItem(KEY+'.aih');
+    if(hh){var ha=JSON.parse(hh);if(ha&&ha.length)AIH=ha;}
+    AIDT=localStorage.getItem(KEY+'.aidt')||'';
+    if(!AIH.length&&AIOUT)AIH=[{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}];
   }catch(e){}
 })();
 (function(){
@@ -1228,6 +1264,13 @@ function aiPayload(){
   return {exercises:exs,log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
 }
 
+var AINEG=['과다','부족','미달','위험','우려','초과','부채','이탈','정체로','저조'];
+var AIPOS=['달성','양호','잘 ','준수','유지함','회피','안정','적절','성공'];
+function hlNum(t){
+  return t.replace(/(\d+(?:\.\d+)?\s*kg)/g,'<b class="hl">$1</b>')
+          .replace(/(\d+\s*회)/g,'<b class="hl">$1</b>')
+          .replace(/(\d+(?:\.\d+)?x\d+)/g,'<b class="hl">$1</b>');
+}
 function aiFmt(txt){
   var esc=String(txt).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   var lines=esc.split(/\n/),out='',i,ln,m,sec='';
@@ -1236,6 +1279,7 @@ function aiFmt(txt){
     if(!ln)continue;
     m=ln.match(/^\[(.+)\]$/);
     if(m){sec=m[1];out+='<div class="ai-h">'+m[1]+'</div>';continue;}
+    if(sec.indexOf('정체')>=0)ln=hlNum(ln);
     if(sec.indexOf('금주')>=0||sec.indexOf('분석')>=0){
       /* 합계 줄: 주간 총 15/100세트, ... */
       m=ln.match(/^(주간\s*총|총)\s*(\d+)\s*\/\s*(\d+)\s*세트[,\s]*(.*)$/);
@@ -1248,15 +1292,28 @@ function aiFmt(txt){
       m=ln.match(/^(\S{1,8})\s*(?:총)?\s*(\d+)\s*\/\s*(\d+)\s*세트\s*(?:\((.*)\))?$/);
       if(m){
         var pc=Math.max(0,Math.min(100,m[3]>0?Math.round(m[2]*100/m[3]):0));
+        var sub=m[4]||'',mk='';
+        var em=sub.match(/기대\s*(\d+(?:\.\d+)?)\s*세트[,\s]*/);
+        if(em&&m[3]>0){
+          var mp=Math.max(0,Math.min(100,Math.round(em[1]*100/m[3])));
+          mk='<i class="mk" style="left:'+mp+'%"></i>';
+          sub=sub.replace(em[0],'');
+        }
         out+='<div class="ai-row"><div class="t"><span class="nm">'+m[1]+'</span>'
           +'<span class="num">'+m[2]+'<em>/'+m[3]+'</em></span></div>'
-          +'<div class="ai-bar"><i style="width:'+pc+'%"></i></div>'
-          +(m[4]?('<div class="ai-sub">'+m[4]+'</div>'):'')
+          +'<div class="ai-bar"><b data-w="'+pc+'" style="width:'+(AIFRESH?0:pc)+'%"></b>'+mk+'</div>'
+          +(sub?('<div class="ai-sub">'+sub+'</div>'):'')
           +'</div>';
         continue;
       }
     }
-    if(ln.indexOf('- ')===0){out+='<div class="ai-b"><i></i><span>'+ln.slice(2)+'</span></div>';continue;}
+    if(ln.indexOf('- ')===0){
+      var body=ln.slice(2),tone='',ki;
+      for(ki=0;ki<AIPOS.length;ki++)if(body.indexOf(AIPOS[ki])>=0){tone='pos';break;}
+      if(!tone)for(ki=0;ki<AINEG.length;ki++)if(body.indexOf(AINEG[ki])>=0){tone='neg';break;}
+      out+='<div class="ai-b'+(tone==='neg'?' neg':'')+'"><i></i><span>'+body+'</span></div>';
+      continue;
+    }
     out+='<div class="ai-p">'+ln+'</div>';
   }
   return out;
@@ -1277,10 +1334,17 @@ function aiSave(txt){
   var t=new Date();
   AIAT=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
   AIBY=LMN[LM]+(LM==='gem'?' '+GMN[GM]:'');
+  AIDT=MONS[t.getMonth()]+' '+t.getDate();
+  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT});
+  AIH=AIH.slice(0,4);
+  AIVIEW=0;
+  AIFRESH=true;
   if(canLS){try{
     localStorage.setItem(KEY+'.aiout',txt);
     localStorage.setItem(KEY+'.aiat',AIAT);
     localStorage.setItem(KEY+'.aiby',AIBY);
+    localStorage.setItem(KEY+'.aidt',AIDT);
+    localStorage.setItem(KEY+'.aih',JSON.stringify(AIH));
   }catch(e){}}
   renderSheet();
 }
@@ -1732,6 +1796,12 @@ document.addEventListener('click',function(e){
         }
         toast(any?'<em>Keys saved</em>':'Enter at least one key');
       })();
+      break;
+    case 'aiprev':
+      if(AIVIEW+1<AIH.length){AIVIEW++;AIFRESH=false;renderSheet();}
+      break;
+    case 'ainext':
+      if(AIVIEW>0){AIVIEW--;AIFRESH=false;renderSheet();}
       break;
     case 'gmopen':
       GMOPEN=!GMOPEN;
