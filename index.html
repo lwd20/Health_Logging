@@ -587,7 +587,8 @@ function render(){
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')
-    +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'');
+    +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'')
+    +(bmr(BW,BF)?'<em>· TDEE ≈ '+dayTDEE(UI.wd).toLocaleString()+'</em>':'');
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
   renderChips();renderList();renderSheet();
@@ -966,7 +967,8 @@ function renderSheet(){
       +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
       +'<div><b>HR MAX</b><input id="hr0" inputmode="numeric" maxlength="3" value="'+HRM+'"></div>'
       +'</div>'
-      +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM)+'</div>'
+      +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div></div>'
+      +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
       +'<button class="okbtn" data-act="wg" style="width:100%">Save settings</button>'
       +'<div class="sh-l" style="margin-top:16px">API keys</div>'
       +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
@@ -1153,16 +1155,42 @@ function tmrDraw(){
 }
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
-var IVs=120,HRM=190,BW=78,BF=20,GF=15;
+var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
 (function(){
   if(!canLS)return;
   try{var h=Math.floor(+localStorage.getItem(KEY+'.hrm'));if(h>=120&&h<=220)HRM=h;}catch(e){}
   try{var b=parseFloat(localStorage.getItem(KEY+'.bw'));if(b>=30&&b<=200)BW=Math.round(b*10)/10;}catch(e){}
   try{var f=parseFloat(localStorage.getItem(KEY+'.bf'));if(f>=3&&f<=60)BF=Math.round(f*10)/10;}catch(e){}
   try{var g=parseFloat(localStorage.getItem(KEY+'.gf'));if(g>=3&&g<=40)GF=Math.round(g*10)/10;}catch(e){}
+  try{var ac=parseFloat(localStorage.getItem(KEY+'.act'));if(ac>=1.1&&ac<=1.9)ACT=Math.round(ac*100)/100;}catch(e){}
 })();
-function bodyLine(bw,bf,gf,hrm){
-  bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;
+/* 기초대사 — Katch-McArdle(제지방 기반) */
+function bmr(bw,bf){
+  bw=+bw;bf=+bf;
+  if(!(bw>0&&bf>0))return 0;
+  return Math.round(370+21.6*bw*(1-bf/100));
+}
+/* 해당 날짜 운동 소비 — 유산소: ACSM 실계산 / 근력: 5MET·세트당 2분 추정 */
+function dayExKcal(ds){
+  var k=0,i,j;
+  var perSet=5*3.5*BW/200*2;
+  for(i=0;i<S.m.length;i++){
+    var a=S.l[S.m[i].i]||[];
+    for(j=0;j<a.length;j++){
+      if(a[j].d!==ds||!a[j].s.length)continue;
+      if(isCard(S.m[i].p))k+=kcalSess(a[j].s,S.m[i].n);
+      else k+=a[j].s.length*perSet;
+    }
+  }
+  return Math.round(k);
+}
+function dayTDEE(ds){
+  var b=bmr(BW,BF);
+  if(!b)return 0;
+  return Math.round(b*ACT+dayExKcal(ds));
+}
+function bodyLine(bw,bf,gf,hrm,act){
+  bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
   if(!(bw>0&&bf>0))return 'Zone2 '+z1+'–'+z2+' bpm';
   var fat=bw*bf/100,lbm=bw-fat;
@@ -1171,6 +1199,8 @@ function bodyLine(bw,bf,gf,hrm){
     var tw=lbm/(1-gf/100),loss=bw-tw;
     out+='<br>목표 '+gf+'%까지 지방 약 <b>'+loss.toFixed(1)+'</b>kg (제지방 유지 시 '+tw.toFixed(1)+'kg)';
   }
+  var bm=bmr(bw,bf);
+  if(bm)out+='<br>BMR <b>'+bm.toLocaleString()+'</b> kcal · 비운동 TDEE ≈ <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal (운동일은 소비 추가 합산)';
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -2053,6 +2083,11 @@ document.addEventListener('click',function(e){
           var fv=parseFloat(String(bfEl.value).replace(',','.'));
           if(fv>=3&&fv<=60){BF=Math.round(fv*10)/10;if(canLS){try{localStorage.setItem(KEY+'.bf',String(BF));}catch(e6){}}}
         }
+        var acEl=document.getElementById('ac0');
+        if(acEl){
+          var av=parseFloat(String(acEl.value).replace(',','.'));
+          if(av>=1.1&&av<=1.9){ACT=Math.round(av*100)/100;if(canLS){try{localStorage.setItem(KEY+'.act',String(ACT));}catch(e8){}}}
+        }
         var gfEl=document.getElementById('gf0');
         if(gfEl){
           var gv=parseFloat(String(gfEl.value).replace(',','.'));
@@ -2064,6 +2099,7 @@ document.addEventListener('click',function(e){
         }
         widgetSync();restNotify();
         toast('<em>Settings saved</em>');
+        render();
         renderSheet();
       })();
       break;
@@ -2157,11 +2193,11 @@ document.addEventListener('input',function(e){
     var b=document.querySelector('[data-act="am"],[data-act="em"]');
     if(b)b.className='okbtn'+(UI.addName.trim()?' rdy':'');
   }
-  if(e.target.id==='bw0'||e.target.id==='bf0'||e.target.id==='gf0'||e.target.id==='hr0'){
+  if(e.target.id==='bw0'||e.target.id==='bf0'||e.target.id==='gf0'||e.target.id==='hr0'||e.target.id==='ac0'){
     var bi=document.getElementById('bdInfo');
     if(bi){
       var gv2=function(id,dv){var el2=document.getElementById(id);var n2=parseFloat(String(el2?el2.value:'').replace(',','.'));return isNaN(n2)?dv:n2;};
-      bi.innerHTML=bodyLine(gv2('bw0',BW),gv2('bf0',BF),gv2('gf0',GF),gv2('hr0',HRM));
+      bi.innerHTML=bodyLine(gv2('bw0',BW),gv2('bf0',BF),gv2('gf0',GF),gv2('hr0',HRM),gv2('ac0',ACT));
     }
   }
   if(e.target.id==='addBrand')UI.addBrand=e.target.value;
