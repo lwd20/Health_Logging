@@ -321,7 +321,7 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
   <div class="trow" id="trow">
     <span class="tdig"><i>Recovery</i><b id="tmr">00:00</b></span>
     <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
-    <button class="tbtn" data-act="tr">Reset</button>
+    <button class="tbtn" data-act="tr">Stop</button>
   </div>
   <div class="srow" id="srow">
     <span class="sin"><i>⌕</i><input id="q" type="search" enterkeyhint="search" placeholder="Name · brand · line" autocomplete="off" autocapitalize="none" spellcheck="false"></span>
@@ -1151,7 +1151,7 @@ function tmrFmt(ms){
 function tmrDraw(){
   var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(tmrMs());
   var row=document.getElementById('trow');if(row)row.classList.toggle('run',!!TMR.ts);
-  var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Stop':'Start';
+  var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Reset':'Start';
 }
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
@@ -1807,9 +1807,8 @@ document.addEventListener('click',function(e){
   if(act!=='dm'&&act!=='rs'&&act!=='sd')UI.arm=null;
   switch(act){
     case 'ts':
-      if(TMR.ts){TMR.b+=Date.now()-TMR.ts;TMR.ts=0;}
-      else{TMR.ts=Date.now();}
-      tmrMark=Math.floor(tmrMs()/(IVs*1000));buzz(10);tmrSave();tmrDraw();restNotify();break;
+      TMR.b=0;TMR.ts=Date.now();
+      tmrMark=0;buzz(10);tmrSave();tmrDraw();restNotify();break;
     case 'tr':
       TMR.b=0;TMR.ts=0;tmrMark=0;tmrSave();tmrDraw();restNotify();break;
     case 'fo':UI.favOnly=!UI.favOnly;render();break;
