@@ -299,6 +299,45 @@ main{padding:0 14px calc(104px + env(safe-area-inset-bottom))}
 .toast em{color:var(--chrome);font-weight:900;letter-spacing:.1em}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+html{color-scheme:dark}
+.dset{display:flex;align-items:flex-start;margin-top:2px}
+.drail{flex:0 0 76px;position:sticky;top:0;display:flex;flex-direction:column;gap:2px;padding:2px 10px 2px 0;border-right:1px solid var(--line);margin-right:16px}
+.drail .dtb{height:42px;text-align:left;padding:0 0 0 9px;background:none;border:none;border-left:2px solid transparent;border-radius:0;color:var(--dim);font-size:9.5px;font-weight:800;letter-spacing:.2em}
+.drail .dtb.on{border-left-color:#cfa648;color:#e3b95a;background:linear-gradient(90deg,rgba(207,166,72,.09),transparent)}
+.dbody{flex:1;min-width:0}
+.dbody .sh-l:first-child{margin-top:0}
+#bhD{font-family:var(--mono);letter-spacing:0;font-size:11px;color:var(--mut);min-width:0;padding-left:2px;padding-right:2px;text-align:center}
+.strow{display:flex;align-items:center;gap:9px;margin:8px 0}
+.strow .stnm{flex:0 0 58px;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
+.strow .ai-bar{flex:1;margin:0}
+.strow .stv{font-family:var(--mono);font-size:12px;font-weight:700;color:#e3b95a;min-width:18px;text-align:right}
+.strow .stsl{color:var(--dim);font-size:11px}
+.stpt{display:flex;align-items:center;gap:9px;margin:13px 0 4px;font-size:10.5px;font-weight:800;letter-spacing:.24em;color:#cfa648}
+.stpt::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(207,166,72,.35),var(--line) 40%,transparent)}
+.stpt:first-of-type{margin-top:7px}
+.strow .stnm{font-weight:600;letter-spacing:.08em}
+.strow.off .strest{opacity:.22}
+.strest{flex:1;border-bottom:1px dotted var(--line);height:11px;opacity:.5}
+.stband{flex:1;font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--dim);border-bottom:1px dashed var(--line);padding-bottom:3px;text-align:center}
+.stband.viol{color:#c96a5a;border-bottom-color:#5a3430}
+.strow.avoid .stv{color:var(--dim)}
+.strow.avoid.viol .stv{color:#c96a5a}
+.strow.off .stv{color:var(--dim);font-weight:400}
+.strow.off .stnm{color:var(--dim)}
+.strow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:#e3b95a;font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+.calov{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.calpn{width:min(316px,88vw);background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid var(--line);border-radius:6px;box-shadow:inset 0 1px 0 var(--edge),0 18px 50px rgba(0,0,0,.7);padding:14px 14px 12px}
+.calhd{display:flex;align-items:center;margin-bottom:10px}
+.calhd b{flex:1;text-align:center;font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:#e3b95a;font-weight:700}
+.calhd button{width:34px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--mut);font-size:13px}
+.calwk{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.calwk i{font-style:normal;text-align:center;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);padding:4px 0}
+.calgr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.calgr button{height:36px;background:none;border:none;border-radius:3px;font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+.calgr button.td{box-shadow:inset 0 0 0 1px var(--line);color:#cbb27a}
+.calgr button.sel{background:#2e2410;box-shadow:inset 0 0 0 1px #8f7022;color:#e3b95a;font-weight:700}
+.calgr button.dis{opacity:.22}
+.calgr span{height:36px}
 </style>
 </head>
 <body>
@@ -557,12 +596,20 @@ function detailOf(s){
 function machById(id){for(var i=0;i<S.m.length;i++)if(S.m[i].i===id)return S.m[i];return null;}
 function machStep(id){if(isCardId(id))return 5;var m=machById(id);return (m&&m.st>0)?m.st:2.5;}
 function anyDirty(){for(var k in UI.dirty)if(UI.dirty[k])return true;return false;}
+function isWalkName(n){n=String(n||'').toLowerCase();return n.indexOf('walk')>=0||n.indexOf('걷기')>=0||n.indexOf('산책')>=0||n.indexOf('워킹')>=0;}
 function ensureCardio(){
-  var i,has=false;
-  for(i=0;i<S.m.length;i++)if(S.m[i].p==='CARDIO'){has=true;break;}
-  if(has)return;
-  S.m.push({i:uid(),n:'Treadmill',p:'CARDIO',b:''});
-  S.m.push({i:uid(),n:'Stair Climber',p:'CARDIO',b:''});
+  var i,has=false,hasWalk=false;
+  for(i=0;i<S.m.length;i++){
+    if(S.m[i].p==='CARDIO'){
+      has=true;
+      if(isWalkName(S.m[i].n))hasWalk=true;
+    }
+  }
+  if(!has){
+    S.m.push({i:uid(),n:'Treadmill',p:'CARDIO',b:''});
+    S.m.push({i:uid(),n:'Stair Climber',p:'CARDIO',b:''});
+  }
+  if(!hasWalk)S.m.push({i:uid(),n:'Walking',p:'CARDIO',b:'NEAT'});
 }
 function hasLogs(){for(var k in S.l){var a=S.l[k];if(a&&a.length)return true;}return false;}
 var toastT=null;
@@ -656,15 +703,16 @@ function renderList(){
     arr2=favFirst(arr2);
     if(UI.filter==='CARDIO'){
       var wc=wkCardio(),tg=WTGT['CARDIO']||90;
-      var pc2=Math.max(0,Math.min(100,Math.round(wc.min*100/tg)));
-      var rem=Math.max(0,tg-wc.min);
-      h+='<div class="cdcard"><div class="t"><span class="lb">This Week · Cardio</span>'
-        +'<span class="num">'+wc.min+'<em> / '+tg+' min</em></span></div>'
+      var pc2=Math.max(0,Math.min(100,Math.round(wc.z2*100/tg)));
+      var rem=Math.max(0,tg-wc.z2);
+      h+='<div class="cdcard"><div class="t"><span class="lb">This Week · Zone2</span>'
+        +'<span class="num">'+wc.z2+'<em> / '+tg+' min</em></span></div>'
         +'<div class="ai-bar" style="margin-top:9px"><b style="width:'+pc2+'%"></b></div>'
-        +'<div class="sub2"><span><b>'+wc.days+'</b>회 수행 · Zone2 <b>'+zone2()[0]+'–'+zone2()[1]+'</b> bpm</span>'
+        +'<div class="sub2"><span><b>'+wc.days+'</b>/3회 · <b>'+zone2()[0]+'–'+zone2()[1]+'</b> bpm</span>'
         +'<span style="margin-left:auto">'+(rem>0?('잔여 <b>'+rem+'</b>분'):'목표 달성')+'</span></div>'
-        +(wc.kcal>0?('<div class="sub2" style="margin-top:4px"><span>소비 ≈ <b>'+wc.kcal.toLocaleString()+'</b> kcal · 지방 약 <b>'+(wc.kcal/7700).toFixed(2)+'</b> kg</span>'
-        +'<span style="margin-left:auto" style2="">추정치</span></div>'):'')
+        +(wc.neat>0?('<div class="sub2" style="margin-top:4px"><span>걷기(NEAT) <b>+'+wc.neat+'</b>분 — 목표 회수엔 미포함</span></div>'):'')
+        +((wc.kcal>0||wc.km>0)?('<div class="sub2" style="margin-top:4px"><span>소비 ≈ <b>'+wc.kcal.toLocaleString()+'</b> kcal · 지방 약 <b>'+(wc.kcal/7700).toFixed(2)+'</b> kg'+(wc.km>0?(' · <b>'+wc.km+'</b> km'):'')+'</span>'
+        +'<span style="margin-left:auto">추정치</span></div>'):'')
         +'</div>';
     }
     if(arr2.length){
@@ -746,8 +794,9 @@ function panelHtml(m){
       +'</div>';
     h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
     if(draft.length){
-      var sk=kcalSess(draft,m.n);
-      if(sk>0)h+='<div class="pacehint" style="margin-top:2px">session ≈ <b>'+sk+' kcal</b></div>';
+      var sk=kcalSess(draft,m.n),skm=0;
+      if(isTreadName(m.n))for(var q6=0;q6<draft.length;q6++)skm+=(+draft[q6][0]||0)/60*(+draft[q6][1]||0);
+      if(sk>0)h+='<div class="pacehint" style="margin-top:2px">session ≈ <b>'+sk+' kcal</b>'+(skm>0?(' · <b>'+(Math.round(skm*10)/10)+' km</b>'):'')+'</div>';
     }
   }
   h+=''
@@ -928,6 +977,11 @@ function renderSheet(){
     for(var s2=0;s2<steps.length;s2++){
       h+='<button class="chip'+(UI.editStep===steps[s2]?' on':'')+'" data-act="ps" data-v="'+steps[s2]+'">'+fmtW(steps[s2])+'kg</button>';
     }
+    h+='</div><div class="sh-l">Reps max <span style="font-weight:400;letter-spacing:0;color:var(--dim)">점증 판정 상한</span></div><div class="wrapchips">';
+    var rxs=[10,12,15,20];
+    for(var s3=0;s3<rxs.length;s3++){
+      h+='<button class="chip'+((UI.editRx||12)===rxs[s3]?' on':'')+'" data-act="px" data-v="'+rxs[s3]+'">'+rxs[s3]+'</button>';
+    }
     h+='</div><div class="sh-l">Name · Brand</div>'
       +'<div class="namerow"><span class="namein"><input id="addName" enterkeyhint="done" placeholder="Exercise name" autocomplete="off" autocapitalize="none" spellcheck="false" value="'+esc(UI.addName)+'"></span></div>'
       +'<div class="namerow"><span class="namein"><input id="addBrand" enterkeyhint="done" placeholder="Brand (optional)" autocomplete="off" autocapitalize="none" spellcheck="false" value="'+esc(UI.addBrand)+'"></span></div>'
@@ -942,25 +996,87 @@ function renderSheet(){
   if(UI.sheet==='data'){
     var armed=UI.arm==='rs';
     var bk=getBk();
-    h+='<div class="sh-t">Data</div>'
-      +'<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
-      +'<textarea class="ta" id="ioTa">'+esc(JSON.stringify(S))+'</textarea>'
+    var tb=UI.dtab||'body';
+    function tbBtn(id,lb){return '<button class="dtb'+(tb===id?' on':'')+'" data-act="dtb" data-v="'+id+'">'+lb+'</button>';}
+    h+='<div class="sh-t">Settings</div>'
+      +'<div class="dset"><div class="drail">'
+      +tbBtn('body','BODY')+tbBtn('goals','GOALS')+tbBtn('ai','AI')+tbBtn('data','DATA')
+      +'</div><div class="dbody">';
+    if(tb==='data'){
+    h+='<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
+      +'<textarea class="ta" id="ioTa">'+esc(bkText())+'</textarea>'
       +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">Copy</button>'
       +'<button class="okbtn" data-act="ap">Apply Input</button></div>'
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
-      +'<input type="file" id="impF" accept=".json,application/json" style="display:none">'
-      +'<div class="sh-l" style="margin-top:14px">Weekly targets · sets</div>'
-      +'<div class="wtg">'
-      +'<div><b>CHEST</b><input id="wt0" inputmode="numeric" maxlength="2" value="'+WTGT['CHEST']+'"></div>'
-      +'<div><b>BACK</b><input id="wt1" inputmode="numeric" maxlength="2" value="'+WTGT['BACK']+'"></div>'
-      +'<div><b>SHO</b><input id="wt2" inputmode="numeric" maxlength="2" value="'+WTGT['SHOULDERS']+'"></div>'
-      +'<div><b>LEGS</b><input id="wt3" inputmode="numeric" maxlength="2" value="'+WTGT['LEGS']+'"></div>'
-      +'<div><b>ARMS</b><input id="wt4" inputmode="numeric" maxlength="2" value="'+WTGT['ARMS·ETC']+'"></div>'
-      +'<div><b>CARDIO<span style="font-weight:400;color:var(--dim)">min</span></b><input id="wt5" inputmode="numeric" maxlength="3" value="'+WTGT['CARDIO']+'"></div>'
+      +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
+    }
+    if(tb==='goals'){
+    h+=(function(){
+      var pcNow=partCnt();
+      var ROWS=[
+        ['wt2','SHOULDERS','어깨',2],
+        ['wt1','BACK','등',2],
+        ['wt0','CHEST','가슴',2],
+        ['wt3','LEGS','하체',2],
+        ['wt4','ARMS·ETC','팔·기타',2],
+        ['wt5','CARDIO','유산소·분',3]
+      ];
+      var hh='<div class="sh-l" style="margin-top:2px">Weekly targets</div>',ri;
+      for(ri=0;ri<ROWS.length;ri++){
+        var rw=ROWS[ri],goal=WTGT[rw[1]],cur=pcNow[rw[1]];
+        hh+='<div class="strow"><b class="stnm">'+rw[2]+'</b>'
+          +'<div class="strest"></div>'
+          +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
+          +'<input id="'+rw[0]+'" class="stin" inputmode="numeric" maxlength="'+rw[3]+'" value="'+goal+'">'
+          +'</div>';
+      }
+      return hh;
+    })()
+      +(function(){
+        var sc=subCnt();
+        var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
+        var PO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
+        var hh='<div class="sh-l" style="margin-top:14px">Sub targets · this week</div>';
+        var gi,si4;
+        for(gi=0;gi<PO.length;gi++){
+          hh+='<div class="stpt">'+PN[PO[gi]]+'</div>';
+          for(si4=0;si4<SUBS.length;si4++){
+            var e2=SUBS[si4];
+            if(e2.p!==PO[gi])continue;
+            var goal=STG[e2.k],cur=sc[e2.k];
+            var mid;
+            if(goal===0){
+              mid='<div class="stband'+(cur>0?' viol':'')+'">'+(cur>0?'회피 위반 +'+cur:'회피')+'</div>';
+            }else{
+              mid='<div class="strest"'+(goal<0?' style="opacity:.22"':'')+'></div>';
+            }
+            hh+='<div class="strow'+(goal<0?' off':'')+(goal===0?' avoid':'')+'"><b class="stnm">'+e2.n+'</b>'
+              +mid
+              +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
+              +'<input id="st'+si4+'" class="stin" inputmode="numeric" maxlength="2" placeholder="–" value="'+(goal<0?'':goal)+'">'
+              +'</div>';
+          }
+        }
+        hh+='<div class="note" style="margin:4px 0 0">이름으로 자동 분류함 · 빈칸 – = 미추적 · <b>0 = 회피 목표</b>(자극 시 위반 표시)</div>';
+        return hh;
+      })()
+      +'<div class="sh-l" style="margin-top:14px">Rest days</div>'
+      +'<div class="wrapchips">'
+      +(function(){
+        var DN=['일','월','화','수','목','금','토'],hh='',i;
+        for(i=0;i<7;i++)hh+='<button class="chip'+(RD.indexOf(i)>=0?' on':'')+'" data-act="rdt" data-v="'+i+'">'+DN[i]+'</button>';
+        return hh;
+      })()
       +'</div>'
-      +'<div class="wtg"><div style="flex:0 0 48%"><b>REST ALERT · SEC</b><input id="iv0" inputmode="numeric" maxlength="3" value="'+IVs+'"></div></div>'
-      +'<div class="sh-l" style="margin-top:14px">Body</div>'
+      +'<div class="strow" style="margin-top:10px"><b class="stnm" style="flex:0 0 70px">알림 간격</b>'
+      +'<div class="strest"></div>'
+      +'<input id="iv0" class="stin" inputmode="numeric" maxlength="3" value="'+IVs+'">'
+      +'<span class="stsl">초</span></div>'
+      +'<button class="okbtn" data-act="wg" style="width:100%;margin-top:12px">Save goals</button>';
+    }
+    if(tb==='body'){
+    h+='<div class="sh-l" style="margin-top:2px">Body</div>'
       +'<div class="wtg">'
       +'<div><b>WEIGHT · KG</b><input id="bw0" inputmode="decimal" maxlength="5" value="'+BW+'"></div>'
       +'<div><b>FAT · %</b><input id="bf0" inputmode="decimal" maxlength="4" value="'+BF+'"></div>'
@@ -969,20 +1085,57 @@ function renderSheet(){
       +'</div>'
       +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div></div>'
       +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-      +'<button class="okbtn" data-act="wg" style="width:100%">Save settings</button>'
-      +'<div class="sh-l" style="margin-top:16px">API keys</div>'
+      +(function(){
+        var all=bhLoad().slice().reverse();
+        var open=!!UI.bhAll;
+        var a=open?all:all.slice(0,3);
+        var hh='',i;
+        hh+='<div class="sh-l" style="margin-top:10px;display:flex;align-items:baseline">InBody Records'
+          +(all.length>3?('<button data-act="bhv" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:9px;font-weight:800;letter-spacing:.18em;padding:2px 4px">'+(open?'COLLAPSE':'ALL · '+all.length)+'</button>'):'')
+          +'</div>';
+        hh+='<div style="'+(open?'max-height:180px;overflow-y:auto;':'')+'margin:0 -2px;padding:0 2px">';
+        for(i=0;i<a.length;i++){
+          hh+='<div style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:var(--mono);font-size:11px;color:var(--mut)">'
+            +'<span style="color:var(--dim)">'+a[i].d.slice(2)+'</span>'
+            +'<b style="color:#e3b95a">'+fmtW(a[i].w)+'kg</b><span>'+fmtW(a[i].f)+'%</span>'
+            +(a[i].m>0?('<span style="opacity:.8">SMM '+fmtW(a[i].m)+'</span>'):'')
+            +'<button data-act="bhd" data-v="'+a[i].d+'" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:13px;padding:2px 6px">×</button></div>';
+        }
+        hh+='</div>';
+        hh+='<div class="wtg" style="margin-top:6px">'
+          +'<div style="flex:0 0 40%"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
+          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="77.8"></div>'
+          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="20"></div>'
+          +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
+          +'</div>'
+          +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
+          +'<button class="okbtn" data-act="bha" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">ADD RECORD</button>'
+          +'<button class="okbtn" data-act="bhoc" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">SCAN INBODY</button>'
+          +'</div>'
+          +'<input type="file" id="bhFile" accept="image/*" style="display:none">'
+          +'<div class="note" id="bhSt" style="min-height:14px;margin:-6px 0 8px"></div>';
+        return hh;
+      })()
+      +'<button class="okbtn" data-act="wg" style="width:100%">Save body</button>';
+    }
+    if(tb==='ai'){
+    h+='<div class="sh-l" style="margin-top:2px">API keys</div>'
       +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
       +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
       +'<input id="aka" type="password" class="akin" placeholder="Claude key (sk-ant-...)" value="'+KS.ant.replace(/"/g,'')+'">'
       +'<button class="okbtn" data-act="aksv" style="width:100%">Save keys</button>'
       +'<div class="sh-l" style="margin-top:16px">AI prompt</div>'
       +'<textarea id="pr" class="akin" style="min-height:150px;resize:vertical;font-size:11px;line-height:1.55;font-family:var(--mono)">'+(PR||DEFPR).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>'
-      +'<div style="display:flex;gap:8px"><button class="okbtn" data-act="prsv" style="flex:1">Save prompt</button><button class="okbtn" data-act="prrs" style="flex:1;opacity:.65">Reset default</button></div>'
-      +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
+      +'<div style="display:flex;gap:8px"><button class="okbtn" data-act="prsv" style="flex:1">Save prompt</button><button class="okbtn" data-act="prrs" style="flex:1;opacity:.65">Reset default</button></div>';
+    }
+    if(tb==='data'){
+    h+='<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
       +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
+    }
+    h+='</div></div>';
   }
   sh.innerHTML=h;ov.classList.add('on');sh.classList.add('on');
-  sh.classList.toggle('tall',UI.sheet==='ai');
+  sh.classList.toggle('tall',UI.sheet==='ai'||UI.sheet==='data');
   sh.style.height='';sh.style.transform='';
   grabBind();
   if(UI.sheet==='ai'&&AIFRESH){
@@ -1129,6 +1282,7 @@ function editMachine(){
     toast('Same name·brand·line already exists');return;
   }
   m.n=name;m.p=UI.addPart;m.b=brand;m.ln=line;m.st=UI.editStep||2.5;
+  if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
   UI.sheet=null;
   save();
   toast('<em>Updated</em> '+esc(name));
@@ -1156,6 +1310,27 @@ function tmrDraw(){
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
 var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
+var SUBS=[
+ {k:'sd', p:'SHOULDERS',n:'측면',      d:18,r:/lateral|래터럴|레터럴|사레레|neck\s*press|넥\s*?프레스/},
+ {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹/},
+ {k:'pd', p:'SHOULDERS',n:'후면',      d:0, r:/rear|리어|reverse\s*pec|리버스\s*?펙|face\s*pull|페이스\s*?풀|reverse\s*fly|리버스\s*?플라이/},
+ {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|chin|pull\s*?over|풀오버|high\s*row|하이\s*?로우/},
+ {k:'tm', p:'BACK',     n:'승모·중부', d:0, r:/\brow\b|로우|shrug|슈러그|셰러그|t-?bar|티바/},
+ {k:'uc', p:'CHEST',    n:'상부',      d:0, r:/incline|인클라인/},
+ {k:'mc', p:'CHEST',    n:'중하부',    d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|fly|플라이|pec\s*deck|펙\s*?덱/},
+ {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션/},
+ {k:'hm', p:'LEGS',     n:'햄스트링',  d:7, r:/leg\s*curl|레그\s*?컬|햄|\bham|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
+ {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|abduction|어브덕션|back\s*extension|백\s*?익스텐션|bridge|브릿지/},
+ {k:'cf', p:'LEGS',     n:'종아리',    d:0, r:/calf|카프|종아리/},
+ {k:'bi', p:'ARMS·ETC', n:'이두',      d:0, r:/bicep|바이셉|이두|curl|컬/},
+ {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백/},
+ {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈/}
+];
+var EVORD=['sd','pd','ad','hm','lt','tm','uc','mc','tri','qd','gl','cf','bi','ab'];
+var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
+(function(){for(var i=0;i<SUBS.length;i++)STG[SUBS[i].k]=(SUBS[i].d>0?SUBS[i].d:-1);})();
+function subLabel(e){return e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);}
+var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
 (function(){
   if(!canLS)return;
   try{var h=Math.floor(+localStorage.getItem(KEY+'.hrm'));if(h>=120&&h<=220)HRM=h;}catch(e){}
@@ -1163,7 +1338,75 @@ var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
   try{var f=parseFloat(localStorage.getItem(KEY+'.bf'));if(f>=3&&f<=60)BF=Math.round(f*10)/10;}catch(e){}
   try{var g=parseFloat(localStorage.getItem(KEY+'.gf'));if(g>=3&&g<=40)GF=Math.round(g*10)/10;}catch(e){}
   try{var ac=parseFloat(localStorage.getItem(KEY+'.act'));if(ac>=1.1&&ac<=1.9)ACT=Math.round(ac*100)/100;}catch(e){}
+  try{
+    var st2=JSON.parse(localStorage.getItem(KEY+'.st')||'null');
+    if(st2){
+      var stT=(st2.v===2&&st2.t)?st2.t:st2;
+      var stNew=(st2.v===2);
+      for(var si2=0;si2<SUBS.length;si2++){
+        var kk=SUBS[si2].k;
+        if(typeof stT[kk]==='undefined')continue;
+        var vv=Math.floor(+stT[kk]);
+        if(stNew){if(vv>=-1&&vv<=30)STG[kk]=vv;}
+        else{if(vv>=1&&vv<=30)STG[kk]=vv;else STG[kk]=-1;} /* 구형 0 = 미추적 */
+      }
+    }
+  }catch(e){}
+  try{
+    var rd2=JSON.parse(localStorage.getItem(KEY+'.rd')||'null');
+    if(Array.isArray(rd2)){rd2=rd2.filter(function(x){return x>=0&&x<=6;});if(rd2.length<7)RD=rd2;}
+  }catch(e){}
 })();
+function bkText(){
+  return JSON.stringify({v:2,S:S,cfg:{
+    wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,
+    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||''
+  }});
+}
+function applyBackup(o){
+  var src=(o&&o.v===2&&o.S)?o.S:o;
+  S=migrateLines(src);ensureCardio();
+  var c=(o&&o.v===2&&o.cfg)?o.cfg:null;
+  if(c){
+    try{
+      if(c.wt)for(var k in WTGT)if(+c.wt[k]>=1)WTGT[k]=Math.min(k==='CARDIO'?600:60,Math.floor(+c.wt[k]));
+      if(+c.hrm>=120&&+c.hrm<=220)HRM=Math.floor(+c.hrm);
+      if(+c.bw>=30&&+c.bw<=200)BW=Math.round(+c.bw*10)/10;
+      if(+c.bf>=3&&+c.bf<=60)BF=Math.round(+c.bf*10)/10;
+      if(+c.gf>=3&&+c.gf<=40)GF=Math.round(+c.gf*10)/10;
+      if(+c.act>=1.1&&+c.act<=1.9)ACT=Math.round(+c.act*100)/100;
+      if(+c.iv>=30&&+c.iv<=600)IVs=Math.floor(+c.iv);
+      if(c.st){
+        var cT=(c.st.v===2&&c.st.t)?c.st.t:c.st;
+        var cNew=(c.st.v===2);
+        for(var si3=0;si3<SUBS.length;si3++){
+          var k3=SUBS[si3].k;
+          if(typeof cT[k3]==='undefined')continue;
+          var v3=Math.floor(+cT[k3]);
+          if(cNew){if(v3>=-1&&v3<=30)STG[k3]=v3;}
+          else{if(v3>=1&&v3<=30)STG[k3]=v3;else STG[k3]=-1;}
+        }
+      }
+      if(Array.isArray(c.rd)){var r2=c.rd.filter(function(x){return x>=0&&x<=6;});if(r2.length<7)RD=r2;}
+      if(Array.isArray(c.bh))bhSave(c.bh.filter(function(x){return x&&x.d&&+x.w>0&&+x.f>0;}));
+      if(typeof c.pr==='string')PR=c.pr;
+      if(canLS){
+        try{
+          localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));
+          localStorage.setItem(KEY+'.hrm',String(HRM));
+          localStorage.setItem(KEY+'.bw',String(BW));
+          localStorage.setItem(KEY+'.bf',String(BF));
+          localStorage.setItem(KEY+'.gf',String(GF));
+          localStorage.setItem(KEY+'.act',String(ACT));
+          localStorage.setItem(KEY+'.iv',String(IVs));
+          localStorage.setItem(KEY+'.st',JSON.stringify(STG));
+          localStorage.setItem(KEY+'.rd',JSON.stringify(RD));
+          localStorage.setItem(KEY+'.pr',PR);
+        }catch(e5){}
+      }
+    }catch(e6){}
+  }
+}
 /* 기초대사 — Katch-McArdle(제지방 기반) */
 function bmr(bw,bf){
   bw=+bw;bf=+bf;
@@ -1189,6 +1432,41 @@ function dayTDEE(ds){
   if(!b)return 0;
   return Math.round(b*ACT+dayExKcal(ds));
 }
+function bhLoad(){
+  if(!canLS)return [];
+  try{var a=JSON.parse(localStorage.getItem(KEY+'.bh')||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}
+}
+function bhSave(a){
+  if(!canLS)return;
+  try{localStorage.setItem(KEY+'.bh',JSON.stringify(a.slice(-24)));}catch(e){}
+}
+function bhAdd(dd,w2,f2,m2){
+  var a=bhLoad(),e={d:dd,w:w2,f:f2},i;
+  if(m2>0)e.m=m2;
+  for(i=0;i<a.length;i++)if(a[i].d===dd){a[i]=e;bhSave(a);return;}
+  a.push(e);
+  a.sort(function(x,y){return x.d<y.d?-1:1;});
+  bhSave(a);
+}
+function bhDel(dd){
+  var a=bhLoad().filter(function(x){return x.d!==dd;});
+  bhSave(a);
+}
+function bhPush(){bhAdd(today(),BW,BF,0);}
+function bhTrend(){
+  var a=bhLoad();
+  if(a.length<2)return '';
+  var f=a[0],l=a[a.length-1];
+  var dd=Math.max(1,Math.round((new Date(l.d)-new Date(f.d))/86400000));
+  var dw=Math.round((l.w-f.w)*10)/10;
+  var wk=Math.round(dw/dd*7*100)/100;
+  var lb1=f.w*(1-f.f/100),lb2=l.w*(1-l.f/100);
+  var dl=Math.round((lb2-lb1)*10)/10;
+  var out='최근 '+dd+'일 체중 '+(dw>0?'+':'')+dw+'kg (주 '+(wk>0?'+':'')+wk+') · 제지방 '+(dl>0?'+':'')+dl+'kg';
+  if(dl<=-0.5)out+=' — 근손실 주의';
+  var tail=a.slice(-4).map(function(x){return x.d.slice(5).replace('-','/')+' '+fmtW(x.w)+'·'+fmtW(x.f);}).join(' → ');
+  return out+'<br><span style="opacity:.75">'+tail+'</span>';
+}
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
@@ -1201,6 +1479,8 @@ function bodyLine(bw,bf,gf,hrm,act){
   }
   var bm=bmr(bw,bf);
   if(bm)out+='<br>BMR <b>'+bm.toLocaleString()+'</b> kcal · 비운동 TDEE ≈ <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal (운동일은 소비 추가 합산)';
+  var tr=bhTrend();
+  if(tr)out+='<br>'+tr;
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -1240,25 +1520,67 @@ function paceOf(v){
   var sec=Math.round(3600/v);
   return Math.floor(sec/60)+"'"+String(sec%60).padStart(2,'0')+'"/km';
 }
+function partCnt(){
+  var now=new Date();var dow=(now.getDay()+6)%7;
+  var mon=new Date(now);mon.setDate(now.getDate()-dow);
+  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},i,t;
+  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
+  var out={'CHEST':0,'BACK':0,'SHOULDERS':0,'LEGS':0,'ARMS·ETC':0};
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(isCard(m.p)||typeof out[m.p]==='undefined')continue;
+    var a=S.l[m.i]||[],j;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[m.p]+=a[j].s.length;
+  }
+  out.CARDIO=wkCardio().z2;
+  return out;
+}
+function subCnt(){
+  var now=new Date();var dow=(now.getDay()+6)%7;
+  var mon=new Date(now);mon.setDate(now.getDate()-dow);
+  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},i,t;
+  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
+  var out={},bi2;
+  for(bi2=0;bi2<SUBS.length;bi2++)out[SUBS[bi2].k]=0;
+  var RX={};
+  for(bi2=0;bi2<SUBS.length;bi2++)RX[SUBS[bi2].k]=SUBS[bi2].r;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(isCard(m.p))continue;
+    var nm=(m.n+' '+(m.ln||'')+' '+(m.b||'')).toLowerCase();
+    var k=null,ei;
+    for(ei=0;ei<EVORD.length;ei++)if(RX[EVORD[ei]].test(nm)){k=EVORD[ei];break;}
+    if(!k)continue;
+    var a=S.l[m.i]||[],j;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[k]+=a[j].s.length;
+  }
+  return out;
+}
 function wkCardio(){
   var now=new Date();var dow=(now.getDay()+6)%7;
   var mon=new Date(now);mon.setDate(now.getDate()-dow);
   function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},i,t;
   for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
-  var min=0,kc=0,dset={},k,j;
+  var z2=0,nt=0,kc=0,km=0,dset={},k,j;
   for(i=0;i<S.m.length;i++){
     if(!isCard(S.m[i].p))continue;
+    var wk2=isWalkName(S.m[i].n),tr2=isTreadName(S.m[i].n);
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
       if(!days[a[j].d]||!a[j].s.length)continue;
-      dset[a[j].d]=1;
-      for(k=0;k<a[j].s.length;k++)min+=(+a[j].s[k][0]||0);
+      for(k=0;k<a[j].s.length;k++){
+        var mn2=+a[j].s[k][0]||0,sp2=+a[j].s[k][1]||0;
+        if(wk2)nt+=mn2;else{z2+=mn2;dset[a[j].d]=1;}
+        if(tr2&&sp2>0)km+=mn2/60*sp2;
+      }
       kc+=kcalSess(a[j].s,S.m[i].n);
     }
   }
   var d=0;for(k in dset)d++;
-  return {min:Math.round(min),days:d,kcal:Math.round(kc)};
+  return {z2:Math.round(z2),neat:Math.round(nt),days:d,kcal:Math.round(kc),km:Math.round(km*10)/10};
 }
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
@@ -1287,7 +1609,7 @@ function engLabel(){
   if(LM==='oai')return 'GPT 5 Mini';
   return 'Claude Sonnet 4.6';
 }
-var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n유산소: CARDIO 부위는 근력과 별개이며 log의 "n분v속도i경사"는 n분 지속·속도(또는 레벨)·경사%를 뜻하고 i가 없으면 경사 0임, thisWeek·exercises·targets의 CARDIO 수치는 세트가 아니라 주간 분임. 유산소는 회복 부채·부위 볼륨 판정에서 제외하고 Zone2 주 3회 관점으로만 평가하며 [금주 분석]에서 "유산소 n/n분(주 n회)" 한 줄로 표기함.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n유산소는 "유산소 n/n분(주 n회)" 형식의 한 줄로 표기함. 판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
+var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n유산소: CARDIO 부위는 근력과 별개이며 log의 "n분v속도i경사"는 n분 지속·속도(또는 레벨)·경사%를 뜻하고 i가 없으면 경사 0임, thisWeek·exercises·targets의 CARDIO 수치는 세트가 아니라 주간 분임. 유산소는 회복 부채·부위 볼륨 판정에서 제외하고 Zone2 주 3회 관점으로만 평가하며 [금주 분석]에서 "유산소 n/n분(주 n회)" 한 줄로 표기함. 종목명에 Walking·걷기·산책이 포함된 유산소는 NEAT로 보고 Zone2 회수·분 판정에서 제외함(thisWeek.CARDIO에는 이미 미포함).\ntops: 종목별 최근 세션 톱세트 이력("MM-DD 무게x반복" 최신순, 2주 창 밖 포함)이며 정체·진전 판정은 log보다 tops를 우선 사용함.\nbody: "MM-DD 체중/체지방%" 이력임. 제지방=체중×(1-체지방/100)이며 최근 두 지점 제지방이 0.5kg 이상 감소 추세면 근손실 위험으로 최우선 경고하고, 주당 감량이 체중의 1%를 넘으면 과속 감량으로 지적함. 세 번째 숫자가 있으면 골격근량(kg)이며 있으면 제지방 대신 골격근량 추세로 근손실을 판정함. body가 비어 있으면 언급하지 않음.\nsubTargets: 세부 근육별 주간 목표 세트 맵이며 포함된 세부만 그 값을 기준선 하한으로 사용하고, 맵에 없는 세부는 기준선 판정을 생략함.\nsubAvoid: 자극 회피 대상 세부 목록이며 여기 속한 세부의 실적 세트가 1 이상이면 금기 위반으로 지적함. 비어 있으면 생략함.\nrepMax: "종목명|상한" 목록이며 여기 있는 종목은 그 반복 상한을, 없는 종목은 12회를 점증 판정에 사용함.\nrestDays: 계획 휴식 요일이며 훈련 가능일 수는 7에서 restDays 개수를 뺀 값이고 경과·잔여 훈련일 계산에 이 요일들을 제외함.\nprevDirection: 직전 보고서의 방향 지시임. 이행 여부를 [평가]에서 한 줄로 점검하고, 비어 있으면 생략함.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n유산소는 "유산소 n/n분(주 n회)" 형식의 한 줄로 표기함. 판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
 (function(){
   if(!canLS)return;
   try{
@@ -1329,6 +1651,120 @@ var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코
   }catch(e){}
 })();
 var WCODE={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔','CARDIO':'유산소'};
+function visEngine(){
+  if((LM==='gem'||LM.indexOf('gm')===0)&&KS.gem)return 'gem';
+  if(LM==='oai'&&KS.oai)return 'oai';
+  if(LM==='ant'&&KS.ant)return 'ant';
+  if(KS.gem)return 'gem';
+  if(KS.oai)return 'oai';
+  if(KS.ant)return 'ant';
+  return '';
+}
+var CAL={y:0,m:0};
+function calDraw(){
+  var old=document.getElementById('calOv');if(old)old.remove();
+  var sel=(document.getElementById('bhD')||{}).value||today();
+  var td=today();
+  var first=new Date(CAL.y,CAL.m,1);
+  var startDow=first.getDay();
+  var dim=new Date(CAL.y,CAL.m+1,0).getDate();
+  var h='<div class="calpn">'
+    +'<div class="calhd"><button data-act="calp">‹</button><b>'+CAL.y+' · '+String(CAL.m+1).padStart(2,'0')+'</b><button data-act="caln">›</button></div>'
+    +'<div class="calwk"><i>SUN</i><i>MON</i><i>TUE</i><i>WED</i><i>THU</i><i>FRI</i><i>SAT</i></div>'
+    +'<div class="calgr">';
+  var i;
+  for(i=0;i<startDow;i++)h+='<span></span>';
+  for(i=1;i<=dim;i++){
+    var ds=CAL.y+'-'+String(CAL.m+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
+    var cls=(ds===sel?' sel':'')+(ds===td?' td':'');
+    if(ds>td)h+='<button class="dis" disabled>'+i+'</button>';
+    else h+='<button class="'+cls.trim()+'" data-act="cald" data-v="'+ds+'">'+i+'</button>';
+  }
+  h+='</div></div>';
+  var ov=document.createElement('div');
+  ov.id='calOv';ov.className='calov';
+  ov.setAttribute('data-act','calx');
+  ov.innerHTML=h;
+  ov.firstChild.setAttribute('data-act','calstop');
+  document.body.appendChild(ov);
+}
+function calClose(){var o=document.getElementById('calOv');if(o)o.remove();}
+function ocrInbody(b64,mime){
+  var st=document.getElementById('bhSt');
+  var eng=visEngine();
+  if(!eng){if(st)st.textContent='API 키 필요 — 수동 입력 요망';return;}
+  var NM={gem:'GEMINI',oai:'GPT',ant:'CLAUDE'};
+  if(st)st.textContent='인바디 판독 중… ('+NM[eng]+')';
+  var pr='이미지는 InBody 체성분 결과지다. 다음 JSON만 출력하고 다른 텍스트·마크다운 금지: {"date":"YYYY-MM-DD 또는 null","weight":체중kg숫자,"fat":체지방률숫자,"smm":골격근량kg숫자또는null}. 골격근량(SMM)과 체지방률(퍼센트)을 혼동하지 말 것.';
+  function gcall(model){
+    return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:pr}]}],generationConfig:{temperature:0}})
+    }).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.error)throw new Error(j.error.message||'gem');
+      var t=(((j||{}).candidates||[])[0]||{}).content;
+      t=((t||{}).parts||[])[0];return (t||{}).text||'';
+    });
+  }
+  var run;
+  if(eng==='gem'){
+    run=gcall('gemini-flash-latest').catch(function(){return gcall('gemini-2.5-flash');});
+  }else if(eng==='oai'){
+    run=fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
+      body:JSON.stringify({model:'gpt-5-mini',max_completion_tokens:300,messages:[{role:'user',content:[
+        {type:'text',text:pr},
+        {type:'image_url',image_url:{url:'data:'+mime+';base64,'+b64}}
+      ]}]})
+    }).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.error)throw new Error(j.error.message||'oai');
+      return (((j.choices||[])[0]||{}).message||{}).content||'';
+    });
+  }else{
+    run=fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':KS.ant,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+        {type:'text',text:pr}
+      ]}]})
+    }).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.error)throw new Error(j.error.message||'ant');
+      var t='';
+      if(j&&j.content)for(var i=0;i<j.content.length;i++)t+=(j.content[i].text||'');
+      return t;
+    });
+  }
+  run.then(function(t){
+    t=String(t||'').replace(/```json|```/g,'').trim();
+    var o=JSON.parse(t.substring(t.indexOf('{')));
+    var setV=function(id,val){var el=document.getElementById(id);if(el&&val!=null&&val!=='')el.value=val;};
+    if(o.date&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&o.date<=today())setV('bhD',o.date);
+    setV('bhW',o.weight);setV('bhF',o.fat);setV('bhM',o.smm);
+    if(st)st.innerHTML='추출 완료 ('+NM[eng]+') — 값 확인 후 <b>ADD RECORD</b>';
+  }).catch(function(){
+    if(st)st.textContent='판독 실패 — 수동 입력 요망';
+  });
+}
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='bhFile'&&e.target.files&&e.target.files[0]){
+    var f=e.target.files[0];
+    var rd=new FileReader();
+    rd.onload=function(){
+      var res=String(rd.result||'');
+      var b64=res.substring(res.indexOf(',')+1);
+      ocrInbody(b64,f.type||'image/jpeg');
+    };
+    rd.readAsDataURL(f);
+    e.target.value='';
+  }
+});
 function widgetSync(){
   try{
     if(!window.AndroidWidget||!AndroidWidget.sync)return;
@@ -1339,8 +1775,8 @@ function widgetSync(){
     var days=[],dset=[],i;
     for(i=0;i<7;i++){var t=new Date(mon);t.setDate(mon.getDate()+i);days.push(iso(t));dset.push({});}
     var cnt={'CHEST':0,'BACK':0,'SHOULDERS':0,'LEGS':0,'ARMS·ETC':0,'CARDIO':0};
-    var pid={},k;
-    for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i].p;
+    var pid={},pnm={},k;
+    for(i=0;i<S.m.length;i++){pid[S.m[i].i]=S.m[i].p;pnm[S.m[i].i]=S.m[i].n;}
     for(k in S.l){
       var p=pid[k];if(!p)continue;
       var a=S.l[k],j;
@@ -1349,7 +1785,9 @@ function widgetSync(){
         if(di<0)continue;
         dset[di][p]=1;
         if(cnt[p]!=null){
-          if(isCard(p)){for(var q9=0;q9<a[j].s.length;q9++)cnt[p]+=(+a[j].s[q9][0]||0);}
+          if(isCard(p)){
+            if(!isWalkName(pnm[k]))for(var q9=0;q9<a[j].s.length;q9++)cnt[p]+=(+a[j].s[q9][0]||0);
+          }
           else cnt[p]+=a[j].s.length;
         }
       }
@@ -1418,7 +1856,7 @@ function aiPayload(){
       var m=pid[k];if(!m)continue;
       for(var j=0;j<S.l[k].length;j++){
         if(days.indexOf(S.l[k][j].d)<0)continue;
-        if(isCard(m.p)){for(var q7=0;q7<S.l[k][j].s.length;q7++)cnt[m.p]=(cnt[m.p]||0)+(+S.l[k][j].s[q7][0]||0);}
+        if(isCard(m.p)){if(!isWalkName(m.n))for(var q7=0;q7<S.l[k][j].s.length;q7++)cnt[m.p]=(cnt[m.p]||0)+(+S.l[k][j].s[q7][0]||0);}
         else cnt[m.p]=(cnt[m.p]||0)+S.l[k][j].s.length;
       }
     }
@@ -1464,14 +1902,47 @@ function aiPayload(){
   })();
   var now=new Date();
   var yo=['일','월','화','수','목','금','토'][now.getDay()];
-  return {exercises:exs,log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
+  var tops=[];
+  for(var ti=0;ti<S.m.length;ti++){
+    var tm=S.m[ti];
+    if(isCard(tm.p))continue;
+    var ta=(S.l[tm.i]||[]).filter(function(x){return x.s&&x.s.length;});
+    if(!ta.length)continue;
+    ta=ta.slice().sort(function(a,b){return a.d<b.d?1:-1;}).slice(0,4);
+    var seq=ta.map(function(x){
+      var tp=[0,0],q;
+      for(q=0;q<x.s.length;q++){
+        if(x.s[q][0]>tp[0]||(x.s[q][0]===tp[0]&&x.s[q][1]>tp[1]))tp=x.s[q];
+      }
+      return x.d.slice(5)+' '+fmtW(tp[0])+'x'+tp[1];
+    }).join(' ');
+    tops.push(tm.n+(tm.b?' '+tm.b:'')+'|'+seq);
+  }
+  var bhArr=bhLoad().slice(-6).map(function(x){return x.d.slice(5)+' '+fmtW(x.w)+'/'+fmtW(x.f)+(x.m>0?'/'+fmtW(x.m):'');});
+  var prevDir='';
+  if(AIH.length&&AIH[0]&&AIH[0].o){
+    var po=AIH[0].o,pi2=po.indexOf('[방향]');
+    if(pi2>=0)prevDir=po.substring(pi2).slice(0,500);
+  }
+  var repMax=[];
+  for(var rj=0;rj<S.m.length;rj++)if(S.m[rj].rx>0&&!isCard(S.m[rj].p))repMax.push(S.m[rj].n+(S.m[rj].b?' '+S.m[rj].b:'')+'|'+S.m[rj].rx);
+  var DN2=['일','월','화','수','목','금','토'];
+  return {exercises:exs,tops:tops,body:bhArr,prevDirection:prevDir,
+    subTargets:(function(){var o2={},sq;for(sq=0;sq<SUBS.length;sq++)if(STG[SUBS[sq].k]>0)o2[subLabel(SUBS[sq])]=STG[SUBS[sq].k];return o2;})(),
+    subAvoid:(function(){var a2=[],sq2;for(sq2=0;sq2<SUBS.length;sq2++)if(STG[SUBS[sq2].k]===0)a2.push(subLabel(SUBS[sq2]));return a2;})(),
+    repMax:repMax,restDays:RD.map(function(x){return DN2[x];}),
+    log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
 }
 
 function paceLeft(){
   try{
     var now=new Date();
     var dow=(now.getDay()+6)%7; /* 월=0 */
-    var TR={1:1,2:1,4:1,5:1,6:1}; /* 화수금토일 */
+    var TR={},td3;
+    for(td3=0;td3<7;td3++){
+      var gd=(td3+1)%7; /* 월0→getDay1 */
+      if(RD.indexOf(gd)<0)TR[td3]=1;
+    }
     var iso=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
     var hasToday=false,k;
     for(k in S.l){
@@ -1899,7 +2370,7 @@ document.addEventListener('click',function(e){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -1937,14 +2408,14 @@ document.addEventListener('click',function(e){
     case 'fx':
       if(window.AndroidFile&&AndroidFile.save){
         try{
-          var okS=AndroidFile.save('plus25-'+today()+'.json',JSON.stringify(S));
+          var okS=AndroidFile.save('plus25-'+today()+'.json',bkText());
           if(okS){if(canLS)localStorage.setItem(KEY+'.bk',today());toast('<em>Saved</em> to Downloads');render();}
           else toast('Save failed');
         }catch(e3){toast('Save failed');}
         break;
       }
       try{
-        var blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+        var blob=new Blob([bkText()],{type:'application/json'});
         var al=document.createElement('a');
         al.href=URL.createObjectURL(blob);
         al.download='gym-log-'+today()+'.json';
@@ -1973,11 +2444,12 @@ document.addEventListener('click',function(e){
         raw=raw.slice(a,b+1);
         var o=null;
         try{o=JSON.parse(raw);}catch(err){toast('Format error — paste the full backup');return;}
-        if(!o||Object.prototype.toString.call(o.m)!=='[object Array]'||!o.m.length){
+        var chk=(o&&o.v===2&&o.S)?o.S:o;
+        if(!chk||Object.prototype.toString.call(chk.m)!=='[object Array]'||!chk.m.length){
           toast('Backup has no exercise data');return;
         }
-        if(!o.l||typeof o.l!=='object')o.l={};
-        S=migrateLines(o);ensureCardio();UI.open=null;UI.sheet=null;UI.arm=null;UI.draft={};UI.dirty={};
+        if(!chk.l||typeof chk.l!=='object')chk.l={};
+        applyBackup(o);UI.open=null;UI.sheet=null;UI.arm=null;UI.draft={};UI.dirty={};
         save();saveDraft();
         var c=0,k;for(k in S.l)if(S.l[k]&&S.l[k].length)c++;
         toast('<em>Restored</em> '+S.m.length+' ex · '+c+' days');
@@ -2053,6 +2525,67 @@ document.addEventListener('click',function(e){
     case 'ai':
       UI.sheet='ai';render();
       break;
+    case 'px':UI.editRx=+v;render();break;
+    case 'rdt':
+      (function(){
+        var i2=RD.indexOf(+v);
+        if(i2>=0)RD.splice(i2,1);else RD.push(+v);
+        if(RD.length>=7){RD.splice(RD.indexOf(+v),1);toast('최소 1일은 훈련일이어야 함');}
+        RD.sort();
+        if(canLS){try{localStorage.setItem(KEY+'.rd',JSON.stringify(RD));}catch(eR){}}
+        render();
+      })();
+      break;
+    case 'dtb':
+      UI.dtab=v;render();
+      (function(){var se=document.getElementById('sheet');if(se)se.scrollTop=0;})();
+      break;
+    case 'bhv':UI.bhAll=!UI.bhAll;render();break;
+    case 'calo':
+      (function(){
+        var cur=(document.getElementById('bhD')||{}).value||today();
+        var pp=cur.split('-');
+        CAL.y=+pp[0]||new Date().getFullYear();
+        CAL.m=(+pp[1]||1)-1;
+        calDraw();
+      })();
+      break;
+    case 'calstop':break;
+    case 'calx':calClose();break;
+    case 'calp':CAL.m--;if(CAL.m<0){CAL.m=11;CAL.y--;}calDraw();break;
+    case 'caln':CAL.m++;if(CAL.m>11){CAL.m=0;CAL.y++;}calDraw();break;
+    case 'cald':
+      (function(){
+        var el=document.getElementById('bhD');
+        if(el)el.value=v;
+        calClose();
+      })();
+      break;
+    case 'bha':
+      (function(){
+        var dd=(document.getElementById('bhD')||{}).value||today();
+        var w2=parseFloat(String((document.getElementById('bhW')||{}).value||'').replace(',','.'));
+        var f2=parseFloat(String((document.getElementById('bhF')||{}).value||'').replace(',','.'));
+        var m2=parseFloat(String((document.getElementById('bhM')||{}).value||'').replace(',','.'));
+        if(!(w2>=30&&w2<=200)||!(f2>=3&&f2<=60)){toast('<em>WT·FAT%</em> 확인 필요');return;}
+        if(dd>today())dd=today();
+        bhAdd(dd,Math.round(w2*10)/10,Math.round(f2*10)/10,(m2>=10&&m2<=60)?Math.round(m2*10)/10:0);
+        if(dd===today()){
+          BW=Math.round(w2*10)/10;BF=Math.round(f2*10)/10;
+          if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e9){}}
+        }
+        toast('<em>Record saved</em> '+dd);
+        render();
+      })();
+      break;
+    case 'bhd':
+      bhDel(v);toast('<em>Deleted</em> '+v);render();break;
+    case 'bhoc':
+      (function(){
+        if(!KS.gem&&!KS.oai&&!KS.ant){toast('<em>API key</em> 필요 — 설정에서 등록');return;}
+        var fe=document.getElementById('bhFile');if(fe)fe.click();
+      })();
+      break;
     case 'wg':
       (function(){
         var ids=['wt0','wt1','wt2','wt3','wt4','wt5'],ks=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC','CARDIO'],i;
@@ -2082,6 +2615,15 @@ document.addEventListener('click',function(e){
           var fv=parseFloat(String(bfEl.value).replace(',','.'));
           if(fv>=3&&fv<=60){BF=Math.round(fv*10)/10;if(canLS){try{localStorage.setItem(KEY+'.bf',String(BF));}catch(e6){}}}
         }
+        var si;
+        for(si=0;si<SUBS.length;si++){
+          var sEl=document.getElementById('st'+si);if(!sEl)continue;
+          var sv=String(sEl.value).replace(/[^0-9]/g,'');
+          if(sv===''){STG[SUBS[si].k]=-1;continue;}
+          var sn=Math.floor(+sv);
+          if(sn>=0&&sn<=30)STG[SUBS[si].k]=sn;
+        }
+        if(document.getElementById('st0')&&canLS){try{localStorage.setItem(KEY+'.st',JSON.stringify({v:2,t:STG}));}catch(eS){}}
         var acEl=document.getElementById('ac0');
         if(acEl){
           var av=parseFloat(String(acEl.value).replace(',','.'));
@@ -2097,6 +2639,7 @@ document.addEventListener('click',function(e){
           try{localStorage.setItem(KEY+'.iv',String(IVs));}catch(e3){}
         }
         widgetSync();restNotify();
+        if(document.getElementById('bw0'))bhPush();
         toast('<em>Settings saved</em>');
         render();
         renderSheet();
@@ -2124,9 +2667,10 @@ document.addEventListener('change',function(e){
     try{
       var txt=String(r.result||'').replace(/[\uFEFF]/g,'').trim();
       var o=JSON.parse(txt);
-      if(o&&Object.prototype.toString.call(o.m)==='[object Array]'&&o.m.length){
-        if(!o.l||typeof o.l!=='object')o.l={};
-        S=migrateLines(o);ensureCardio();UI.open=null;UI.sheet=null;UI.draft={};UI.dirty={};
+      var chk2=(o&&o.v===2&&o.S)?o.S:o;
+      if(chk2&&Object.prototype.toString.call(chk2.m)==='[object Array]'&&chk2.m.length){
+        if(!chk2.l||typeof chk2.l!=='object')chk2.l={};
+        applyBackup(o);UI.open=null;UI.sheet=null;UI.draft={};UI.dirty={};
         save();saveDraft();
         toast('<em>Restored</em> backup file');
         render();
