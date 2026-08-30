@@ -1651,14 +1651,17 @@ var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코
   }catch(e){}
 })();
 var WCODE={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔','CARDIO':'유산소'};
-function visEngine(){
-  if((LM==='gem'||LM.indexOf('gm')===0)&&KS.gem)return 'gem';
-  if(LM==='oai'&&KS.oai)return 'oai';
-  if(LM==='ant'&&KS.ant)return 'ant';
-  if(KS.gem)return 'gem';
-  if(KS.oai)return 'oai';
-  if(KS.ant)return 'ant';
-  return '';
+function visEngines(){
+  var first='';
+  if((LM==='gem'||LM.indexOf('gm')===0)&&KS.gem)first='gem';
+  else if(LM==='oai'&&KS.oai)first='oai';
+  else if(LM==='ant'&&KS.ant)first='ant';
+  var list=[];
+  if(first)list.push(first);
+  ['gem','oai','ant'].forEach(function(e){
+    if(KS[e]&&list.indexOf(e)<0)list.push(e);
+  });
+  return list;
 }
 var CAL={y:0,m:0};
 function calDraw(){
@@ -1689,13 +1692,8 @@ function calDraw(){
   document.body.appendChild(ov);
 }
 function calClose(){var o=document.getElementById('calOv');if(o)o.remove();}
-function ocrInbody(b64,mime){
-  var st=document.getElementById('bhSt');
-  var eng=visEngine();
-  if(!eng){if(st)st.textContent='API 키 필요 — 수동 입력 요망';return;}
-  var NM={gem:'GEMINI',oai:'GPT',ant:'CLAUDE'};
-  if(st)st.textContent='인바디 판독 중… ('+NM[eng]+')';
-  var pr='이미지는 InBody 체성분 결과지다. 다음 JSON만 출력하고 다른 텍스트·마크다운 금지: {"date":"YYYY-MM-DD 또는 null","weight":체중kg숫자,"fat":체지방률숫자,"smm":골격근량kg숫자또는null}. 골격근량(SMM)과 체지방률(퍼센트)을 혼동하지 말 것.';
+function ocrCall(eng,b64,mime){
+  var pr='이미지는 InBody 체성분 결과지다. 다음 JSON만 출력하고 다른 텍스트·마크다운 금지: {"date":"YYYY-MM-DD 또는 null","weight":체중kg숫자,"fat":체지방률숫자,"smm":골격근량kg숫자또는null}. 골격근량(SMM)과 체지방률(퍼센트)을 혼동하지 말 것. 검사일시의 날짜를 date로 사용.';
   function gcall(model){
     return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1706,11 +1704,8 @@ function ocrInbody(b64,mime){
       t=((t||{}).parts||[])[0];return (t||{}).text||'';
     });
   }
-  var run;
-  if(eng==='gem'){
-    run=gcall('gemini-flash-latest').catch(function(){return gcall('gemini-2.5-flash');});
-  }else if(eng==='oai'){
-    run=fetch('https://api.openai.com/v1/chat/completions',{
+  if(eng==='gem')return gcall('gemini-flash-latest').catch(function(){return gcall('gemini-2.5-flash');});
+  if(eng==='oai')return fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
       headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
       body:JSON.stringify({model:'gpt-5-mini',max_completion_tokens:300,messages:[{role:'user',content:[
@@ -1721,8 +1716,7 @@ function ocrInbody(b64,mime){
       if(j&&j.error)throw new Error(j.error.message||'oai');
       return (((j.choices||[])[0]||{}).message||{}).content||'';
     });
-  }else{
-    run=fetch('https://api.anthropic.com/v1/messages',{
+  return fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
         'content-type':'application/json',
@@ -1740,28 +1734,74 @@ function ocrInbody(b64,mime){
       if(j&&j.content)for(var i=0;i<j.content.length;i++)t+=(j.content[i].text||'');
       return t;
     });
-  }
-  run.then(function(t){
+}
+function ocrInbody(b64,mime){
+  var st=document.getElementById('bhSt');
+  var ENGS=visEngines();
+  if(!ENGS.length){if(st)st.textContent='API 키 필요 — 수동 입력 요망';return;}
+  var NM={gem:'GEMINI',oai:'GPT',ant:'CLAUDE'};
+  var eng=ENGS[0];
+  if(st)st.textContent='인바디 판독 중… ('+NM[eng]+')';
+  var run=ocrCall(eng,b64,mime);
+  function fill(t,usedEng){
     t=String(t||'').replace(/```json|```/g,'').trim();
-    var o=JSON.parse(t.substring(t.indexOf('{')));
+    var a1=t.indexOf('{'),b1=t.lastIndexOf('}');
+    if(a1<0||b1<=a1)throw new Error('JSON 없음');
+    var o=JSON.parse(t.slice(a1,b1+1));
     var setV=function(id,val){var el=document.getElementById(id);if(el&&val!=null&&val!=='')el.value=val;};
     if(o.date&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&o.date<=today())setV('bhD',o.date);
     setV('bhW',o.weight);setV('bhF',o.fat);setV('bhM',o.smm);
-    if(st)st.innerHTML='추출 완료 ('+NM[eng]+') — 값 확인 후 <b>ADD RECORD</b>';
-  }).catch(function(){
-    if(st)st.textContent='판독 실패 — 수동 입력 요망';
+    if(st)st.innerHTML='추출 완료 ('+NM[usedEng]+') — 값 확인 후 <b>ADD RECORD</b>';
+  }
+  run.then(function(t){fill(t,eng);}).catch(function(e1){
+    var nxt=ENGS[1];
+    if(!nxt){
+      if(st)st.textContent='판독 실패 ('+NM[eng]+') — '+String(e1&&e1.message||'').slice(0,70);
+      return;
+    }
+    if(st)st.textContent='재시도 중… ('+NM[nxt]+')';
+    ocrCall(nxt,b64,mime).then(function(t2){fill(t2,nxt);}).catch(function(e2){
+      if(st)st.textContent='판독 실패 — '+String(e2&&e2.message||'').slice(0,70);
+    });
   });
+}
+function shrinkThenOcr(f){
+  var rd=new FileReader();
+  rd.onload=function(){
+    var res=String(rd.result||'');
+    var rawB64=res.substring(res.indexOf(',')+1);
+    var rawMime=f.type||'image/jpeg';
+    try{
+      var settled=false;
+      var img=new Image();
+      setTimeout(function(){
+        if(!settled){settled=true;ocrInbody(rawB64,rawMime);}
+      },1500);
+      img.onload=function(){
+        if(settled)return;settled=true;
+        try{
+          var MAX=1600,w2=img.width,h2=img.height;
+          if(w2>MAX||h2>MAX){var sc=MAX/Math.max(w2,h2);w2=Math.round(w2*sc);h2=Math.round(h2*sc);}
+          var cv=document.createElement('canvas');
+          cv.width=w2;cv.height=h2;
+          var cx=cv.getContext('2d');
+          if(!cx)throw new Error('no ctx');
+          cx.fillStyle='#fff';cx.fillRect(0,0,w2,h2);
+          cx.drawImage(img,0,0,w2,h2);
+          var du=cv.toDataURL('image/jpeg',0.85);
+          if(du&&du.indexOf(',')>0)ocrInbody(du.substring(du.indexOf(',')+1),'image/jpeg');
+          else ocrInbody(rawB64,rawMime);
+        }catch(e2){ocrInbody(rawB64,rawMime);}
+      };
+      img.onerror=function(){if(settled)return;settled=true;ocrInbody(rawB64,rawMime);};
+      img.src=res;
+    }catch(e1){ocrInbody(rawB64,rawMime);}
+  };
+  rd.readAsDataURL(f);
 }
 document.addEventListener('change',function(e){
   if(e.target&&e.target.id==='bhFile'&&e.target.files&&e.target.files[0]){
-    var f=e.target.files[0];
-    var rd=new FileReader();
-    rd.onload=function(){
-      var res=String(rd.result||'');
-      var b64=res.substring(res.indexOf(',')+1);
-      ocrInbody(b64,f.type||'image/jpeg');
-    };
-    rd.readAsDataURL(f);
+    shrinkThenOcr(e.target.files[0]);
     e.target.value='';
   }
 });
