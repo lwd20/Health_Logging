@@ -1612,6 +1612,31 @@ function gemDiscover(){
       return best;
     });
 }
+function gemDiscoverList(){
+  return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(KS.gem))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var ms=(j&&j.models)||[],arr=[],i;
+      for(i=0;i<ms.length;i++){
+        var n=String(ms[i].name||'').replace(/^models\//,'');
+        var sup=(ms[i].supportedGenerationMethods||[]).join(',');
+        if(sup.indexOf('generateContent')<0)continue;
+        if(!/flash/i.test(n))continue;
+        if(/lite|8b|tts|audio|image|imagen|embed|exp|preview|thinking/i.test(n))continue;
+        var sc=0,vm=n.match(/(\d+)(?:[.\-](\d+))?/);
+        if(vm)sc=(+vm[1])*100+(+vm[2]||0);
+        if(/latest/i.test(n))sc+=1;
+        arr.push([sc,n]);
+      }
+      arr.sort(function(a,b){return b[0]-a[0];});
+      var names=arr.map(function(x){return x[1];});
+      if(names.length){GVM=names[0];try{if(canLS)localStorage.setItem(KEY+'.gvm',GVM);}catch(e2){}}
+      return names;
+    });
+}
+function gemTransient(msg){
+  return /high demand|overload|exhaust|quota|rate|try again|temporar|unavailable|internal error|503|429/i.test(String(msg||''));
+}
 var GMOPEN=false;
 var GML={'gemini-3.7-flash':'Gemini 3.7 Flash','gemini-3.6-flash':'Gemini 3.6 Flash','gemini-flash-latest':'Gemini Flash · Latest','gemini-2.5-flash':'Gemini 2.5 Flash'};
 function engGroups(){
@@ -1714,7 +1739,7 @@ function calDraw(){
   document.body.appendChild(ov);
 }
 function calClose(){var o=document.getElementById('calOv');if(o)o.remove();}
-function ocrCall(eng,b64,mime){
+function ocrCall(eng,b64,mime,onNote){
   var pr='이미지는 InBody 체성분 결과지다. 다음 JSON만 출력하고 다른 텍스트·마크다운 금지: {"date":"YYYY-MM-DD 또는 null","weight":체중kg숫자,"fat":체지방률숫자,"smm":골격근량kg숫자또는null}. 골격근량(SMM)과 체지방률(퍼센트)을 혼동하지 말 것. 검사일시의 날짜를 date로 사용.';
   function gcall(model){
     return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
@@ -1727,13 +1752,35 @@ function ocrCall(eng,b64,mime){
     });
   }
   if(eng==='gem'){
-    var first=GVM||'gemini-flash-latest';
-    return gcall(first).catch(function(e1){
-      return gemDiscover().then(function(m2){
-        if(m2&&m2!==first)return gcall(m2);
-        throw e1;
+    var tried={},list=[GVM||'gemini-flash-latest'],li=0,lastErr=null,disc=false;
+    function next(){
+      if(li>=list.length){
+        if(!disc){
+          disc=true;
+          if(onNote)onNote('다른 모델 탐색 중…');
+          return gemDiscoverList().then(function(names){
+            names.forEach(function(m){if(!tried[m]&&list.indexOf(m)<0)list.push(m);});
+            if(li<list.length)return next();
+            throw lastErr||new Error('사용 가능한 모델 없음');
+          });
+        }
+        throw lastErr||new Error('판독 실패');
+      }
+      var m=list[li++];tried[m]=1;
+      return attempt(m,0);
+    }
+    function attempt(m,k){
+      return gcall(m).catch(function(e){
+        lastErr=e;
+        if(gemTransient(e&&e.message)&&k<2){
+          if(onNote)onNote('GEMINI 혼잡 — '+(k+2)+'차 재시도 중…');
+          return new Promise(function(res){setTimeout(res,1200*(k+1));})
+            .then(function(){return attempt(m,k+1);});
+        }
+        return next();
       });
-    });
+    }
+    return next();
   }
   if(eng==='oai')return fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
@@ -1772,7 +1819,8 @@ function ocrInbody(b64,mime){
   var NM={gem:'GEMINI',oai:'GPT',ant:'CLAUDE'};
   var eng=ENGS[0];
   if(st)st.textContent='인바디 판독 중… ('+NM[eng]+')';
-  var run=ocrCall(eng,b64,mime);
+  var note=function(m){if(st)st.textContent=m;};
+  var run=ocrCall(eng,b64,mime,note);
   function fill(t,usedEng){
     t=String(t||'').replace(/```json|```/g,'').trim();
     var a1=t.indexOf('{'),b1=t.lastIndexOf('}');
@@ -1790,7 +1838,7 @@ function ocrInbody(b64,mime){
       return;
     }
     if(st)st.textContent='재시도 중… ('+NM[nxt]+')';
-    ocrCall(nxt,b64,mime).then(function(t2){fill(t2,nxt);}).catch(function(e2){
+    ocrCall(nxt,b64,mime,note).then(function(t2){fill(t2,nxt);}).catch(function(e2){
       if(st)st.textContent='판독 실패 — '+String(e2&&e2.message||'').slice(0,70);
     });
   });
@@ -2130,7 +2178,8 @@ function runAI(){
           else g.thinkingConfig={thinkingBudget:0};
           return g;
         }
-        function gcall(idx){
+        function gcall(idx,rt){
+          rt=rt||0;
           var model=GCHAIN[idx];
           fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
             method:'POST',
@@ -2144,7 +2193,11 @@ function runAI(){
             }catch(e4){}
             if(!t){
               var em=(d&&d.error&&d.error.message)?d.error.message:'';
-              var swap=/not found|not supported|does not exist|invalid|unsupported|no longer available|not available|deprecated/i.test(em);
+              if(gemTransient(em)&&rt<2){
+                setTimeout(function(){gcall(idx,rt+1);},1500*(rt+1));
+                return;
+              }
+              var swap=/not found|not supported|does not exist|invalid|unsupported|no longer available|not available|deprecated/i.test(em)||gemTransient(em);
               if(swap){
                 if(idx+1<GCHAIN.length){gcall(idx+1);return;}
                 gemDiscover().then(function(m2){
