@@ -1590,6 +1590,28 @@ var KS={gem:'',oai:'',ant:''};
 var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
 var GM='gemini-3.7-flash';
 var GMN={'gemini-3.7-flash':'3.7','gemini-3.6-flash':'3.6','gemini-flash-latest':'Latest','gemini-2.5-flash':'2.5'};
+var GVM='';
+try{if(canLS)GVM=localStorage.getItem(KEY+'.gvm')||'';}catch(eGV){}
+function gemDiscover(){
+  return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(KS.gem))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var ms=(j&&j.models)||[],best='',score=-1,i;
+      for(i=0;i<ms.length;i++){
+        var n=String(ms[i].name||'').replace(/^models\//,'');
+        var sup=(ms[i].supportedGenerationMethods||[]).join(',');
+        if(sup.indexOf('generateContent')<0)continue;
+        if(!/flash/i.test(n))continue;
+        if(/lite|8b|tts|audio|image|imagen|embed|exp|preview|thinking/i.test(n))continue;
+        var sc=0,vm=n.match(/(\d+)(?:[.\-](\d+))?/);
+        if(vm)sc=(+vm[1])*100+(+vm[2]||0);
+        if(/latest/i.test(n))sc+=1;
+        if(sc>score){score=sc;best=n;}
+      }
+      if(best){GVM=best;try{if(canLS)localStorage.setItem(KEY+'.gvm',GVM);}catch(e2){}}
+      return best;
+    });
+}
 var GMOPEN=false;
 var GML={'gemini-3.7-flash':'Gemini 3.7 Flash','gemini-3.6-flash':'Gemini 3.6 Flash','gemini-flash-latest':'Gemini Flash · Latest','gemini-2.5-flash':'Gemini 2.5 Flash'};
 function engGroups(){
@@ -1704,7 +1726,15 @@ function ocrCall(eng,b64,mime){
       t=((t||{}).parts||[])[0];return (t||{}).text||'';
     });
   }
-  if(eng==='gem')return gcall('gemini-flash-latest').catch(function(){return gcall('gemini-2.5-flash');});
+  if(eng==='gem'){
+    var first=GVM||'gemini-flash-latest';
+    return gcall(first).catch(function(e1){
+      return gemDiscover().then(function(m2){
+        if(m2&&m2!==first)return gcall(m2);
+        throw e1;
+      });
+    });
+  }
   if(eng==='oai')return fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
       headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
@@ -2093,6 +2123,7 @@ function runAI(){
         var GCHAIN=[GM];
         var gmAll;
         for(gmAll in GMN){if(gmAll!==GM)GCHAIN.push(gmAll);}
+        if(GVM&&GCHAIN.indexOf(GVM)<0)GCHAIN.splice(1,0,GVM);
         function gcfg(model){
           var g={maxOutputTokens:8192};
           if(/gemini-[3-9]|flash-latest/.test(model))g.thinkingConfig={thinkingLevel:'LOW'};
@@ -2113,8 +2144,15 @@ function runAI(){
             }catch(e4){}
             if(!t){
               var em=(d&&d.error&&d.error.message)?d.error.message:'';
-              var swap=/not found|not supported|does not exist|invalid|unsupported/i.test(em);
-              if(swap&&idx+1<GCHAIN.length){gcall(idx+1);return;}
+              var swap=/not found|not supported|does not exist|invalid|unsupported|no longer available|not available|deprecated/i.test(em);
+              if(swap){
+                if(idx+1<GCHAIN.length){gcall(idx+1);return;}
+                gemDiscover().then(function(m2){
+                  if(m2&&GCHAIN.indexOf(m2)<0){GCHAIN.push(m2);gcall(GCHAIN.length-1);}
+                  else aiSave('오류: '+em);
+                }).catch(function(){aiSave('오류: '+em);});
+                return;
+              }
               t=em?('오류: '+em):'응답 없음';
             }
             aiSave(t.trim());
