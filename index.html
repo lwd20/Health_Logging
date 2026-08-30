@@ -306,7 +306,7 @@ html{color-scheme:dark}
 .drail .dtb.on{border-left-color:#cfa648;color:#e3b95a;background:linear-gradient(90deg,rgba(207,166,72,.09),transparent)}
 .dbody{flex:1;min-width:0}
 .dbody .sh-l:first-child{margin-top:0}
-#bhD{font-family:var(--mono);letter-spacing:0;font-size:11px;color:var(--mut);min-width:0;padding-left:2px;padding-right:2px;text-align:center}
+#bhD{letter-spacing:.05em}
 .strow{display:flex;align-items:center;gap:9px;margin:8px 0}
 .strow .stnm{flex:0 0 58px;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
 .strow .ai-bar{flex:1;margin:0}
@@ -1083,7 +1083,8 @@ function renderSheet(){
       +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
       +'<div><b>HR MAX</b><input id="hr0" inputmode="numeric" maxlength="3" value="'+HRM+'"></div>'
       +'</div>'
-      +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div></div>'
+      +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
+      +'<div style="flex:0 0 48%"><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div></div>'
       +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
       +(function(){
         var all=bhLoad().slice().reverse();
@@ -1103,7 +1104,9 @@ function renderSheet(){
         }
         hh+='</div>';
         hh+='<div class="wtg" style="margin-top:6px">'
-          +'<div style="flex:0 0 40%"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
+          +'<div style="flex:1"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
+          +'</div>'
+          +'<div class="wtg" style="margin-top:8px">'
           +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="77.8"></div>'
           +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="20"></div>'
           +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
@@ -1327,6 +1330,7 @@ var SUBS=[
  {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈/}
 ];
 var EVORD=['sd','pd','ad','hm','lt','tm','uc','mc','tri','qd','gl','cf','bi','ab'];
+var WR=0.5; /* 주당 감량 목표 kg */
 var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 (function(){for(var i=0;i<SUBS.length;i++)STG[SUBS[i].k]=(SUBS[i].d>0?SUBS[i].d:-1);})();
 function subLabel(e){return e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);}
@@ -1352,6 +1356,7 @@ var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
       }
     }
   }catch(e){}
+  try{var wr2=parseFloat(localStorage.getItem(KEY+'.wr'));if(wr2>=0.1&&wr2<=1.5)WR=Math.round(wr2*100)/100;}catch(e){}
   try{
     var rd2=JSON.parse(localStorage.getItem(KEY+'.rd')||'null');
     if(Array.isArray(rd2)){rd2=rd2.filter(function(x){return x>=0&&x<=6;});if(rd2.length<7)RD=rd2;}
@@ -1359,7 +1364,7 @@ var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
 })();
 function bkText(){
   return JSON.stringify({v:2,S:S,cfg:{
-    wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,
+    wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
     st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||''
   }});
 }
@@ -1376,6 +1381,7 @@ function applyBackup(o){
       if(+c.gf>=3&&+c.gf<=40)GF=Math.round(+c.gf*10)/10;
       if(+c.act>=1.1&&+c.act<=1.9)ACT=Math.round(+c.act*100)/100;
       if(+c.iv>=30&&+c.iv<=600)IVs=Math.floor(+c.iv);
+      if(+c.wr>=0.1&&+c.wr<=1.5)WR=Math.round(+c.wr*100)/100;
       if(c.st){
         var cT=(c.st.v===2&&c.st.t)?c.st.t:c.st;
         var cNew=(c.st.v===2);
@@ -1399,6 +1405,7 @@ function applyBackup(o){
           localStorage.setItem(KEY+'.gf',String(GF));
           localStorage.setItem(KEY+'.act',String(ACT));
           localStorage.setItem(KEY+'.iv',String(IVs));
+          localStorage.setItem(KEY+'.wr',String(WR));
           localStorage.setItem(KEY+'.st',JSON.stringify(STG));
           localStorage.setItem(KEY+'.rd',JSON.stringify(RD));
           localStorage.setItem(KEY+'.pr',PR);
@@ -1453,6 +1460,16 @@ function bhDel(dd){
   bhSave(a);
 }
 function bhPush(){bhAdd(today(),BW,BF,0);}
+function bhCommit(dd,w2,f2,m2){
+  if(!(w2>=30&&w2<=200)||!(f2>=3&&f2<=60))return false;
+  if(!dd||!/^\d{4}-\d{2}-\d{2}$/.test(dd)||dd>today())dd=today();
+  bhAdd(dd,Math.round(w2*10)/10,Math.round(f2*10)/10,(m2>=10&&m2<=60)?Math.round(m2*10)/10:0);
+  if(dd===today()){
+    BW=Math.round(w2*10)/10;BF=Math.round(f2*10)/10;
+    if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e9){}}
+  }
+  return dd;
+}
 function bhTrend(){
   var a=bhLoad();
   if(a.length<2)return '';
@@ -1466,6 +1483,34 @@ function bhTrend(){
   if(dl<=-0.5)out+=' — 근손실 주의';
   var tail=a.slice(-4).map(function(x){return x.d.slice(5).replace('-','/')+' '+fmtW(x.w)+'·'+fmtW(x.f);}).join(' → ');
   return out+'<br><span style="opacity:.75">'+tail+'</span>';
+}
+function paceInfo(bw,bf,gf){
+  var lbm=bw*(1-bf/100);
+  var tw=gf<bf?Math.round(lbm/(1-gf/100)*10)/10:bw;
+  var remain=Math.round(Math.max(0,bw-tw)*10)/10;
+  var a=bhLoad();
+  if(a.length<2)return '페이스 목표 주 <b>-'+WR+'</b>kg (인바디 2건 이상이면 실측·도달일 계산)';
+  var last=a[a.length-1];
+  var base=a[0],i;
+  var lim=new Date();lim.setDate(lim.getDate()-35);
+  var limIso=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
+  for(i=0;i<a.length-1;i++){if(a[i].d>=limIso){base=a[i];break;}}
+  var dd=Math.max(1,Math.round((new Date(last.d)-new Date(base.d))/86400000));
+  var rate=Math.round((last.w-base.w)/dd*7*100)/100;
+  var out='실측 주 <b>'+(rate>0?'+':'')+rate+'</b>kg · 목표 <b>-'+WR+'</b>';
+  if(remain<=0)return out+' · 목표 체지방 도달 — 유지 구간';
+  var tag;
+  if(rate>=0)tag='증량 추세 — 적자 점검 요망';
+  else if(-rate>bw*0.01)tag='과속(주 1퍼센트 초과) — 근손실 주의';
+  else if(-rate<WR*0.5)tag='페이스 부족';
+  else tag='페이스 양호';
+  if(rate<0){
+    var days=Math.round(remain/(-rate)*7);
+    var eta=new Date();eta.setDate(eta.getDate()+days);
+    var el=String(eta.getMonth()+1).padStart(2,'0')+'-'+String(eta.getDate()).padStart(2,'0');
+    out+=' · '+gf+'% 도달 예상 <b>'+el+'</b> (약 '+Math.max(1,Math.round(days/7))+'주)';
+  }
+  return out+' · '+tag;
 }
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
@@ -1481,6 +1526,7 @@ function bodyLine(bw,bf,gf,hrm,act){
   if(bm)out+='<br>BMR <b>'+bm.toLocaleString()+'</b> kcal · 비운동 TDEE ≈ <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal (운동일은 소비 추가 합산)';
   var tr=bhTrend();
   if(tr)out+='<br>'+tr;
+  out+='<br>'+paceInfo(bw,bf,gf);
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -1656,7 +1702,7 @@ function engLabel(){
   if(LM==='oai')return 'GPT 5 Mini';
   return 'Claude Sonnet 4.6';
 }
-var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n유산소: CARDIO 부위는 근력과 별개이며 log의 "n분v속도i경사"는 n분 지속·속도(또는 레벨)·경사%를 뜻하고 i가 없으면 경사 0임, thisWeek·exercises·targets의 CARDIO 수치는 세트가 아니라 주간 분임. 유산소는 회복 부채·부위 볼륨 판정에서 제외하고 Zone2 주 3회 관점으로만 평가하며 [금주 분석]에서 "유산소 n/n분(주 n회)" 한 줄로 표기함. 종목명에 Walking·걷기·산책이 포함된 유산소는 NEAT로 보고 Zone2 회수·분 판정에서 제외함(thisWeek.CARDIO에는 이미 미포함).\ntops: 종목별 최근 세션 톱세트 이력("MM-DD 무게x반복" 최신순, 2주 창 밖 포함)이며 정체·진전 판정은 log보다 tops를 우선 사용함.\nbody: "MM-DD 체중/체지방%" 이력임. 제지방=체중×(1-체지방/100)이며 최근 두 지점 제지방이 0.5kg 이상 감소 추세면 근손실 위험으로 최우선 경고하고, 주당 감량이 체중의 1%를 넘으면 과속 감량으로 지적함. 세 번째 숫자가 있으면 골격근량(kg)이며 있으면 제지방 대신 골격근량 추세로 근손실을 판정함. body가 비어 있으면 언급하지 않음.\nsubTargets: 세부 근육별 주간 목표 세트 맵이며 포함된 세부만 그 값을 기준선 하한으로 사용하고, 맵에 없는 세부는 기준선 판정을 생략함.\nsubAvoid: 자극 회피 대상 세부 목록이며 여기 속한 세부의 실적 세트가 1 이상이면 금기 위반으로 지적함. 비어 있으면 생략함.\nrepMax: "종목명|상한" 목록이며 여기 있는 종목은 그 반복 상한을, 없는 종목은 12회를 점증 판정에 사용함.\nrestDays: 계획 휴식 요일이며 훈련 가능일 수는 7에서 restDays 개수를 뺀 값이고 경과·잔여 훈련일 계산에 이 요일들을 제외함.\nprevDirection: 직전 보고서의 방향 지시임. 이행 여부를 [평가]에서 한 줄로 점검하고, 비어 있으면 생략함.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n유산소는 "유산소 n/n분(주 n회)" 형식의 한 줄로 표기함. 판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
+var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n유산소: CARDIO 부위는 근력과 별개이며 log의 "n분v속도i경사"는 n분 지속·속도(또는 레벨)·경사%를 뜻하고 i가 없으면 경사 0임, thisWeek·exercises·targets의 CARDIO 수치는 세트가 아니라 주간 분임. 유산소는 회복 부채·부위 볼륨 판정에서 제외하고 Zone2 주 3회 관점으로만 평가하며 [금주 분석]에서 "유산소 n/n분(주 n회)" 한 줄로 표기함. 종목명에 Walking·걷기·산책이 포함된 유산소는 NEAT로 보고 Zone2 회수·분 판정에서 제외함(thisWeek.CARDIO에는 이미 미포함).\ntops: 종목별 최근 세션 톱세트 이력("MM-DD 무게x반복" 최신순, 2주 창 밖 포함)이며 정체·진전 판정은 log보다 tops를 우선 사용함.\nbody: "MM-DD 체중/체지방%" 이력임. 제지방=체중×(1-체지방/100)이며 최근 두 지점 제지방이 0.5kg 이상 감소 추세면 근손실 위험으로 최우선 경고하고, 주당 감량이 체중의 1%를 넘으면 과속 감량으로 지적함. 세 번째 숫자가 있으면 골격근량(kg)이며 있으면 제지방 대신 골격근량 추세로 근손실을 판정함. paceTarget은 주당 감량 목표(kg)이며 body 실측 주당 감량이 이를 크게 밑돌면 부족, 체중의 1퍼센트를 넘으면 과속 감량으로 판정함. body가 비어 있으면 언급하지 않음.\nsubTargets: 세부 근육별 주간 목표 세트 맵이며 포함된 세부만 그 값을 기준선 하한으로 사용하고, 맵에 없는 세부는 기준선 판정을 생략함.\nsubAvoid: 자극 회피 대상 세부 목록이며 여기 속한 세부의 실적 세트가 1 이상이면 금기 위반으로 지적함. 비어 있으면 생략함.\nrepMax: "종목명|상한" 목록이며 여기 있는 종목은 그 반복 상한을, 없는 종목은 12회를 점증 판정에 사용함.\nrestDays: 계획 휴식 요일이며 훈련 가능일 수는 7에서 restDays 개수를 뺀 값이고 경과·잔여 훈련일 계산에 이 요일들을 제외함.\nprevDirection: 직전 보고서의 방향 지시임. 이행 여부를 [평가]에서 한 줄로 점검하고, 비어 있으면 생략함.\n판정 기준: 부위당 주 10~20세트를 유효 볼륨으로 보고 20세트 초과분은 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n유산소는 "유산소 n/n분(주 n회)" 형식의 한 줄로 표기함. 판정 없이 사실만. 부위당 한 줄(지난주 대비 증감 포함), 마지막에 총 세트 수와 수행일 수 한 줄. 초과/부족/과다 같은 판정 단어 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press(GYM80)는 2주째 50kg 12회에 머물러 정체로 판단됨" 식. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
 (function(){
   if(!canLS)return;
   try{
@@ -1826,10 +1872,19 @@ function ocrInbody(b64,mime){
     var a1=t.indexOf('{'),b1=t.lastIndexOf('}');
     if(a1<0||b1<=a1)throw new Error('JSON 없음');
     var o=JSON.parse(t.slice(a1,b1+1));
+    var dd=(o.date&&/^\d{4}-\d{2}-\d{2}$/.test(o.date))?o.date:'';
+    var w2=parseFloat(o.weight),f2=parseFloat(o.fat),m2=parseFloat(o.smm);
+    var ok=bhCommit(dd,w2,f2,m2);
+    if(ok){
+      render();
+      var st2=document.getElementById('bhSt');
+      if(st2)st2.innerHTML='<b>자동 저장됨</b> ('+NM[usedEng]+') — '+ok+' · '+fmtW(w2)+'kg / '+fmtW(f2)+'%'+((m2>=10&&m2<=60)?(' / SMM '+fmtW(m2)):'')+' — 목록에서 수정·삭제 가능';
+      return;
+    }
     var setV=function(id,val){var el=document.getElementById(id);if(el&&val!=null&&val!=='')el.value=val;};
-    if(o.date&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&o.date<=today())setV('bhD',o.date);
+    if(dd&&dd<=today())setV('bhD',dd);
     setV('bhW',o.weight);setV('bhF',o.fat);setV('bhM',o.smm);
-    if(st)st.innerHTML='추출 완료 ('+NM[usedEng]+') — 값 확인 후 <b>ADD RECORD</b>';
+    if(st)st.innerHTML='일부만 추출됨 ('+NM[usedEng]+') — 값 채운 뒤 <b>ADD RECORD</b>';
   }
   run.then(function(t){fill(t,eng);}).catch(function(e1){
     var nxt=ENGS[1];
@@ -2048,7 +2103,7 @@ function aiPayload(){
   return {exercises:exs,tops:tops,body:bhArr,prevDirection:prevDir,
     subTargets:(function(){var o2={},sq;for(sq=0;sq<SUBS.length;sq++)if(STG[SUBS[sq].k]>0)o2[subLabel(SUBS[sq])]=STG[SUBS[sq].k];return o2;})(),
     subAvoid:(function(){var a2=[],sq2;for(sq2=0;sq2<SUBS.length;sq2++)if(STG[SUBS[sq2].k]===0)a2.push(subLabel(SUBS[sq2]));return a2;})(),
-    repMax:repMax,restDays:RD.map(function(x){return DN2[x];}),
+    repMax:repMax,restDays:RD.map(function(x){return DN2[x];}),paceTarget:WR,
     log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
 }
 
@@ -2698,14 +2753,9 @@ document.addEventListener('click',function(e){
         var w2=parseFloat(String((document.getElementById('bhW')||{}).value||'').replace(',','.'));
         var f2=parseFloat(String((document.getElementById('bhF')||{}).value||'').replace(',','.'));
         var m2=parseFloat(String((document.getElementById('bhM')||{}).value||'').replace(',','.'));
-        if(!(w2>=30&&w2<=200)||!(f2>=3&&f2<=60)){toast('<em>WT·FAT%</em> 확인 필요');return;}
-        if(dd>today())dd=today();
-        bhAdd(dd,Math.round(w2*10)/10,Math.round(f2*10)/10,(m2>=10&&m2<=60)?Math.round(m2*10)/10:0);
-        if(dd===today()){
-          BW=Math.round(w2*10)/10;BF=Math.round(f2*10)/10;
-          if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e9){}}
-        }
-        toast('<em>Record saved</em> '+dd);
+        var ok=bhCommit(dd,w2,f2,m2);
+        if(!ok){toast('<em>WT·FAT%</em> 확인 필요');return;}
+        toast('<em>Record saved</em> '+ok);
         render();
       })();
       break;
@@ -2755,6 +2805,11 @@ document.addEventListener('click',function(e){
           if(sn>=0&&sn<=30)STG[SUBS[si].k]=sn;
         }
         if(document.getElementById('st0')&&canLS){try{localStorage.setItem(KEY+'.st',JSON.stringify({v:2,t:STG}));}catch(eS){}}
+        var pcEl=document.getElementById('pc0');
+        if(pcEl){
+          var pw2=parseFloat(String(pcEl.value).replace(',','.'));
+          if(pw2>=0.1&&pw2<=1.5){WR=Math.round(pw2*100)/100;if(canLS){try{localStorage.setItem(KEY+'.wr',String(WR));}catch(ePc){}}}
+        }
         var acEl=document.getElementById('ac0');
         if(acEl){
           var av=parseFloat(String(acEl.value).replace(',','.'));
