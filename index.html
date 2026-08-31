@@ -2654,17 +2654,36 @@ function syncFromDom(){
   el=document.getElementById('inI');if(el)UI.ci=el.value;
   el=document.getElementById('q');if(el)UI.q=el.value;
 }
-/* 키보드 열림 중 버튼 첫 탭 유실 방지: blur로 인한 레이아웃 이동 전에 액션 확정 */
-document.addEventListener('touchstart',function(e){
-  var ae=document.activeElement;
-  if(!ae||!(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;
-  if(!e.target||!e.target.closest)return;
-  var b=e.target.closest('button[data-act]');
-  if(!b)return;
-  e.preventDefault();
-  try{ae.blur();}catch(x){}
-  setTimeout(function(){try{b.click();}catch(x2){}},60);
-},{passive:false});
+/* 키보드 열림 중 버튼 첫 탭 유실 방지 — 스크롤은 통과시키고, 탭만 touchend에서 확정 */
+(function(){
+  var cand=null;
+  document.addEventListener('touchstart',function(e){
+    cand=null;
+    var ae=document.activeElement;
+    if(!ae||!(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;
+    if(!e.target||!e.target.closest)return;
+    var b=e.target.closest('button[data-act]');
+    if(!b)return;
+    var t=e.touches&&e.touches[0];
+    if(!t)return;
+    cand={b:b,x:t.clientX,y:t.clientY,at:Date.now(),ae:ae};
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!cand)return;
+    var t=e.touches&&e.touches[0];
+    if(!t)return;
+    if(Math.abs(t.clientX-cand.x)>8||Math.abs(t.clientY-cand.y)>8)cand=null;
+  },{passive:true});
+  document.addEventListener('touchcancel',function(){cand=null;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!cand)return;
+    var c=cand;cand=null;
+    if(Date.now()-c.at>600)return;
+    e.preventDefault();
+    try{c.ae.blur();}catch(x){}
+    setTimeout(function(){try{c.b.click();}catch(x2){}},40);
+  },{passive:false});
+})();
 document.addEventListener('click',function(e){
   if(GMOPEN&&!e.target.closest('.gmwrap')){GMOPEN=false;renderSheet();}
   var t=e.target.closest('[data-act]');if(!t)return;
