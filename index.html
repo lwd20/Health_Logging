@@ -56,6 +56,9 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .sh-l.fold:active{opacity:.6}
 .xlink{color:#cfa648;cursor:pointer;font-size:10px;letter-spacing:.04em}
 .xlink:active{opacity:.6}
+.favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(207,166,72,.4);border-radius:3px;background:linear-gradient(180deg,#221a0c,#181209);color:#cfa648;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-align:left}
+.favnote b{font-family:var(--mono);color:#e3b95a}
+.favnote:active{opacity:.7}
 .hnrg{flex:0 0 100%;display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 13px;margin-top:5px;cursor:pointer}
 .hnrg:active{opacity:.65}
 .hnrg .ni{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
@@ -752,11 +755,16 @@ function renderList(){
     h=(tot?'<div class="scnt">'+tot+' result'+(tot>1?'s':'')+'</div>':'')+h;
     if(!tot)h='<div class="empty" style="padding:40px 0">No match</div>';
   }else{
-    var arr2=[];
+    var arr2=[],totP=0;
     for(i=0;i<S.m.length;i++){
       if(S.m[i].p!==UI.filter)continue;
+      totP++;
       if(UI.favOnly&&!S.m[i].f)continue;
       arr2.push(S.m[i]);
+    }
+    if(UI.favOnly){
+      var hid=totP-arr2.length;
+      h+='<button class="favnote" data-act="fo">★ 즐겨찾기만 표시 중'+(hid>0?' · 숨김 <b>'+hid+'</b>':'')+' — 전체 보기</button>';
     }
     arr2=favFirst(arr2);
     if(UI.filter==='CARDIO'){
@@ -778,7 +786,7 @@ function renderList(){
       for(j=0;j<arr2.length;j++)h+=rowHtml(arr2[j]);
       h+='</div>';
     }else{
-      h='<div class="empty" style="padding:40px 0">'+(UI.favOnly?'No favorites in '+UI.filter+' — tap ☆':'No exercises')+'</div>';
+      h+='<div class="empty" style="padding:40px 0">'+(UI.favOnly?'No favorites in '+UI.filter+' — tap ☆':'No exercises')+'</div>';
     }
   }
   document.getElementById('list').innerHTML=h;
@@ -1428,6 +1436,29 @@ function tmrFmt(ms){
   var t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;
   function z(n){return (n<10?'0':'')+n;}
   return h?h+':'+z(m)+':'+z(x):z(m)+':'+z(x);
+}
+function tmrNative(cmd,at){
+  at=+at||Date.now();
+  if(cmd==='reset'){TMR.b=0;TMR.ts=at;}
+  else if(cmd==='stop'){TMR.b=0;TMR.ts=0;}
+  else return;
+  tmrMark=0;tmrSave();tmrDraw();
+  if(canLS){try{localStorage.setItem(KEY+'.tack',String(at));}catch(e){}}
+}
+function tmrNativeSync(){
+  if(!(window.AndroidTimer&&AndroidTimer.last))return;
+  var raw2='';
+  try{raw2=String(AndroidTimer.last()||'');}catch(e){return;}
+  var i2=raw2.lastIndexOf('|');
+  if(i2<1)return;
+  var act2=raw2.slice(0,i2),at2=+raw2.slice(i2+1)||0;
+  if(!at2)return;
+  var ack=0;
+  if(canLS){try{ack=+localStorage.getItem(KEY+'.tack')||0;}catch(e){}}
+  if(at2<=ack)return;
+  if(act2==='reset'&&at2>(TMR.ts||0))tmrNative('reset',at2);
+  else if(act2==='stop'&&TMR.ts&&at2>TMR.ts)tmrNative('stop',at2);
+  else if(canLS){try{localStorage.setItem(KEY+'.tack',String(at2));}catch(e){}}
 }
 function tmrDraw(){
   var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(tmrMs());
@@ -3141,7 +3172,8 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(function(){});
 }
 aiBgPoll();
-document.addEventListener('visibilitychange',function(){if(!document.hidden)aiBgPoll();});
+tmrNativeSync();
+document.addEventListener('visibilitychange',function(){if(!document.hidden){aiBgPoll();tmrNativeSync();}});
 if(window.AndroidAI)setInterval(aiBgPoll,15000);
 </script>
 </body>
