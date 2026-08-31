@@ -321,6 +321,23 @@ html{color-scheme:dark}
 .cttag.good{color:#cfa648;border-color:rgba(207,166,72,.45)}
 .cttag.dim{color:var(--dim);border-color:var(--line)}
 .cttag.bad{color:#c96a5a;border-color:#5a3430}
+.tdee{cursor:pointer}
+.tdee b{color:#e3b95a;font-weight:700}
+.tdee i{font-style:normal;color:var(--dim);font-size:.9em;margin-left:5px}
+.tdee:active{opacity:.7}
+.jwrap{margin:2px 0 10px}
+.jtop{display:flex;justify-content:space-between;align-items:baseline;font-size:9px;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.jtop b{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:0}
+.jtop .jpct{font-size:9.5px;color:var(--mut)}
+.jtop .jpct b{color:#e3b95a}
+.jbar{position:relative;height:7px;background:var(--inset);border:1px solid var(--line);border-radius:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}
+.jbar b{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#8a6c22,#d6b155);box-shadow:0 0 6px rgba(214,177,85,.35)}
+.jbar i{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#e3b95a;border:1.5px solid #1a150e;box-shadow:0 0 5px rgba(227,185,90,.6)}
+.spark{display:block;width:100%;height:48px;margin:2px 0 0}
+.spark .wline{fill:none;stroke:#cfa648;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.spark .goal{stroke:#6b5a33;stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.spark .wdot{fill:#e3b95a;stroke:#1a150e;stroke-width:.6}
+.sparkcap{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.08em;color:var(--dim);margin-top:3px}
 .ctrow{display:flex;gap:10px;align-items:baseline;margin:6px 0;color:var(--mut);font-size:11px}
 .ctrow .k{flex:0 0 40px;font-size:9px;font-weight:800;letter-spacing:.18em;color:var(--dim)}
 .ctrow .v{font-family:var(--mono);letter-spacing:.01em}
@@ -648,7 +665,16 @@ function render(){
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')
     +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'')
-    +(bmr(BW,BF)?'<em>· TDEE ≈ '+dayTDEE(UI.wd).toLocaleString()+'</em>':'');
+    +(bmr(BW,BF)?(function(){
+        var base=Math.round(bmr(BW,BF)*ACT);
+        var ex=Math.round(dayExKcal(UI.wd));
+        var tot=base+ex;
+        var dfc=Math.round(WR*7700/7);
+        var eat=Math.max(0,tot-dfc);
+        return '<em class="tdee" data-act="godiet" title="탭하면 DIET">· TDEE <b>'+tot.toLocaleString()+'</b> kcal'
+          +(ex>0?'<i>EX +'+ex.toLocaleString()+'</i>':'')
+          +' · EAT <b>'+eat.toLocaleString()+'</b> kcal</em>';
+      })():'');
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
   renderChips();renderList();renderSheet();
@@ -939,7 +965,8 @@ function renderSheet(){
     h+='<div class="cmeta">'
       +'<span>'+(AIAT?(AIBY+' · '+AIAT):'Ready')+'</span>'
       +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
-    h+='<button class="anlbtn'+(AIRUN?' dis':'')+'" data-act="airun"'+(AIRUN?' disabled':'')+'>'
+    if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행되고, 완료되면 알림이 옴. 이 화면으로 돌아오면 자동 표시됨.</div>';
+    h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
       +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
     h+='</div>';
@@ -1045,8 +1072,44 @@ function renderSheet(){
           +'<div class="cap"><b>'+c1+'</b>'+(c2?'<br>'+c2:'')+'</div>'
           +(tagH?'<div style="margin-left:auto;align-self:center">'+tagH+'</div>':'')
           +'</div>';
-        hh+='<div class="ctrow"><b class="k">체중</b><span class="v"><b>'+fmtW(BW)+'</b> → <b>'+fmtW(r.tw)+'</b> kg · 지방 <b>'+fmtW(r.remain)+'</b>kg 남음</span></div>';
-        hh+='<div class="ctrow"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
+        var a=bhLoad();
+        /* 여정 바: 시작 → 현재 → 목표 */
+        if(a.length>=1&&(r.tw<BW||r.done)){
+          var startW=a[0].w;
+          var span=startW-r.tw;
+          var pct=r.done?100:(span>0?Math.max(0,Math.min(100,Math.round((startW-BW)/span*100))):0);
+          var lost=Math.max(0,Math.round((startW-BW)*10)/10);
+          hh+='<div class="jwrap">'
+            +'<div class="jtop"><span>시작 <b>'+fmtW(startW)+'</b></span>'
+            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(lost)+'</b>kg 감량 · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
+            +'<span>목표 <b>'+(r.done?'달성':fmtW(r.tw))+'</b></span></div>'
+            +'<div class="jbar"><b style="width:'+pct+'%"></b><i style="left:'+pct+'%"></i></div>'
+            +'</div>';
+        }
+        /* 체중 스파크라인 + 목표선 */
+        if(a.length>=2){
+          var pts=a.slice(-12),i2;
+          var ws=pts.map(function(x){return x.w;});
+          var lo=Math.min.apply(null,ws.concat([r.tw])),hi=Math.max.apply(null,ws);
+          var pad=(hi-lo)*0.12||0.5;lo-=pad;hi+=pad;
+          var W2=100,H2=30;
+          var xy=function(idx,wv){
+            var x=pts.length>1?idx/(pts.length-1)*W2:0;
+            var y=H2-((wv-lo)/(hi-lo))*H2;
+            return (Math.round(x*10)/10)+','+(Math.round(y*10)/10);
+          };
+          var pl='';
+          for(i2=0;i2<pts.length;i2++)pl+=(i2?' ':'')+xy(i2,pts[i2].w);
+          var gy=H2-((r.tw-lo)/(hi-lo))*H2;
+          var lastXY=xy(pts.length-1,pts[pts.length-1].w).split(',');
+          hh+='<svg class="spark" viewBox="0 0 '+W2+' '+H2+'" preserveAspectRatio="none">'
+            +(gy>=0&&gy<=H2?'<line x1="0" y1="'+Math.round(gy*10)/10+'" x2="'+W2+'" y2="'+Math.round(gy*10)/10+'" class="goal"/>':'')
+            +'<polyline points="'+pl+'" class="wline"/>'
+            +'<circle cx="'+lastXY[0]+'" cy="'+lastXY[1]+'" r="1.8" class="wdot"/>'
+            +'</svg>';
+          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>점선 = 목표 '+fmtW(r.tw)+'kg</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
+        }
+        hh+='<div class="ctrow" style="margin-top:10px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
         hh+='<div class="ctrow" style="margin-bottom:12px"><b class="k">섭취</b><span class="v">오늘 <b>'+intake.toLocaleString()+'</b> kcal 권장 · TDEE '+td.toLocaleString()+' · 적자 -'+dfc+'</span></div>';
         return hh;
       })()
@@ -1571,7 +1634,7 @@ function bodyLine(bw,bf,gf,hrm,act){
     out+='<br>목표 '+gf+'%까지 지방 약 <b>'+loss.toFixed(1)+'</b>kg (제지방 유지 시 '+tw.toFixed(1)+'kg)';
   }
   var bm=bmr(bw,bf);
-  if(bm)out+='<br>BMR <b>'+bm.toLocaleString()+'</b> kcal · 비운동 TDEE ≈ <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal (운동일은 소비 추가 합산)';
+  if(bm)out+='<br>기초 <b>'+bm.toLocaleString()+'</b> × 활동 '+act+' = 비운동 TDEE <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal · 운동일은 세션 소비가 위에 합산됨';
   var tr=bhTrend();
   if(tr)out+='<br>'+tr;
   out+='<br>'+paceInfo(bw,bf,gf);
@@ -2251,6 +2314,56 @@ function aiCount(){
   AIC.n++;
   if(canLS){try{localStorage.setItem(KEY+'.aic',JSON.stringify(AIC));}catch(e){}}
 }
+function buildAiReq(){
+  var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
+  if(LM==='oai')return {eng:'oai',label:'GPT',
+    url:'https://api.openai.com/v1/chat/completions',
+    headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
+    body:JSON.stringify({model:'gpt-5-mini',max_completion_tokens:2048,messages:[{role:'user',content:prompt}]})};
+  if(LM==='ant')return {eng:'ant',label:'CLAUDE',
+    url:'https://api.anthropic.com/v1/messages',
+    headers:{'content-type':'application/json','x-api-key':KS.ant,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,messages:[{role:'user',content:prompt}]})};
+  var model=GVM||GM;
+  var g={maxOutputTokens:8192};
+  if(/gemini-[3-9]|flash-latest/.test(model))g.thinkingConfig={thinkingLevel:'LOW'};
+  else g.thinkingConfig={thinkingBudget:0};
+  return {eng:'gem',label:'GEMINI',
+    url:'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:g})};
+}
+function aiExtract(eng,d){
+  try{
+    if(d&&d.error&&d.error.message)return {err:d.error.message};
+    if(eng==='oai')return {txt:String(d.choices[0].message.content||'')};
+    if(eng==='ant'){var t='',i;for(i=0;i<(d.content||[]).length;i++)t+=(d.content[i].text||'');return {txt:t};}
+    var t2='',ps=(((d.candidates||[])[0]||{}).content||{}).parts||[];
+    for(var j=0;j<ps.length;j++)t2+=(ps[j].text||'');
+    return {txt:t2};
+  }catch(e){return {err:'응답 파싱 실패'};}
+}
+function aiBgPending(){
+  try{
+    var o=JSON.parse(localStorage.getItem(KEY+'.aibg')||'null');
+    return !!(o&&o.ts&&(Date.now()-o.ts)<1800000);
+  }catch(e){return false;}
+}
+function aiBgPoll(){
+  if(!(window.AndroidAI&&AndroidAI.take))return;
+  var s='';
+  try{s=AndroidAI.take()||'';}catch(e){return;}
+  if(!s)return;
+  if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(e3){}}
+  var o=null;try{o=JSON.parse(s);}catch(e2){}
+  if(!o){aiSave('오류: 백그라운드 결과 파싱 실패');render();return;}
+  if(!o.ok){aiSave('오류: '+String(o.err||('HTTP '+o.status)).slice(0,300));render();return;}
+  var d=null;try{d=JSON.parse(o.body);}catch(e4){}
+  var ex=aiExtract(o.eng,d||{});
+  aiSave(ex.txt&&String(ex.txt).trim()?ex.txt:('오류: '+(ex.err||'응답 없음')));
+  toast('AI 리포트 도착');
+  render();
+}
 function aiSave(txt){
   AIRUN=false;
   AIOUT=txt;
@@ -2637,6 +2750,7 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
+    case 'godiet':UI.dtab='diet';UI.sheet='data';render();break;
     case 'cl':UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
     case 'exitno':exitAsk(false);break;
     case 'exityes':
@@ -2771,8 +2885,18 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'airun':
-      if(AIRUN){toast('Already running');break;}
+      if(AIRUN||aiBgPending()){toast('이미 생성 중');break;}
       if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
+      if(window.AndroidAI&&AndroidAI.run){
+        try{
+          var bgSpec=buildAiReq();
+          AndroidAI.run(JSON.stringify(bgSpec));
+          if(canLS){try{localStorage.setItem(KEY+'.aibg',JSON.stringify({ts:Date.now(),eng:bgSpec.eng}));}catch(eBg){}}
+          toast('백그라운드 생성 시작 — 앱 닫아도 진행됨');
+          render();
+          break;
+        }catch(eB){}
+      }
       runAI();
       break;
     case 'ai':
@@ -3018,6 +3142,9 @@ widgetSync();
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(function(){});
 }
+aiBgPoll();
+document.addEventListener('visibilitychange',function(){if(!document.hidden)aiBgPoll();});
+if(window.AndroidAI)setInterval(aiBgPoll,15000);
 </script>
 </body>
 </html>
