@@ -992,7 +992,7 @@ function renderSheet(){
     h+='<div class="cmeta">'
       +'<span>'+(AIAT?(AIBY+' · '+AIAT):'Ready')+'</span>'
       +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
-    if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행되고, 완료되면 알림이 옴. 이 화면으로 돌아오면 자동 표시됨.</div>';
+    if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b></div>';
     h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
       +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
@@ -2353,12 +2353,24 @@ function buildAiReq(){
     url:'https://api.anthropic.com/v1/messages',
     headers:{'content-type':'application/json','x-api-key':KS.ant,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,messages:[{role:'user',content:prompt}]})};
-  var model=GVM||GM;
+  function gClean(m){return String(m||'').trim().replace(/^models\//,'');}
+  var chain=[],seen={},cand=[gClean(GVM),gClean(GM)];
+  for(var gk in GMN)cand.push(gClean(gk));
+  cand.push('gemini-flash-latest');
+  for(var ci=0;ci<cand.length;ci++){
+    var cm=cand[ci];
+    if(cm&&!seen[cm]){seen[cm]=1;chain.push(cm);}
+  }
+  var gUrl=function(m){return 'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(KS.gem);};
   var g={maxOutputTokens:8192};
-  if(/gemini-[3-9]|flash-latest/.test(model))g.thinkingConfig={thinkingLevel:'LOW'};
+  if(/gemini-[3-9]|flash-latest/.test(chain[0]))g.thinkingConfig={thinkingLevel:'LOW'};
   else g.thinkingConfig={thinkingBudget:0};
+  var urls=[],ui2;
+  for(ui2=0;ui2<chain.length&&ui2<4;ui2++)urls.push(gUrl(chain[ui2]));
   return {eng:'gem',label:'GEMINI',
-    url:'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),
+    url:urls[0],
+    urls:urls,
+    models:chain.slice(0,4),
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:g})};
 }
@@ -2375,7 +2387,7 @@ function aiExtract(eng,d){
 function aiBgPending(){
   try{
     var o=JSON.parse(localStorage.getItem(KEY+'.aibg')||'null');
-    return !!(o&&o.ts&&(Date.now()-o.ts)<1800000);
+    return !!(o&&o.ts&&(Date.now()-o.ts)<600000);
   }catch(e){return false;}
 }
 function aiBgPoll(){
@@ -2386,7 +2398,11 @@ function aiBgPoll(){
   if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(e3){}}
   var o=null;try{o=JSON.parse(s);}catch(e2){}
   if(!o){aiSave('오류: 백그라운드 결과 파싱 실패');render();return;}
-  if(!o.ok){aiSave('오류: '+String(o.err||('HTTP '+o.status)).slice(0,300));render();return;}
+  if(!o.ok){
+    var em2=String(o.err||('HTTP '+o.status));
+    if(o.trail)em2+=' ['+String(o.trail).slice(0,160)+']';
+    aiSave('오류: '+em2.slice(0,300));render();return;
+  }
   var d=null;try{d=JSON.parse(o.body);}catch(e4){}
   var ex=aiExtract(o.eng,d||{});
   aiSave(ex.txt&&String(ex.txt).trim()?ex.txt:('오류: '+(ex.err||'응답 없음')));
@@ -2799,6 +2815,11 @@ document.addEventListener('click',function(e){
       break;
     case 'mn':UI.sheet='data';render();break;
     case 'ctog':UI.cutOpen=!UI.cutOpen;render();break;
+    case 'aibgx':
+      if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(eX){}}
+      toast('대기 해제됨 — 다시 실행 가능');
+      render();
+      break;
     case 'godiet':UI.dtab='diet';UI.sheet='data';render();break;
     case 'cl':UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
     case 'exitno':exitAsk(false);break;
@@ -3193,7 +3214,11 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 aiBgPoll();
 tmrNativeSync();
 document.addEventListener('visibilitychange',function(){if(!document.hidden){aiBgPoll();tmrNativeSync();}});
-if(window.AndroidAI)setInterval(aiBgPoll,15000);
+if(window.AndroidAI)setInterval(function(){
+  var was=aiBgPending();
+  aiBgPoll();
+  if(was&&!aiBgPending()&&UI.sheet==='ai')render();
+},15000);
 </script>
 </body>
 </html>
