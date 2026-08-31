@@ -56,6 +56,7 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .sh-l.fold:active{opacity:.6}
 .xlink{color:#cfa648;cursor:pointer;font-size:10px;letter-spacing:.04em}
 .xlink:active{opacity:.6}
+.stale{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:#d8a13c;border:1px solid rgba(216,161,60,.45);border-radius:3px;padding:2px 6px;margin-left:6px;vertical-align:1px;background:rgba(216,161,60,.08)}
 .favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(207,166,72,.4);border-radius:3px;background:linear-gradient(180deg,#221a0c,#181209);color:#cfa648;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-align:left}
 .favnote b{font-family:var(--mono);color:#e3b95a}
 .favnote:active{opacity:.7}
@@ -990,7 +991,7 @@ function renderSheet(){
     }
     h+='</div>';
     h+='<div class="cmeta">'
-      +'<span>'+(AIAT?(AIBY+' · '+AIAT):'Ready')+'</span>'
+      +'<span>'+(AIAT?((AIDT?AIDT+' · ':'')+AIBY+' · '+AIAT+(aiDayTag(AIDT)?' <i class="stale">'+aiDayTag(AIDT)+'</i>':'')):'Ready')+'</span>'
       +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
     if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b></div>';
     h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
@@ -1003,7 +1004,7 @@ function renderSheet(){
       h+='<div class="ai-mast"><span class="tt">WEEKLY REPORT</span>'
         +'<span class="mt">'
         +'<button class="nav" data-act="aiprev"'+(AIVIEW+1<AIH.length?'':' disabled')+'>&#9664;</button>'
-        +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+'</span>'
+        +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+(aiDayTag(cur.d)?' <i class="stale">'+aiDayTag(cur.d)+'</i>':'')+'</span>'
         +'<button class="nav" data-act="ainext"'+(AIVIEW>0?'':' disabled')+'>&#9654;</button>'
         +'</span></div>';
       h+=aiFmt(cur.o);
@@ -1770,6 +1771,13 @@ function wkCardio(){
 }
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
+function aiDayTag(d){
+  if(!d)return '';
+  var t=new Date(),y=new Date(Date.now()-864e5);
+  if(d===MONS[t.getMonth()]+' '+t.getDate())return '';
+  if(d===MONS[y.getMonth()]+' '+y.getDate())return '어제 생성';
+  return '이전 리포트';
+}
 var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
