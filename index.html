@@ -50,6 +50,15 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .h1sub{display:block;font-size:8px;font-weight:700;letter-spacing:.4em;color:var(--chrome);opacity:.8;margin-bottom:6px}
 .hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:7px;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
 .hdate em{color:var(--chrome);font-weight:700;margin-left:3px}
+.xlink{color:#cfa648;cursor:pointer;font-size:10px;letter-spacing:.04em}
+.xlink:active{opacity:.6}
+.hnrg{flex:0 0 100%;display:flex;align-items:baseline;gap:13px;margin-top:5px;cursor:pointer}
+.hnrg:active{opacity:.65}
+.hnrg .ni{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+.hnrg .k{font-size:8.5px;font-weight:800;letter-spacing:.16em;color:var(--dim)}
+.hnrg .v{font-family:var(--mono);font-size:13px;font-weight:700;color:#e3b95a;letter-spacing:.01em}
+.hnrg i{font-style:normal;font-size:8.5px;letter-spacing:.1em;color:var(--dim)}
+.hnrg .ex .v{color:var(--mut);font-size:11.5px}
 .dnav{padding:10px 13px;margin:-8px 0;color:var(--dim);font-size:13px}
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
@@ -665,15 +674,18 @@ function render(){
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')
     +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'')
+    +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><span class="ni"><b class="k">DIET</b><b class="v" style="font-size:11px">첫 인바디 기록 추가 ▸</b></span></div>':'')
     +(bmr(BW,BF)?(function(){
         var base=Math.round(bmr(BW,BF)*ACT);
         var ex=Math.round(dayExKcal(UI.wd));
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
-        return '<em class="tdee" data-act="godiet" title="탭하면 DIET">· TDEE <b>'+tot.toLocaleString()+'</b> kcal'
-          +(ex>0?'<i>EX +'+ex.toLocaleString()+'</i>':'')
-          +' · EAT <b>'+eat.toLocaleString()+'</b> kcal</em>';
+        return '<div class="hnrg" data-act="godiet">'
+          +'<span class="ni"><b class="k">TDEE</b><b class="v">'+tot.toLocaleString()+'</b><i>kcal</i></span>'
+          +(ex>0?'<span class="ni ex"><b class="k">EX</b><b class="v">+'+ex.toLocaleString()+'</b></span>':'')
+          +'<span class="ni"><b class="k">EAT</b><b class="v">'+eat.toLocaleString()+'</b><i>kcal</i></span>'
+          +'</div>';
       })():'');
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
@@ -1036,11 +1048,12 @@ function renderSheet(){
   if(UI.sheet==='data'){
     var armed=UI.arm==='rs';
     var bk=getBk();
-    var tb=UI.dtab||'body';
+    var tb=UI.dtab||'diet';
+    if(tb==='body')tb='diet';
     function tbBtn(id,lb){return '<button class="dtb'+(tb===id?' on':'')+'" data-act="dtb" data-v="'+id+'">'+lb+'</button>';}
     h+='<div class="sh-t">Settings</div>'
       +'<div class="dset"><div class="drail">'
-      +tbBtn('body','BODY')+tbBtn('diet','DIET')+tbBtn('goals','GOALS')+tbBtn('ai','AI')+tbBtn('data','DATA')
+      +tbBtn('diet','DIET')+tbBtn('goals','GOALS')+tbBtn('ai','AI')+tbBtn('data','DATA')
       +'</div><div class="dbody">';
     if(tb==='data'){
     h+='<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
@@ -1109,8 +1122,18 @@ function renderSheet(){
             +'</svg>';
           hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>점선 = 목표 '+fmtW(r.tw)+'kg</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
         }
-        hh+='<div class="ctrow" style="margin-top:10px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
-        hh+='<div class="ctrow" style="margin-bottom:12px"><b class="k">섭취</b><span class="v">오늘 <b>'+intake.toLocaleString()+'</b> kcal 권장 · TDEE '+td.toLocaleString()+' · 적자 -'+dfc+'</span></div>';
+        var trd=bhTrend();
+        if(trd)hh+='<div class="ctrow" style="margin-top:10px"><b class="k">추세</b><span class="v">'+trd.replace(/<b>/g,'<b>')+'</span></div>';
+        hh+='<div class="ctrow"'+(trd?'':' style="margin-top:10px"')+'><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
+        hh+='<div class="ctrow"><b class="k">섭취</b><span class="v">오늘 <b>'+intake.toLocaleString()+'</b> kcal 권장 · TDEE '+td.toLocaleString()+' · 적자 -'+dfc+'</span></div>';
+        hh+='<div class="sh-l" style="margin-top:14px">Cut settings</div>'
+          +'<div class="wtg">'
+          +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
+          +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
+          +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
+          +'</div>'
+          +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
+          +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
         return hh;
       })()
       +(function(){
@@ -1205,24 +1228,15 @@ function renderSheet(){
         return hh;
       })()
       +'</div>'
-      +'<div class="strow" style="margin-top:10px"><b class="stnm" style="flex:0 0 70px">알림 간격</b>'
+      +'<div class="strow" style="margin-top:10px"><b class="stnm" style="flex:0 0 70px">최대심박</b>'
+      +'<div class="strest"></div>'
+      +'<input id="hr0" class="stin" inputmode="numeric" maxlength="3" value="'+HRM+'">'
+      +'<span class="stsl">bpm</span></div>'
+      +'<div class="strow"><b class="stnm" style="flex:0 0 70px">알림 간격</b>'
       +'<div class="strest"></div>'
       +'<input id="iv0" class="stin" inputmode="numeric" maxlength="3" value="'+IVs+'">'
       +'<span class="stsl">초</span></div>'
       +'<button class="okbtn" data-act="wg" style="width:100%;margin-top:12px">Save goals</button>';
-    }
-    if(tb==='body'){
-    h+='<div class="sh-l" style="margin-top:2px">Body</div>'
-      +'<div class="wtg">'
-      +'<div><b>WEIGHT · KG</b><input id="bw0" inputmode="decimal" maxlength="5" value="'+BW+'"></div>'
-      +'<div><b>FAT · %</b><input id="bf0" inputmode="decimal" maxlength="4" value="'+BF+'"></div>'
-      +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
-      +'<div><b>HR MAX</b><input id="hr0" inputmode="numeric" maxlength="3" value="'+HRM+'"></div>'
-      +'</div>'
-      +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
-      +'<div style="flex:0 0 48%"><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div></div>'
-      +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-      +'<button class="okbtn" data-act="wg" style="width:100%">Save body</button>';
     }
     if(tb==='ai'){
     h+='<div class="sh-l" style="margin-top:2px">API keys</div>'
@@ -1628,16 +1642,10 @@ function bodyLine(bw,bf,gf,hrm,act){
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
   if(!(bw>0&&bf>0))return 'Zone2 '+z1+'–'+z2+' bpm';
   var fat=bw*bf/100,lbm=bw-fat;
-  var out='지방 <b>'+fat.toFixed(1)+'</b>kg · 제지방 <b>'+lbm.toFixed(1)+'</b>kg · Zone2 <b>'+z1+'–'+z2+'</b>bpm';
-  if(gf>0&&gf<bf){
-    var tw=lbm/(1-gf/100),loss=bw-tw;
-    out+='<br>목표 '+gf+'%까지 지방 약 <b>'+loss.toFixed(1)+'</b>kg (제지방 유지 시 '+tw.toFixed(1)+'kg)';
-  }
+  var out='지방 <b>'+fat.toFixed(1)+'</b>kg · 제지방 <b>'+lbm.toFixed(1)+'</b>kg';
   var bm=bmr(bw,bf);
-  if(bm)out+='<br>기초 <b>'+bm.toLocaleString()+'</b> × 활동 '+act+' = 비운동 TDEE <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal · 운동일은 세션 소비가 위에 합산됨';
-  var tr=bhTrend();
-  if(tr)out+='<br>'+tr;
-  out+='<br>'+paceInfo(bw,bf,gf);
+  if(bm)out+=' · 기초 <b>'+bm.toLocaleString()+'</b> × 활동 '+act+' = 비운동 TDEE <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal';
+  out+='<br>체중·체지방은 아래 인바디 기록에서 자동 반영됨';
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -2816,7 +2824,7 @@ document.addEventListener('click',function(e){
           toast('Backup has no exercise data');return;
         }
         if(!chk.l||typeof chk.l!=='object')chk.l={};
-        applyBackup(o);UI.open=null;UI.sheet=null;UI.arm=null;UI.draft={};UI.dirty={};
+        applyBackup(o);UI.dtab='diet';UI.open=null;UI.sheet=null;UI.arm=null;UI.draft={};UI.dirty={};
         save();saveDraft();
         var c=0,k;for(k in S.l)if(S.l[k]&&S.l[k].length)c++;
         toast('<em>Restored</em> '+S.m.length+' ex · '+c+' days');
@@ -3016,7 +3024,7 @@ document.addEventListener('click',function(e){
           try{localStorage.setItem(KEY+'.iv',String(IVs));}catch(e3){}
         }
         widgetSync();restNotify();
-        if(document.getElementById('bw0'))bhPush();
+        if(document.getElementById('gf0')&&BW>0&&BF>0)bhPush();
         toast('<em>Settings saved</em>');
         render();
         renderSheet();
@@ -3047,7 +3055,7 @@ document.addEventListener('change',function(e){
       var chk2=(o&&o.v===2&&o.S)?o.S:o;
       if(chk2&&Object.prototype.toString.call(chk2.m)==='[object Array]'&&chk2.m.length){
         if(!chk2.l||typeof chk2.l!=='object')chk2.l={};
-        applyBackup(o);UI.open=null;UI.sheet=null;UI.draft={};UI.dirty={};
+        applyBackup(o);UI.dtab='diet';UI.open=null;UI.sheet=null;UI.draft={};UI.dirty={};
         save();saveDraft();
         toast('<em>Restored</em> backup file');
         render();
@@ -3113,7 +3121,7 @@ document.addEventListener('input',function(e){
     var b=document.querySelector('[data-act="am"],[data-act="em"]');
     if(b)b.className='okbtn'+(UI.addName.trim()?' rdy':'');
   }
-  if(e.target.id==='bw0'||e.target.id==='bf0'||e.target.id==='gf0'||e.target.id==='hr0'||e.target.id==='ac0'){
+  if(e.target.id==='gf0'||e.target.id==='pc0'||e.target.id==='ac0'){
     var bi=document.getElementById('bdInfo');
     if(bi){
       var gv2=function(id,dv){var el2=document.getElementById(id);var n2=parseFloat(String(el2?el2.value:'').replace(',','.'));return isNaN(n2)?dv:n2;};
