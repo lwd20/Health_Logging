@@ -312,6 +312,19 @@ html{color-scheme:dark}
 .strow .ai-bar{flex:1;margin:0}
 .strow .stv{font-family:var(--mono);font-size:12px;font-weight:700;color:#e3b95a;min-width:18px;text-align:right}
 .strow .stsl{color:var(--dim);font-size:11px}
+.cthero{display:flex;align-items:flex-start;gap:14px;margin:4px 0 12px}
+.cthero .dd{font-family:var(--mono);font-size:36px;font-weight:800;color:#e3b95a;letter-spacing:.01em;line-height:.95}
+.cthero .dd.bad{color:#c96a5a}
+.cthero .cap{font-size:10.5px;color:var(--mut);line-height:1.55;padding-top:3px}
+.cthero .cap b{color:var(--tx);font-size:11.5px}
+.cttag{font-size:9px;font-weight:800;letter-spacing:.14em;padding:3px 8px;border-radius:2px;border:1px solid}
+.cttag.good{color:#cfa648;border-color:rgba(207,166,72,.45)}
+.cttag.dim{color:var(--dim);border-color:var(--line)}
+.cttag.bad{color:#c96a5a;border-color:#5a3430}
+.ctrow{display:flex;gap:10px;align-items:baseline;margin:6px 0;color:var(--mut);font-size:11px}
+.ctrow .k{flex:0 0 40px;font-size:9px;font-weight:800;letter-spacing:.18em;color:var(--dim)}
+.ctrow .v{font-family:var(--mono);letter-spacing:.01em}
+.ctrow .v b{color:#e3b95a}
 .stpt{display:flex;align-items:center;gap:9px;margin:13px 0 4px;font-size:10.5px;font-weight:800;letter-spacing:.24em;color:#cfa648}
 .stpt::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(207,166,72,.35),var(--line) 40%,transparent)}
 .stpt:first-of-type{margin-top:7px}
@@ -1000,7 +1013,7 @@ function renderSheet(){
     function tbBtn(id,lb){return '<button class="dtb'+(tb===id?' on':'')+'" data-act="dtb" data-v="'+id+'">'+lb+'</button>';}
     h+='<div class="sh-t">Settings</div>'
       +'<div class="dset"><div class="drail">'
-      +tbBtn('body','BODY')+tbBtn('goals','GOALS')+tbBtn('ai','AI')+tbBtn('data','DATA')
+      +tbBtn('body','BODY')+tbBtn('diet','DIET')+tbBtn('goals','GOALS')+tbBtn('ai','AI')+tbBtn('data','DATA')
       +'</div><div class="dbody">';
     if(tb==='data'){
     h+='<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
@@ -1010,6 +1023,66 @@ function renderSheet(){
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
+    }
+    if(tb==='diet'){
+    h+='<div class="sh-l" style="margin-top:2px">Cut tracker</div>'
+      +(function(){
+        var r=paceCalc(BW,BF,GF);
+        var td=dayTDEE(today());
+        var dfc=Math.round(WR*7700/7);
+        var intake=Math.max(0,td-dfc);
+        var dd,c1,c2,tone='';
+        if(r.done){dd='DONE';c1='목표 체지방 도달';c2='유지 구간';}
+        else if(!r.ok){dd='D-?';c1='도달일 계산 대기';c2='인바디 기록 2건부터 계산됨';}
+        else if(r.rate>=0){dd='D-?';c1='도달일 산출 불가';c2='';tone='bad';}
+        else{dd='D-'+r.days;c1=r.eta+' · '+fmtW(GF)+'% 도달 예상';c2='약 '+r.weeks+'주';}
+        var tagH='';
+        if(r.ok&&!r.done&&r.tag){
+          var tCls=(r.tag.indexOf('과속')>=0||r.tag.indexOf('증량')>=0)?'bad':(r.tag.indexOf('부족')>=0?'dim':'good');
+          tagH='<span class="cttag '+tCls+'">'+r.tag+'</span>';
+        }
+        var hh='<div class="cthero"><div class="dd'+(tone?' '+tone:'')+'">'+dd+'</div>'
+          +'<div class="cap"><b>'+c1+'</b>'+(c2?'<br>'+c2:'')+'</div>'
+          +(tagH?'<div style="margin-left:auto;align-self:center">'+tagH+'</div>':'')
+          +'</div>';
+        hh+='<div class="ctrow"><b class="k">체중</b><span class="v"><b>'+fmtW(BW)+'</b> → <b>'+fmtW(r.tw)+'</b> kg · 지방 <b>'+fmtW(r.remain)+'</b>kg 남음</span></div>';
+        hh+='<div class="ctrow"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
+        hh+='<div class="ctrow" style="margin-bottom:12px"><b class="k">섭취</b><span class="v">오늘 <b>'+intake.toLocaleString()+'</b> kcal 권장 · TDEE '+td.toLocaleString()+' · 적자 -'+dfc+'</span></div>';
+        return hh;
+      })()
+      +(function(){
+        var all=bhLoad().slice().reverse();
+        var open=!!UI.bhAll;
+        var a=open?all:all.slice(0,3);
+        var hh='',i;
+        hh+='<div class="sh-l" style="margin-top:10px;display:flex;align-items:baseline">InBody Records'
+          +(all.length>3?('<button data-act="bhv" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:9px;font-weight:800;letter-spacing:.18em;padding:2px 4px">'+(open?'COLLAPSE':'ALL · '+all.length)+'</button>'):'')
+          +'</div>';
+        hh+='<div style="'+(open?'max-height:180px;overflow-y:auto;':'')+'margin:0 -2px;padding:0 2px">';
+        for(i=0;i<a.length;i++){
+          hh+='<div style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:var(--mono);font-size:11px;color:var(--mut)">'
+            +'<span style="color:var(--dim)">'+a[i].d.slice(2)+'</span>'
+            +'<b style="color:#e3b95a">'+fmtW(a[i].w)+'kg</b><span>'+fmtW(a[i].f)+'%</span>'
+            +(a[i].m>0?('<span style="opacity:.8">SMM '+fmtW(a[i].m)+'</span>'):'')
+            +'<button data-act="bhd" data-v="'+a[i].d+'" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:13px;padding:2px 6px">×</button></div>';
+        }
+        hh+='</div>';
+        hh+='<div class="wtg" style="margin-top:6px">'
+          +'<div style="flex:1"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
+          +'</div>'
+          +'<div class="wtg" style="margin-top:8px">'
+          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="77.8"></div>'
+          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="20"></div>'
+          +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
+          +'</div>'
+          +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
+          +'<button class="okbtn" data-act="bha" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">ADD RECORD</button>'
+          +'<button class="okbtn" data-act="bhoc" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">SCAN INBODY</button>'
+          +'</div>'
+          +'<input type="file" id="bhFile" accept="image/*" style="display:none">'
+          +'<div class="note" id="bhSt" style="min-height:14px;margin:-6px 0 8px"></div>';
+        return hh;
+      })();
     }
     if(tb==='goals'){
     h+=(function(){
@@ -1086,39 +1159,6 @@ function renderSheet(){
       +'<div class="wtg"><div style="flex:0 0 48%"><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
       +'<div style="flex:0 0 48%"><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div></div>'
       +'<div class="note" id="bdInfo" style="margin:2px 0 10px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-      +(function(){
-        var all=bhLoad().slice().reverse();
-        var open=!!UI.bhAll;
-        var a=open?all:all.slice(0,3);
-        var hh='',i;
-        hh+='<div class="sh-l" style="margin-top:10px;display:flex;align-items:baseline">InBody Records'
-          +(all.length>3?('<button data-act="bhv" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:9px;font-weight:800;letter-spacing:.18em;padding:2px 4px">'+(open?'COLLAPSE':'ALL · '+all.length)+'</button>'):'')
-          +'</div>';
-        hh+='<div style="'+(open?'max-height:180px;overflow-y:auto;':'')+'margin:0 -2px;padding:0 2px">';
-        for(i=0;i<a.length;i++){
-          hh+='<div style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:var(--mono);font-size:11px;color:var(--mut)">'
-            +'<span style="color:var(--dim)">'+a[i].d.slice(2)+'</span>'
-            +'<b style="color:#e3b95a">'+fmtW(a[i].w)+'kg</b><span>'+fmtW(a[i].f)+'%</span>'
-            +(a[i].m>0?('<span style="opacity:.8">SMM '+fmtW(a[i].m)+'</span>'):'')
-            +'<button data-act="bhd" data-v="'+a[i].d+'" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:13px;padding:2px 6px">×</button></div>';
-        }
-        hh+='</div>';
-        hh+='<div class="wtg" style="margin-top:6px">'
-          +'<div style="flex:1"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
-          +'</div>'
-          +'<div class="wtg" style="margin-top:8px">'
-          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="77.8"></div>'
-          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="20"></div>'
-          +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
-          +'</div>'
-          +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
-          +'<button class="okbtn" data-act="bha" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">ADD RECORD</button>'
-          +'<button class="okbtn" data-act="bhoc" style="flex:1;font-size:10.5px;font-weight:800;letter-spacing:.22em">SCAN INBODY</button>'
-          +'</div>'
-          +'<input type="file" id="bhFile" accept="image/*" style="display:none">'
-          +'<div class="note" id="bhSt" style="min-height:14px;margin:-6px 0 8px"></div>';
-        return hh;
-      })()
       +'<button class="okbtn" data-act="wg" style="width:100%">Save body</button>';
     }
     if(tb==='ai'){
@@ -1484,33 +1524,41 @@ function bhTrend(){
   var tail=a.slice(-4).map(function(x){return x.d.slice(5).replace('-','/')+' '+fmtW(x.w)+'·'+fmtW(x.f);}).join(' → ');
   return out+'<br><span style="opacity:.75">'+tail+'</span>';
 }
-function paceInfo(bw,bf,gf){
+function paceCalc(bw,bf,gf){
   var lbm=bw*(1-bf/100);
   var tw=gf<bf?Math.round(lbm/(1-gf/100)*10)/10:bw;
   var remain=Math.round(Math.max(0,bw-tw)*10)/10;
+  var r={tw:tw,remain:remain,ok:false,done:remain<=0,rate:0,days:0,eta:'',weeks:0,tag:''};
   var a=bhLoad();
-  if(a.length<2)return '페이스 목표 주 <b>-'+WR+'</b>kg (인바디 2건 이상이면 실측·도달일 계산)';
+  if(a.length<2)return r;
   var last=a[a.length-1];
   var base=a[0],i;
   var lim=new Date();lim.setDate(lim.getDate()-35);
   var limIso=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
   for(i=0;i<a.length-1;i++){if(a[i].d>=limIso){base=a[i];break;}}
   var dd=Math.max(1,Math.round((new Date(last.d)-new Date(base.d))/86400000));
-  var rate=Math.round((last.w-base.w)/dd*7*100)/100;
-  var out='실측 주 <b>'+(rate>0?'+':'')+rate+'</b>kg · 목표 <b>-'+WR+'</b>';
-  if(remain<=0)return out+' · 목표 체지방 도달 — 유지 구간';
-  var tag;
-  if(rate>=0)tag='증량 추세 — 적자 점검 요망';
-  else if(-rate>bw*0.01)tag='과속(주 1퍼센트 초과) — 근손실 주의';
-  else if(-rate<WR*0.5)tag='페이스 부족';
-  else tag='페이스 양호';
-  if(rate<0){
-    var days=Math.round(remain/(-rate)*7);
-    var eta=new Date();eta.setDate(eta.getDate()+days);
-    var el=String(eta.getMonth()+1).padStart(2,'0')+'-'+String(eta.getDate()).padStart(2,'0');
-    out+=' · '+gf+'% 도달 예상 <b>'+el+'</b> (약 '+Math.max(1,Math.round(days/7))+'주)';
+  r.ok=true;
+  r.rate=Math.round((last.w-base.w)/dd*7*100)/100;
+  if(r.done)return r;
+  if(r.rate>=0)r.tag='증량 추세';
+  else if(-r.rate>bw*0.01)r.tag='과속 — 근손실 주의';
+  else if(-r.rate<WR*0.5)r.tag='페이스 부족';
+  else r.tag='페이스 양호';
+  if(r.rate<0){
+    r.days=Math.round(remain/(-r.rate)*7);
+    r.weeks=Math.max(1,Math.round(r.days/7));
+    var eta=new Date();eta.setDate(eta.getDate()+r.days);
+    r.eta=String(eta.getMonth()+1).padStart(2,'0')+'-'+String(eta.getDate()).padStart(2,'0');
   }
-  return out+' · '+tag;
+  return r;
+}
+function paceInfo(bw,bf,gf){
+  var r=paceCalc(bw,bf,gf);
+  if(!r.ok)return '페이스 목표 주 <b>-'+WR+'</b>kg (인바디 2건 이상이면 실측·도달일 계산)';
+  var out='실측 주 <b>'+(r.rate>0?'+':'')+r.rate+'</b>kg · 목표 <b>-'+WR+'</b>';
+  if(r.done)return out+' · 목표 체지방 도달 — 유지 구간';
+  if(r.eta)out+=' · '+gf+'% 도달 예상 <b>'+r.eta+'</b> (약 '+r.weeks+'주)';
+  return out+' · '+r.tag;
 }
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
@@ -1818,7 +1866,7 @@ function ocrCall(eng,b64,mime,onNote){
     function attempt(m,k){
       return gcall(m).catch(function(e){
         lastErr=e;
-        if(gemTransient(e&&e.message)&&k<2){
+        if(gemTransient(e&&e.message)&&k<3){
           if(onNote)onNote('GEMINI 혼잡 — '+(k+2)+'차 재시도 중…');
           return new Promise(function(res){setTimeout(res,1200*(k+1));})
             .then(function(){return attempt(m,k+1);});
@@ -1858,8 +1906,12 @@ function ocrCall(eng,b64,mime,onNote){
       return t;
     });
 }
+var OCRBUSY=false;
 function ocrInbody(b64,mime){
   var st=document.getElementById('bhSt');
+  if(OCRBUSY){if(st)st.textContent='판독 진행 중 — 잠시 기다려';return;}
+  OCRBUSY=true;
+  var ocrDone=function(){OCRBUSY=false;};
   var ENGS=visEngines();
   if(!ENGS.length){if(st)st.textContent='API 키 필요 — 수동 입력 요망';return;}
   var NM={gem:'GEMINI',oai:'GPT',ant:'CLAUDE'};
@@ -1886,15 +1938,19 @@ function ocrInbody(b64,mime){
     setV('bhW',o.weight);setV('bhF',o.fat);setV('bhM',o.smm);
     if(st)st.innerHTML='일부만 추출됨 ('+NM[usedEng]+') — 값 채운 뒤 <b>ADD RECORD</b>';
   }
-  run.then(function(t){fill(t,eng);}).catch(function(e1){
+  run.then(function(t){fill(t,eng);ocrDone();}).catch(function(e1){
     var nxt=ENGS[1];
     if(!nxt){
-      if(st)st.textContent='판독 실패 ('+NM[eng]+') — '+String(e1&&e1.message||'').slice(0,70);
+      var m1=String(e1&&e1.message||'');
+      if(st)st.textContent='판독 실패 ('+NM[eng]+') — '+m1.slice(0,70)+(gemTransient(m1)?' · 잠시 후 재시도 권장':'');
+      ocrDone();
       return;
     }
     if(st)st.textContent='재시도 중… ('+NM[nxt]+')';
-    ocrCall(nxt,b64,mime,note).then(function(t2){fill(t2,nxt);}).catch(function(e2){
-      if(st)st.textContent='판독 실패 — '+String(e2&&e2.message||'').slice(0,70);
+    ocrCall(nxt,b64,mime,note).then(function(t2){fill(t2,nxt);ocrDone();}).catch(function(e2){
+      var m2=String(e2&&e2.message||'');
+      if(st)st.textContent='판독 실패 — '+m2.slice(0,70)+(gemTransient(m2)?' · 잠시 후 재시도 권장':'');
+      ocrDone();
     });
   });
 }
@@ -1909,7 +1965,7 @@ function shrinkThenOcr(f){
       var img=new Image();
       setTimeout(function(){
         if(!settled){settled=true;ocrInbody(rawB64,rawMime);}
-      },1500);
+      },6000);
       img.onload=function(){
         if(settled)return;settled=true;
         try{
@@ -2456,6 +2512,17 @@ function syncFromDom(){
   el=document.getElementById('inI');if(el)UI.ci=el.value;
   el=document.getElementById('q');if(el)UI.q=el.value;
 }
+/* 키보드 열림 중 버튼 첫 탭 유실 방지: blur로 인한 레이아웃 이동 전에 액션 확정 */
+document.addEventListener('touchstart',function(e){
+  var ae=document.activeElement;
+  if(!ae||!(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;
+  if(!e.target||!e.target.closest)return;
+  var b=e.target.closest('button[data-act]');
+  if(!b)return;
+  e.preventDefault();
+  try{ae.blur();}catch(x){}
+  setTimeout(function(){try{b.click();}catch(x2){}},60);
+},{passive:false});
 document.addEventListener('click',function(e){
   if(GMOPEN&&!e.target.closest('.gmwrap')){GMOPEN=false;renderSheet();}
   var t=e.target.closest('[data-act]');if(!t)return;
