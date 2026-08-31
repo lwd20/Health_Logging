@@ -50,6 +50,9 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .h1sub{display:block;font-size:8px;font-weight:700;letter-spacing:.4em;color:var(--chrome);opacity:.8;margin-bottom:6px}
 .hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:7px;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
 .hdate em{color:var(--chrome);font-weight:700;margin-left:3px}
+.sh-l.fold{cursor:pointer;display:flex;align-items:center;gap:6px}
+.sh-l.fold i{font-style:normal;font-size:9px;color:var(--dim)}
+.sh-l.fold:active{opacity:.6}
 .xlink{color:#cfa648;cursor:pointer;font-size:10px;letter-spacing:.04em}
 .xlink:active{opacity:.6}
 .hnrg{flex:0 0 100%;display:flex;align-items:baseline;gap:13px;margin-top:5px;cursor:pointer}
@@ -1094,7 +1097,7 @@ function renderSheet(){
           var lost=Math.max(0,Math.round((startW-BW)*10)/10);
           hh+='<div class="jwrap">'
             +'<div class="jtop"><span>시작 <b>'+fmtW(startW)+'</b></span>'
-            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(lost)+'</b>kg 감량 · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
+            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
             +'<span>목표 <b>'+(r.done?'달성':fmtW(r.tw))+'</b></span></div>'
             +'<div class="jbar"><b style="width:'+pct+'%"></b><i style="left:'+pct+'%"></i></div>'
             +'</div>';
@@ -1120,20 +1123,20 @@ function renderSheet(){
             +'<polyline points="'+pl+'" class="wline"/>'
             +'<circle cx="'+lastXY[0]+'" cy="'+lastXY[1]+'" r="1.8" class="wdot"/>'
             +'</svg>';
-          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>점선 = 목표 '+fmtW(r.tw)+'kg</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
+          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
         }
-        var trd=bhTrend();
-        if(trd)hh+='<div class="ctrow" style="margin-top:10px"><b class="k">추세</b><span class="v">'+trd.replace(/<b>/g,'<b>')+'</span></div>';
-        hh+='<div class="ctrow"'+(trd?'':' style="margin-top:10px"')+'><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
-        hh+='<div class="ctrow"><b class="k">섭취</b><span class="v">오늘 <b>'+intake.toLocaleString()+'</b> kcal 권장 · TDEE '+td.toLocaleString()+' · 적자 -'+dfc+'</span></div>';
-        hh+='<div class="sh-l" style="margin-top:14px">Cut settings</div>'
-          +'<div class="wtg">'
-          +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
-          +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
-          +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
-          +'</div>'
-          +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-          +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
+        hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
+        hh+='<div class="ctrow"><b class="k">섭취</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
+        hh+='<div class="sh-l fold" data-act="ctog" style="margin-top:16px">Cut settings<i>'+(UI.cutOpen?'▾':'▸')+'</i></div>';
+        if(UI.cutOpen){
+          hh+='<div class="wtg">'
+            +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
+            +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
+            +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
+            +'</div>'
+            +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.6">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
+            +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
+        }
         return hh;
       })()
       +(function(){
@@ -1642,10 +1645,8 @@ function bodyLine(bw,bf,gf,hrm,act){
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
   if(!(bw>0&&bf>0))return 'Zone2 '+z1+'–'+z2+' bpm';
   var fat=bw*bf/100,lbm=bw-fat;
-  var out='지방 <b>'+fat.toFixed(1)+'</b>kg · 제지방 <b>'+lbm.toFixed(1)+'</b>kg';
-  var bm=bmr(bw,bf);
-  if(bm)out+=' · 기초 <b>'+bm.toLocaleString()+'</b> × 활동 '+act+' = 비운동 TDEE <b>'+Math.round(bm*act).toLocaleString()+'</b> kcal';
-  out+='<br>체중·체지방은 아래 인바디 기록에서 자동 반영됨';
+  var out='제지방 <b>'+lbm.toFixed(1)+'</b>kg · 기초 <b>'+(bmr(bw,bf)||0).toLocaleString()+'</b> × '+act+' = <b>'+Math.round((bmr(bw,bf)||0)*act).toLocaleString()+'</b> kcal';
+  out+='<br>체중·체지방은 인바디 기록에서 자동 반영됨';
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -2758,6 +2759,7 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
+    case 'ctog':UI.cutOpen=!UI.cutOpen;render();break;
     case 'godiet':UI.dtab='diet';UI.sheet='data';render();break;
     case 'cl':UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
     case 'exitno':exitAsk(false);break;
