@@ -109,8 +109,8 @@ nav::-webkit-scrollbar{display:none}
 .chip.on.hot::after{background:#5c1a08;box-shadow:none}
 
 /* ── 목록: 머신 랙 ── */
-main{padding:0 14px calc(104px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden}
-html,body{overflow-x:hidden;max-width:100%}
+main{padding:0 14px calc(104px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden;overflow-x:clip}
+html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none}
 .mc,.panel,.accin,.inrow{max-width:100%}
 .shd{display:flex;align-items:center;gap:9px;margin:17px 2px 7px;font-size:10px;font-weight:800;letter-spacing:.22em;color:var(--mut);text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.07)}
 .shd::after{content:'';flex:1;height:1px;background:var(--line)}
