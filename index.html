@@ -1490,8 +1490,21 @@ function renderSheet(){
 }
 
 /* ── 동작 ── */
+var PENDWD=null;
 function setWd(ds){
-  if(anyDirty()){toast('<em>Blocked</em> unsaved sets exist');return false;}
+  /* 빈 드래프트(삭제 대기)·유령 항목은 이동 시 자동 폐기 — 저장본은 그대로라 손실 없음 */
+  for(var k in UI.dirty){
+    var d0=UI.draft[k];
+    if(!UI.dirty[k]||!machById(k)||!d0||!d0.length){delete UI.dirty[k];delete UI.draft[k];}
+  }
+  if(anyDirty()){
+    PENDWD=(ds>today())?today():ds;
+    var names=[],k2,m2;
+    for(k2 in UI.dirty)if(UI.dirty[k2]){m2=machById(k2);if(m2)names.push(m2.n);}
+    var lb=names.length?esc(names[0])+(names.length>1?' 외 '+(names.length-1)+'종목':''):'';
+    toast('<em>미저장</em> '+lb+' — 저장하거나 <button class="tundo" data-act="dcd">DISCARD</button>',7000);
+    return false;
+  }
   if(ds>today())ds=today();
   UI.wd=ds;UI.open=null;UI.hist=false;UI.draft={};UI.dirty={};
   if(ds===today())loadDraft();
@@ -3439,6 +3452,10 @@ document.addEventListener('click',function(e){
       ANLOPEN=!ANLOPEN;if(ANLOPEN)GMOPEN=false;renderSheet();break;
     case 'anlpick':
       ANL=(ANLL[v]?v:'wk');ANLOPEN=false;anlSave();renderSheet();break;
+    case 'dcd':
+      UI.draft={};UI.dirty={};saveDraft();
+      if(PENDWD!==null){var pw=PENDWD;PENDWD=null;setWd(pw);}
+      render();break;
     case 'dtr':
       DOT.r=DOT.r?0:1;dotSave();renderChips();renderSheet();break;
     case 'dty':
