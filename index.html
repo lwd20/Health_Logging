@@ -322,7 +322,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(209,85,46,.7)}
 .lmg .cd{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:#e3b95a;transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(227,185,90,.5)}
 .lmg .cd.ov{background:var(--sig)}
-.lmcap{font-size:9px;font-weight:800;letter-spacing:.2em;color:var(--dim);margin:2px 0 4px}
+.lmsec{background:var(--inset);border:1px solid var(--line);border-radius:4px;padding:9px 12px 6px;margin-bottom:9px;box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+.lmcap{display:flex;align-items:center;gap:8px;font-size:8.5px;font-weight:800;letter-spacing:.22em;color:var(--chrome);opacity:.85;margin:0 0 6px}
+.lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:12px 3px 5px;font-size:9.5px;font-weight:800;letter-spacing:.18em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
 .bhd::after{content:'';flex:1;height:1px;background:var(--line);opacity:.7}
@@ -334,6 +336,18 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .stt b{display:block;font-family:var(--mono);font-size:17px;font-weight:700;color:var(--mut)}
 .stt i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.16em;color:var(--dim)}
 .stt.up2 b{color:#8fb377}.stt.dn2 b{color:#e0876a}
+.pgcs{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.pgc{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:2px 6px}
+.pgc.dn3{color:#e0876a;border-color:rgba(209,85,46,.45)}
+.dvrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-family:var(--mono)}
+.dvrow .bn{flex:0 0 52px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
+.dvrow .bv{flex:0 0 44px;text-align:right;font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.dvrow .bv.ov2{color:#e0876a}
+.dvrow .bv.un2{color:#7d97c4}
+.dvg{flex:1;height:8px;background:#161210;border-radius:2px;position:relative;overflow:hidden}
+.dvg .c0{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(232,226,216,.3)}
+.dvg b{position:absolute;top:1px;bottom:1px;background:#a9862b;border-radius:1px}
+.dvg b.neg{background:#8a3d24}
 .fqrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .fq{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:2px 6px}
 .fq.ok{color:#8fb377;border-color:rgba(127,160,106,.4)}
@@ -2095,7 +2109,7 @@ var ANLG=[
  {name:'부하·회복',items:['acsm','recov']},
  {name:'진전·구조',items:['prog','bal']}
 ];
-var ANLGLOS='데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 세트(CARDIO는 분). exercises="종목명|부위|이번주세트수". log=최근 2주 전체 세션("날짜 부위 종목명 무게x반복", 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 톱세트 이력("MM-DD 무게x반복" 최신순). body="MM-DD 체중/체지방%[/골격근kg]" 이력. volThisWeek/volLastWeek=부위별 주간 볼륨 kg(전 세트 무게×반복 합). restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 종목명으로 판정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(-400~500kcal), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 항목당 한 줄 12~28자, -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 앱 위젯이 수치·구간을 이미 표시하므로 괄호로 수치 범위를 병기하지 말고 판정어와 핵심 숫자 하나만 씀. 한 줄에 판정 하나. 인사말·서론·맺음말·중복 설명 금지. 주 중반이면 단정 대신 페이스로 판정함.\n\n';
+var ANLGLOS='데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 세트(CARDIO는 분). exercises="종목명|부위|이번주세트수". log=최근 2주 전체 세션("날짜 부위 종목명 무게x반복", 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 톱세트 이력("MM-DD 무게x반복" 최신순). body="MM-DD 체중/체지방%[/골격근kg]" 이력. volThisWeek/volLastWeek=부위별 주간 볼륨 kg(전 세트 무게×반복 합). restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 종목명으로 판정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(-400~500kcal), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 항목당 한 줄 12~28자, -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 앱 위젯이 수치·구간을 이미 표시하므로 괄호로 수치 범위를 병기하지 말고 판정어와 핵심 숫자 하나만 씀. 한 줄에 판정 하나, "대상 — 판정" 순서로 결론을 문두에 둠. 인사말·서론·맺음말·중복 설명 금지. 주 중반이면 단정 대신 페이스로 판정함.\n\n';
 var ANLDEF={
 acsm:'당신은 ACSM 가이드라인에 정통한 운동처방 전문가다. 아래 훈련 데이터를 ACSM 저항성·유산소 운동 권고 기준으로 평가한 한국어 보고서를 써라.\n평가 기준: 주요 근군당 주 2회 이상 자극, 근비대 반복역 6~12회 중심, 동일 근군 48시간 회복, 유산소 중강도 주 150분(또는 고강도 75분) 및 주 3회 분산, 주간 부하 증가는 전주 대비 20% 이내의 점진적 과부하.\n구성:\n[빈도]\n- log의 수행 날짜로 부위별 주간 세션 수를 세어 주 2회 기준과 대조해 부위별 한 줄씩 씀.\n[유산소]\n- thisWeek.CARDIO 분과 회수를 150분·주 3회 기준과 대조해 한 줄로 판정함.\n[강도]\n- log의 반복수 분포가 근비대역(6~12회)에 드는 비율을 평가하고 이탈 종목을 지적함.\n[회복]\n- 같은 부위의 48시간 미만 재자극과 3일 이상 연속 훈련을 log 날짜로 점검함.\n[과부하]\n- volThisWeek를 volLastWeek와 부위별로 대조해 20% 초과 급증 또는 급감을 지적함.\n[종합]\n- 충족 항목과 미충족 항목을 각각 한 줄로 요약하고 다음 주 권고를 1~2줄로 마감함.\n\n',
 vol:'당신은 볼륨 랜드마크(MEV·MAV·MRV) 이론에 정통한 보디빌딩 코치다. 아래 훈련 데이터의 부위·세부별 주간 세트를 랜드마크와 대조한 한국어 보고서를 써라.\n랜드마크 기준(주당 직접 세트, 일반치): 가슴 MEV8·MAV12~20·MRV22, 등 10·14~22·25, 어깨측면 8·16~22·26, 어깨후면 6·16~22·26, 어깨전면 0·6~8·12(프레스 간접 감안), 대퇴사두 8·12~18·20, 햄스트링 6·10~16·20, 둔근 0·4~12·16, 이두 8·14~20·26, 삼두 6·10~14·18, 종아리 8·12~16·20, 복근 0·16~20·25.\n감량기 보정: 회복 저하로 MRV를 20% 낮춰 적용하고 이를 명시함.\n앱 위젯이 메인·세부 전체의 랜드마크 위치를 그래프로 표시하므로 세부별 나열은 쓰지 않음.\n구성:\n[초과 위험]\n- 보정 MRV의 90% 이상이거나 초과한 세부를 수치와 함께 지적함. 없으면 "MRV 접근 세부 없음"이라 씀.\n[증량 여지]\n- 옷맵시 우선 세부(측면·광배) 중 MAV까지 여유가 있는 곳과 추가 가능 세트 수를 씀.\n[처방]\n- 다음 주 세부별 세트 조정을 최대 3줄로 지시함. 조정 폭은 세부당 2~4세트 이내로 함.\n\n',
@@ -2155,7 +2169,7 @@ function heroStreak(){
 }
 function heroTop(s){var t=s[0],i;for(i=1;i<s.length;i++){if(s[i][0]>t[0]||(s[i][0]===t[0]&&s[i][1]>t[1]))t=s[i];}return t;}
 function heroProg(){
-  var up=0,down=0,stall=0,regName='',regTxt='',i;
+  var up=0,down=0,stall=0,regName='',regTxt='',i,dnN=[],stN=[];
   function gapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
   function adv(a,b){return a[0]>b[0]||(a[0]===b[0]&&a[1]>b[1]);}
   function dec(a,b){return a[0]<b[0]||(a[0]===b[0]&&a[1]<b[1]);}
@@ -2170,10 +2184,11 @@ function heroProg(){
     var t2=heroTop(a[2].s);
     if(dec(t0,t1)&&dec(t1,t2)){
       down++;
+      if(dnN.length<3)dnN.push(m.n);
       if(!regName){regName=m.n;regTxt=fmtW(t2[0])+'→'+fmtW(t1[0])+'→'+fmtW(t0[0])+'kg';}
-    }else if(!adv(t0,t1)&&!adv(t1,t2))stall++;
+    }else if(!adv(t0,t1)&&!adv(t1,t2)){stall++;if(stN.length<3)stN.push(m.n);}
   }
-  return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt};
+  return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN};
 }
 function heroSignal(){
   var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
@@ -2247,25 +2262,29 @@ function anlViz(k){
   }
   if(k==='vol'){
     var ws3=wkSets(),PN3={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
-    h+='<div class="lmcap">메인</div>';
-    for(var pk in LMKP)h+=lmRow(PN3[pk],ws3[pk]||0,LMKP[pk]);
-    h+='<div class="lmcap" style="margin-top:12px">세부</div>';
+    var hm2='';
+    for(var pk in LMKP)hm2+=lmRow(PN3[pk],ws3[pk]||0,LMKP[pk]);
+    var hs2='';
     for(var si=0;si<SUBS.length;si++){
       var sb=SUBS[si],L2=LMK[sb.k];
       if(!L2)continue;
       var cur2=sc[sb.k]||0;
-      if(!cur2&&!L2[0])continue; /* 수행 0 + MEV 0 세부는 숨김 */
-      h+=lmRow(sb.n,cur2,L2);
+      if(!cur2&&!L2[0])continue;
+      hs2+=lmRow(sb.n,cur2,L2);
     }
+    h='<div class="lmsec"><div class="lmcap">MAIN · 부위</div>'+hm2+'</div>'
+     +'<div class="lmsec"><div class="lmcap">SUB · 세부 근육</div>'+hs2+'</div>';
     return '<div class="anlviz">'+h+'<div class="lmlg"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
   }
   if(k==='prog'){
-    var pr=heroProg();
+    var pr=heroProg(),nm4='';
+    for(i=0;i<pr.dnN.length;i++)nm4+='<span class="pgc dn3">▼ '+esc(pr.dnN[i])+'</span>';
+    for(i=0;i<pr.stN.length;i++)nm4+='<span class="pgc">– '+esc(pr.stN[i])+'</span>';
     return '<div class="anlviz"><div class="sttrow">'
       +'<span class="stt up2"><b>'+pr.up+'</b><i>진전</i></span>'
       +'<span class="stt"><b>'+pr.stall+'</b><i>정체</i></span>'
       +'<span class="stt dn2"><b>'+pr.down+'</b><i>퇴행</i></span>'
-      +'</div></div>';
+      +'</div>'+(nm4?'<div class="pgcs">'+nm4+'</div>':'')+'</div>';
   }
   if(k==='acsm'){
     var cm=0,ws2=wkSets();
@@ -2283,8 +2302,25 @@ function anlViz(k){
   if(k==='recov'){
     var st=heroStreak(),bl='';
     for(i=6;i>=0;i--)bl+='<i class="'+(i<st?'on':'')+'"></i>';
-    return '<div class="anlviz"><div class="gbrow"><span class="bn">연속일</span>'
-      +'<span class="stk2">'+bl+'</span><span class="bv">'+st+'일</span></div></div>';
+    h='<div class="gbrow"><span class="bn">연속일</span>'
+      +'<span class="stk2">'+bl+'</span><span class="bv">'+st+'일</span></div>';
+    var pl3=paceLeft();
+    if(pl3>=20){
+      var vt2=anlWkVol(0),vl2=anlWkVol(1),PN4={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
+      var dv3='';
+      for(var pk2 in PN4){
+        var lastv=vl2[pk2]||0;
+        if(!lastv)continue;
+        var exp3=lastv*pl3/100,cur3=vt2[pk2]||0;
+        var dp3=Math.round((cur3-exp3)/exp3*100);
+        var w3=Math.min(50,Math.abs(dp3))/50*50; /* 최대 ±50% → 반폭 50% */
+        dv3+='<div class="dvrow"><span class="bn">'+PN4[pk2]+'</span>'
+          +'<span class="dvg"><i class="c0"></i><b class="'+(dp3<0?'neg':'')+'" style="'+(dp3<0?('right:50%;'):('left:50%;'))+'width:'+w3+'%"></b></span>'
+          +'<span class="bv '+(dp3>20?'ov2':(dp3<-30?'un2':''))+'">'+(dp3>0?'+':'')+dp3+'%</span></div>';
+      }
+      if(dv3)h+='<div class="lmcap" style="margin:10px 0 4px">부하 변동 · 페이스 대비</div>'+dv3;
+    }
+    return '<div class="anlviz">'+h+'</div>';
   }
   if(k==='bal'){
     function db(n,a,b2,tgt){
@@ -2300,6 +2336,24 @@ function anlViz(k){
     return h?'<div class="anlviz">'+h+'</div>':'';
   }
   return '';
+}
+function anlWkVol(off){
+  var nowd=new Date(),dw=(nowd.getDay()+6)%7;
+  var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw-off*7);
+  function is2(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},q,t;
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is2(t)]=1;}
+  var pid={},i,k,cnt={};
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++){
+      var e=S.l[k][i];
+      if(!days[e.d])continue;
+      for(var j=0;j<e.s.length;j++)cnt[m.p]=(cnt[m.p]||0)+(+e.s[j][0]||0)*(+e.s[j][1]||0);
+    }
+  }
+  return cnt;
 }
 function weekVolCardio(){
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
