@@ -1,4 +1,4 @@
-var C='tlog-v2';
+var C='tlog-v3';
 var CORE=['.','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(C).then(function(c){return c.addAll(CORE);}).then(function(){return self.skipWaiting();}));
@@ -15,8 +15,11 @@ self.addEventListener('fetch',function(e){
   var req=isDoc?new Request(e.request.url,{cache:'no-cache'}):e.request;
   e.respondWith(
     fetch(req).then(function(r){
-      var cp=r.clone();
-      caches.open(C).then(function(c){c.put(e.request,cp);});
+      /* 같은 출처만 캐시 — 외부 API 응답(키 포함 URL 등)은 저장하지 않음 */
+      if(e.request.url.indexOf(self.location.origin)===0){
+        var cp=r.clone();
+        caches.open(C).then(function(c){c.put(e.request,cp);});
+      }
       return r;
     }).catch(function(){return caches.match(e.request).then(function(m){return m||caches.match('index.html');});})
   );

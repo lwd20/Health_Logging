@@ -2491,8 +2491,19 @@ var GM='gemini-3.7-flash';
 var GMN={'gemini-3.7-flash':'3.7','gemini-3.6-flash':'3.6','gemini-flash-latest':'Latest','gemini-2.5-flash':'2.5'};
 var GVM='';
 try{if(canLS)GVM=localStorage.getItem(KEY+'.gvm')||'';}catch(eGV){}
+function tFetch(url,opt,ms){
+  /* AI 원격 호출 공통 래퍼 — 응답이 매달리면 중단해 Analyzing 잠김 방지 */
+  opt=opt||{};ms=ms||60000;
+  if(typeof AbortController==='undefined')return fetch(url,opt);
+  var ac=new AbortController(),tid=setTimeout(function(){try{ac.abort();}catch(e){}},ms);
+  opt.signal=ac.signal;
+  return fetch(url,opt).then(
+    function(r){clearTimeout(tid);return r;},
+    function(e){clearTimeout(tid);throw (e&&e.name==='AbortError')?new Error('요청 시간 초과 '+Math.round(ms/1000)+'초'):e;}
+  );
+}
 function gemDiscover(){
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(KS.gem))
+  return tFetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':KS.gem}},30000)
     .then(function(r){return r.json();})
     .then(function(j){
       var ms=(j&&j.models)||[],best='',score=-1,i;
@@ -2512,7 +2523,7 @@ function gemDiscover(){
     });
 }
 function gemDiscoverList(){
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(KS.gem))
+  return tFetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':KS.gem}},30000)
     .then(function(r){return r.json();})
     .then(function(j){
       var ms=(j&&j.models)||[],arr=[],i;
@@ -2649,8 +2660,8 @@ function calClose(){var o=document.getElementById('calOv');if(o)o.remove();}
 function ocrCall(eng,b64,mime,onNote){
   var pr='이미지는 InBody 체성분 결과지다. 다음 JSON만 출력하고 다른 텍스트·마크다운 금지: {"date":"YYYY-MM-DD 또는 null","weight":체중kg숫자,"fat":체지방률숫자,"smm":골격근량kg숫자또는null}. 골격근량(SMM)과 체지방률(퍼센트)을 혼동하지 말 것. 검사일시의 날짜를 date로 사용.';
   function gcall(model){
-    return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    return tFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':KS.gem},
       body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:pr}]}],generationConfig:{temperature:0}})
     }).then(function(r){return r.json();}).then(function(j){
       if(j&&j.error)throw new Error(j.error.message||'gem');
@@ -2689,7 +2700,7 @@ function ocrCall(eng,b64,mime,onNote){
     }
     return next();
   }
-  if(eng==='oai')return fetch('https://api.openai.com/v1/chat/completions',{
+  if(eng==='oai')return tFetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
       headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
       body:JSON.stringify({model:'gpt-5-mini',max_completion_tokens:300,messages:[{role:'user',content:[
@@ -2700,7 +2711,7 @@ function ocrCall(eng,b64,mime,onNote){
       if(j&&j.error)throw new Error(j.error.message||'oai');
       return (((j.choices||[])[0]||{}).message||{}).content||'';
     });
-  return fetch('https://api.anthropic.com/v1/messages',{
+  return tFetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{
         'content-type':'application/json',
@@ -3117,7 +3128,7 @@ function buildAiReq(){
     var cm=cand[ci];
     if(cm&&!seen[cm]){seen[cm]=1;chain.push(cm);}
   }
-  var gUrl=function(m){return 'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(KS.gem);};
+  var gUrl=function(m){return 'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';};
   var g={maxOutputTokens:8192};
   if(/gemini-[3-9]|flash-latest/.test(chain[0]))g.thinkingConfig={thinkingLevel:'LOW'};
   else g.thinkingConfig={thinkingBudget:0};
@@ -3127,7 +3138,7 @@ function buildAiReq(){
     url:urls[0],
     urls:urls,
     models:chain.slice(0,4),
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json','x-goog-api-key':KS.gem},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:g})};
 }
 function aiExtract(eng,d){
@@ -3206,9 +3217,9 @@ function runAI(){
         function gcall(idx,rt){
           rt=rt||0;
           var model=GCHAIN[idx];
-          fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(KS.gem),{
+          tFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
             method:'POST',
-            headers:{'content-type':'application/json'},
+            headers:{'content-type':'application/json','x-goog-api-key':KS.gem},
             body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gcfg(model)})
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
@@ -3240,7 +3251,7 @@ function runAI(){
           aiSave((t&&t.trim())||(err?('오류: '+err):'응답 없음'));
         }
         if(LM==='ant'){
-          fetch('https://api.anthropic.com/v1/messages',{
+          tFetch('https://api.anthropic.com/v1/messages',{
             method:'POST',
             headers:{
               'content-type':'application/json',
@@ -3256,7 +3267,7 @@ function runAI(){
           }).catch(function(e3){done('',e3.message);});
         }else if(LM==='oai'){
           var ocall=function(model,retry){
-            fetch('https://api.openai.com/v1/chat/completions',{
+            tFetch('https://api.openai.com/v1/chat/completions',{
               method:'POST',
               headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
               body:JSON.stringify({model:model,max_completion_tokens:2048,messages:[{role:'user',content:prompt}]})
