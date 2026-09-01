@@ -60,13 +60,26 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(207,166,72,.4);border-radius:3px;background:linear-gradient(180deg,#221a0c,#181209);color:#cfa648;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-align:left}
 .favnote b{font-family:var(--mono);color:#e3b95a}
 .favnote:active{opacity:.7}
-.hnrg{flex:0 0 100%;display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 13px;margin-top:5px;cursor:pointer}
+.hnrg{flex:0 0 100%;display:grid;grid-template-columns:auto auto auto auto;justify-content:start;column-gap:8px;row-gap:3px;align-items:baseline;margin-top:6px;cursor:pointer}
 .hnrg:active{opacity:.65}
-.hnrg .ni{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
 .hnrg .k{font-size:8.5px;font-weight:800;letter-spacing:.16em;color:var(--dim)}
-.hnrg .v{font-family:var(--mono);font-size:13px;font-weight:700;color:#e3b95a;letter-spacing:.01em}
+.hnrg .v{font-family:var(--mono);font-size:13px;font-weight:700;color:#e3b95a;letter-spacing:.01em;text-align:right;font-variant-numeric:tabular-nums}
 .hnrg i{font-style:normal;font-size:8.5px;letter-spacing:.1em;color:var(--dim)}
-.hnrg .ex .v{color:var(--mut);font-size:11.5px}
+.hnrg .tag{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--mut);letter-spacing:.02em;white-space:nowrap}
+.hnrg .tag.dfc{color:var(--sig)}
+.volb{display:block;margin-top:2px;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.volb b{color:#e3b95a;font-weight:700}
+.volb i{font-style:normal;margin-left:6px}
+.volb i.up{color:#7fa06a}
+.volb i.dn{color:var(--sig)}
+.setr .sv{margin-left:auto;font-size:10.5px;color:var(--dim);letter-spacing:.02em}
+.vtot{display:flex;align-items:baseline;gap:7px;margin-top:8px;padding-top:9px;border-top:1px solid var(--line);font-family:var(--mono);font-variant-numeric:tabular-nums}
+.vtot i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--dim)}
+.vtot b{font-size:15px;font-weight:700;color:#e3b95a}
+.vtot u{font-size:9.5px;color:var(--dim);text-decoration:none}
+.vtot span{margin-left:auto;font-size:11px;color:var(--dim)}
+.vtot span.up{color:#7fa06a}
+.vtot span.dn{color:var(--sig)}
 .dnav{padding:10px 13px;margin:-8px 0;color:var(--dim);font-size:13px}
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
@@ -643,6 +656,24 @@ function detailOf(s){
   var a=[];for(var i=0;i<s.length;i++)a.push(fmtW(s[i][0])+'×'+s[i][1]);
   return a.join('  ');
 }
+/* 세션 볼륨: 전 세트 합산 Σ(무게×반복) */
+function volOf(s){var v=0;for(var i=0;i<s.length;i++)v+=(+s[i][0]||0)*(+s[i][1]||0);return Math.round(v);}
+/* 목록 sub용 — 톱세트 무게의 세트만 표기 (혼합 무게 세션) */
+function topDetail(s){
+  if(!s.length)return '';
+  if(sameW(s))return repsOf(s);
+  var t=topOf(s),r=[],i;
+  for(i=0;i<s.length;i++)if(s[i][0]===t)r.push(s[i][1]);
+  return fmtW(t)+'×'+r.join('·');
+}
+/* ds 이전의 가장 최근 세션 (sess는 최신순) */
+function prevSess(id,ds){var a=sess(id);for(var i=0;i<a.length;i++)if(a[i].d<ds&&a[i].s.length)return a[i];return null;}
+function volTag(cur,prev){
+  if(!(prev>0))return '';
+  var p=Math.round((cur-prev)/prev*1000)/10;
+  var cls=p>0?'up':(p<0?'dn':'');
+  return '<i class="'+cls+'">'+(p>0?'+':'')+p+'%</i>';
+}
 function machById(id){for(var i=0;i<S.m.length;i++)if(S.m[i].i===id)return S.m[i];return null;}
 function machStep(id){if(isCardId(id))return 5;var m=machById(id);return (m&&m.st>0)?m.st:2.5;}
 function anyDirty(){for(var k in UI.dirty)if(UI.dirty[k])return true;return false;}
@@ -685,7 +716,7 @@ function render(){
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')
     +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'')
-    +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><span class="ni"><b class="k">DIET</b><b class="v" style="font-size:11px">첫 인바디 기록 추가 ▸</b></span></div>':'')
+    +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
         var base=Math.round(bmr(BW,BF)*ACT);
         var ex=Math.round(dayExKcal(UI.wd));
@@ -693,9 +724,8 @@ function render(){
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
         return '<div class="hnrg" data-act="godiet">'
-          +'<span class="ni"><b class="k">TDEE</b><b class="v">'+tot.toLocaleString()+'</b><i>kcal</i></span>'
-          +(ex>0?'<span class="ni ex"><b class="k">EX</b><b class="v">+'+ex.toLocaleString()+'</b></span>':'')
-          +'<span class="ni"><b class="k">EAT</b><b class="v">'+eat.toLocaleString()+'</b><i>kcal</i></span>'
+          +'<b class="k">TDEE</b><b class="v">'+tot.toLocaleString()+'</b><i class="tag">'+(ex>0?'EX +'+ex.toLocaleString():'')+'</i><i>kcal</i>'
+          +'<b class="k">EAT</b><b class="v">'+eat.toLocaleString()+'</b><i class="tag dfc">−'+dfc.toLocaleString()+'</i><i>kcal</i>'
           +'</div>';
       })():'');
   var bk=getBk();
@@ -799,14 +829,23 @@ function rowHtml(m){
     var n=draft?draft.length:0,t=draft&&n?topOf(draft):0;
     right=t>0?'<b class="w">'+fmtW(t)+'</b><i class="u">kg</i>':'<span class="none">—</span>';
     sub='<span class="sub"><em>In progress</em> · '+n+' sets</span>';
+    if(!isCard(m.p)&&n){
+      var dv=volOf(draft),dp=prevSess(m.i,UI.wd);
+      sub+='<span class="volb">VOL <b>'+dv.toLocaleString()+'</b> kg'+volTag(dv,dp?volOf(dp.s):0)+'</span>';
+    }
   }else{
     var la=latest(m.i);
     if(la){
       right='<b class="w">'+fmtW(topOf(la.s))+'</b><i class="u">'+(isCard(m.p)?'min':'kg')+'</i>';
       var lbl=dayLbl(la.d);
+      var det=isCard(m.p)?repsOfC(la.s,true):topDetail(la.s);
       sub=lbl==='Today'
-        ?'<span class="sub"><em>Today</em> · '+repsOfC(la.s,isCard(m.p))+'</span>'
-        :'<span class="sub">'+repsOfC(la.s,isCard(m.p))+' · '+lbl+'</span>';
+        ?'<span class="sub"><em>Today</em> · '+det+'</span>'
+        :'<span class="sub">'+det+' · '+lbl+'</span>';
+      if(!isCard(m.p)){
+        var lv=volOf(la.s),lp=prevSess(m.i,la.d);
+        sub+='<span class="volb">VOL <b>'+lv.toLocaleString()+'</b> kg'+volTag(lv,lp?volOf(lp.s):0)+'</span>';
+      }
     }else{
       right='<span class="none">No record</span>';
     }
@@ -835,14 +874,24 @@ function panelHtml(m){
   for(var i=0;i<all.length;i++)if(all[i].d<UI.wd)past.push(all[i]);
   if(past.length){
     var p0=past[0];
-    h+='<div class="ref"><i>Last '+md(p0.d)+'</i><b>'+fmtW(topOf(p0.s))+'<u>'+(isCardId(UI.open)?'min':'kg')+'</u></b><span>'+(isCardId(UI.open)?cardDetail(p0.s):detailOf(p0.s))+'</span></div>';
+    h+='<div class="ref"><i>Last '+md(p0.d)+'</i><b>'+fmtW(topOf(p0.s))+'<u>'+(isCardId(UI.open)?'min':'kg')+'</u></b><span>'+(isCardId(UI.open)?cardDetail(p0.s):(volOf(p0.s).toLocaleString()+'kg · '+detailOf(p0.s)))+'</span></div>';
   }
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
     for(var j=0;j<draft.length;j++){
       h+='<div class="setr">'
-        +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span></button>'
+        +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
+        +(cdRow?'':'<span class="sv">'+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
+        +'</button>'
         +'<button class="del" data-act="ds" data-v="'+j+'">×</button></div>';
+    }
+    if(!cdRow){
+      var dv2=volOf(draft),pv2=past.length?volOf(past[0].s):0,dt='';
+      if(pv2>0){
+        var pp2=Math.round((dv2-pv2)/pv2*1000)/10;
+        dt='<span class="'+(pp2>0?'up':(pp2<0?'dn':''))+'">'+(pp2>0?'+':'')+pp2+'% vs '+md(past[0].d)+'</span>';
+      }
+      h+='<div class="vtot"><i>VOLUME</i><b>'+dv2.toLocaleString()+'</b><u>kg</u>'+dt+'</div>';
     }
   }else{
     h+='<div class="empty">No sets yet</div>';
@@ -2191,6 +2240,24 @@ function aiPayload(){
     }
     return cnt;
   }
+  /* 부위별 주간 볼륨(kg, 전 세트 합산) — 유산소 제외 */
+  function weekVol(off){
+    var now=new Date();var dow=(now.getDay()+6)%7;
+    var mon=new Date(now);mon.setDate(now.getDate()-dow-off*7);
+    function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+    var days=[];for(var q=0;q<7;q++){var t=new Date(mon);t.setDate(mon.getDate()+q);days.push(iso(t));}
+    var cnt={};
+    for(var k in S.l){
+      var m=pid[k];if(!m||isCard(m.p))continue;
+      for(var j=0;j<S.l[k].length;j++){
+        if(days.indexOf(S.l[k][j].d)<0)continue;
+        var ss=S.l[k][j].s;
+        for(var q5=0;q5<ss.length;q5++)cnt[m.p]=(cnt[m.p]||0)+(+ss[q5][0]||0)*(+ss[q5][1]||0);
+      }
+    }
+    for(var p5 in cnt)cnt[p5]=Math.round(cnt[p5]);
+    return cnt;
+  }
   /* 최근 2주 전체 세션 로그 — 즐겨찾기 한정 폐지, 전 종목 전송 */
   var log=[];
   (function(){
@@ -2260,7 +2327,7 @@ function aiPayload(){
     subTargets:(function(){var o2={},sq;for(sq=0;sq<SUBS.length;sq++)if(STG[SUBS[sq].k]>0)o2[subLabel(SUBS[sq])]=STG[SUBS[sq].k];return o2;})(),
     subAvoid:(function(){var a2=[],sq2;for(sq2=0;sq2<SUBS.length;sq2++)if(STG[SUBS[sq2].k]===0)a2.push(subLabel(SUBS[sq2]));return a2;})(),
     repMax:repMax,restDays:RD.map(function(x){return DN2[x];}),paceTarget:WR,
-    log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),targets:WTGT};
+    log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),volThisWeek:weekVol(0),volLastWeek:weekVol(1),targets:WTGT};
 }
 
 function paceLeft(){
