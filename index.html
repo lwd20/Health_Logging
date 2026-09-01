@@ -366,6 +366,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ai-ck:active{opacity:.7}
 .ai-b .bh,.ai-ck .bh{color:#d9c07a;font-weight:700}
 .ai-b .bd2,.ai-ck .bd2{font-style:normal;color:var(--dim);margin:0 6px}
+.ai-tr{margin:8px 0;padding:9px 11px;border:1px solid var(--line);border-left:2px solid #8f7022;border-radius:2px;background:linear-gradient(180deg,rgba(34,27,21,.5),rgba(27,21,16,.3))}
+.ai-tr.neg{border-left-color:var(--sig)}
+.ai-tr.pos{border-left-color:#8fb377}
+.ai-tr .kr{display:flex;align-items:center;gap:8px}
+.ai-tr .k{font-weight:800;font-size:12.5px;color:#e6dccb;letter-spacing:.02em}
+.ai-tr .st{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.12em;padding:2px 7px;border-radius:2px;border:1px solid rgba(207,166,72,.4);color:#e3b95a;background:rgba(207,166,72,.1);white-space:nowrap}
+.ai-tr.neg .st{color:#f0a184;border-color:rgba(209,85,46,.5);background:rgba(209,85,46,.12)}
+.ai-tr.pos .st{color:#a8cf8c;border-color:rgba(143,179,119,.45);background:rgba(143,179,119,.1)}
+.ai-tr .v{display:block;margin-top:5px;font-size:11px;line-height:1.5;color:var(--mut)}
+.ai-tr .mini{margin-top:7px;height:3px;border-radius:2px;background:rgba(255,255,255,.07)}
+.ai-tr .mini b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#a9862b,#e3b95a)}
+.ai-tr.neg .mini b{background:linear-gradient(90deg,#8f3a1e,#d1552e)}
+.ai-tr.pos .mini b{background:linear-gradient(90deg,#5f7d4c,#8fb377)}
 .ai-sub{margin-top:5px;font-size:10.5px;color:var(--dim)}
 .ai-total{display:flex;align-items:baseline;margin:14px 0 2px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--mut)}
 .ai-total .num{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:#e3b95a}
@@ -3038,8 +3051,41 @@ function hlNum(t){
           .replace(/(\d+\s*회)/g,'<b class="hl">$1</b>')
           .replace(/(\d+(?:\.\d+)?x\d+)/g,'<b class="hl">$1</b>');
 }
+/* 판정어 → 칩 라벨·톤. 구체적인 것부터 검사함 */
+var AISTAT=[
+  ['위반','위반','neg'],['퇴행','퇴행','neg'],['재빌드','재빌드','neg'],['시급','시급','neg'],
+  ['미달','미달','neg'],['부족','부족','neg'],['빈약','부족','neg'],['과중','과중','neg'],
+  ['초과','초과','warn'],['부채','부채','warn'],['이탈','이탈','warn'],['정체','정체','warn'],
+  ['간섭','간섭','warn'],['보류','보류','warn'],
+  ['증량 성공','증량','pos'],['증량 준비','준비','pos'],['달성','달성','pos'],['순항','순항','pos'],
+  ['우수','우수','pos'],['양호','양호','pos'],['준수','준수','pos'],['확보','확보','pos'],
+  ['적절','적절','pos'],['가능','가능','pos'],['없음','정상','pos'],['유지','유지',''],
+  ['첫 기록','신규','']
+];
+function aiStat(t){
+  for(var i=0;i<AISTAT.length;i++)if(t.indexOf(AISTAT[i][0])>=0)return AISTAT[i];
+  return null;
+}
+/* 불렛 한 줄 → 라벨·상태칩·수치바 카드 */
+function aiTr(body,tone){
+  var ix=body.indexOf(' — ');
+  if(ix<1)ix=body.indexOf(' - ');
+  if(ix<1||ix>26)ix=-1;
+  var k=ix>0?body.slice(0,ix):body, v=ix>0?body.slice(ix+3):'';
+  var st=aiStat(v||k), cls=tone==='neg'?'neg':'';
+  if(st&&!cls)cls=st[2]==='neg'?'neg':(st[2]==='pos'?'pos':'');
+  /* "5/10" 형태가 있으면 미니 바로 시각화 */
+  var mb='',m=(k+' '+v).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+  if(m){
+    var cv=parseFloat(m[1]),gv=parseFloat(m[2]);
+    if(gv>0)mb='<div class="mini"><b style="width:'+Math.max(0,Math.min(100,Math.round(cv*100/gv)))+'%"></b></div>';
+  }
+  return '<div class="ai-tr'+(cls?' '+cls:'')+'">'
+    +'<div class="kr"><span class="k">'+k+'</span>'
+    +(st?'<span class="st">'+st[1]+'</span>':'')+'</div>'
+    +(v?'<span class="v">'+v+'</span>':'')+mb+'</div>';
+}
 function bhHead(body){
-  /* "대상 — 판정" 구조의 앞머리를 강조해 스캔 가능하게 */
   var ix=body.indexOf(' — ');
   if(ix<1)ix=body.indexOf(' - ');
   if(ix<1||ix>26)return body;
@@ -3093,7 +3139,7 @@ function aiFmt(txt,ck,ph){
       }
       for(ki=0;ki<AIPOS.length;ki++)if(body.indexOf(AIPOS[ki])>=0){tone='pos';break;}
       if(!tone)for(ki=0;ki<AINEG.length;ki++)if(body.indexOf(AINEG[ki])>=0){tone='neg';break;}
-      out+='<div class="ai-b'+(tone==='neg'?' neg':'')+'"><i></i><span>'+bhHead(body)+'</span></div>';
+      out+=aiTr(body,tone);
       continue;
     }
     out+='<div class="ai-p">'+ln+'</div>';
