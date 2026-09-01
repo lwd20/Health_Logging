@@ -133,16 +133,18 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mc{border-bottom:1px solid var(--line)}
 .grp .mc:last-child{border-bottom:0}
 .row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;text-align:left}
-.rl{min-width:0}
+.rl{flex:1 1 auto;min-width:0}
 .nm{display:flex;align-items:baseline;gap:7px;font-size:13.5px;font-weight:600;letter-spacing:-.005em;min-width:0}
 .nm b{font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--chrome);opacity:.85;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(207,166,72,.35);border-radius:2px;padding:2px 5px;background:#0c0a08;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
-.ln{flex:0 0 auto;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.ln{flex:0 0 auto;font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
-.rr{flex:0 0 auto;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono)}
-.rr .rw{white-space:nowrap}
-.rr .rp{flex:0 0 50px;text-align:right;white-space:nowrap}
+.bdg{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:3px;margin:0 8px 0 6px}
+.rr{flex:0 0 106px;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono);white-space:nowrap}
+.rr .rw{flex:0 0 62px;min-width:0;text-align:right;white-space:nowrap}
+.rr .rp{flex:0 0 44px;min-width:0;text-align:right;white-space:nowrap}
+.rr .none{flex:1;text-align:right}
 .fav{flex:0 0 auto;width:42px;height:46px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
 .fav.on{color:var(--chrome);opacity:1;text-shadow:0 0 8px rgba(207,166,72,.35)}
 .w{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -972,12 +974,13 @@ function rowHtml(m){
       right='<span class="none">No record</span>';
     }
   }
-  var badge=(m.b?'<i class="bd">'+esc(m.b)+'</i>':'')+(m.ln?'<i class="ln">'+esc(m.ln)+'</i>':'');
+  var badge=(m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
   return '<section class="mc'+(open?' on':'')+'">'
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
-    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+dtag+'</span>'+sub+'</span>'
+    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+dtag+'</span>'+sub+'</span>'
+    +'<span class="bdg">'+badge+'</span>'
     +'<span class="rr">'+right+'</span></button>'
     +'</div>'
     +'<div class="acc"><div class="accin">'+(open?panelHtml(m):'')+'</div></div>'
