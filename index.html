@@ -2129,9 +2129,8 @@ function hasTodayStrength(){
   }
   return false;
 }
-var WKSTYLE='\n\n[출력 문체 재정의 — 위 프롬프트의 문체 규칙보다 이 규칙이 우선함]\n- 각 줄 12~30자, "대상 — 판정, 수치" 구조로 결론을 문두에 둠. 예: "단계 — 초반, 경과 1/잔여 4일", "측면 2/18 — 페이스 부족, 하루 4세트 요망", "Chest Press — 증량 성공, 다음 유지".\n- 날짜 풀어쓰기·배경 설명·이유 서술 금지. 한 줄에 정보 하나.\n- 처방 줄은 "종목 — 다음 무게" 만 씀. 예: "사레레 — 34→35kg".\n';
 function anlPrompt(){
-  if(ANL==='wk')return (PR||DEFPR)+WKSTYLE;
+  if(ANL==='wk')return (PR||DEFPR);
   var ph=hasTodayStrength()
     ?'실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방·방향은 다음 세션 기준으로 씀.\n'
     :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방·방향은 오늘 세션에서 바로 실행할 항목으로 씀.\n';
