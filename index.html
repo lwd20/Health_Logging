@@ -1549,12 +1549,25 @@ function addSet(){
 function normDraft(id){
   var d=UI.draft[id];
   if(!d||d.length)return;
-  if(!sessOn(id,UI.wd)){delete UI.draft[id];delete UI.dirty[id];}
+  delete UI.draft[id];delete UI.dirty[id];
 }
 function delSet(i){
-  UI.draft[UI.open].splice(i,1);
-  UI.dirty[UI.open]=true;
-  normDraft(UI.open);
+  var id=UI.open;
+  UI.draft[id].splice(i,1);
+  UI.dirty[id]=true;
+  if(!UI.draft[id].length){
+    var a=S.l[id]||[],hit=false;
+    for(var q=0;q<a.length;q++)if(a[q].d===UI.wd){a.splice(q,1);hit=true;break;}
+    if(hit){
+      if(!a.length)delete S.l[id];
+      delete UI.draft[id];delete UI.dirty[id];
+      save();saveDraft();
+      var m0=machById(id);
+      buzz(15);toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)+' session');
+      render();return;
+    }
+    delete UI.draft[id];delete UI.dirty[id];
+  }
   saveDraft();render();
 }
 function editSet(i){
