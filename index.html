@@ -241,6 +241,35 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .gmbtn.open::after{transform:rotate(180deg)}
 .cmeta{display:flex;align-items:baseline;padding:11px 1px 0;font-size:9px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
 .anlbtn{width:100%;height:41px;margin-top:12px;border-radius:3px;background:linear-gradient(180deg,#d6b155,#9a7a25);border:1px solid #6e5617;color:#181000;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
+.aihero{display:flex;gap:13px;align-items:center;padding:2px 1px 12px;border-bottom:1px solid var(--line)}
+.airing{width:64px;height:64px;flex:0 0 auto;position:relative}
+.airing svg{transform:rotate(-90deg);display:block}
+.airing .pc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono)}
+.airing .pc b{font-size:15px;color:#e3b95a;font-weight:700}
+.airing .pc i{font-style:normal;font-size:7.5px;color:var(--dim);letter-spacing:.14em}
+.sigline{flex:1;min-width:0}
+.sigtag{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.16em;padding:2px 7px;border-radius:2px;background:rgba(209,85,46,.14);border:1px solid rgba(209,85,46,.5);color:#e0876a}
+.sigtag.warn2{background:rgba(207,166,72,.1);border-color:rgba(207,166,72,.5);color:#d9b356}
+.sigtag.ok{background:rgba(127,160,106,.12);border-color:rgba(127,160,106,.45);color:#9dc084}
+.sigtxt{font-size:12px;font-weight:600;margin-top:5px;line-height:1.45}
+.sigsub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
+.sigrec{display:inline-block;margin-top:6px;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--chrome);border:1px solid rgba(207,166,72,.45);border-radius:2px;padding:4px 9px;background:rgba(207,166,72,.06)}
+.sigrec:active{opacity:.6}
+.gbrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-family:var(--mono)}
+.gbrow .bn{flex:0 0 52px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
+.gbrow .gmg{flex:1;height:4px;background:#1c1813;border-radius:2px;overflow:hidden;position:relative}
+.gbrow .gmg b{display:block;height:100%;background:linear-gradient(90deg,#a9862b,#ddbb59);border-radius:2px}
+.gbrow .gmg b.r{background:#8a3d24}
+.gbrow .gmg i{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(232,226,216,.35)}
+.gbrow .bv{flex:0 0 auto;font-size:10.5px;color:#e3b95a;font-variant-numeric:tabular-nums}
+.insmod{margin-bottom:15px}
+.inshd{display:flex;align-items:baseline;margin:2px 0 7px}
+.inshd .t{font-size:9.5px;font-weight:800;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
+.inshd .r{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.inshd .r b{color:#e3b95a}
+.inshd .r .u2{color:#7fa06a}
+.inshd .r .d2{color:var(--sig)}
+.axcap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:4px}
 .anlbtn:active{background:linear-gradient(180deg,#c2a047,#87691d)}
 .anlbtn.dis{background:var(--plate);color:var(--dim);border:1px solid var(--line);box-shadow:none}
 .gmpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid #8f7022;border-radius:4px;box-shadow:0 16px 38px rgba(0,0,0,.65);overflow:hidden}
@@ -744,13 +773,15 @@ function partDays(part){
   }
   return set;
 }
-/* 점 규칙(오늘 기준): 어제+엊그제 연속=레드 / 어제·엊그제 모두 없음=브론즈 / 오늘 이미 함=없음 */
+/* 점 규칙(오늘 기준): 레드=DOT.rd일 연속 수행(회복 경고) / 골드=DOT.yd일 연속 미수행(방치) / 오늘 이미 함=없음 */
+var DOT={r:1,y:1,rd:2,yd:2};
+function dotSave(){if(canLS){try{localStorage.setItem(KEY+'.dot',JSON.stringify(DOT));}catch(e){}}}
 function partDot(part){
   if(isCard(part))return '';
   var set=partDays(part);
   if(set[0])return '';
-  if(set[1]&&set[2])return 'hot';
-  if(!set[1]&&!set[2])return 'stale';
+  if(DOT.r){var hot=true,i;for(i=1;i<=DOT.rd;i++)if(!set[i]){hot=false;break;}if(hot)return 'hot';}
+  if(DOT.y){var st2=true,j;for(j=1;j<=DOT.yd;j++)if(set[j]){st2=false;break;}if(st2)return 'stale';}
   return '';
 }
 function renderChips(){
@@ -1024,6 +1055,8 @@ function renderSheet(){
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
+    h+=heroHtml();
+    h+=insightsHtml();
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
     h+='<div class="gmwrap">';
@@ -1043,6 +1076,21 @@ function renderSheet(){
       h+='</div>';
     }
     h+='</div>';
+    h+='<div class="gmwrap" style="margin-top:2px">';
+    h+='<button class="gmbtn'+(ANLOPEN?' open':'')+'" data-act="anlopen">'
+      +'<span class="clab">ANALYSIS</span><span class="cval">'+ANLN[ANL]+'</span></button>';
+    if(ANLOPEN){
+      h+='<div class="gmpop">';
+      for(var agi=0;agi<ANLG.length;agi++){
+        h+='<div class="grp">'+ANLG[agi].name+'</div>';
+        for(var aii=0;aii<ANLG[agi].items.length;aii++){
+          var akey=ANLG[agi].items[aii];
+          h+='<button class="'+(ANL===akey?'on':'')+'" data-act="anlpick" data-v="'+akey+'">'+ANLN[akey]+'</button>';
+        }
+      }
+      h+='</div>';
+    }
+    h+='</div>';
     h+='<div class="cmeta">'
       +'<span>'+(AIAT?((AIDT?AIDT+' · ':'')+AIBY+' · '+AIAT+(aiDayTag(AIDT)?' <i class="stale">'+aiDayTag(AIDT)+'</i>':'')):'Ready')+'</span>'
       +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
@@ -1054,7 +1102,7 @@ function renderSheet(){
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
     h+='<div id="aiOut" class="show">';
     if(cur){
-      h+='<div class="ai-mast"><span class="tt">WEEKLY REPORT</span>'
+      h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'WEEKLY REPORT')+'</span>'
         +'<span class="mt">'
         +'<button class="nav" data-act="aiprev"'+(AIVIEW+1<AIH.length?'':' disabled')+'>&#9664;</button>'
         +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+(aiDayTag(cur.d)?' <i class="stale">'+aiDayTag(cur.d)+'</i>':'')+'</span>'
@@ -1305,6 +1353,18 @@ function renderSheet(){
       +'<div class="strest"></div>'
       +'<input id="iv0" class="stin" inputmode="numeric" maxlength="3" value="'+IVs+'">'
       +'<span class="stsl">초</span></div>'
+      +'<div class="sh-l" style="margin-top:14px">Part dots</div>'
+      +'<div class="strow"><b class="stnm" style="flex:0 0 70px"><span style="color:var(--sig)">●</span> 레드</b>'
+      +'<button class="chip'+(DOT.r?' on':'')+'" data-act="dtr" style="flex:0 0 auto">'+(DOT.r?'ON':'OFF')+'</button>'
+      +'<div class="strest"></div>'
+      +'<input id="dr0" class="stin" inputmode="numeric" maxlength="1" value="'+DOT.rd+'"'+(DOT.r?'':' disabled style="opacity:.3"')+'>'
+      +'<span class="stsl">일 연속 수행</span></div>'
+      +'<div class="strow"><b class="stnm" style="flex:0 0 70px"><span style="color:var(--chrome)">●</span> 골드</b>'
+      +'<button class="chip'+(DOT.y?' on':'')+'" data-act="dty" style="flex:0 0 auto">'+(DOT.y?'ON':'OFF')+'</button>'
+      +'<div class="strest"></div>'
+      +'<input id="dy0" class="stin" inputmode="numeric" maxlength="1" value="'+DOT.yd+'"'+(DOT.y?'':' disabled style="opacity:.3"')+'>'
+      +'<span class="stsl">일 미수행</span></div>'
+      +'<div class="note" style="margin:2px 0 0">레드=과자극 경고(연속 수행), 골드=방치 경고(미수행) · 오늘 수행한 부위엔 표시 안 함</div>'
       +'<button class="okbtn" data-act="wg" style="width:100%;margin-top:12px">Save goals</button>';
     }
     if(tb==='ai'){
@@ -1574,7 +1634,7 @@ var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
 function bkText(){
   return JSON.stringify({v:2,S:S,cfg:{
     wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
-    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||''
+    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||'',dot:DOT
   }});
 }
 function applyBackup(o){
@@ -1605,6 +1665,12 @@ function applyBackup(o){
       if(Array.isArray(c.rd)){var r2=c.rd.filter(function(x){return x>=0&&x<=6;});if(r2.length<7)RD=r2;}
       if(Array.isArray(c.bh))bhSave(c.bh.filter(function(x){return x&&x.d&&+x.w>0&&+x.f>0;}));
       if(typeof c.pr==='string')PR=c.pr;
+      if(c.dot&&typeof c.dot==='object'){
+        DOT.r=c.dot.r?1:0;DOT.y=c.dot.y?1:0;
+        if(+c.dot.rd>=1&&+c.dot.rd<=6)DOT.rd=Math.floor(+c.dot.rd);
+        if(+c.dot.yd>=1&&+c.dot.yd<=7)DOT.yd=Math.floor(+c.dot.yd);
+        dotSave();
+      }
       if(canLS){
         try{
           localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));
@@ -1824,6 +1890,202 @@ function wkCardio(){
 }
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
+/* ── 분석론 선택 ── */
+var ANL='wk',ANLOPEN=false;
+var ANLL={wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
+var ANLN={wk:'주간 리포트',acsm:'ACSM 가이드라인',vol:'볼륨 랜드마크 MEV·MRV',prog:'점증·정체 진단',recov:'회복·피로 관리',bal:'균형·비율 평가',vt:'옷맵시 V-테이퍼'};
+var ANLG=[
+ {name:'종합',items:['wk']},
+ {name:'볼륨',items:['vol','vt']},
+ {name:'부하·회복',items:['acsm','recov']},
+ {name:'진전·구조',items:['prog','bal']}
+];
+var ANLGLOS='데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 세트(CARDIO는 분). exercises="종목명|부위|이번주세트수". log=최근 2주 전체 세션("날짜 부위 종목명 무게x반복", 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 톱세트 이력("MM-DD 무게x반복" 최신순). body="MM-DD 체중/체지방%[/골격근kg]" 이력. volThisWeek/volLastWeek=부위별 주간 볼륨 kg(전 세트 무게×반복 합). restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 종목명으로 판정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(-400~500kcal), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 항목당 완결 문장 한 줄(20~50자), -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 수치는 문장 안에 자연스럽게 넣고 나열 금지. 인사말·서론·맺음말 금지. 주 중반이면 진행 중임을 감안해 단정 대신 페이스로 판정함.\n\n';
+var ANLDEF={
+acsm:'당신은 ACSM 가이드라인에 정통한 운동처방 전문가다. 아래 훈련 데이터를 ACSM 저항성·유산소 운동 권고 기준으로 평가한 한국어 보고서를 써라.\n평가 기준: 주요 근군당 주 2회 이상 자극, 근비대 반복역 6~12회 중심, 동일 근군 48시간 회복, 유산소 중강도 주 150분(또는 고강도 75분) 및 주 3회 분산, 주간 부하 증가는 전주 대비 20% 이내의 점진적 과부하.\n구성:\n[빈도]\n- log의 수행 날짜로 부위별 주간 세션 수를 세어 주 2회 기준과 대조해 부위별 한 줄씩 씀.\n[유산소]\n- thisWeek.CARDIO 분과 회수를 150분·주 3회 기준과 대조해 한 줄로 판정함.\n[강도]\n- log의 반복수 분포가 근비대역(6~12회)에 드는 비율을 평가하고 이탈 종목을 지적함.\n[회복]\n- 같은 부위의 48시간 미만 재자극과 3일 이상 연속 훈련을 log 날짜로 점검함.\n[과부하]\n- volThisWeek를 volLastWeek와 부위별로 대조해 20% 초과 급증 또는 급감을 지적함.\n[종합]\n- 충족 항목과 미충족 항목을 각각 한 줄로 요약하고 다음 주 권고를 1~2줄로 마감함.\n\n',
+vol:'당신은 볼륨 랜드마크(MEV·MAV·MRV) 이론에 정통한 보디빌딩 코치다. 아래 훈련 데이터의 부위·세부별 주간 세트를 랜드마크와 대조한 한국어 보고서를 써라.\n랜드마크 기준(주당 직접 세트, 일반치): 가슴 MEV8·MAV12~20·MRV22, 등 10·14~22·25, 어깨측면 8·16~22·26, 어깨후면 6·16~22·26, 어깨전면 0·6~8·12(프레스 간접 감안), 대퇴사두 8·12~18·20, 햄스트링 6·10~16·20, 둔근 0·4~12·16, 이두 8·14~20·26, 삼두 6·10~14·18, 종아리 8·12~16·20, 복근 0·16~20·25.\n감량기 보정: 회복 저하로 MRV를 20% 낮춰 적용하고 이를 명시함.\n구성:\n[랜드마크]\n- 이번 주 수행이 있는 세부별로 "측면 어깨 14세트 — MAV 하단(16~22) 미만임" 식으로 현재 세트와 구간 판정을 한 줄씩 씀. 잔여 훈련일 기준 도달 가능성을 함께 씀.\n[초과 위험]\n- 보정 MRV의 90% 이상이거나 초과한 세부를 수치와 함께 지적함. 없으면 "MRV 접근 세부 없음"이라 씀.\n[증량 여지]\n- 옷맵시 우선 세부(측면·광배) 중 MAV까지 여유가 있는 곳과 추가 가능 세트 수를 씀.\n[처방]\n- 다음 주 세부별 세트 조정을 최대 3줄로 지시함. 조정 폭은 세부당 2~4세트 이내로 함.\n\n',
+prog:'당신은 점진적 과부하 진단 전문가다. 아래 훈련 데이터의 tops(종목별 톱세트 이력)를 근거로 종목별 진전 상태를 판정한 한국어 보고서를 써라.\n판정 정의: e1RM=무게×(1+반복/30). 세션 간 톱세트 무게 상승은 반복과 무관하게 진전, 무게 동일 시 반복 증가가 진전임. 연속 두 세션 무진전=정체, 연속 두 세션 하락=퇴행(근손실 위험 신호). 인접 세션 간격 14일 초과면 "간격 n일로 보류"로만 표기함. 이력 2회 이하 종목은 언급하지 않음.\n구성:\n[진전]\n- 최근 세션에서 무게 또는 반복이 오른 종목을 "Lat Pulldown 59→66kg, e1RM +8%" 식 수치와 함께 한 줄씩 씀. 없으면 "신규 진전 없음"이라 씀.\n[정체]\n- 정체 종목을 마지막 갱신 날짜·수치와 함께 한 줄씩 씀. 없으면 "정체 종목 없음"만 씀.\n[퇴행]\n- 퇴행 종목을 두 세션의 수치 흐름과 함께 씀. body의 제지방·골격근 추세가 함께 하락 중이면 근손실 경고를 덧붙임. 없으면 "퇴행 종목 없음"만 씀.\n[처방]\n- 정체·퇴행 종목별로 무게 유지, 5% 감량 재빌드(재빌드 무게 명시), 반복 목표 상향 중 하나를 택해 한 줄씩 지시함. 옷맵시 핵심 종목을 우선 다룸.\n\n',
+recov:'당신은 회복·피로 관리 전문 코치다. 아래 훈련 데이터로 감량기 회복 상태를 진단한 한국어 보고서를 써라. 감량기는 회복 자원이 평시보다 낮음을 전제로 보수적으로 판정함.\n구성:\n[연속·간격]\n- log 날짜로 오늘 포함 연속 훈련일 수를 세고(유산소만 있는 날 제외) 3일 이상이면 경고함. 같은 부위의 48시간 미만 재자극을 날짜와 함께 지적함.\n[휴식 준수]\n- 이번 주 무기록일 수를 restDays 계획과 대조해 판정함. 주 중반이면 현재까지의 사실만 씀.\n[세션 피로]\n- log에서 한 종목의 마지막 세트 반복이 그 종목 최고 반복보다 3회 이상 또는 25% 이상 낮은 세션을 피로 급락으로 찾아 종목·수치와 함께 지적함. 없으면 "세션 내 피로 급락 없음"이라 씀.\n[부하 변동]\n- volThisWeek와 volLastWeek를 부위별로 대조해 20% 초과 급증을 회복 부채로, 30% 초과 급감을 디로드 여부 확인 대상으로 지적함.\n[신체 신호]\n- body의 제지방 또는 골격근 추세가 하락이면 회복 부족·근손실 신호로 최우선 경고함. body가 비어 있으면 이 섹션은 생략함.\n[처방]\n- 휴식일 배치, 볼륨 감축 대상 부위, 유지 대상을 합쳐 2~3줄로 지시함.\n\n',
+bal:'당신은 근육 발달 균형 분석 전문가다. 아래 훈련 데이터의 세트 배분 비율을 평가한 한국어 보고서를 써라.\n기준 비율(주간 직접 세트): 당기기(등 전체+이두) 대 밀기(가슴+어깨전면+삼두)는 1:1이 표준이며 사용자의 옷맵시 목표상 당기기 우세 1.2:1까지 이상적임. 대퇴사두 대 햄스트링은 1:0.6~0.8을 권장함. 상체 대 하체는 목표가 상체 프레임 확장이므로 2:1까지 허용하되 하체가 주 8세트 미만이면 최소선 미달로 봄. 어깨 내부는 측면이 전면·후면 합보다 크거나 같아야 옷맵시 배분으로 봄.\n구성:\n[당기기·밀기]\n- exercises를 세부 귀속 규칙으로 분류해 실제 세트 비율을 계산하고 기준과 대조해 한 줄로 판정함.\n[사두·햄]\n- 두 세부의 세트 비율을 계산해 권장 구간과 대조함. 햄이 약점 보강 대상임을 감안함.\n[상체·하체]\n- 비율과 하체 최소선 충족 여부를 한 줄로 판정함.\n[어깨 내부]\n- 측면 대 전면+후면 비율을 계산해 옷맵시 배분 여부를 판정함.\n[처방]\n- 비율 이탈이 큰 순서로 최대 3줄, 옮길 세트 수를 명시해 지시함. 이탈 없으면 "배분 균형 양호로 유지 요망"만 씀.\n\n',
+vt:'당신은 상체 프레임 확장과 옷맵시(V테이퍼) 특화 코치다. 아래 훈련 데이터를 옷맵시 기준선과 대조한 한국어 보고서를 써라.\n기준선: 측면 어깨 주 18~21세트(주 3~5회 빈도), 광배 주 16~18세트, 가슴 상부 우선, 햄스트링 약점 보강, 승모 직접 자극 0세트(위반 시 최우선 지적). 어깨 너비와 광배 확장이 허리 시각비를 좌우함을 전제로 함.\n구성:\n[핵심 타겟]\n- 측면 어깨와 광배의 이번 주 세트·빈도를 기준선과 대조해 각 한 줄씩 판정함. 주 중반이면 잔여 훈련일로 도달 가능한지로 판정함.\n[보조 타겟]\n- 가슴 상부 대 중하부 배분과 햄스트링 세트를 점검해 각 한 줄로 씀.\n[금기]\n- exercises에 승모 계열(셰러그·업라이트로우·하이풀) 자극이 있으면 세트 수와 함께 위반으로 지적하고, 없으면 "승모 회피 준수"라 씀.\n[배분 판정]\n- 총 세트 중 옷맵시 핵심(측면+광배) 비중을 계산해 배분 집중도를 한 줄로 판정함.\n[처방]\n- 잔여 훈련일에 핵심 타겟을 몇 세트씩 배치할지와 다음 주 조정 방향을 2~3줄로 지시함.\n\n'
+};
+function anlPrompt(){
+  if(ANL==='wk')return (PR||DEFPR);
+  return (ANLDEF[ANL]||'')+ANLGLOS;
+}
+function anlSave(){if(canLS){try{localStorage.setItem(KEY+'.anl',ANL);}catch(e){}}}
+(function(){if(!canLS)return;try{var a=localStorage.getItem(KEY+'.anl');if(a&&ANLL[a])ANL=a;}catch(e){}})();
+/* ── 로컬 신호 판정 (프롬프트 규칙 21 포팅: 퇴행 > 회복 부채 > 옷맵시 페이스 > 정상) ── */
+function wkSets(){
+  var nowd=new Date(),dw=(nowd.getDay()+6)%7;
+  var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
+  function is2(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},q,t;
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is2(t)]=1;}
+  var pid={},i,k,cnt={};
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++){
+      if(!days[S.l[k][i].d])continue;
+      cnt[m.p]=(cnt[m.p]||0)+S.l[k][i].s.length;
+    }
+  }
+  return cnt;
+}
+function heroStreak(){
+  var pid={},i,k,days={};
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++)if(S.l[k][i].s.length)days[daysAgo(S.l[k][i].d)]=1;
+  }
+  var d=days[0]?0:1;
+  if(!days[d])return 0;
+  var st=0;
+  while(days[d]){st++;d++;}
+  return st;
+}
+function heroTop(s){var t=s[0],i;for(i=1;i<s.length;i++){if(s[i][0]>t[0]||(s[i][0]===t[0]&&s[i][1]>t[1]))t=s[i];}return t;}
+function heroProg(){
+  var up=0,down=0,stall=0,regName='',regTxt='',i;
+  function gapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
+  function adv(a,b){return a[0]>b[0]||(a[0]===b[0]&&a[1]>b[1]);}
+  function dec(a,b){return a[0]<b[0]||(a[0]===b[0]&&a[1]<b[1]);}
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];if(isCard(m.p))continue;
+    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
+    if(a.length<2)continue;
+    if(gapD(a[0],a[1])>14)continue;
+    var t0=heroTop(a[0].s),t1=heroTop(a[1].s);
+    if(adv(t0,t1)){up++;continue;}
+    if(a.length<3||gapD(a[1],a[2])>14)continue;
+    var t2=heroTop(a[2].s);
+    if(dec(t0,t1)&&dec(t1,t2)){
+      down++;
+      if(!regName){regName=m.n;regTxt=fmtW(t2[0])+'→'+fmtW(t1[0])+'→'+fmtW(t0[0])+'kg';}
+    }else if(!adv(t0,t1)&&!adv(t1,t2))stall++;
+  }
+  return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt};
+}
+function heroSignal(){
+  var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
+  var pr=heroProg(),st=heroStreak(),ws=wkSets(),sc=subCnt(),pl=paceLeft();
+  var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
+  var sub='측면 '+(sc.sd||0)+'/'+sdT+' · 광배 '+(sc.lt||0)+'/'+ltT+(st>0?' · 연속 '+st+'일':'');
+  if(pr.down>0)return {lv:'bad',tag:'퇴행 감지',txt:pr.regName+' 톱세트 '+pr.regTxt+' 연속 하락 — 근손실 위험 신호임',sub:sub,rec:'prog'};
+  var over='';for(var k in ws)if(WTGT[k]&&ws[k]>=WTGT[k]+3){over=k;break;}
+  if(st>=3)return {lv:'bad',tag:'회복 부채',txt:'근력 훈련 '+st+'일 연속 — 휴식일 배치 요망',sub:sub,rec:'recov'};
+  if(over)return {lv:'bad',tag:'회복 부채',txt:(PN[over]||over)+' '+ws[over]+'세트로 목표를 3세트 이상 초과함',sub:sub,rec:'recov'};
+  if(pl>=20){
+    var needS=Math.round(sdT*pl/100),needL=Math.round(ltT*pl/100);
+    if((sc.sd||0)<needS)return {lv:'warn',tag:'옷맵시 페이스 부족',txt:'측면 어깨가 단계 대비 뒤처짐 — 페이스상 '+needS+'세트 필요함',sub:sub,rec:'vt'};
+    if((sc.lt||0)<needL)return {lv:'warn',tag:'옷맵시 페이스 부족',txt:'광배가 단계 대비 뒤처짐 — 페이스상 '+needL+'세트 필요함',sub:sub,rec:'vt'};
+  }
+  if(pr.stall>=2)return {lv:'warn',tag:'정체 주의',txt:'정체 후보 '+pr.stall+'종목 — 점증 점검 요망',sub:sub,rec:'prog'};
+  return {lv:'ok',tag:'정상 운행',txt:'퇴행·회복 부채·페이스 이탈 없음',sub:sub,rec:'wk'};
+}
+function heroHtml(){
+  if(!hasLogs())return '';
+  var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
+  var PO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
+  var ws=wkSets(),pl=paceLeft(),sg=heroSignal();
+  var tot=0,tg=0,k;
+  for(k in WTGT){if(k==='CARDIO')continue;tg+=WTGT[k];tot+=(ws[k]||0);}
+  var pct=tg>0?Math.min(100,Math.round(tot*100/tg)):0;
+  var C=169.6,off=Math.round(C*(1-pct/100)*10)/10;
+  var h='<div class="aihero">'
+    +'<div class="airing"><svg width="64" height="64" viewBox="0 0 64 64">'
+    +'<circle cx="32" cy="32" r="27" fill="none" stroke="#1c1813" stroke-width="6"/>'
+    +'<circle cx="32" cy="32" r="27" fill="none" stroke="'+(sg.lv==='bad'?'#a54a2e':'#cfa648')+'" stroke-width="6" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/>'
+    +'</svg><div class="pc"><b>'+pct+'%</b><i>WEEK</i></div></div>'
+    +'<div class="sigline">'
+    +'<span class="sigtag'+(sg.lv==='ok'?' ok':(sg.lv==='warn'?' warn2':''))+'">'+sg.tag+'</span>'
+    +'<div class="sigtxt">'+sg.txt+'</div>'
+    +'<div class="sigsub">'+sg.sub+'</div>'
+    +(sg.rec!==ANL?'<button class="sigrec" data-act="anlpick" data-v="'+sg.rec+'">→ '+ANLN[sg.rec]+' 추천</button>':'')
+    +'</div></div>';
+  var gb='';
+  for(var gi=0;gi<PO.length;gi++){
+    k=PO[gi];
+    var g2=WTGT[k]||0,c2=ws[k]||0;
+    if(!g2)continue;
+    var pp=Math.min(100,Math.round(c2*100/g2));
+    var red=pl>0&&pp<pl/2;
+    gb+='<div class="gbrow"><span class="bn">'+PN[k]+'</span>'
+      +'<span class="gmg"><b class="'+(red?'r':'')+'" style="width:'+pp+'%"></b>'+(pl>0&&pl<100?'<i style="left:'+pl+'%"></i>':'')+'</span>'
+      +'<span class="bv">'+c2+'/'+g2+'</span></div>';
+  }
+  return h+gb+'<div style="height:6px"></div>';
+}
+/* ── Insights: 전체 이력 기반 로컬 시각화 ── */
+function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function insDayMap(){
+  var pid={},i,k,map={},minD=null;
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++){
+      var e=S.l[k][i];
+      if(!e.s.length)continue;
+      map[e.d]=(map[e.d]||0)+e.s.length;
+      if(!minD||e.d<minD)minD=e.d;
+    }
+  }
+  return {map:map,minD:minD};
+}
+function insMonday(d){var t=new Date(d);t.setDate(t.getDate()-((t.getDay()+6)%7));t.setHours(0,0,0,0);return t;}
+function volTrendHtml(dm){
+  var pid={},i,k;
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  var thisMon=insMonday(new Date());
+  var firstMon=insMonday(new Date(dm.minD.replace(/-/g,'/')));
+  var cols=Math.min(8,Math.round((thisMon-firstMon)/604800000)+1);
+  if(cols<2)return '';
+  var start=new Date(thisMon);start.setDate(start.getDate()-(cols-1)*7);
+  var bounds=[],w;
+  for(w=0;w<=cols;w++){var t=new Date(start);t.setDate(t.getDate()+w*7);bounds.push(insISO(t));}
+  var vols=[];for(w=0;w<cols;w++)vols.push(0);
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++){
+      var e=S.l[k][i];
+      if(!e.s.length||e.d<bounds[0]||e.d>=bounds[cols])continue;
+      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=volOf(e.s);break;}
+    }
+  }
+  var t2=[],sum=0;
+  for(w=0;w<cols;w++){t2.push(Math.round(vols[w]/100)/10);sum+=t2[w];}
+  var avg=Math.round(sum/cols*10)/10;
+  var cur=t2[cols-1],prev=t2[cols-2],dtag='';
+  if(prev>0){
+    var pl2=paceLeft();
+    if(pl2>=20){
+      var exp2=prev*pl2/100;
+      var dp=exp2>0?Math.round((cur-exp2)/exp2*100):0;
+      dtag=' <span class="'+(dp>0?'u2':(dp<0?'d2':''))+'">페이스 '+(dp>0?'+':'')+dp+'%</span>';
+    }else dtag=' <span>진행 중</span>';
+  }
+  var W=352,H=74,mx=Math.max.apply(null,t2.concat([avg]))*1.18||1;
+  var s='<line x1="0" x2="'+W+'" y1="'+(H-avg/mx*H).toFixed(1)+'" y2="'+(H-avg/mx*H).toFixed(1)+'" stroke="#3a2e20" stroke-dasharray="3 3"/>';
+  var slot=W/cols,bw=Math.min(36,slot-8);
+  for(w=0;w<cols;w++){
+    var bh=t2[w]/mx*H,x=w*slot+(slot-bw)/2,last=w===cols-1;
+    s+='<rect x="'+x.toFixed(1)+'" y="'+(H-bh).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,bh).toFixed(1)+'" rx="2" fill="'+(last?'#ddbb59':'#4a3b12')+'"'+(last?' stroke="#e7ca6e"':'')+'/>';
+    s+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+Math.min(H-2,H-bh-4).toFixed(1)+'" text-anchor="middle" font-size="8" font-family="monospace" fill="'+(last?'#e3b95a':'#6b6155')+'">'+t2[w]+'</text>';
+  }
+  return '<div class="insmod">'
+    +'<div class="inshd"><span class="t">Volume</span><span class="r">이번주 <b>'+cur+'t</b>'+dtag+' · '+cols+'주 평균 '+avg+'t</span></div>'
+    +'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>'
+    +'<div class="axcap"><span>'+bounds[0].slice(5).replace('-','/')+'</span><span>이번 주</span></div>'
+    +'</div>';
+}
+function insightsHtml(){
+  if(!hasLogs())return '';
+  var dm=insDayMap();
+  if(!dm.minD)return '';
+  return volTrendHtml(dm);
+}
 function aiDayTag(d){
   if(!d)return '';
   var t=new Date(),y=new Date(Date.now()-864e5);
@@ -1936,6 +2198,14 @@ var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코
 (function(){
   if(!canLS)return;
   try{var n=Math.floor(+localStorage.getItem(KEY+'.iv'));if(n>=30&&n<=600)IVs=n;}catch(e){}
+  try{
+    var d=JSON.parse(localStorage.getItem(KEY+'.dot'));
+    if(d&&typeof d==='object'){
+      DOT.r=d.r?1:0;DOT.y=d.y?1:0;
+      if(+d.rd>=1&&+d.rd<=6)DOT.rd=Math.floor(+d.rd);
+      if(+d.yd>=1&&+d.yd<=7)DOT.yd=Math.floor(+d.yd);
+    }
+  }catch(e){}
 })();
 (function(){
   if(!canLS)return;
@@ -2423,7 +2693,7 @@ function aiCount(){
   if(canLS){try{localStorage.setItem(KEY+'.aic',JSON.stringify(AIC));}catch(e){}}
 }
 function buildAiReq(){
-  var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
+  var prompt=anlPrompt()+JSON.stringify(aiPayload());
   if(LM==='oai')return {eng:'oai',label:'GPT',
     url:'https://api.openai.com/v1/chat/completions',
     headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
@@ -2495,7 +2765,7 @@ function aiSave(txt){
   AIAT=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
   AIBY=LMN[LM]+(LM==='gem'?' '+GMN[GM]:'');
   AIDT=MONS[t.getMonth()]+' '+t.getDate();
-  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT});
+  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT,k:ANL});
   AIH=AIH.slice(0,4);
   AIVIEW=0;
   AIFRESH=true;
@@ -2514,7 +2784,7 @@ function runAI(){
   aiCount();
   UI.sheet='ai';
   render();
-        var prompt=(PR||DEFPR)+JSON.stringify(aiPayload());
+        var prompt=anlPrompt()+JSON.stringify(aiPayload());
         /* 3.x 계열은 thinkingLevel, 2.5 계열은 thinkingBudget — 모델명으로 분기 */
         var GCHAIN=[GM];
         var gmAll;
@@ -3017,7 +3287,7 @@ document.addEventListener('click',function(e){
       if(AIVIEW>0){AIVIEW--;AIFRESH=false;renderSheet();}
       break;
     case 'gmopen':
-      GMOPEN=!GMOPEN;
+      GMOPEN=!GMOPEN;if(GMOPEN)ANLOPEN=false;
       renderSheet();
       break;
     case 'gmpick':
@@ -3052,6 +3322,14 @@ document.addEventListener('click',function(e){
       UI.sheet='ai';render();
       break;
     case 'px':UI.editRx=+v;render();break;
+    case 'anlopen':
+      ANLOPEN=!ANLOPEN;if(ANLOPEN)GMOPEN=false;renderSheet();break;
+    case 'anlpick':
+      ANL=(ANLL[v]?v:'wk');ANLOPEN=false;anlSave();renderSheet();break;
+    case 'dtr':
+      DOT.r=DOT.r?0:1;dotSave();renderChips();renderSheet();break;
+    case 'dty':
+      DOT.y=DOT.y?0:1;dotSave();renderChips();renderSheet();break;
     case 'rdt':
       (function(){
         var i2=RD.indexOf(+v);
@@ -3121,6 +3399,17 @@ document.addEventListener('click',function(e){
           var nv=Math.floor(+String(ivEl.value).replace(/[^0-9]/g,''));
           if(nv>=30&&nv<=600){IVs=nv;tmrMark=Math.floor(tmrMs()/(IVs*1000));}
         }
+        var drEl=document.getElementById('dr0');
+        if(drEl&&!drEl.disabled){
+          var dv2=Math.floor(+String(drEl.value).replace(/[^0-9]/g,''));
+          if(dv2>=1&&dv2<=6)DOT.rd=dv2;
+        }
+        var dyEl=document.getElementById('dy0');
+        if(dyEl&&!dyEl.disabled){
+          var yv2=Math.floor(+String(dyEl.value).replace(/[^0-9]/g,''));
+          if(yv2>=1&&yv2<=7)DOT.yd=yv2;
+        }
+        dotSave();
         var hrEl=document.getElementById('hr0');
         if(hrEl){
           var hv=Math.floor(+String(hrEl.value).replace(/[^0-9]/g,''));
