@@ -364,6 +364,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ai-ck.done i{background:linear-gradient(180deg,#ddbb59,#a9862b);border-color:transparent}
 .ai-ck.done span{color:var(--dim);text-decoration:line-through;text-decoration-color:rgba(207,166,72,.4)}
 .ai-ck:active{opacity:.7}
+.ai-b .bh,.ai-ck .bh{color:#d9c07a;font-weight:700}
+.ai-b .bd2,.ai-ck .bd2{font-style:normal;color:var(--dim);margin:0 6px}
 .ai-sub{margin-top:5px;font-size:10.5px;color:var(--dim)}
 .ai-total{display:flex;align-items:baseline;margin:14px 0 2px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--mut)}
 .ai-total .num{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:#e3b95a}
@@ -2127,8 +2129,9 @@ function hasTodayStrength(){
   }
   return false;
 }
+var WKSTYLE='\n\n[출력 문체 재정의 — 위 프롬프트의 문체 규칙보다 이 규칙이 우선함]\n- 각 줄 12~30자, "대상 — 판정, 수치" 구조로 결론을 문두에 둠. 예: "단계 — 초반, 경과 1/잔여 4일", "측면 2/18 — 페이스 부족, 하루 4세트 요망", "Chest Press — 증량 성공, 다음 유지".\n- 날짜 풀어쓰기·배경 설명·이유 서술 금지. 한 줄에 정보 하나.\n- 처방 줄은 "종목 — 다음 무게" 만 씀. 예: "사레레 — 34→35kg".\n';
 function anlPrompt(){
-  if(ANL==='wk')return (PR||DEFPR);
+  if(ANL==='wk')return (PR||DEFPR)+WKSTYLE;
   var ph=hasTodayStrength()
     ?'실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방·방향은 다음 세션 기준으로 씀.\n'
     :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방·방향은 오늘 세션에서 바로 실행할 항목으로 씀.\n';
@@ -3025,6 +3028,13 @@ function hlNum(t){
           .replace(/(\d+\s*회)/g,'<b class="hl">$1</b>')
           .replace(/(\d+(?:\.\d+)?x\d+)/g,'<b class="hl">$1</b>');
 }
+function bhHead(body){
+  /* "대상 — 판정" 구조의 앞머리를 강조해 스캔 가능하게 */
+  var ix=body.indexOf(' — ');
+  if(ix<1)ix=body.indexOf(' - ');
+  if(ix<1||ix>26)return body;
+  return '<b class="bh">'+body.slice(0,ix)+'</b><em class="bd2">—</em>'+body.slice(ix+3);
+}
 function aiFmt(txt,ck,ph){
   ck=ck||[];
   var ckOn=ph!=='post';
@@ -3067,13 +3077,13 @@ function aiFmt(txt,ck,ph){
       /* 처방·방향 섹션은 탭 가능한 체크 항목으로 */
       if(ckOn&&(sec.indexOf('방향')>=0||sec.indexOf('처방')>=0)){
         var done=ck.indexOf(ckIdx)>=0;
-        out+='<button class="ai-ck'+(done?' done':'')+'" data-act="ckp" data-v="'+ckIdx+'"><i>'+(done?'✓':'')+'</i><span>'+body+'</span></button>';
+        out+='<button class="ai-ck'+(done?' done':'')+'" data-act="ckp" data-v="'+ckIdx+'"><i>'+(done?'✓':'')+'</i><span>'+bhHead(body)+'</span></button>';
         ckIdx++;
         continue;
       }
       for(ki=0;ki<AIPOS.length;ki++)if(body.indexOf(AIPOS[ki])>=0){tone='pos';break;}
       if(!tone)for(ki=0;ki<AINEG.length;ki++)if(body.indexOf(AINEG[ki])>=0){tone='neg';break;}
-      out+='<div class="ai-b'+(tone==='neg'?' neg':'')+'"><i></i><span>'+body+'</span></div>';
+      out+='<div class="ai-b'+(tone==='neg'?' neg':'')+'"><i></i><span>'+bhHead(body)+'</span></div>';
       continue;
     }
     out+='<div class="ai-p">'+ln+'</div>';
