@@ -140,7 +140,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ln{flex:0 0 auto;font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
-.bdg{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:3px;margin:0 8px 0 6px}
 .rr{flex:0 0 106px;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono);white-space:nowrap}
 .rr .rw{flex:0 0 62px;min-width:0;text-align:right;white-space:nowrap}
 .rr .rp{flex:0 0 44px;min-width:0;text-align:right;white-space:nowrap}
@@ -979,8 +978,7 @@ function rowHtml(m){
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
-    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+dtag+'</span>'+sub+'</span>'
-    +'<span class="bdg">'+badge+'</span>'
+    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+dtag+'</span>'+sub+'</span>'
     +'<span class="rr">'+right+'</span></button>'
     +'</div>'
     +'<div class="acc"><div class="accin">'+(open?panelHtml(m):'')+'</div></div>'
