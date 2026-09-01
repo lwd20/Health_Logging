@@ -656,8 +656,10 @@ function detailOf(s){
   var a=[];for(var i=0;i<s.length;i++)a.push(fmtW(s[i][0])+'×'+s[i][1]);
   return a.join('  ');
 }
-/* 세션 볼륨: 전 세트 합산 Σ(무게×반복) */
+/* 세션 볼륨: 전 세트 합산 Σ(무게×반복) — 주간 누적 일량 지표 */
 function volOf(s){var v=0;for(var i=0;i<s.length;i++)v+=(+s[i][0]||0)*(+s[i][1]||0);return Math.round(v);}
+/* 세션 e1RM(Epley): 세트 수에 불변인 진전 지표 — 증감 판정에 사용 */
+function e1rm(s){var b=0;for(var i=0;i<s.length;i++){var v=(+s[i][0]||0)*(1+(+s[i][1]||0)/30);if(v>b)b=v;}return Math.round(b*10)/10;}
 /* 목록 sub용 — 톱세트 무게의 세트만 표기 (혼합 무게 세션) */
 function topDetail(s){
   if(!s.length)return '';
@@ -672,7 +674,7 @@ function volTag(cur,prev){
   if(!(prev>0))return '';
   var p=Math.round((cur-prev)/prev*1000)/10;
   var cls=p>0?'up':(p<0?'dn':'');
-  return '<i class="'+cls+'">'+(p>0?'+':'')+p+'%</i>';
+  return '<i class="'+cls+'">e1RM '+(p>0?'+':'')+p+'%</i>';
 }
 function machById(id){for(var i=0;i<S.m.length;i++)if(S.m[i].i===id)return S.m[i];return null;}
 function machStep(id){if(isCardId(id))return 5;var m=machById(id);return (m&&m.st>0)?m.st:2.5;}
@@ -831,7 +833,7 @@ function rowHtml(m){
     sub='<span class="sub"><em>In progress</em> · '+n+' sets</span>';
     if(!isCard(m.p)&&n){
       var dv=volOf(draft),dp=prevSess(m.i,UI.wd);
-      sub+='<span class="volb">VOL <b>'+dv.toLocaleString()+'</b> kg'+volTag(dv,dp?volOf(dp.s):0)+'</span>';
+      sub+='<span class="volb">VOL <b>'+dv.toLocaleString()+'</b> kg'+volTag(e1rm(draft),dp?e1rm(dp.s):0)+'</span>';
     }
   }else{
     var la=latest(m.i);
@@ -844,7 +846,7 @@ function rowHtml(m){
         :'<span class="sub">'+det+' · '+lbl+'</span>';
       if(!isCard(m.p)){
         var lv=volOf(la.s),lp=prevSess(m.i,la.d);
-        sub+='<span class="volb">VOL <b>'+lv.toLocaleString()+'</b> kg'+volTag(lv,lp?volOf(lp.s):0)+'</span>';
+        sub+='<span class="volb">VOL <b>'+lv.toLocaleString()+'</b> kg'+volTag(e1rm(la.s),lp?e1rm(lp.s):0)+'</span>';
       }
     }else{
       right='<span class="none">No record</span>';
@@ -886,10 +888,12 @@ function panelHtml(m){
         +'<button class="del" data-act="ds" data-v="'+j+'">×</button></div>';
     }
     if(!cdRow){
-      var dv2=volOf(draft),pv2=past.length?volOf(past[0].s):0,dt='';
-      if(pv2>0){
-        var pp2=Math.round((dv2-pv2)/pv2*1000)/10;
-        dt='<span class="'+(pp2>0?'up':(pp2<0?'dn':''))+'">'+(pp2>0?'+':'')+pp2+'% vs '+md(past[0].d)+'</span>';
+      var dv2=volOf(draft),de=e1rm(draft),pe=past.length?e1rm(past[0].s):0,dt='';
+      if(pe>0){
+        var pp2=Math.round((de-pe)/pe*1000)/10;
+        dt='<span class="'+(pp2>0?'up':(pp2<0?'dn':''))+'">e1RM '+fmtW(de)+' · '+(pp2>0?'+':'')+pp2+'% vs '+md(past[0].d)+'</span>';
+      }else if(de>0){
+        dt='<span>e1RM '+fmtW(de)+'</span>';
       }
       h+='<div class="vtot"><i>VOLUME</i><b>'+dv2.toLocaleString()+'</b><u>kg</u>'+dt+'</div>';
     }
