@@ -69,7 +69,7 @@ h1{font-size:17px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
 .hnrg .tag.dfc{color:var(--sig)}
 .dtag{font-style:normal;font-size:10px;font-weight:500;color:var(--dim);margin-left:2px;white-space:nowrap}
 .dtag.now{color:var(--chrome);font-weight:700}
-.rr i.up,.rr i.dn{font-style:normal;font-family:var(--mono);font-size:10px;margin-left:6px;color:var(--dim);vertical-align:baseline}
+.rr i.up,.rr i.dn{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
 .rr i.up{color:#8fb377}
 .rr i.dn{color:#e0876a}
 .setr .sv{margin-left:auto;font-size:10.5px;color:var(--dim);letter-spacing:.02em}
@@ -140,7 +140,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ln{flex:0 0 auto;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
-.rr{flex:0 0 auto;text-align:right;font-family:var(--mono)}
+.rr{flex:0 0 auto;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono)}
+.rr .rw{white-space:nowrap}
+.rr .rp{flex:0 0 50px;text-align:right;white-space:nowrap}
 .fav{flex:0 0 auto;width:42px;height:46px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
 .fav.on{color:var(--chrome);opacity:1;text-shadow:0 0 8px rgba(207,166,72,.35)}
 .w{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -942,28 +944,29 @@ function renderList(){
 function rowHtml(m){
   var open=UI.open===m.i,right,sub='',dtag='';
   var dirty=!!UI.dirty[m.i],draft=UI.draft[m.i];
+  function rgt(w2,unit,tag){
+    return '<span class="rw"><b class="w">'+w2+'</b><i class="u">'+unit+'</i></span><span class="rp">'+(tag||'')+'</span>';
+  }
   if(dirty){
     var n=draft?draft.length:0,t=draft&&n?topOf(draft):0;
     dtag='<i class="dtag now">Editing</i>';
     if(isCard(m.p)){
-      right=t>0?'<b class="w">'+fmtW(t)+'</b><i class="u">min</i>':'<span class="none">—</span>';
+      right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
-      right='<b class="w">'+fmtW(t)+'</b><i class="u">kg</i>'+volTag(e1rm(draft),dp?e1rm(dp.s):0);
+      right=rgt(fmtW(t),'kg',volTag(e1rm(draft),dp?e1rm(dp.s):0));
     }else{
       right='<span class="none">—</span>';
     }
   }else{
     var la=latest(m.i);
     if(la){
-      var lbl=dayLbl(la.d);
       if(isCard(m.p)){
-        right='<b class="w">'+fmtW(topOf(la.s))+'</b><i class="u">min</i>';
-        var det=repsOfC(la.s,true);
-        sub='<span class="sub">'+det+'</span>';
+        right=rgt(fmtW(topOf(la.s)),'min','');
+        sub='<span class="sub">'+repsOfC(la.s,true)+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
-        right='<b class="w">'+fmtW(topOf(la.s))+'</b><i class="u">kg</i>'+volTag(e1rm(la.s),lp?e1rm(lp.s):0);
+        right=rgt(fmtW(topOf(la.s)),'kg',volTag(e1rm(la.s),lp?e1rm(lp.s):0));
       }
     }else{
       right='<span class="none">No record</span>';
@@ -1529,9 +1532,15 @@ function addSet(){
   UI.dirty[UI.open]=true;
   saveDraft();render();
 }
+function normDraft(id){
+  var d=UI.draft[id];
+  if(!d||d.length)return;
+  if(!sessOn(id,UI.wd)){delete UI.draft[id];delete UI.dirty[id];}
+}
 function delSet(i){
   UI.draft[UI.open].splice(i,1);
   UI.dirty[UI.open]=true;
+  normDraft(UI.open);
   saveDraft();render();
 }
 function editSet(i){
@@ -1544,7 +1553,20 @@ function editSet(i){
 }
 function saveMachine(){
   var id=UI.open,d=UI.draft[id];
-  if(!d||!d.length)return;
+  if(!d||!d.length){
+    var ex=sessOn(id,UI.wd);
+    if(!ex)return;
+    var a=S.l[id]||[];
+    for(var q=0;q<a.length;q++)if(a[q].d===UI.wd){a.splice(q,1);break;}
+    if(!a.length)delete S.l[id];
+    save();
+    delete UI.draft[id];delete UI.dirty[id];saveDraft();
+    var m0=machById(id);
+    UI.open=null;UI.hist=false;
+    buzz(15);toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)+' session');
+    render();
+    return;
+  }
   var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,3));
   upsertSess(id,UI.wd,copy);
   save();
@@ -3176,7 +3198,7 @@ document.addEventListener('click',function(e){
       if(qi2){qi2.value='';qi2.focus();}
       render();break;
     case 'tg':
-      if(UI.open===v){UI.open=null;UI.hist=false;render();}
+      if(UI.open===v){normDraft(v);saveDraft();UI.open=null;UI.hist=false;render();}
       else{
         openRow(v);render();
         setTimeout(function(){
