@@ -159,7 +159,7 @@ i,em,u{font-style:normal;text-decoration:none}
 /* ── 헤더: 장비 네임플레이트 ── */
 .top::before{content:'';position:absolute;left:0;right:0;top:0;height:132px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.055)' stroke-width='1'%3E%3Cpath d='M0 19h38M19 0v38'/%3E%3Crect x='6.8' y='6.8' width='24.4' height='24.4'/%3E%3C/g%3E%3C/svg%3E");background-size:38px 38px;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent);filter:var(--grid-f);pointer-events:none;z-index:-1}
 .top{position:sticky;top:0;z-index:10;background:linear-gradient(var(--bg) 86%,rgba(14,12,10,0));padding-top:env(safe-area-inset-top)}
-header{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:20px 18px 0}
+header{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:20px 18px 0}
 header>div:first-child{flex:1 1 auto;min-width:0}
 h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .h1sub{display:block;font-size:8.5px;font-weight:700;letter-spacing:.18em;color:var(--chrome);opacity:.8;margin-bottom:6px}
@@ -207,7 +207,7 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .dtxt{font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:7px;padding:1px 8px;font-size:10.5px;font-weight:700;margin-left:6px;letter-spacing:.06em}
-.hbtns{display:flex;align-items:center;gap:2px;flex:0 0 auto;white-space:nowrap}
+.hbtns{display:flex;align-items:center;gap:2px;flex:0 0 auto;white-space:nowrap;margin-top:2px}
 .hjrn{padding:12px 10px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
 .hjrn:active{color:var(--tx)}
 .srow{display:none;align-items:center;gap:8px;padding:0 18px 11px}
@@ -244,9 +244,11 @@ nav::-webkit-scrollbar{display:none}
 .chip.on.hot::after{background:rgba(var(--sig-rgb),.45);box-shadow:none}
 
 /* ── 목록: 머신 랙 ── */
-main{padding:0 14px calc(104px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden;overflow-x:clip}
+main{padding:0 14px calc(122px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden;overflow-x:clip}
 html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none}
-.mc,.panel,.accin,.inrow{max-width:100%}
+.panel,.accin,.inrow{max-width:100%}
+.mc{max-width:100%}
+.mc.did{max-width:none}
 .shd{display:flex;align-items:center;gap:9px;margin:18px 2px 8px;font-size:10px;font-weight:700;letter-spacing:.11em;color:var(--mut);text-transform:uppercase}
 .shd::after{content:'';flex:1;height:1px;background:var(--line)}
 .shd i{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:0}
@@ -256,7 +258,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mc.did{background:rgba(var(--acc-rgb),.05);margin:0 -13px;padding:0 13px}
 .mc.did .nm{color:var(--tx)}
 .mc.on .nm{color:var(--tx)}
-.dtag.done{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:2px 7px;margin-left:2px;vertical-align:1px}
+.dtag.done{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--acc-br);background:transparent;border:1px solid rgba(var(--acc-rgb),.45);border-radius:999px;padding:1px 7px;margin-left:2px;vertical-align:1px}
 .grp .mc:last-child{border-bottom:0}
 .row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;text-align:left}
 .rl{flex:1 1 auto;min-width:0}
@@ -1190,7 +1192,7 @@ function render(){
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')
-    +(tc?'<em>· '+tc+' ex · '+sc+' sets</em>':'')
+    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'')
     +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
         var base=Math.round(bmr(BW,BF)*ACT);
@@ -1481,7 +1483,7 @@ function journalHtml(){
   for(i=0;i<dates.length;i++){
     d=dates[i];ents=map[d];ns=0;
     for(j=0;j<ents.length;j++)ns+=ents[j].s.length;
-    h+='<div class="jd"><div class="jdh"><b>'+jdate(d)+'</b><i>'+ents.length+' ex · '+ns+' sets</i>'
+    h+='<div class="jd"><div class="jdh"><b>'+jdate(d)+'</b><i>'+ents.length+' ex · '+ns+' set'+(ns>1?'s':'')+'</i>'
       +'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button></div>';
     for(j=0;j<ents.length;j++){
       e=ents[j];
