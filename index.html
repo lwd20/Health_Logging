@@ -1518,7 +1518,7 @@ function panelHtml(m){
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
-        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
+        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round(effOf(m,draft[j][0])*(+draft[j][1]||0)).toLocaleString()+'</span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
     }
@@ -3226,7 +3226,7 @@ function anlWkVol(off){
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
       if(!days[e.d])continue;
-      for(var j=0;j<e.s.length;j++)cnt[m.p]=(cnt[m.p]||0)+(+e.s[j][0]||0)*(+e.s[j][1]||0);
+      cnt[m.p]=(cnt[m.p]||0)+volOf(effSets(m,e.s));
     }
   }
   return cnt;
@@ -3317,17 +3317,20 @@ function volTrendHtml(dm){
   var t2=[],sum=0;
   for(w=0;w<cols;w++){t2.push(Math.round(vols[w]/100)/10);sum+=t2[w];}
   var avg=Math.round(sum/cols*10)/10;
-  var cur=t2[cols-1],prev=t2[cols-2],dtag='';
-  if(prev>0){
+  var cur=t2[cols-1],dtag='';
+  /* 기준선은 진행 중인 이번 주를 뺀 평균 — 라벨과 점선이 같은 값을 가리키게 함 */
+  var base=cols>1?Math.round((sum-cur)/(cols-1)*10)/10:0;
+  if(base>0){
     var pl2=paceLeft();
     if(pl2>=20){
-      var exp2=prev*pl2/100;
+      var exp2=base*pl2/100;
       var dp=exp2>0?Math.round((cur-exp2)/exp2*100):0;
-      dtag=' <span class="'+(dp>0?'u2':(dp<0?'d2':''))+'">페이스 '+(dp>0?'+':'')+dp+'%</span>';
-    }else dtag=' <span>진행 중</span>';
+      dtag=' <span class="'+(dp>0?'u2':(dp<0?'d2':''))+'">평균 대비 '+(dp>0?'+':'')+dp+'%</span>';
+    }else dtag=' <span>주 초반</span>';
   }
-  var W=352,H=74,mx=Math.max.apply(null,t2.concat([avg]))*1.18||1;
-  var s='<line x1="0" x2="'+W+'" y1="'+(H-avg/mx*H).toFixed(1)+'" y2="'+(H-avg/mx*H).toFixed(1)+'" stroke="rgba(var(--acc-rgb),.2)" stroke-dasharray="3 3"/>';
+  var ref=base>0?base:avg;
+  var W=352,H=74,mx=Math.max.apply(null,t2.concat([ref]))*1.18||1;
+  var s='<line x1="0" x2="'+W+'" y1="'+(H-ref/mx*H).toFixed(1)+'" y2="'+(H-ref/mx*H).toFixed(1)+'" stroke="rgba(var(--acc-rgb),.2)" stroke-dasharray="3 3"/>';
   var slot=W/cols,bw=Math.min(36,slot-8);
   for(w=0;w<cols;w++){
     var bh=t2[w]/mx*H,x=w*slot+(slot-bw)/2,last=w===cols-1;
@@ -3335,7 +3338,7 @@ function volTrendHtml(dm){
     s+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+Math.min(H-2,H-bh-4).toFixed(1)+'" text-anchor="middle" font-size="8" font-family="monospace" fill="'+(last?'var(--acc-br)':'var(--dim)')+'">'+t2[w]+'</text>';
   }
   return '<div class="insmod">'
-    +'<div class="inshd"><span class="t">Volume</span><span class="r">이번주 <b>'+cur+'t</b>'+dtag+' · '+cols+'주 평균 '+avg+'t</span></div>'
+    +'<div class="inshd"><span class="t">Volume</span><span class="r">이번주 <b>'+cur+'t</b>'+dtag+' · 이전 '+(cols-1)+'주 평균 '+base+'t</span></div>'
     +'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>'
     +'<div class="axcap"><span>'+bounds[0].slice(5).replace('-','/')+'</span><span>이번 주</span></div>'
     +'</div>';
@@ -3798,7 +3801,7 @@ function aiPayload(){
       for(var j=0;j<S.l[k].length;j++){
         if(days.indexOf(S.l[k][j].d)<0)continue;
         var ss=S.l[k][j].s;
-        for(var q5=0;q5<ss.length;q5++)cnt[m.p]=(cnt[m.p]||0)+(+ss[q5][0]||0)*(+ss[q5][1]||0);
+        cnt[m.p]=(cnt[m.p]||0)+volOf(effSets(m,ss));
       }
     }
     for(var p5 in cnt)cnt[p5]=Math.round(cnt[p5]);
