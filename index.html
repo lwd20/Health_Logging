@@ -336,8 +336,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(209,85,46,.7)}
 .lmg .cd{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:#e3b95a;transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(227,185,90,.5)}
 .lmg .cd.ov{background:var(--sig)}
-.lmsec{background:var(--inset);border:1px solid var(--line);border-radius:4px;padding:9px 12px 6px;margin-bottom:9px;box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
-.lmcap{display:flex;align-items:center;gap:8px;font-size:8.5px;font-weight:800;letter-spacing:.22em;color:var(--chrome);opacity:.85;margin:0 0 6px}
+.lmsec{background:rgba(0,0,0,.28);border:1px solid rgba(237,228,214,.06);border-radius:11px;padding:11px 13px 8px;margin-bottom:9px}
+.lmcap{display:flex;align-items:center;gap:8px;font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 8px}
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:13px 3px 6px;font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
@@ -2428,9 +2428,6 @@ function anlViz(k){
     return '<div class="anlviz">'+vzGauge(rows)+'</div>';
   }
   if(k==='vol'){
-    var ws3=wkSets(),PN3={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
-    var hm2='';
-    for(var pk in LMKP)hm2+=lmRow(PN3[pk],ws3[pk]||0,LMKP[pk]);
     var hs2='';
     for(var si=0;si<SUBS.length;si++){
       var sb=SUBS[si],L2=LMK[sb.k];
@@ -2439,8 +2436,7 @@ function anlViz(k){
       if(!cur2&&!L2[0])continue;
       hs2+=lmRow(sb.n,cur2,L2);
     }
-    h='<div class="lmsec"><div class="lmcap">MAIN · 부위</div>'+hm2+'</div>'
-     +'<div class="lmsec"><div class="lmcap">SUB · 세부 근육</div>'+hs2+'</div>';
+    h='<div class="lmsec"><div class="lmcap">SUB · 세부 근육</div>'+hs2+'</div>';
     return '<div class="anlviz">'+h+'<div class="lmlg"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
   }
   if(k==='prog'){
@@ -2563,14 +2559,11 @@ function heroHtml(){
   var gb='';
   for(var gi=0;gi<PO.length;gi++){
     k=PO[gi];
-    var g2=WTGT[k]||0,c2=ws[k]||0;
-    if(!g2)continue;
-    var pp=Math.min(100,Math.round(c2*100/g2));
-    var red=pl>0&&pp<pl/2;
-    gb+='<div class="gbrow"><span class="bn">'+PN[k]+'</span>'
-      +'<span class="gmg"><b class="'+(red?'r':'')+'" style="width:'+pp+'%"></b>'+(pl>0&&pl<100?'<i style="left:'+pl+'%"></i>':'')+'</span>'
-      +'<span class="bv">'+c2+'/'+g2+'</span></div>';
+    if(!LMKP[k])continue;
+    gb+=lmRow(PN[k],ws[k]||0,LMKP[k]);
   }
+  if(gb)gb='<div class="lmsec"><div class="lmcap">MAIN · 부위</div>'+gb
+    +'<div class="lmlg"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
   return h+gb+'<div style="height:6px"></div>';
 }
 /* ── Insights: 전체 이력 기반 로컬 시각화 ── */
