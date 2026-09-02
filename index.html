@@ -172,6 +172,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr b{font-size:17px;font-weight:700}
 .setr u{font-size:9.5px;color:var(--dim)}
 .setr span{font-size:13.5px;color:var(--mut)}
+.nxt{display:flex;align-items:baseline;gap:7px;width:100%;margin-bottom:9px;padding:9px 12px;border:1px solid var(--line);border-left:2px solid var(--chrome);border-radius:2px;background:linear-gradient(180deg,var(--plate2),var(--plate));font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:left}
+.nxt i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.2em;color:var(--dim)}
+.nxt b{font-size:17px;font-weight:700;color:#e3b95a}
+.nxt u{font-size:9.5px;color:var(--dim);text-decoration:none}
+.nxt span{font-size:12.5px;color:var(--mut)}
+.nxt em{margin-left:auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;padding:2px 7px;border-radius:2px;border:1px solid rgba(207,166,72,.4);color:#e3b95a;background:rgba(207,166,72,.1)}
+.nxt.hold{border-left-color:var(--dim)}
+.nxt.hold b{color:var(--tx)}
+.nxt.hold em{color:var(--mut);border-color:var(--line);background:transparent}
+.nxt.re{border-left-color:var(--sig)}
+.nxt.re b{color:#f0a184}
+.nxt.re em{color:#f0a184;border-color:rgba(209,85,46,.5);background:rgba(209,85,46,.12)}
+.nxt:active{opacity:.65}
 .setr .rir{flex:0 0 auto;width:30px;height:30px;margin-right:11px;border:1px solid transparent;border-radius:50%;font-family:var(--mono);letter-spacing:.02em;background:transparent;display:flex;align-items:center;justify-content:center}
 .setr .rir b{font-size:13px;font-weight:700;line-height:1}
 .setr .rir.off{font-size:7.5px;font-weight:800;letter-spacing:.06em;color:#4a4238;border-color:rgba(237,228,214,.09)}
@@ -814,6 +827,23 @@ function gainTag(cur,prev){
   return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>';
 }
 /* RIR(남은 반복) — 미입력/0/1/2/3+ 순환. 0=실패 직전 */
+/* 오늘 권장 무게·반복 — 직전 세션과 점증 규칙으로 산출 */
+function nextTarget(m,past){
+  if(!m||isCard(m.p)||!past||!past.length)return null;
+  var rx=(m.rx>0?m.rx:12),st=machStep(m.i);
+  var s0=past[0].s,t0=topOf(s0);
+  if(!(t0>0))return null;
+  function allHit(ss){
+    if(!ss||!ss.length)return false;
+    for(var i=0;i<ss.length;i++)if((+ss[i][1]||0)<rx)return false;
+    return true;
+  }
+  function bestRep(ss){var b=0,i;for(i=0;i<ss.length;i++)if((+ss[i][1]||0)>b)b=+ss[i][1];return b;}
+  if(allHit(s0))return {w:Math.round((t0+st)*10)/10,r:rx,kind:'up',label:'증량'};
+  if(past.length>1&&!allHit(past[1].s)&&topOf(past[1].s)>=t0&&bestRep(s0)<=bestRep(past[1].s))
+    return {w:Math.round(t0*0.95*10)/10,r:rx,kind:'re',label:'재빌드'};
+  return {w:t0,r:rx,kind:'hold',label:'유지'};
+}
 function rirBtn(v,j){
   var has=(v===0||v>0);
   var cls=has?(v<=1?' hard':' on'):' off';
@@ -1162,6 +1192,11 @@ function panelHtml(m){
   var st=machStep(id);
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
   var cd=isCardId(UI.open);
+  var nt=cd?null:nextTarget(m,past);
+  if(nt){
+    h+='<button class="nxt '+nt.kind+'" data-act="nt" data-v="'+nt.w+'x'+nt.r+'">'
+      +'<i>NEXT</i><b>'+fmtW(nt.w)+'</b><u>kg</u><span>× '+nt.r+'</span><em>'+nt.label+'</em></button>';
+  }
   h+='<div class="inrow">'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
     +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
@@ -3716,6 +3751,13 @@ document.addEventListener('click',function(e){
       UI.arm=null;delSet(parseInt(v,10));
       break;
     case 'es':editSet(parseInt(v,10));break;
+    case 'nt':
+      (function(){
+        var pr2=String(v).split('x');
+        UI.w=fmtW(parseFloat(pr2[0]));UI.r=String(parseInt(pr2[1],10));
+        buzz(10);render();
+      })();
+      break;
     case 'rr':
       (function(){
         var id=UI.open,j=parseInt(v,10);
