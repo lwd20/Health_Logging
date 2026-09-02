@@ -3904,7 +3904,7 @@ function aiFmt(txt,ck,ph){
         continue;
       }
       /* 부위 줄 — 한/영 부위명, 0패딩, '기대'·'세부' 표기 흡수 */
-      m=ln2.match(/^([A-Za-z가-힣·]{1,12})\s*(?:총)?\s*(\d+)\s*\/\s*(\d+)\s*(?:세트|분)\s*(?:\((.*)\))?\.?$/);
+      m=ln2.match(/^([A-Za-z가-힣·]{1,12})\s*(?:총)?\s*(\d+)\s*\/\s*(\d+)\s*(?:세트|분)?\s*(?:\((.*)\))?\.?$/);
       if(m){
         var cv=parseInt(m[2],10),gv=parseInt(m[3],10);
         var pc=Math.max(0,Math.min(100,gv>0?Math.round(cv*100/gv):0));
