@@ -3839,11 +3839,42 @@ function widgetSync(){
         if(s2[q4][0]>tp[0]||(s2[q4][0]===tp[0]&&s2[q4][1]>tp[1]))tp=s2[q4];
       }
       var dd2=Math.round((new Date(tdISO)-new Date(a2[0].d))/86400000);
-      lw.push([m2.n,isCard(m2.p)?(tp[0]+"' "+cUnit(tp)):(tp[0]+'x'+tp[1]),dd2]);
+      lw.push([m2.n,isCard(m2.p)?(tp[0]+"' "+cUnit(tp)):(tp[0]+'x'+tp[1]),dd2,a2[0].d]);
     }
     lw.sort(function(x,y2){return x[2]-y2[2];});
     lw=lw.slice(0,6);
-    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw}));
+    /* 감량 위젯 — 계산은 컷 트래커와 같은 paceCalc를 씀 */
+    var cut=null;
+    try{
+      if(bmr(BW,BF)){
+        var pc=paceCalc(BW,BF,GF),bh=bhLoad(),cpct=0;
+        if(bh.length>=1&&(pc.tw<BW||pc.done)){
+          var sw=bh[0].w,span=sw-pc.tw;
+          cpct=pc.done?100:(span>0?Math.max(0,Math.min(100,Math.round((sw-BW)/span*100))):0);
+        }
+        cut={d:pc.done?-2:((pc.ok&&pc.rate<0)?pc.days:-1),
+             w:fmtW(BW),tw:fmtW(pc.tw),rem:fmtW(pc.remain),pct:cpct,
+             rate:pc.ok?((pc.rate>0?'+':'')+pc.rate):'',wr:'-'+WR,tag:pc.tag||''};
+      }
+    }catch(e2){}
+    /* sd=스냅샷 기준일, mon=그 주의 월요일.
+       위젯이 '오늘'과 '이번 주'를 다시 판정하는 근거가 됨 */
+    AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,
+      sd:tdISO,mon:days[0],cut:cut}));
+  }catch(e){}
+}
+
+/* 주 1회 Downloads에 자동 백업. 7일 경과 여부는 네이티브가 판단하고,
+   저장했으면 그 날짜를 돌려주므로 백업 경과 표시도 함께 갱신함. */
+function autoBackup(){
+  if(DEMO)return;
+  try{
+    if(!(window.AndroidFile&&AndroidFile.autoBackup))return;
+    var d=AndroidFile.autoBackup(bkText());
+    if(d&&d.length>=10){
+      if(canLS)try{localStorage.setItem(KEY+'.bk',d);}catch(e3){}
+      render();
+    }
   }catch(e){}
 }
 
@@ -5086,6 +5117,7 @@ render();
 if(DEMO)setTimeout(function(){try{toast('샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐');}catch(e){}},600);
 tmrDraw();
 widgetSync();
+setTimeout(autoBackup,1500);
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(function(){});
 }
