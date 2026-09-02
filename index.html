@@ -174,6 +174,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr b{font-size:17px;font-weight:700}
 .setr u{font-size:9.5px;color:var(--dim)}
 .setr span{font-size:13.5px;color:var(--mut)}
+.setr.editing{background:rgba(207,166,72,.09);border-radius:8px;box-shadow:inset 0 0 0 1px rgba(207,166,72,.3)}
+.plusbtn.upd{background:rgba(207,166,72,.14);border-color:rgba(207,166,72,.45);color:#e3b95a}
+.cancelbtn{width:100%;height:38px;margin-top:7px;border-radius:9px;background:transparent;border:0;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.cancelbtn:active{color:var(--tx)}
 .setr .rir{flex:0 0 auto;width:30px;height:30px;margin-right:11px;border:1px solid transparent;border-radius:50%;font-family:var(--mono);letter-spacing:.02em;background:transparent;display:flex;align-items:center;justify-content:center}
 .setr .rir b{font-size:13px;font-weight:700;line-height:1}
 .setr .rir.off{font-size:0;border-color:transparent}
@@ -731,7 +735,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',rirHold:null,draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',rirHold:null,esIdx:null,draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -1150,12 +1154,14 @@ function panelHtml(m){
       +'</div>';
     h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
   }
-  h+='<button class="plusbtn'+(rdy?'':' dis')+'" data-act="as">＋ Set</button>';
+  var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
+  h+='<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update set '+(UI.esIdx+1):'＋ Set')+'</button>'
+    +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'');
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
     h+='<div class="setwrap">';
     for(var j=0;j<draft.length;j++){
-      h+='<div class="setr">'
+      h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
@@ -1654,7 +1660,7 @@ function setWd(ds){
     return false;
   }
   if(ds>today())ds=today();
-  UI.wd=ds;UI.open=null;UI.hist=false;UI.draft={};UI.dirty={};
+  UI.wd=ds;UI.open=null;UI.hist=false;UI.esIdx=null;UI.draft={};UI.dirty={};
   if(ds===today())loadDraft();
   return true;
 }
@@ -1665,7 +1671,7 @@ function shiftDay(n){
   if(setWd(s))render();
 }
 function openRow(id){
-  UI.open=id;UI.hist=false;UI.arm=null;
+  UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
   if(!UI.draft[id]){
     var ts=sessOn(id,UI.wd),c=[];
     if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,3));
@@ -1695,7 +1701,12 @@ function addSet(){
   UI.rirHold=null;
   /* 마지막 세트를 지우면 delSet이 draft 배열을 제거하므로 재생성함 */
   if(!UI.draft[UI.open])UI.draft[UI.open]=[];
-  UI.draft[UI.open].push(set);
+  if(UI.esIdx!==null&&UI.draft[UI.open][UI.esIdx]){
+    UI.draft[UI.open][UI.esIdx]=set;
+    UI.esIdx=null;
+  }else{
+    UI.draft[UI.open].push(set);
+  }
   UI.dirty[UI.open]=true;
   saveDraft();render();
 }
@@ -1720,6 +1731,7 @@ function normDraft(id){
 function delSet(i){
   var id=UI.open;
   if(!UI.draft[id])return;
+  UI.esIdx=null;
   UI.draft[id].splice(i,1);
   UI.dirty[id]=true;
   if(!UI.draft[id].length){
@@ -1739,13 +1751,19 @@ function delSet(i){
 }
 function editSet(i){
   var d=UI.draft[UI.open];if(!d||!d[i])return;
+  /* 같은 세트를 다시 탭하면 수정 취소 */
+  if(UI.esIdx===i){editCancel();return;}
   UI.w=fmtW(d[i][0]);UI.r=String(d[i][1]);
   var cdE=isCardId(UI.open);
   UI.ci=(cdE&&d[i][2]>0)?fmtW(d[i][2]):'';
   UI.rirHold=(!cdE&&(d[i][2]===0||d[i][2]>0))?d[i][2]:null;
-  d.splice(i,1);
-  UI.dirty[UI.open]=true;
-  saveDraft();render();
+  UI.esIdx=i;
+  UI.arm=null;
+  render();
+}
+function editCancel(){
+  UI.esIdx=null;UI.rirHold=null;UI.w='';UI.r='';UI.ci='';
+  render();
 }
 function saveMachine(){
   var id=UI.open,d=UI.draft[id];
@@ -1758,7 +1776,7 @@ function saveMachine(){
     save();
     delete UI.draft[id];delete UI.dirty[id];saveDraft();
     var m0=machById(id);
-    UI.open=null;UI.hist=false;
+    UI.open=null;UI.hist=false;UI.esIdx=null;
     buzz(15);toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)+' session');
     render();
     return;
@@ -1768,7 +1786,7 @@ function saveMachine(){
   save();
   delete UI.draft[id];UI.dirty[id]=false;saveDraft();
   var m=machById(id);
-  UI.open=null;UI.hist=false;
+  UI.open=null;UI.hist=false;UI.esIdx=null;
   var dl=(UI.wd===today())?'':md(UI.wd)+' · ';
   buzz(15);toast('<em>Saved</em> '+dl+esc(m?m.n:'')+' · '+copy.length+' sets');
   render();
@@ -3719,6 +3737,7 @@ document.addEventListener('click',function(e){
       UI.arm=null;delSet(parseInt(v,10));
       break;
     case 'es':editSet(parseInt(v,10));break;
+    case 'ec':editCancel();break;
     case 'rr':
       (function(){
         var id=UI.open,j=parseInt(v,10);
