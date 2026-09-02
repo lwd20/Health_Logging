@@ -636,7 +636,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .hcap{margin:18px 0 8px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--chrome);opacity:.85}
 .htr{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(var(--tx-rgb),.055)}
 .htr:last-child{border-bottom:0}
-.hk{flex:0 0 82px;font-size:11px;font-weight:700;color:var(--tx);letter-spacing:-.005em}
+.hk{flex:0 0 68px;font-size:10.5px;font-weight:700;color:var(--tx);letter-spacing:-.01em;line-height:1.4}
 .hv{flex:1;min-width:0;font-size:11px;line-height:1.5;color:var(--mut)}
 .hv em{font-style:normal;color:var(--acc-br);font-weight:700}
 .hnote{margin-top:11px;padding:10px 12px;border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.04);font-size:11px;line-height:1.6;color:var(--mut)}
@@ -666,7 +666,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 html{color-scheme:dark}
 .dset{display:flex;align-items:flex-start;margin-top:2px}
 .drail{flex:0 0 92px;position:sticky;top:0;display:flex;flex-direction:column;gap:3px;padding:2px 12px 2px 0;border-right:1px solid rgba(var(--tx-rgb),.07);margin-right:18px}
-.drail .dtb{height:44px;text-align:left;padding:0 0 0 11px;background:none;border:none;border-left:2px solid transparent;border-radius:0;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.1em}
+.drail .dtb{height:44px;text-align:left;padding:0 0 0 11px;background:none;border:none;border-left:2px solid transparent;border-radius:0;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.1em;white-space:nowrap}
+.hrail{flex:0 0 82px;padding-right:10px;margin-right:12px}
+.hrail .dtb{height:auto;min-height:46px;padding:9px 0 9px 10px;white-space:normal;line-height:1.3;letter-spacing:.01em;font-size:10.5px}
 .drail .dtb.on{border-left-color:var(--chrome);color:var(--tx);font-weight:800;background:linear-gradient(90deg,rgba(var(--acc-rgb),.1),transparent)}
 .dbody{flex:1;min-width:0}
 .sheet.tall .dbody{min-height:62dvh}
@@ -1635,14 +1637,14 @@ function closeEx(){
 }
 /* ── Help: 좌측 패널로 나눈 사용 안내 ── */
 var HTABS=[
-  {k:'start', n:'시작',   t:'처음 한 번만 하는 설정'},
-  {k:'log',   n:'기록',   t:'훈련 입력하기'},
-  {k:'num',   n:'숫자',   t:'화면의 수치 읽는 법'},
-  {k:'goal',  n:'목표',   t:'얼마나 해야 하는가'},
-  {k:'rep',   n:'리포트', t:'AI 분석 사용법'},
-  {k:'key',   n:'AI 키',  t:'API 키 발급과 등록'},
-  {k:'back',  n:'백업',   t:'기록을 잃지 않으려면'},
-  {k:'look',  n:'테마',   t:'색과 질감 바꾸기'}
+  {k:'start', n:'처음 설정',   t:'앱을 처음 켰다면'},
+  {k:'log',   n:'훈련 기록',   t:'세트 입력하는 법'},
+  {k:'num',   n:'숫자 읽기',   t:'화면의 수치가 뜻하는 것'},
+  {k:'goal',  n:'목표 설정',   t:'얼마나 해야 하는가'},
+  {k:'rep',   n:'AI 분석',    t:'리포트 뽑고 읽는 법'},
+  {k:'key',   n:'AI 키 발급',  t:'API 키 만들어 넣기'},
+  {k:'back',  n:'데이터 백업', t:'기록을 잃지 않으려면'},
+  {k:'look',  n:'화면 테마',   t:'색과 질감 바꾸기'}
 ];
 function hStep(n,ttl,txt){return '<div class="hstep"><b>'+n+'</b><span><em>'+ttl+'</em>'+(txt?'<br>'+txt:'')+'</span></div>';}
 function hRow(k,v){return '<div class="htr"><span class="hk">'+k+'</span><span class="hv">'+v+'</span></div>';}
@@ -1651,7 +1653,7 @@ function hCap(t){return '<div class="hcap">'+t+'</div>';}
 function helpHtml(){
   var t=UI.htab||'start',cur=HTABS[0],i;
   for(i=0;i<HTABS.length;i++)if(HTABS[i].k===t)cur=HTABS[i];
-  var h='<div class="sh-t">Help</div><div class="dset"><div class="drail">';
+  var h='<div class="sh-t">Help</div><div class="dset"><div class="drail hrail">';
   for(i=0;i<HTABS.length;i++)h+='<button class="dtb'+(t===HTABS[i].k?' on':'')+'" data-act="htb" data-v="'+HTABS[i].k+'">'+HTABS[i].n+'</button>';
   h+='</div><div class="dbody">';
   h+='<div class="htitle">'+cur.t+'</div>';
