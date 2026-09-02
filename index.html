@@ -140,6 +140,24 @@
 :root[data-tech="halo"]{
   --rad-s:12px;--rad-m:16px;--rad-l:22px;--rad-card:16px;--bw:1px;--blur:none;--elev:0 0 0 1px rgba(var(--acc-rgb),.25),0 0 26px rgba(var(--acc-rgb),.13);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 2px 5px rgba(0,0,0,.4),0 0 22px rgba(var(--acc-rgb),.45);--elev-p:0 0 0 1px rgba(var(--acc-rgb),.2),0 0 18px rgba(var(--acc-rgb),.1);
 }
+:root[data-tech="float"]{
+  --rad-s:14px;--rad-m:18px;--rad-l:26px;--rad-card:22px;--bw:0px;--blur:none;--elev:0 18px 40px -12px rgba(0,0,0,.55),0 4px 10px rgba(0,0,0,.28);--elev-p:0 10px 26px -8px rgba(0,0,0,.42);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 10px 24px -8px rgba(0,0,0,.55);
+}
+:root[data-tech="emboss"]{
+  --rad-s:9px;--rad-m:11px;--rad-l:18px;--rad-card:11px;--bw:1px;--blur:none;--elev:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 rgba(0,0,0,.55),0 6px 14px -4px rgba(0,0,0,.4);--elev-p:inset 0 1px 0 rgba(255,255,255,.05),0 2px 0 rgba(0,0,0,.45);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 3px 0 rgba(0,0,0,.5),0 7px 14px -4px rgba(0,0,0,.4);
+}
+:root[data-tech="ring"]{
+  --rad-s:13px;--rad-m:15px;--rad-l:22px;--rad-card:15px;--bw:0px;--blur:none;--elev:0 0 0 1.5px rgba(var(--acc-rgb),.3);--elev-p:0 0 0 1.5px rgba(var(--acc-rgb),.22);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 3px rgba(var(--acc-rgb),.22);
+}
+:root[data-tech="stack"]{
+  --rad-s:10px;--rad-m:12px;--rad-l:18px;--rad-card:12px;--bw:1px;--blur:none;--elev:0 2px 0 rgba(var(--tx-rgb),.06),0 4px 0 rgba(var(--tx-rgb),.03),0 9px 18px -6px rgba(0,0,0,.45);--elev-p:0 2px 0 rgba(var(--tx-rgb),.05),0 6px 14px -5px rgba(0,0,0,.35);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 3px 0 rgba(0,0,0,.45),0 8px 16px -6px rgba(0,0,0,.4);
+}
+:root[data-tech="slab"]{
+  --rad-s:18px;--rad-m:22px;--rad-l:30px;--rad-card:26px;--bw:0px;--blur:none;--elev:0 3px 8px rgba(0,0,0,.4);--elev-p:0 2px 6px rgba(0,0,0,.3);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 3px 8px rgba(0,0,0,.42);
+}
+:root[data-tech="etch"]{
+  --rad-s:6px;--rad-m:7px;--rad-l:14px;--rad-card:7px;--bw:1px;--blur:none;--elev:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.5);--elev-p:inset 0 1px 0 rgba(255,255,255,.04),inset 0 -1px 0 rgba(0,0,0,.4);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.4);
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{
@@ -866,7 +884,13 @@ var TECHS=[
   {k:'pill',n:'Pill',d:'알약 · 완전 둥근 컨트롤'},
   {k:'carve',n:'Carve',d:'음각 · 안쪽으로 파인 면'},
   {k:'bare',n:'Bare',d:'미니멀 · 선도 그림자도 없음'},
-  {k:'halo',n:'Halo',d:'네온 · 강조색 발광 테두리'}
+  {k:'halo',n:'Halo',d:'네온 · 강조색 발광 테두리'},
+  {k:'float',n:'Float',d:'부양 · 넓고 부드러운 그림자'},
+  {k:'emboss',n:'Emboss',d:'양각 · 단단한 윗턱'},
+  {k:'ring',n:'Ring',d:'링 · 강조색 테두리 강조'},
+  {k:'stack',n:'Stack',d:'겹침 · 종이가 쌓인 층'},
+  {k:'slab',n:'Slab',d:'슬랩 · 두툼한 큰 모서리'},
+  {k:'etch',n:'Etch',d:'에칭 · 얇게 새긴 홈'}
 ];
 var PAL='bronze',TECH='flat';
 function palOk(t){for(var i=0;i<PALS.length;i++)if(PALS[i].k===t)return true;return false;}
@@ -1729,9 +1753,15 @@ function helpHtml(){
       +hRow('Soft','부드러운 양각')
       +hRow('Carve','안쪽으로 파인 면')
       +hRow('Neo','딱 떨어지는 오프셋 그림자')
-      +hRow('Sharp · Outline · Bare','각지거나 선만 · 장식 없음')
+      +hRow('Float','넓고 부드럽게 떠 있음')
+      +hRow('Emboss','단단한 윗턱이 있는 양각')
+      +hRow('Stack','종이가 겹쳐 쌓인 층')
+      +hRow('Slab','두툼하고 큰 모서리')
+      +hRow('Etch','얇게 새긴 홈')
+      +hRow('Ring','강조색 링 테두리')
       +hRow('Pill · Halo','완전 둥근 · 강조색 발광')
-      +hNote('색 14종과 조합해 70가지 이상. 밝은 테마는 Paper·Frost.');
+      +hRow('Sharp · Outline · Bare','각지거나 선만 · 장식 없음')
+      +hNote('색 20종과 스타일 17종을 조합해 340가지. 밝은 테마는 Paper·Frost.');
   }
   h+='</div></div>';
   return h;
