@@ -66,6 +66,36 @@
   --sig:#c95f43;--pos:#9fb79a;--neg:#d3937f;
   --acc-rgb:212,212,212;--sig-rgb:201,95,67;--tx-rgb:237,237,237;
 }
+:root[data-theme="ember"]{
+  --bg:#0d0b0a;--plate:#191412;--plate2:#201a17;--inset:#080706;--surf:#191412;--tx:#f0e6de;--mut:#b3a49a;--dim:#6e625a;--chrome:#e8743a;--acc-br:#ff9c63;--acc-sf:#f0813f;--acc-dk:#8f4319;--on-acc:#1a0a02;--sig:#e8c33a;--pos:#93bf7a;--neg:#ff9c63;--acc-rgb:232,116,58;--sig-rgb:232,195,58;--tx-rgb:240,230,222;
+}
+:root[data-theme="vapor"]{
+  --bg:#0d0716;--plate:#1a1029;--plate2:#221434;--inset:#080413;--surf:#1a1029;--tx:#f0e4fb;--mut:#b298cc;--dim:#6e5a85;--chrome:#e05fc4;--acc-br:#f78fdc;--acc-sf:#e874cd;--acc-dk:#8a2f74;--on-acc:#16021a;--sig:#ff5c72;--pos:#5fd3c0;--neg:#ff87a0;--acc-rgb:224,95,196;--sig-rgb:255,92,114;--tx-rgb:240,228,251;
+}
+:root[data-theme="sakura"]{
+  --bg:#120c11;--plate:#1e151d;--plate2:#261b25;--inset:#0b070b;--surf:#1e151d;--tx:#f5e6ee;--mut:#c0a3b2;--dim:#7a6470;--chrome:#e58aa8;--acc-br:#f5b3c8;--acc-sf:#ec9bb8;--acc-dk:#8e4a63;--on-acc:#1d0710;--sig:#d95f3a;--pos:#8fb377;--neg:#e0876a;--acc-rgb:229,138,168;--sig-rgb:217,95,58;--tx-rgb:245,230,238;
+}
+:root[data-theme="cyber"]{
+  --bg:#080a07;--plate:#111510;--plate2:#161c15;--inset:#050704;--surf:#111510;--tx:#e9f5e2;--mut:#9db396;--dim:#5e6f58;--chrome:#a8f04a;--acc-br:#c9ff7a;--acc-sf:#b4f75e;--acc-dk:#5a8a1f;--on-acc:#0a1400;--sig:#ff4d6a;--pos:#a8f04a;--neg:#ff8fa3;--acc-rgb:168,240,74;--sig-rgb:255,77,106;--tx-rgb:233,245,226;
+}
+:root[data-theme="ocean"]{
+  --bg:#050f12;--plate:#0e1c21;--plate2:#12242a;--inset:#040b0e;--surf:#0e1c21;--tx:#dff0f2;--mut:#8fadb3;--dim:#556e73;--chrome:#3fbfc9;--acc-br:#7ee0e6;--acc-sf:#52cdd6;--acc-dk:#1c7078;--on-acc:#02181a;--sig:#f07850;--pos:#6fcf9a;--neg:#f0906a;--acc-rgb:63,191,201;--sig-rgb:240,120,80;--tx-rgb:223,240,242;
+}
+:root[data-theme="rust"]{
+  --bg:#100b08;--plate:#1d1410;--plate2:#251b15;--inset:#0a0705;--surf:#1d1410;--tx:#f0e2d5;--mut:#b39d8b;--dim:#6f5f50;--chrome:#c9603a;--acc-br:#e08f6a;--acc-sf:#d4724a;--acc-dk:#7d3418;--on-acc:#1a0800;--sig:#d9a441;--pos:#8fb377;--neg:#e08f6a;--acc-rgb:201,96,58;--sig-rgb:217,164,65;--tx-rgb:240,226,213;
+}
+:root[data-theme="royal"]{
+  --bg:#0a0a16;--plate:#151528;--plate2:#1c1c34;--inset:#060612;--surf:#151528;--tx:#e6e4f7;--mut:#a3a0c4;--dim:#63607f;--chrome:#8b7ae8;--acc-br:#b3a6f5;--acc-sf:#9c8cf0;--acc-dk:#4d3f96;--on-acc:#0c0620;--sig:#e8615f;--pos:#6fc99a;--neg:#eb8b89;--acc-rgb:139,122,232;--sig-rgb:232,97,95;--tx-rgb:230,228,247;
+}
+:root[data-theme="sand"]{
+  --bg:#14110d;--plate:#221d16;--plate2:#2b241c;--inset:#0d0b08;--surf:#221d16;--tx:#f2e9d8;--mut:#bdae95;--dim:#786c58;--chrome:#d9c48a;--acc-br:#efe0b5;--acc-sf:#e2cd99;--acc-dk:#8a7746;--on-acc:#1a1409;--sig:#cf6a45;--pos:#9bb37a;--neg:#dd8f6a;--acc-rgb:217,196,138;--sig-rgb:207,106,69;--tx-rgb:242,233,216;
+}
+:root[data-theme="ice"]{
+  --bg:#0a0d10;--plate:#141a1f;--plate2:#1a2229;--inset:#070a0c;--surf:#141a1f;--tx:#e8f1f7;--mut:#9aabb8;--dim:#5c6b77;--chrome:#a9d6ea;--acc-br:#d3ecf7;--acc-sf:#bce0f0;--acc-dk:#4e7f96;--on-acc:#04141c;--sig:#e0705c;--pos:#7fc7a8;--neg:#e8917f;--acc-rgb:169,214,234;--sig-rgb:224,112,92;--tx-rgb:232,241,247;
+}
+:root[data-theme="wine"]{
+  --bg:#100809;--plate:#1e1113;--plate2:#271618;--inset:#0a0506;--surf:#1e1113;--tx:#f2e0e2;--mut:#bb9a9e;--dim:#75585c;--chrome:#c2485e;--acc-br:#e0798c;--acc-sf:#d05c72;--acc-dk:#7a2233;--on-acc:#1c0409;--sig:#d9a441;--pos:#8fb377;--neg:#e0798c;--acc-rgb:194,72,94;--sig-rgb:217,164,65;--tx-rgb:242,224,226;
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{
@@ -205,14 +235,15 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ref{min-width:0;max-width:100%}
 .ref span{font-size:11.5px;color:var(--mut);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.throw{display:flex;align-items:center;gap:7px;width:100%;margin-bottom:7px;padding:11px 12px;border:1px solid rgba(var(--tx-rgb),.08);border-radius:11px;background:rgba(var(--tx-rgb),.035);text-align:left}
-.throw.on{border-color:rgba(var(--acc-rgb),.5);background:rgba(var(--acc-rgb),.09)}
-.throw .sw{flex:0 0 auto;width:15px;height:15px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-.throw .sw+.sw{margin-left:-7px}
-.throw .tn{margin-left:9px;font-size:12.5px;font-weight:700;color:var(--tx)}
-.throw .td{font-size:10px;color:var(--dim)}
-.throw .tk{margin-left:auto;font-size:12px;color:var(--acc-br)}
-.throw:active{opacity:.65}
+.thgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.throw{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid rgba(var(--tx-rgb),.08);border-radius:11px;background:rgba(var(--tx-rgb),.035);text-align:left;min-width:0}
+.throw.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.throw .sws{flex:0 0 auto;display:flex}
+.throw .sw{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.throw .sw+.sw{margin-left:-6px}
+.throw .tn{font-size:12px;font-weight:700;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.throw.on .tn{color:var(--tx)}
+.throw:active{opacity:.6}
 .setwrap{margin-top:14px;padding-top:12px;border-top:1px solid rgba(var(--tx-rgb),.06)}
 .setwrap .vtot{margin-top:9px}
 .setr{display:flex;align-items:center;padding:1px 0;font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:0;max-width:100%}
@@ -701,7 +732,17 @@ var THEMES=[
   {k:'graphite',n:'Graphite', d:'중성 스틸',     c:['#141518','#a3abb9','#c6cdd8']},
   {k:'midnight',n:'Midnight', d:'딥 블루',       c:['#0c1220','#5fa8d8','#8fc8ea']},
   {k:'moss',    n:'Moss',     d:'딥 그린',       c:['#111a12','#8fc26a','#b2da91']},
-  {k:'mono',    n:'Mono',     d:'무채색',        c:['#141414','#d4d4d4','#f2f2f2']}
+  {k:'mono',    n:'Mono',     d:'무채색',        c:['#141414','#d4d4d4','#f2f2f2']},
+  {k:'ember',n:'Ember',d:'숯 + 잉걸불',c:['#201a17','#e8743a','#ff9c63']},
+  {k:'vapor',n:'Vapor',d:'바이올렛 + 마젠타',c:['#221434','#e05fc4','#f78fdc']},
+  {k:'sakura',n:'Sakura',d:'자두 + 연분홍',c:['#261b25','#e58aa8','#f5b3c8']},
+  {k:'cyber',n:'Cyber',d:'칠흑 + 애시드 라임',c:['#161c15','#a8f04a','#c9ff7a']},
+  {k:'ocean',n:'Ocean',d:'심해 틸 + 아쿠아',c:['#12242a','#3fbfc9','#7ee0e6']},
+  {k:'rust',n:'Rust',d:'고동 + 테라코타',c:['#251b15','#c9603a','#e08f6a']},
+  {k:'royal',n:'Royal',d:'인디고 + 자수정',c:['#1c1c34','#8b7ae8','#b3a6f5']},
+  {k:'sand',n:'Sand',d:'사막 토프 + 크림',c:['#2b241c','#d9c48a','#efe0b5']},
+  {k:'ice',n:'Ice',d:'한랭 슬레이트 + 빙청',c:['#1a2229','#a9d6ea','#d3ecf7']},
+  {k:'wine',n:'Wine',d:'버건디 + 로즈',c:['#271618','#c2485e','#e0798c']}
 ];
 var THEME='bronze';
 function themeOk(t){for(var i=0;i<THEMES.length;i++)if(THEMES[i].k===t)return true;return false;}
@@ -1487,16 +1528,19 @@ function renderSheet(){
       +tbBtn('diet','DIET')+tbBtn('goals','GOALS')+tbBtn('disp','DISPLAY')+tbBtn('ai','AI')+tbBtn('data','DATA')
       +'</div><div class="dbody">';
     if(tb==='disp'){
-      h+='<div class="sh-l" style="margin-top:2px">Theme <span style="font-weight:400;letter-spacing:0;color:var(--dim)">전체 색상</span></div>';
-      for(var ti=0;ti<THEMES.length;ti++){
+      var curT=null,ti;
+      for(ti=0;ti<THEMES.length;ti++)if(THEMES[ti].k===THEME)curT=THEMES[ti];
+      h+='<div class="sh-l" style="margin-top:2px">Theme <span style="font-weight:400;letter-spacing:0;color:var(--dim)">'+(curT?esc(curT.n+' · '+curT.d):'전체 색상')+'</span></div>';
+      h+='<div class="thgrid">';
+      for(ti=0;ti<THEMES.length;ti++){
         var T=THEMES[ti],on=(THEME===T.k);
         h+='<button class="throw'+(on?' on':'')+'" data-act="thpick" data-v="'+T.k+'">'
-          +'<span class="sw" style="background:'+T.c[0]+'"></span>'
+          +'<span class="sws"><span class="sw" style="background:'+T.c[0]+'"></span>'
           +'<span class="sw" style="background:'+T.c[1]+'"></span>'
-          +'<span class="sw" style="background:'+T.c[2]+'"></span>'
-          +'<span class="tn">'+T.n+'</span><span class="td">'+T.d+'</span>'
-          +'<span class="tk">'+(on?'✓':'')+'</span></button>';
+          +'<span class="sw" style="background:'+T.c[2]+'"></span></span>'
+          +'<span class="tn">'+T.n+'</span></button>';
       }
+      h+='</div>';
       h+='<div class="note">색상만 바뀌며 기록에는 영향이 없음. 백업에도 함께 저장됨.</div>';
     }
     if(tb==='data'){
