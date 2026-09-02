@@ -1073,7 +1073,7 @@ function upsertSess(id,ds,copy){
   }
   a.push({d:ds,s:copy});
 }
-function topOf(s){var t=0;for(var i=0;i<s.length;i++)if(s[i][0]>t)t=s[i][0];return t;}
+function topOf(s){var t=0;for(var i=0;i<s.length;i++)if((+s[i][0]||0)>(+t||0))t=s[i][0];return t;}
 /* 어시스트 머신 — 설정 무게만큼 체중을 덜어주므로 실부하는 체중에서 뺀 값임 */
 function isAssist(m){return !!(m&&m.as);}
 function effOf(m,w){
@@ -2494,22 +2494,22 @@ function tmrDraw(){
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
 var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
 var SUBS=[
- {k:'sd', p:'SHOULDERS',n:'측면',      d:18,r:/lateral|래터럴|레터럴|라테랄|사레레|사이드\s*?레이즈|side\s*raise|neck\s*press|넥\s*?프레스|네크\s*?프레스|측면/},
+ {k:'sd', p:'SHOULDERS',n:'측면',      d:18,r:/\blateral|래터럴|레터럴|라테랄|사레레|사이드\s*?레이즈|side\s*raise|neck\s*press|넥\s*?프레스|네크\s*?프레스|측면/},
  {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹/},
  {k:'pd', p:'SHOULDERS',n:'후면',      d:0, r:/rear|리어|reverse\s*pec|리버스\s*?펙|face\s*pull|페이스\s*?풀|reverse\s*fly|리버스\s*?플라이/},
- {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|high\s*row|하이\s*?로우|dorsi|dorsy|도르시|광배/},
+ {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫풀|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|high\s*row|하이\s*?로우|dorsi|dorsy|도르시|광배/},
  {k:'tm', p:'BACK',     n:'승모·중부', d:0, r:/\brow|로우|shrug|슈러그|셰러그|t-?bar|티바|승모/},
  {k:'uc', p:'CHEST',    n:'상부',      d:0, r:/incline|인클라인/},
  {k:'mc', p:'CHEST',    n:'중하부',    d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|\bfly|플라이|pec\s*deck|펙\s*?덱|flat\s*press|플랫|decline|디클라인/},
  {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션/},
- {k:'hm', p:'LEGS',     n:'햄스트링',  d:7, r:/leg\s*curl|레그\s*?컬|햄|\bham|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
+ {k:'hm', p:'LEGS',     n:'햄스트링',  d:7, r:/leg\s*curl|레그\s*?컬|햄스트링|hamstring|\bham\b|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
  {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|abduct|어브덕|back\s*extension|백\s*?익스텐션|bridge|브릿지/},
  {k:'cf', p:'LEGS',     n:'종아리',    d:0, r:/calf|카프|종아리/},
  {k:'bi', p:'ARMS·ETC', n:'이두',      d:0, r:/bicep|바이셉|이두|curl|컬/},
  {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백/},
  {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈/}
 ];
-var EVORD=['sd','pd','ad','hm','lt','tm','uc','mc','tri','qd','gl','cf','bi','ab'];
+var EVORD=['sd','pd','ad','hm','lt','tm','uc','mc','qd','gl','tri','cf','bi','ab'];
 var WR=0.5; /* 주당 감량 목표 kg */
 var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 (function(){for(var i=0;i<SUBS.length;i++)STG[SUBS[i].k]=(SUBS[i].d>0?SUBS[i].d:-1);})();
@@ -2729,7 +2729,7 @@ function bodyLine(bw,bf,gf,hrm,act){
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
 /* 사람이 낼 수 있는 범위 — 오입력 한 건이 TDEE 전체를 무너뜨리지 않게 함 */
-var CARDIO_LIM={minMax:300,vTread:20,vStair:30,incMax:0.4,perMinMax:18};
+var CARDIO_LIM={minMax:300,vTread:20,vStair:30,incMax:0.2,perMinMax:25};
 function cardioOut(st,name){
   var v=+st[1]||0,inc=+st[2]||0;
   var vm=isTreadName(name)?CARDIO_LIM.vTread:CARDIO_LIM.vStair;
@@ -2910,17 +2910,17 @@ function heroProg(onDate){
   function gapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
   /* 세션 전체(2~4세트) 평균 e1RM 성장률로 판정하며 ±0.5%는 노이즈로 봄 */
   var DB=0.5;
-  function gp(x,y){var r=e1rmGain(x.s,y.s);return r?r.pct:0;}
+  function gp(m,x,y){var r=e1rmGain(effSets(m,x.s),effSets(m,y.s));return r?r.pct:0;}
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
     if(a.length<2)continue;
     if(onDate&&a[0].d!==onDate)continue;   /* 그날 수행한 종목만 */
     if(gapD(a[0],a[1])>14)continue;
-    var p01=gp(a[0],a[1]);
+    var p01=gp(m,a[0],a[1]);
     if(p01>DB){up++;continue;}
     if(a.length<3||gapD(a[1],a[2])>14)continue;
-    var p12=gp(a[1],a[2]);
+    var p12=gp(m,a[1],a[2]);
     if(p01<-DB&&p12<-DB){
       down++;
       if(dnN.length<3)dnN.push(m.n);
@@ -2937,9 +2937,9 @@ function deloadSignal(){
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
     if(a.length<3)continue;
     if(Math.round((new Date(a[0].d)-new Date(a[2].d))/86400000)>21)continue;
-    var g=e1rmGain(a[0].s,a[2].s);
+    var g=e1rmGain(effSets(m,a[0].s),effSets(m,a[2].s));
     if(!g||g.pct>0.5)continue;              /* 진전이 있으면 대상 아님 */
-    var r0=rirAvg(a[0].s),r2=rirAvg(a[2].s);
+    var r0=rirAvg(a[0].s),r2=rirAvg(a[2].s);  /* RIR은 무게 무관 */
     if(r0===null||r2===null)continue;        /* RIR 미입력이면 판정 보류 */
     if(r2-r0>=1){hits.push({n:m.n,d:Math.round((r2-r0)*10)/10,p:g.pct});names.push(m.n);}
   }
@@ -3127,7 +3127,7 @@ function anlViz(k){
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   if(k==='wk'||k==='vt'){
     var rows=[{n:'측면',c:sc.sd||0,g:sdT},{n:'광배',c:sc.lt||0,g:ltT}];
-    if(k==='vt')rows.push({n:'가슴상부',c:sc.uc||0,g:Math.max(1,STG.uc||5)},{n:'햄',c:sc.hm||0,g:Math.max(1,STG.hm||7)});
+    if(k==='vt')rows.push({n:'가슴상부',c:sc.uc||0,g:Math.max(1,STG.uc>0?STG.uc:5)},{n:'햄',c:sc.hm||0,g:Math.max(1,STG.hm>0?STG.hm:7)});
     var fq='';
     if(k==='vt'){
       var sf=wkDaysBySub(),FQ=[['sd','측면',3],['lt','광배',2],['uc','가슴상부',1],['hm','햄',1]];
@@ -3819,7 +3819,7 @@ function aiPayload(){
         var e=S.l[k][j];
         if(e.d<liso||!e.s.length)continue;
         var sets=[];
-        for(var q=0;q<e.s.length;q++)sets.push(isCard(m.p)?(e.s[q][0]+'분v'+e.s[q][1]+(e.s[q][2]>0?'i'+e.s[q][2]:'')):(e.s[q][0]+'x'+e.s[q][1]+((e.s[q][2]===0||e.s[q][2]>0)?'@'+e.s[q][2]:'')+(e.s[q][3]>0?'r'+e.s[q][3]:'')));
+        for(var q=0;q<e.s.length;q++)sets.push(isCard(m.p)?(e.s[q][0]+'분v'+e.s[q][1]+(e.s[q][2]>0?'i'+e.s[q][2]:'')):(fmtW(effOf(m,e.s[q][0]))+'x'+e.s[q][1]+((e.s[q][2]===0||e.s[q][2]>0)?'@'+e.s[q][2]:'')+(e.s[q][3]>0?'r'+e.s[q][3]:'')));
         var lsb=isCard(m.p)?'':subName(subOf(m));
         rows.push([e.d,e.d.slice(5)+' '+m.p+(lsb?'/'+lsb:'')+' '+m.n+(m.b?' '+m.b:'')+' '+sets.join(' ')]);
       }
@@ -3859,12 +3859,12 @@ function aiPayload(){
     if(!ta.length)continue;
     ta=ta.slice().sort(function(a,b){return a.d<b.d?1:-1;}).slice(0,4);
     var seq=ta.map(function(x){
-      var tp=[0,0],q;
-      for(q=0;q<x.s.length;q++){
-        if(x.s[q][0]>tp[0]||(x.s[q][0]===tp[0]&&x.s[q][1]>tp[1]))tp=x.s[q];
+      var es=effSets(tm,x.s),tp=[0,0],q;
+      for(q=0;q<es.length;q++){
+        if(es[q][0]>tp[0]||(es[q][0]===tp[0]&&es[q][1]>tp[1]))tp=es[q];
       }
       var ra2=rirAvg(x.s);
-      return x.d.slice(5)+' '+fmtW(tp[0])+'x'+tp[1]+' e'+fmtW(e1rmAvg(x.s))+'/'+x.s.length+(ra2!==null?'@'+ra2:'');
+      return x.d.slice(5)+' '+fmtW(tp[0])+'x'+tp[1]+' e'+fmtW(e1rmAvg(es))+'/'+x.s.length+(ra2!==null?'@'+ra2:'');
     }).join(' ');
     tops.push(tm.n+(tm.b?' '+tm.b:'')+'|'+seq);
   }
@@ -3963,13 +3963,14 @@ function hlNum(t){
 }
 /* 판정어 → 칩 라벨·톤. 구체적인 것부터 검사함 */
 var AISTAT=[
+  ['없음','정상','pos'],
   ['위반','위반','neg'],['퇴행','퇴행','neg'],['재빌드','재빌드','neg'],['시급','시급','neg'],
   ['미달','미달','neg'],['부족','부족','neg'],['빈약','부족','neg'],['과중','과중','neg'],
   ['초과','초과','warn'],['부채','부채','warn'],['이탈','이탈','warn'],['정체','정체','warn'],
   ['간섭','간섭','warn'],['보류','보류','warn'],
   ['증량 성공','증량','pos'],['증량 준비','준비','pos'],['달성','달성','pos'],['순항','순항','pos'],
   ['우수','우수','pos'],['양호','양호','pos'],['준수','준수','pos'],['확보','확보','pos'],
-  ['적절','적절','pos'],['가능','가능','pos'],['없음','정상','pos'],['유지','유지',''],
+  ['적절','적절','pos'],['가능','가능','pos'],['유지','유지',''],
   ['첫 기록','신규','']
 ];
 function aiStat(t){
@@ -3977,11 +3978,12 @@ function aiStat(t){
   return null;
 }
 /* 불렛 한 줄 → 라벨·상태칩·수치바 카드 */
-function aiTr(body,tone){
+function aiTr(body,tone,hl){
   var ix=body.indexOf(' — ');
   if(ix<1)ix=body.indexOf(' - ');
   if(ix<1||ix>26)ix=-1;
   var k=ix>0?body.slice(0,ix):body, v=ix>0?body.slice(ix+3):'';
+  if(hl){k=hlNum(k);v=hlNum(v);}
   var st=aiStat(v||k), cls=tone==='neg'?'neg':'';
   if(st&&!cls)cls=st[2]==='neg'?'neg':(st[2]==='pos'?'pos':'');
   /* "5/10" 형태가 있으면 미니 바로 시각화 */
@@ -4011,7 +4013,7 @@ function aiFmt(txt,ck,ph){
     if(!ln)continue;
     m=ln.match(/^\[(.+)\]$/);
     if(m){sec=m[1];out+='<div class="ai-h">'+m[1]+'</div>';continue;}
-    if(sec.indexOf('정체')>=0)ln=hlNum(ln);
+
     if(sec.indexOf('금주')>=0||sec.indexOf('분석')>=0||sec.indexOf('결산')>=0){
       var ln2=ln.replace(/^-\s+/,'');
       /* 합계 줄 */
@@ -4027,7 +4029,7 @@ function aiFmt(txt,ck,ph){
       if(m){
         var cv=parseInt(m[2],10),gv=parseInt(m[3],10);
         var pc=Math.max(0,Math.min(100,gv>0?Math.round(cv*100/gv):0));
-        var sub=(m[4]||'').replace(/기대\s*\d+(?:\.\d+)?\s*세트[,\s]*/,'').replace(/세부/g,'').trim();
+        var sub=(m[4]||'').replace(/[,·]?\s*기대\s*\d+(?:\.\d+)?\s*세트/g,'').replace(/세부\s*:?\s*/g,'').replace(/^[\s,:·]+|[\s,:·]+$/g,'').trim();
         var pl=paceLeft(),mk='';
         if(pl>0&&pl<100)mk='<i class="mk" style="left:'+pl+'%"></i>';
         out+='<div class="ai-row"><div class="t"><span class="nm">'+m[1]+'</span>'
@@ -4049,7 +4051,7 @@ function aiFmt(txt,ck,ph){
       }
       for(ki=0;ki<AIPOS.length;ki++)if(body.indexOf(AIPOS[ki])>=0){tone='pos';break;}
       if(!tone)for(ki=0;ki<AINEG.length;ki++)if(body.indexOf(AINEG[ki])>=0){tone='neg';break;}
-      out+=aiTr(body,tone);
+      out+=aiTr(body,tone,sec.indexOf('정체')>=0);
       continue;
     }
     out+='<div class="ai-p">'+ln+'</div>';
