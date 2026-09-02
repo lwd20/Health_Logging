@@ -1690,6 +1690,8 @@ function addSet(){
     set.push(UI.rirHold);
   }
   UI.rirHold=null;
+  /* 마지막 세트를 지우면 delSet이 draft 배열을 제거하므로 재생성함 */
+  if(!UI.draft[UI.open])UI.draft[UI.open]=[];
   UI.draft[UI.open].push(set);
   UI.dirty[UI.open]=true;
   saveDraft();render();
@@ -1714,6 +1716,7 @@ function normDraft(id){
 }
 function delSet(i){
   var id=UI.open;
+  if(!UI.draft[id])return;
   UI.draft[id].splice(i,1);
   UI.dirty[id]=true;
   if(!UI.draft[id].length){
