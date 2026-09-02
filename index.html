@@ -194,6 +194,7 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .rr i.up{color:var(--pos)}
 .rr i.dn{color:var(--neg)}
 .setr .sv{margin-left:auto;font-size:10px;color:rgba(var(--tx-rgb),.26);letter-spacing:.02em}
+.setr .sv .rst{text-decoration:none;color:rgba(var(--tx-rgb),.36);margin-right:7px}
 .vtot{display:flex;align-items:baseline;gap:7px;margin-top:8px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.06);font-family:var(--mono);font-variant-numeric:tabular-nums}
 .vtot i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
 .vtot b{font-size:15px;font-weight:700;color:var(--acc-br)}
@@ -594,6 +595,14 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .iorow .okbtn{flex:1;height:46px}
 .reset{width:100%;margin-top:16px;padding:12px;font-size:10.5px;font-weight:800;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
 .reset.armed{color:var(--sig)}
+.bkwarn{display:flex;align-items:center;gap:9px;width:100%;margin:2px 0 14px;padding:11px 13px;border:var(--bw) solid rgba(var(--acc-rgb),.4);border-radius:var(--rad-m);background:rgba(var(--acc-rgb),.09);text-align:left}
+.bkwarn.hot{border-color:rgba(var(--sig-rgb),.5);background:rgba(var(--sig-rgb),.11)}
+.bkwarn b{flex:0 0 auto;font-size:11.5px;font-weight:800;color:var(--acc-br);letter-spacing:.01em}
+.bkwarn.hot b{color:var(--sig)}
+.bkwarn i{flex:1;min-width:0;font-style:normal;font-size:10px;color:var(--mut);line-height:1.35}
+.bkwarn em{flex:0 0 auto;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:4px 10px}
+.bkwarn.hot em{background:var(--sig);color:var(--tx)}
+.bkwarn:active{opacity:.7}
 .note{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.55}
 
 /* ── 일지 ── */
@@ -874,6 +883,7 @@ var mem=null;
 var saveWarned=false;
 function save(){
   demoClear();
+  autoSnap();
   widgetSync();
   var s=JSON.stringify(S);
   if(canLS){
@@ -918,6 +928,39 @@ function loadDraft(){
 /* 백업 시점 기록 */
 function getBk(){if(!canLS)return null;try{return localStorage.getItem(KEY+'.bk');}catch(e){return null;}}
 function setBk(){if(!canLS)return;try{localStorage.setItem(KEY+'.bk',today());}catch(e){}}
+/* 마지막 백업 이후 경과일 — 기록이 없으면 첫 기록일 기준 */
+function bkAge(){
+  var b=getBk();
+  if(!b){
+    var oldest='';
+    for(var k in S.l){var a=S.l[k];for(var i=0;i<a.length;i++)if(!oldest||a[i].d<oldest)oldest=a[i].d;}
+    if(!oldest)return 0;
+    return daysAgo(oldest);
+  }
+  return daysAgo(b);
+}
+/* 브라우저가 저장소를 임의로 비우지 못하게 요청 */
+(function(){
+  try{
+    if(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted){
+      navigator.storage.persisted().then(function(ok){if(!ok)navigator.storage.persist();});
+    }
+  }catch(e){}
+})();
+/* 하루 한 번 롤링 스냅샷 — 본 키가 깨져도 되살릴 수 있게 함 */
+function snapInfo(){
+  if(!canLS)return '';
+  try{var d=localStorage.getItem(KEY+'.snapd');return d?dayLbl(d):'';}catch(e){return '';}
+}
+function autoSnap(){
+  if(!canLS)return;
+  try{
+    var td=today();
+    if(localStorage.getItem(KEY+'.snapd')===td)return;
+    localStorage.setItem(KEY+'.snap',bkText());
+    localStorage.setItem(KEY+'.snapd',td);
+  }catch(e){}
+}
 
 var LMAP={'시그넘':'SYGNUM','퓨어크래프트 스트롱':'PURE KRAFT STRONG','퓨어크래프트':'PURE KRAFT','80 애슬레틱스':'80 ATHLETICS','애슬레틱스':'80 ATHLETICS','프리시전':'PRECISION','뉴 모션':'NATURAL MOTION','내추럴 모션':'NATURAL MOTION','프로':'PRO','파워':'POWER','듀얼스':'DUALS','멀티스테이션':'MULTI-STATION','애니멀':'ANIMAL','플레이트 로디드':'PLATE LOADED','셀렉터라이즈드':'SELECTORISED','모노리스':'MONOLITH','핏에보':'FIT EVO','핏 에보':'FIT EVO','셀렉션':'SEC','프리웨이트 HP':'FREEWEIGHT HP','프리웨이트 스페셜':'FREEWEIGHT SPECIAL','프리웨이트 원':'FREEWEIGHT ONE','프리웨이트':'FREEWEIGHT HP','에볼루션':'EVOLUTION','에볼브':'EVOLUTION','프로디지':'PRODIGY','오라':'AURA','울트라':'ULTRA','울티마':'ULTRA','버사':'VERSA','매그넘':'MAGNUM','바시티':'VARSITY','제네시스':'GENESIS','에픽':'EPIC','클래식':'','짐 라인':''};
 var BMAP={'짐80':'GYM80','왓슨':'WATSON','아틀란티스':'ATLANTIS','파나타':'PANATTA','프라임':'PRIME','매트릭스':'MATRIX','시타델':'CITADEL','부티빌더':'BOOTY BUILDER','프리모션':'FREEMOTION','gym80':'GYM80','watson':'WATSON','atlantis':'ATLANTIS','panatta':'PANATTA','prime':'PRIME','matrix':'MATRIX','freemotion':'FREEMOTION'};
@@ -1249,7 +1292,7 @@ function matchQ(m,q){
       ||(m.ln||'').toLowerCase().indexOf(q)>=0;
 }
 function renderList(){
-  var h='',q=String(UI.q||'').trim().toLowerCase(),i,j;
+  var h=bkBanner(),q=String(UI.q||'').trim().toLowerCase(),i,j;
   if(q){
     var tot=0;
     for(i=0;i<PARTS.length;i++){
@@ -1305,6 +1348,16 @@ function renderList(){
     }
   }
   document.getElementById('list').innerHTML=h;
+}
+/* 백업이 오래되면 상단에 눈에 띄는 배너를 띄움 */
+function bkBanner(){
+  if(!hasLogs())return '';
+  var d=bkAge();
+  if(d<7)return '';
+  return '<button class="bkwarn'+(d>=21?' hot':'')+'" data-act="godata">'
+    +'<b>백업 '+d+'일 경과</b>'
+    +'<i>이 기기에만 저장됨 — 캐시를 지우면 기록이 사라짐</i>'
+    +'<em>저장</em></button>';
 }
 function rowHtml(m,noBadge){
   var open=UI.open===m.i,right,sub='',dtag='';
@@ -1377,7 +1430,7 @@ function panelHtml(m){
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
-        +(cdRow?'':'<span class="sv">'+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
+        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
     }
@@ -1685,6 +1738,7 @@ function renderSheet(){
       +'<textarea class="ta" id="ioTa">'+esc(bkText())+'</textarea>'
       +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">Copy</button>'
       +'<button class="okbtn" data-act="ap">Apply Input</button></div>'
+      +(snapInfo()?'<div class="note" style="margin-top:8px">자동 스냅샷 '+snapInfo()+' — 본 데이터가 깨졌을 때 <b class="xlink" data-act="snapld">불러오기</b></div>':'')
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
@@ -1939,7 +1993,7 @@ function openRow(id){
   UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
   if(!UI.draft[id]){
     var ts=sessOn(id,UI.wd),c=[];
-    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,3));
+    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,4));
     UI.draft[id]=c;
   }
   var d=UI.draft[id],src=null;
@@ -1966,11 +2020,20 @@ function addSet(){
   UI.rirHold=null;
   /* 마지막 세트를 지우면 delSet이 draft 배열을 제거하므로 재생성함 */
   if(!UI.draft[UI.open])UI.draft[UI.open]=[];
+  /* 휴식 기록: 타이머가 돌고 앞선 세트가 있으면 경과 초를 4번째 칸에 담음 */
+  if(!cd&&UI.esIdx===null&&UI.draft[UI.open].length&&TMR.ts){
+    var rs=Math.round(tmrMs()/1000);
+    if(rs>=5&&rs<=3600){while(set.length<3)set.push(null);set[3]=rs;}
+  }
   if(UI.esIdx!==null&&UI.draft[UI.open][UI.esIdx]){
+    var prevR=UI.draft[UI.open][UI.esIdx][3];
+    if(prevR!=null&&!cd){while(set.length<3)set.push(null);set[3]=prevR;}
     UI.draft[UI.open][UI.esIdx]=set;
     UI.esIdx=null;
   }else{
     UI.draft[UI.open].push(set);
+    /* 세트를 넣으면 휴식 타이머를 자동으로 다시 시작 */
+    if(!cd){TMR.b=0;TMR.ts=Date.now();tmrMark=0;tmrSave();tmrDraw();restNotify();}
   }
   UI.dirty[UI.open]=true;
   saveDraft();render();
@@ -2046,7 +2109,7 @@ function saveMachine(){
     render();
     return;
   }
-  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,3));
+  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,4));
   upsertSess(id,UI.wd,copy);
   save();
   delete UI.draft[id];UI.dirty[id]=false;saveDraft();
@@ -2134,6 +2197,10 @@ var TMR={b:0,ts:0};
 })();
 function tmrSave(){if(!canLS)return;try{localStorage.setItem(KEY+'.t',JSON.stringify(TMR));}catch(e){}}
 function tmrMs(){return TMR.b+(TMR.ts?Date.now()-TMR.ts:0);}
+function tmrShort(sec){
+  var m=Math.floor(sec/60),x=sec%60;
+  return m?(m+'′'+(x?(x<10?'0':'')+x+'″':'')):(x+'″');
+}
 function tmrFmt(ms){
   var t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;
   function z(n){return (n<10?'0':'')+n;}
@@ -2593,12 +2660,34 @@ function heroProg(){
   }
   return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN};
 }
+/* 디로드 감지 — 진전이 멈췄는데 RIR까지 내려가면 회복 부족으로 봄 */
+function deloadSignal(){
+  var hits=[],names=[],i;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];if(isCard(m.p))continue;
+    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
+    if(a.length<3)continue;
+    if(Math.round((new Date(a[0].d)-new Date(a[2].d))/86400000)>21)continue;
+    var g=e1rmGain(a[0].s,a[2].s);
+    if(!g||g.pct>0.5)continue;              /* 진전이 있으면 대상 아님 */
+    var r0=rirAvg(a[0].s),r2=rirAvg(a[2].s);
+    if(r0===null||r2===null)continue;        /* RIR 미입력이면 판정 보류 */
+    if(r2-r0>=1){hits.push({n:m.n,d:Math.round((r2-r0)*10)/10,p:g.pct});names.push(m.n);}
+  }
+  if(hits.length<2)return null;
+  hits.sort(function(x,y){return y.d-x.d;});
+  return {n:hits.length,top:hits[0],names:names.slice(0,3)};
+}
 function heroSignal(){
   var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
   var pr=heroProg(),st=heroStreak(),ws=wkSets(),sc=subCnt(),pl=paceLeft();
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   var sub='측면 '+(sc.sd||0)+'/'+sdT+' · 광배 '+(sc.lt||0)+'/'+ltT+(st>0?' · 연속 '+st+'일':'');
   if(pr.down>0)return {lv:'bad',tag:'퇴행 감지',txt:pr.regName+' 세션 평균 e1RM '+pr.regTxt+' 연속 하락 — 근손실 위험 신호임',sub:sub,rec:'prog'};
+  var dl=deloadSignal();
+  if(dl)return {lv:'bad',tag:'디로드 권장',
+    txt:dl.n+'종목이 진전 없이 RIR만 하락 — '+dl.top.n+' 여유 '+dl.top.d+'회 감소로 회복 부족 신호임',
+    sub:sub,rec:'recov'};
   var over='';for(var k in ws)if(WTGT[k]&&ws[k]>=WTGT[k]+3){over=k;break;}
   if(st>=3)return {lv:'bad',tag:'회복 부채',txt:'근력 훈련 '+st+'일 연속 — 휴식일 배치 요망',sub:sub,rec:'recov'};
   if(over)return {lv:'bad',tag:'회복 부채',txt:(PN[over]||over)+' '+ws[over]+'세트로 목표를 3세트 이상 초과함',sub:sub,rec:'recov'};
@@ -4066,6 +4155,16 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
+    case 'godata':UI.dtab='data';UI.sheet='data';render();break;
+    case 'snapld':
+      (function(){
+        if(!canLS)return;
+        var raw='';try{raw=localStorage.getItem(KEY+'.snap')||'';}catch(e){}
+        if(!raw){toast('스냅샷 없음');return;}
+        var el=document.getElementById('ioTa');
+        if(el){el.value=raw;toast('스냅샷을 입력칸에 불러옴 — <em>Apply Input</em>으로 복원');}
+      })();
+      break;
     case 'ctog':UI.cutOpen=!UI.cutOpen;render();break;
     case 'aibgx':
       if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(eX){}}
