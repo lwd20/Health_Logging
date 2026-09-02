@@ -318,27 +318,39 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ref{min-width:0;max-width:100%}
 .ref span{font-size:11.5px;color:var(--mut);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.shsub{font-weight:400;letter-spacing:0;color:var(--dim);font-size:9.5px;margin-left:6px}
-.pickwrap{border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);background:var(--btn-bg);overflow:hidden}
-.pickwrap.open{border-color:rgba(var(--acc-rgb),.5);background:rgba(var(--acc-rgb),.06)}
-.skpick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 13px;border:0;background:none;text-align:left}
-.skpick b{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.skpick i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--chrome)}
-.skpick:active{opacity:.6}
-.pickbody{padding:0 10px 10px;border-top:1px solid rgba(var(--tx-rgb),.09)}
-.gridchips{display:grid;gap:6px;margin-top:10px}
+.segchips{gap:6px;margin:0 0 2px}
+.segchips .chip{padding:11px 4px;font-size:10.5px;letter-spacing:.03em}
+.fgrp{margin-top:20px}
+.ft{font-size:8.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--chrome);opacity:.75;margin:0 2px 2px}
+.frow{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:6px 2px;border-bottom:1px solid rgba(var(--tx-rgb),.07);text-align:left;background:none;border-left:0;border-right:0;border-top:0}
+.frow:last-of-type{border-bottom:0}
+.fk{flex:0 0 62px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:-.01em}
+.fv{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.fin{flex:1;min-width:0;text-align:right;font-size:14px;font-weight:600;color:var(--tx);background:none;border:0;padding:0}
+.fin::placeholder{color:var(--dim);font-weight:400}
+.frow.chiprow .fv{gap:5px}
+.frow.chiprow .wrapchips{gap:5px;justify-content:flex-end}
+.frow.chiprow .chip{padding:7px 11px;font-size:10.5px;font-weight:700}
+.frow.pk .fv b{font-size:13px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow.pk .fv u{flex:0 0 auto;text-decoration:none;font-size:9.5px;color:var(--dim);letter-spacing:.02em}
+.frow.pk .fv i{flex:0 0 auto;font-style:normal;font-size:13px;color:var(--chrome);width:14px;text-align:center}
+.frow.pk:active{opacity:.6}
+.frow.pk.on{border-bottom-color:transparent}
+.frow.pk.on .fv i{color:var(--sig)}
+.pickbody{margin:2px 0 4px;padding:2px 11px 11px;border-radius:var(--rad-m);background:rgba(var(--tx-rgb),.04)}
+.gridchips{display:grid;grid-auto-rows:minmax(42px,1fr);gap:5px;margin-top:9px}
 .gridchips.c2{grid-template-columns:1fr 1fr}
 .gridchips.c3{grid-template-columns:1fr 1fr 1fr}
-.gridchips .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;padding:9px 6px;text-align:center}
-.gridchips .chip span,.gridchips .chip i{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pickbody .chip{font-size:11px;font-weight:600;border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08);letter-spacing:0}
-.pickbody .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
-.pickbody .chip i{font-size:8.5px;opacity:.6;margin:0}
+.gridchips .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;padding:8px 6px;text-align:center;font-size:11px;font-weight:600;letter-spacing:0;background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08)}
+.gridchips .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.gridchips.c2>.chip:last-child:nth-child(odd){grid-column:1/-1}
+.gridchips.c3>.chip:last-child:nth-child(3n+1){grid-column:1/-1}
+.gridchips.c3>.chip:last-child:nth-child(3n+2){grid-column:span 2}
+.gridchips .chip i{font-size:8.5px;opacity:.6;margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pickbody .namerow{margin-top:9px}
 .pickbody .namein{padding:9px 11px;border-radius:var(--rad-s);background:var(--sunk);border-color:rgba(var(--tx-rgb),.08)}
 .pickbody .namein input{font-size:13px}
 .pickbody .note{margin-top:9px;font-size:10.5px}
-.skpick:active{opacity:.65}
 .thcols{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
 .thcol{min-width:0}
 .thsec{margin:2px 2px 7px}
@@ -1698,15 +1710,17 @@ function chipRow(items, act, cur, cols){
   }
   return h + '</div>';
 }
-/* 접었다 펴는 선택 행 — 평소엔 현재 값 한 줄만 보이게 함 */
-function pickRow(key, label, sub, cur, body){
+/* 라벨과 값을 한 줄에 두는 폼 행 */
+function fRow(k, v, cls){
+  return '<div class="frow' + (cls ? ' ' + cls : '') + '"><span class="fk">' + k + '</span><span class="fv">' + v + '</span></div>';
+}
+/* 접었다 펴는 선택 행 */
+function pickRow(key, label, cur, hint, body){
   var open = (UI.pickOpen === key);
-  return '<div class="sh-l">' + label + (sub ? '<span class="shsub">' + sub + '</span>' : '') + '</div>'
-    + '<div class="pickwrap' + (open ? ' open' : '') + '">'
-    + '<button class="skpick" data-act="pkop" data-v="' + key + '">'
-    + '<b>' + esc(cur) + '</b><i>' + (open ? '접기' : '변경') + '</i></button>'
-    + (open ? ('<div class="pickbody">' + body + '</div>') : '')
-    + '</div>';
+  return '<button class="frow pk' + (open ? ' on' : '') + '" data-act="pkop" data-v="' + key + '">'
+    + '<span class="fk">' + label + '</span>'
+    + '<span class="fv"><b>' + esc(cur) + '</b>' + (hint ? '<u>' + hint + '</u>' : '') + '<i>' + (open ? '\u2715' : '\u203a') + '</i></span></button>'
+    + (open ? ('<div class="pickbody">' + body + '</div>') : '');
 }
 function txtRow(id, ph, val){
   return '<div class="namerow"><span class="namein"><input id="' + id + '" enterkeyhint="done" placeholder="' + ph
@@ -1717,48 +1731,49 @@ function exFormHtml(isEdit){
   var i, h = '';
   var cd = UI.addPart === 'CARDIO';
 
-  h += '<div class="sh-l">Part</div><div class="wrapchips">';
+  /* 부위 — 최상위 분류라 전체 폭 */
+  h += '<div class="gridchips c3 segchips">';
   for (i = 0; i < PARTS.length; i++)
     h += '<button class="chip' + (UI.addPart === PARTS[i] ? ' on' : '') + '" data-act="pp" data-v="' + PARTS[i] + '">' + PARTS[i] + '</button>';
   h += '</div>';
 
-  h += '<div class="sh-l">Name</div>'
-    + '<div class="namerow"><span class="namein"><input id="addName" enterkeyhint="done" placeholder="종목 이름" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '"></span></div>';
+  h += '<div class="fgrp"><div class="ft">종목</div>';
+  h += fRow('이름', '<input id="addName" class="fin" enterkeyhint="done" placeholder="종목 이름" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '">');
 
-  /* 브랜드 */
   var bl = brandListAll(), bItems = [{ v: '', l: '없음' }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
-  h += pickRow('brand', 'Brand', '', normBrand(UI.addBrand) || '없음',
+  h += pickRow('brand', '브랜드', normBrand(UI.addBrand) || '없음', '',
     chipRow(bItems, 'pb', normBrand(UI.addBrand), 2) + txtRow('addBrand', '목록에 없으면 직접 입력', UI.addBrand));
 
-  /* 라인 — 선택한 브랜드에 종속 */
   var ll = lineListOf(UI.addBrand), lItems = [{ v: '', l: '없음' }];
   for (i = 0; i < ll.length; i++) lItems.push({ v: ll[i], l: ll[i] });
-  h += pickRow('line', 'Line', normBrand(UI.addBrand) ? esc(normBrand(UI.addBrand)) + ' 계열' : '브랜드를 먼저 고르면 목록이 나옴',
-    cleanLine(UI.addLine) || '없음',
+  h += pickRow('line', '라인', cleanLine(UI.addLine) || '없음', ll.length ? '' : '목록 없음',
     (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine), 2) : '') + txtRow('addLine', '목록에 없으면 직접 입력', UI.addLine));
+  h += '</div>';
 
   if (!cd) {
+    h += '<div class="fgrp"><div class="ft">기록 설정</div>';
     var steps = [1, 2.5, 5], sItems = [];
-    for (i = 0; i < steps.length; i++) sItems.push({ v: steps[i], l: fmtW(steps[i]) + 'kg' });
+    for (i = 0; i < steps.length; i++) sItems.push({ v: steps[i], l: fmtW(steps[i]) });
     var rxs = [10, 12, 15, 20], rItems = [];
     for (i = 0; i < rxs.length; i++) rItems.push({ v: rxs[i], l: String(rxs[i]) });
-    h += '<div class="sh-l">Weight step <span class="shsub">± 증량 단위</span></div>' + chipRow(sItems, 'ps', UI.editStep)
-      + '<div class="sh-l">Reps max <span class="shsub">점증 판정 상한</span></div>' + chipRow(rItems, 'px', (UI.editRx || 12));
+    h += fRow('증량 단위', chipRow(sItems, 'ps', UI.editStep), 'chiprow')
+      + fRow('반복 상한', chipRow(rItems, 'px', (UI.editRx || 12)), 'chiprow');
 
-    h += pickRow('mt', 'Machine type', '', UI.editAs ? '어시스트 · 무게만큼 체중 보조' : '일반 · 무게가 곧 부하',
+    h += pickRow('mt', '머신 종류', UI.editAs ? '어시스트' : '일반', UI.editAs ? '체중 보조' : '무게가 곧 부하',
       chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0, 2)
       + (UI.editAs ? '<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중(' + fmtW(BW) + 'kg)에서 뺀 값으로 계산함.</div>' : ''));
 
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
     var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : '미분류' }];
     for (i = 0; i < SUBS.length; i++) kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
-    h += pickRow('sk', 'Primary muscle', '세부 타겟 집계 기준',
-      UI.editSk ? subName(UI.editSk) : ('Auto · ' + (skAuto ? subName(skAuto) : '미분류')),
+    h += pickRow('sk', '주동근', UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : '미분류'),
+      UI.editSk ? '직접 지정' : '자동',
       chipRow(kItems, 'psk', UI.editSk, 3));
+    h += '</div>';
   }
 
-  h += '<button class="savebtn' + (UI.addName.trim() ? '' : ' dis') + '" data-act="' + (isEdit ? 'em' : 'am') + '" style="margin-top:18px;width:100%;flex:none">' + (isEdit ? 'Save' : 'Add') + '</button>';
+  h += '<button class="savebtn' + (UI.addName.trim() ? '' : ' dis') + '" data-act="' + (isEdit ? 'em' : 'am') + '" style="margin-top:20px;width:100%;flex:none">' + (isEdit ? 'Save' : 'Add') + '</button>';
   return h;
 }
 
