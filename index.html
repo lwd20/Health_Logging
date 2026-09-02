@@ -313,7 +313,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr span{font-size:13.5px;color:var(--mut)}
 .setr.editing{background:rgba(var(--acc-rgb),.09);border-radius:8px;box-shadow:inset 0 0 0 1px rgba(var(--acc-rgb),.3)}
 .plusbtn.upd{background:rgba(var(--acc-rgb),.14);border-color:rgba(var(--acc-rgb),.45);color:var(--acc-br)}
-.cancelbtn{width:100%;height:38px;margin-top:7px;border-radius:9px;background:transparent;border:0;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.cancelbtn{width:100%;height:36px;margin-top:8px;border-radius:9px;background:transparent;border:0;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .cancelbtn:active{color:var(--tx)}
 .setr .rir{flex:0 0 auto;width:30px;height:30px;margin-right:11px;border:1px solid transparent;border-radius:50%;font-family:var(--mono);letter-spacing:.02em;background:transparent;display:flex;align-items:center;justify-content:center}
 .setr .rir b{font-size:13px;font-weight:700;line-height:1}
@@ -333,10 +333,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ctr input{text-align:center;font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;min-width:0}
 .ctr .lu{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;color:var(--dim);padding-right:9px;letter-spacing:.04em}
 
-.plusbtn{width:100%;height:46px;margin-top:10px;border-radius:var(--rad-m);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.btnrow{display:flex;gap:8px;margin-top:12px}
+.plusbtn{flex:1.5 1 0;min-width:0;height:48px;border-radius:var(--rad-m);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .plusbtn:active{color:var(--tx);background:rgba(var(--tx-rgb),.1)}
 .plusbtn.dis{opacity:.35}
-.savebtn{width:100%;height:50px;margin-top:12px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);color:var(--on-acc);font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.savebtn{flex:1 1 0;min-width:0;height:48px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);color:var(--on-acc);font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .savebtn:active{background:var(--acc-dk);box-shadow:none}
 .savebtn.dis{background:rgba(var(--tx-rgb),.05);color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.08);box-shadow:none}
 
@@ -1388,9 +1389,11 @@ function panelHtml(m){
     h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
   }
   var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
-  h+='<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update set '+(UI.esIdx+1):'＋ Set')+'</button>'
+  h+='<div class="btnrow">'
+    +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update '+(UI.esIdx+1):'＋ Set')+'</button>'
+    +'<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>'
+    +'</div>'
     +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'');
-  h+='<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>';
   /* 하단 */
   var armed=UI.arm==='dm'+id;
   h+='<div class="prow">'
@@ -4482,7 +4485,8 @@ function hintRefresh(){
 function syncBtns(){
   var b=document.querySelector('.plusbtn');if(!b)return;
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
-  b.className='plusbtn'+(rdy?'':' dis');
+  var wasUpd=b.classList.contains('upd');
+  b.className='plusbtn'+(rdy?'':' dis')+(wasUpd?' upd':'');
 }
 
 ensureCardio();
