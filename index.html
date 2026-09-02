@@ -181,7 +181,7 @@ header{position:relative;display:flex;align-items:flex-start;justify-content:spa
 header>div:first-child{flex:1 1 auto;min-width:0}
 h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .h1sub{display:block;font-size:8.5px;font-weight:700;letter-spacing:.18em;color:var(--chrome);opacity:.8;margin-bottom:6px}
-.hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:7px;display:flex;align-items:center;flex-wrap:wrap;gap:2px;max-width:100%}
+.hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin:4px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;gap:2px;max-width:100%}
 .hdate em{color:var(--chrome);font-weight:700;margin-left:3px}
 .sh-l.fold{cursor:pointer;display:flex;align-items:center;gap:6px}
 .sh-l.fold i{font-style:normal;font-size:9px;color:var(--dim)}
@@ -363,8 +363,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ctr{flex:1;display:flex;align-items:center;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-s);padding:3px}
 .ctr button{width:42px;height:46px;font-size:19px;color:var(--mut);flex:0 0 auto;border-radius:8px}
 .ctr button:active{color:var(--tx);background:rgba(var(--tx-rgb),.06)}
-.ctr input{text-align:center;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;min-width:0}
-.ctr .lu{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;color:var(--dim);padding-right:9px;letter-spacing:.04em}
+.ctr input{flex:1 1 auto;text-align:center;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;min-width:0}
+.cwrap{flex:1;min-width:0}
+.clab{display:block;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--dim);margin:0 0 6px 3px;font-variant-numeric:tabular-nums}
 
 .inzone{margin-top:14px;padding:12px 12px 13px;border-radius:var(--rad-m);border:var(--bw) solid rgba(var(--tx-rgb),.08);background:rgba(var(--tx-rgb),.035)}
 .izl{font-size:8.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
@@ -426,7 +427,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .exname{display:flex;align-items:baseline;gap:9px;font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--tx);line-height:1.15}
 .exname i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--chrome);opacity:.75;white-space:nowrap}
 .exsub{margin-top:7px;font-family:var(--mono);font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px}
-.exsub em{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.exsub em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--dim);font-variant-numeric:tabular-nums}
 .exsub u{text-decoration:none;color:var(--dim)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:11px;padding-top:12px;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .stc{min-width:0}
@@ -744,7 +745,6 @@ html{color-scheme:dark}
     <div>
       <span class="h1sub">Progressive Overload</span>
       <h1>PLUS2.5</h1>
-      <div class="hdate" id="hdate"></div>
     </div>
     <span class="hbtns">
       <button class="hjrn" data-act="ai">Analyze</button>
@@ -753,6 +753,7 @@ html{color-scheme:dark}
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
   </header>
+  <div class="hdate" id="hdate"></div>
   <nav id="chips"></nav>
   <div class="trow" id="trow">
     <span class="tdig"><i>Recovery</i><b id="tmr">00:00</b></span>
@@ -1473,7 +1474,8 @@ function lastLine(m){
   if(!p)return '<div class="exsub"><span class="none">첫 기록</span></div>';
   var cd=isCard(m.p);
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
-    +(cd?cardDetail(p.s):(fmtW(topOfM(m,p.s))+'kg <u>'+detailOf(p.s)+'</u>'))+'</div>';
+    +(cd?('<span>'+cardDetail(p.s)+'</span>')
+        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailOf(p.s)+'</u>'))+'</div>';
 }
 function panelHtml(m){
   var id=m.i,draft=UI.draft[id]||[],h='<div class="panel">';
@@ -1492,7 +1494,7 @@ function panelHtml(m){
     for(var j=0;j<draft.length;j++){
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
-        +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
+        +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
@@ -1524,18 +1526,21 @@ function panelHtml(m){
   h+='<div class="inzone">'
     +'<div class="izl">'+(isAssist(m)?'보조 무게 · 낮을수록 고강도':'입력')+'</div>'
     +'<div class="inrow">'
-    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
-    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
+    +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
+    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><button data-act="w+">＋</button></div></div>'
+    +'<div class="cwrap"><span class="clab">'+(cd?'SPD·LV':'REPS')+'</span>'
+    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><button data-act="r+">＋</button></div></div>'
     +'</div>';
   if(cd){
     h+='<div class="inrow" style="margin-top:8px">'
-      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><i class="lu">incline %</i><button data-act="i+">＋</button></div>'
+      +'<div class="cwrap"><span class="clab">INCLINE %</span>'
+      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><button data-act="i+">＋</button></div></div>'
       +'</div>';
     h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
   }
   var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
   h+='<div class="btnrow">'
-    +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update '+(UI.esIdx+1):'＋ Set')+'</button>'
+    +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update':'＋ Set')+'</button>'
     +'<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>'
     +'</div>'
     +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'')
