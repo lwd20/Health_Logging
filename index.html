@@ -249,6 +249,9 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .trow.mark .tdig{border-color:rgba(var(--sig-rgb),.55)}
 .trow.mark .tdig b{color:var(--sig)}
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
+.mbtn.qbtn{width:38px;font-size:0}
+.mbtn.qbtn::before{content:'?';display:flex;align-items:center;justify-content:center;width:21px;height:21px;border:1px solid rgba(var(--tx-rgb),.22);border-radius:50%;font-size:11px;font-weight:800;line-height:1}
+.mbtn.qbtn:active::before{border-color:var(--chrome);color:var(--chrome)}
 .mbtn:active{color:var(--tx)}
 .mbtn.warn::after{content:'';position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--sig)}
 nav{display:flex;gap:5px;margin-top:14px;border-top:1px solid var(--line);padding:12px 18px 11px;overflow-x:auto;scrollbar-width:none}
@@ -743,8 +746,8 @@ html{color-scheme:dark}
     </div>
     <span class="hbtns">
       <button class="hjrn" data-act="ai">Analyze</button>
-      <button class="hjrn" data-act="help">Help</button>
       <button class="hjrn" data-act="jn">Log</button>
+      <button class="mbtn qbtn" data-act="help" aria-label="Help">?</button>
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
   </header>
