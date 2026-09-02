@@ -326,12 +326,16 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .skpick i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--chrome)}
 .skpick:active{opacity:.6}
 .pickbody{padding:0 10px 10px;border-top:1px solid rgba(var(--tx-rgb),.09)}
-.pickbody .wrapchips{gap:4px;margin-top:10px}
-.pickbody .chip{padding:6px 10px;font-size:10.5px;font-weight:600;border-radius:999px;background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08)}
+.gridchips{display:grid;gap:6px;margin-top:10px}
+.gridchips.c2{grid-template-columns:1fr 1fr}
+.gridchips.c3{grid-template-columns:1fr 1fr 1fr}
+.gridchips .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;padding:9px 6px;text-align:center}
+.gridchips .chip span,.gridchips .chip i{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickbody .chip{font-size:11px;font-weight:600;border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08);letter-spacing:0}
 .pickbody .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
-.pickbody .chip i{font-size:8.5px;opacity:.7}
+.pickbody .chip i{font-size:8.5px;opacity:.6;margin:0}
 .pickbody .namerow{margin-top:9px}
-.pickbody .namein{padding:8px 11px;border-radius:var(--rad-s);background:var(--sunk);border-color:rgba(var(--tx-rgb),.08)}
+.pickbody .namein{padding:9px 11px;border-radius:var(--rad-s);background:var(--sunk);border-color:rgba(var(--tx-rgb),.08)}
 .pickbody .namein input{font-size:13px}
 .pickbody .note{margin-top:9px;font-size:10.5px}
 .skpick:active{opacity:.65}
@@ -1685,14 +1689,14 @@ function brandListAll(){
   }
   return list;
 }
-function chipRow(items, act, cur, extra){
-  var h = '<div class="wrapchips">', i;
+function chipRow(items, act, cur, cols){
+  var h = '<div class="' + (cols ? 'gridchips c' + cols : 'wrapchips') + '">', i;
   for (i = 0; i < items.length; i++) {
     var v = items[i].v, l = items[i].l, sub = items[i].s;
     h += '<button class="chip' + (String(cur) === String(v) ? ' on' : '') + '" data-act="' + act + '" data-v="' + esc(String(v)) + '">'
       + esc(l) + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</button>';
   }
-  return h + (extra || '') + '</div>';
+  return h + '</div>';
 }
 /* 접었다 펴는 선택 행 — 평소엔 현재 값 한 줄만 보이게 함 */
 function pickRow(key, label, sub, cur, body){
@@ -1725,14 +1729,14 @@ function exFormHtml(isEdit){
   var bl = brandListAll(), bItems = [{ v: '', l: '없음' }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
   h += pickRow('brand', 'Brand', '', normBrand(UI.addBrand) || '없음',
-    chipRow(bItems, 'pb', normBrand(UI.addBrand)) + txtRow('addBrand', '직접 입력', UI.addBrand));
+    chipRow(bItems, 'pb', normBrand(UI.addBrand), 2) + txtRow('addBrand', '목록에 없으면 직접 입력', UI.addBrand));
 
   /* 라인 — 선택한 브랜드에 종속 */
   var ll = lineListOf(UI.addBrand), lItems = [{ v: '', l: '없음' }];
   for (i = 0; i < ll.length; i++) lItems.push({ v: ll[i], l: ll[i] });
   h += pickRow('line', 'Line', normBrand(UI.addBrand) ? esc(normBrand(UI.addBrand)) + ' 계열' : '브랜드를 먼저 고르면 목록이 나옴',
     cleanLine(UI.addLine) || '없음',
-    (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine)) : '') + txtRow('addLine', '직접 입력', UI.addLine));
+    (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine), 2) : '') + txtRow('addLine', '목록에 없으면 직접 입력', UI.addLine));
 
   if (!cd) {
     var steps = [1, 2.5, 5], sItems = [];
@@ -1743,7 +1747,7 @@ function exFormHtml(isEdit){
       + '<div class="sh-l">Reps max <span class="shsub">점증 판정 상한</span></div>' + chipRow(rItems, 'px', (UI.editRx || 12));
 
     h += pickRow('mt', 'Machine type', '', UI.editAs ? '어시스트 · 무게만큼 체중 보조' : '일반 · 무게가 곧 부하',
-      chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0)
+      chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0, 2)
       + (UI.editAs ? '<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중(' + fmtW(BW) + 'kg)에서 뺀 값으로 계산함.</div>' : ''));
 
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
@@ -1751,7 +1755,7 @@ function exFormHtml(isEdit){
     for (i = 0; i < SUBS.length; i++) kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
     h += pickRow('sk', 'Primary muscle', '세부 타겟 집계 기준',
       UI.editSk ? subName(UI.editSk) : ('Auto · ' + (skAuto ? subName(skAuto) : '미분류')),
-      chipRow(kItems, 'psk', UI.editSk));
+      chipRow(kItems, 'psk', UI.editSk, 3));
   }
 
   h += '<button class="savebtn' + (UI.addName.trim() ? '' : ' dis') + '" data-act="' + (isEdit ? 'em' : 'am') + '" style="margin-top:18px;width:100%;flex:none">' + (isEdit ? 'Save' : 'Add') + '</button>';
