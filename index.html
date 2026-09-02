@@ -268,7 +268,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .acc{display:grid;grid-template-rows:0fr;transition:grid-template-rows .18s ease}
 .mc.on .acc{grid-template-rows:1fr}
 .accin{overflow:hidden}
-.panel{background:rgba(var(--tx-rgb),.05);border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-s);padding:12px;margin:2px 0 13px;box-shadow:var(--elev-p)}
+.panel{background:transparent;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
 .empty{font-size:12px;color:var(--dim);text-align:center;padding:13px 0;letter-spacing:.06em}
 .pdate{font-family:var(--mono);font-size:10.5px;color:var(--sig);font-weight:700;margin-bottom:9px;letter-spacing:.06em}
 
@@ -379,7 +379,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .exitcard .row2 button{flex:1;padding:11px 0;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.14em;border:1px solid var(--line);background:var(--inset);color:var(--tx)}
 .exitcard .row2 button.pri{background:linear-gradient(180deg,var(--acc-sf),var(--acc-dk));color:var(--on-acc);border-color:var(--acc-dk)}
 .grab::before{content:'';display:block;width:44px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
-.sh-t{font-size:12px;font-weight:900;margin-bottom:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
+.sh-t{font-size:12px;font-weight:800;margin-bottom:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx)}
+.sh-t.exh{display:flex;align-items:baseline;gap:9px;font-size:15px;letter-spacing:.02em;text-transform:none;font-weight:800;margin-bottom:12px}
+.sh-t.exh i{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--chrome);opacity:.8}
 .sh-l{font-size:9.5px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
 .console{margin-top:6px;background:linear-gradient(180deg,var(--plate2),var(--plate));border:1px solid var(--edge);border-radius:6px;padding:2px 14px 13px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
@@ -1316,7 +1318,6 @@ function rowHtml(m,noBadge){
     +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+dtag+'</span>'+sub+'</span>'
     +'<span class="rr">'+right+'</span></button>'
     +'</div>'
-    +'<div class="acc"><div class="accin">'+(open?panelHtml(m):'')+'</div></div>'
     +'</section>';
 }
 function panelHtml(m){
@@ -1473,6 +1474,11 @@ function lineChips(){
 }
 
 /* ── 시트 ── */
+/* 종목 시트를 닫을 때 작성 중인 초안을 정리하고 선택을 해제함 */
+function closeEx(){
+  if(UI.open){normDraft(UI.open);saveDraft();}
+  UI.open=null;UI.hist=false;UI.esIdx=null;
+}
 function renderSheet(){
   var ov=document.getElementById('ov'),sh=document.getElementById('sheet');
   if(!UI.sheet){
@@ -1483,6 +1489,12 @@ function renderSheet(){
   }
   navPush();
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
+  if(UI.sheet==='ex'){
+    var exm=machById(UI.open);
+    if(!exm){UI.sheet=null;renderSheet();return;}
+    h+='<div class="sh-t exh">'+esc(exm.n)+(exm.b?'<i>'+esc(exm.b)+(exm.ln?' '+esc(exm.ln):'')+'</i>':'')+'</div>';
+    h+=panelHtml(exm);
+  }
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
     h+=heroHtml();
@@ -1992,7 +2004,7 @@ function saveMachine(){
     save();
     delete UI.draft[id];delete UI.dirty[id];saveDraft();
     var m0=machById(id);
-    UI.open=null;UI.hist=false;UI.esIdx=null;
+    UI.open=null;UI.hist=false;UI.esIdx=null;UI.sheet=null;
     buzz(15);toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)+' session');
     render();
     return;
@@ -2002,7 +2014,7 @@ function saveMachine(){
   save();
   delete UI.draft[id];UI.dirty[id]=false;saveDraft();
   var m=machById(id);
-  UI.open=null;UI.hist=false;UI.esIdx=null;
+  UI.open=null;UI.hist=false;UI.esIdx=null;UI.sheet=null;
   var dl=(UI.wd===today())?'':md(UI.wd)+' · ';
   buzz(15);toast('<em>Saved</em> '+dl+esc(m?m.n:'')+' · '+copy.length+' sets');
   render();
@@ -3732,6 +3744,7 @@ function exitAsk(on){
     if(NAVSKIP){NAVSKIP=false;return;}
     if(UI.sheet){
       NAV=false;
+      if(UI.open)closeEx();
       UI.sheet=null;UI.arm=null;render();
       return;
     }
@@ -3776,6 +3789,7 @@ function grabBind(){
     sh.style.transform='';
     if(dy>90){
       navDrop();
+      if(UI.open)closeEx();
       UI.sheet=null;UI.arm=null;render();
     }
   }
@@ -3845,7 +3859,7 @@ function delMachine(id){
   S.m.splice(idx,1);
   delete S.l[id];
   delete UI.draft[id];delete UI.dirty[id];
-  if(UI.open===id)UI.open=null;
+  if(UI.open===id){UI.open=null;if(UI.sheet==='ex')UI.sheet=null;}
   UI.arm=null;
   save();saveDraft();render();
   buzz(20);toast('<em>Deleted</em> <button class="tundo" data-act="un">UNDO</button>',6000);
@@ -3928,14 +3942,7 @@ document.addEventListener('click',function(e){
       if(qi2){qi2.value='';qi2.focus();}
       render();break;
     case 'tg':
-      if(UI.open===v){normDraft(v);saveDraft();UI.open=null;UI.hist=false;render();}
-      else{
-        openRow(v);render();
-        setTimeout(function(){
-          var el=document.querySelector('.mc.on');
-          if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',behavior:'smooth'});
-        },60);
-      }
+      openRow(v);UI.sheet='ex';render();
       break;
     case 'd-':shiftDay(-1);break;
     case 'd+':shiftDay(1);break;
@@ -4029,7 +4036,9 @@ document.addEventListener('click',function(e){
       render();
       break;
     case 'godiet':UI.dtab='diet';UI.sheet='data';render();break;
-    case 'cl':UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
+    case 'cl':
+      if(UI.open)closeEx();
+      UI.sheet=null;UI.arm=null;GMOPEN=false;render();break;
     case 'exitno':exitAsk(false);break;
     case 'exityes':
       exitAsk(false);
