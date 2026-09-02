@@ -457,7 +457,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .sigtag{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.16em;padding:2px 7px;border-radius:2px;background:rgba(var(--sig-rgb),.14);border:1px solid rgba(var(--sig-rgb),.5);color:var(--neg)}
 .sigtag.warn2{background:rgba(var(--acc-rgb),.1);border-color:rgba(var(--acc-rgb),.5);color:var(--acc-sf)}
 .sigtag.ok{background:rgba(127,160,106,.12);border-color:rgba(127,160,106,.45);color:var(--pos)}
-.sigtxt{font-size:12px;font-weight:600;margin-top:5px;line-height:1.45}
+.sigtxt{font-family:var(--mono);font-size:11.5px;font-weight:600;margin-top:6px;line-height:1.5;color:var(--mut);font-variant-numeric:tabular-nums}
 .sigsub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
 .sigrec{display:inline-flex;align-items:center;min-height:34px;margin-top:7px;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--chrome);border:var(--bw) solid rgba(var(--acc-rgb),.45);border-radius:var(--rad-s);padding:0 12px;background:rgba(var(--acc-rgb),.07)}
 .sigrec:active{opacity:.6}
@@ -2880,7 +2880,7 @@ function heroProg(onDate){
     if(p01<-DB&&p12<-DB){
       down++;
       if(dnN.length<3)dnN.push(m.n);
-      if(!regName){regName=m.n;regTxt=fmtW(e1rmAvg(a[2].s))+'→'+fmtW(e1rmAvg(a[1].s))+'→'+fmtW(e1rmAvg(a[0].s))+'kg';}
+      if(!regName){regName=m.n;regTxt=fmtW(e1rmAvg(a[2].s))+'→'+fmtW(e1rmAvg(a[0].s))+'kg';}
     }else if(p01<=DB&&p12<=DB){stall++;if(stN.length<3)stN.push(m.n);}
   }
   return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN};
@@ -2927,47 +2927,58 @@ function heroSignal(){
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   var ts=hasT?todaySum():null;
   function vt(v){return v>=1000?((Math.round(v/100)/10)+'t'):(v+'kg');}
-  var sub;
+  var seg=[],k;
+
+  /* 1) 오늘 무엇을 했는가 */
   if(ts&&ts.sets){
-    var pp=[],k3;
-    for(k3 in ts.parts)pp.push((PS[k3]||k3)+' '+ts.parts[k3]);
-    sub='오늘 '+pp.join(' · ')+'세트'+(ts.vol>0?' · '+vt(ts.vol):'');
+    var pp=[];
+    for(k in ts.parts)pp.push((PS[k]||k)+' '+ts.parts[k]);
+    seg.push('오늘 '+pp.join('·')+'세트'+(ts.vol>0?' '+vt(ts.vol):''));
   }else{
-    sub='측면 '+(sc.sd||0)+'/'+sdT+' · 광배 '+(sc.lt||0)+'/'+ltT+(st>0?' · 연속 '+st+'일':'');
+    seg.push('오늘 미기록');
   }
-  /* 오늘 수행한 종목에 한해 진전 판정 — 과거 종목 경고가 눌러앉지 않게 함 */
-  if(hasT){
-    var tp=heroProg(td);
-    if(tp.down>0)return {lv:'bad',tag:'오늘 퇴행',
-      txt:tp.regName+' 세션 평균 e1RM '+tp.regTxt+' 연속 하락 — 근손실 위험 신호임',sub:sub,rec:'prog'};
-    if(tp.stall>=2)return {lv:'warn',tag:'오늘 정체',
-      txt:'오늘 수행한 '+tp.stall+'종목이 직전 세션 대비 무진전 — 점증 점검 요망',sub:sub,rec:'prog'};
-  }
-  var dl=deloadSignal();
-  if(dl)return {lv:'bad',tag:'디로드 권장',
-    txt:dl.n+'종목이 진전 없이 RIR만 하락 — '+dl.top.n+' 여유 '+dl.top.d+'회 감소로 회복 부족 신호임',
-    sub:sub,rec:'recov'};
-  if(st>=3)return {lv:'bad',tag:'회복 부채',txt:'근력 훈련 '+st+'일 연속 — 휴식일 배치 요망',sub:sub,rec:'recov'};
-  var over='',k;
+
+  /* 2) 가장 시급한 신호 하나 */
+  var lv='ok',tag='정상',rec='wk';
+  var tp=hasT?heroProg(td):null,dl=deloadSignal(),over='';
   for(k in ws)if(WTGT[k]&&ws[k]>=WTGT[k]+3){over=k;break;}
-  if(over)return {lv:'bad',tag:'회복 부채',txt:(PN[over]||over)+' '+ws[over]+'세트로 목표를 3세트 이상 초과함',sub:sub,rec:'recov'};
-  if(pl>=20){
-    var needS=Math.round(sdT*pl/100),needL=Math.round(ltT*pl/100);
-    if((sc.sd||0)<needS)return {lv:'warn',tag:'옷맵시 페이스 부족',
-      txt:'측면 어깨가 단계 대비 뒤처짐 — 페이스상 '+needS+'세트 필요함',sub:sub,rec:'vt'};
-    if((sc.lt||0)<needL)return {lv:'warn',tag:'옷맵시 페이스 부족',
-      txt:'광배가 단계 대비 뒤처짐 — 페이스상 '+needL+'세트 필요함',sub:sub,rec:'vt'};
+  var needS=pl>=20?Math.round(sdT*pl/100):0, needL=pl>=20?Math.round(ltT*pl/100):0;
+
+  if(tp&&tp.down>0){
+    lv='bad';tag='퇴행';rec='prog';
+    seg.push(tp.regName+' '+tp.regTxt+' 하락');
+  }else if(dl){
+    lv='bad';tag='디로드';rec='recov';
+    seg.push(dl.n+'종목 RIR 하락');
+  }else if(st>=3){
+    lv='bad';tag='회복 부채';rec='recov';
+    seg.push('연속 '+st+'일');
+  }else if(over){
+    lv='bad';tag='목표 초과';rec='recov';
+    seg.push((PS[over]||over)+' '+ws[over]+'/'+WTGT[over]+'세트');
+  }else if(needS&&(sc.sd||0)<needS){
+    lv='warn';tag='측면 뒤처짐';rec='vt';
+    seg.push('측면 '+(sc.sd||0)+'/'+sdT+' 페이스 '+needS+'세트');
+  }else if(needL&&(sc.lt||0)<needL){
+    lv='warn';tag='광배 뒤처짐';rec='vt';
+    seg.push('광배 '+(sc.lt||0)+'/'+ltT+' 페이스 '+needL+'세트');
+  }else if(tp&&tp.stall>=2){
+    lv='warn';tag='정체';rec='prog';
+    seg.push('오늘 '+tp.stall+'종목 무진전');
+  }else if(!hasT){
+    var g1=sdT-(sc.sd||0), g2=ltT-(sc.lt||0);
+    if(g1>0||g2>0){
+      tag='잔여 목표';
+      seg.push((g1>0?'측면 '+g1:'')+(g1>0&&g2>0?'·':'')+(g2>0?'광배 '+g2:'')+'세트 남음');
+    }else{tag='목표 달성';}
   }
-  if(!hasT){
-    var need=[];
-    if((sc.sd||0)<sdT)need.push('측면 '+(sdT-(sc.sd||0))+'세트');
-    if((sc.lt||0)<ltT)need.push('광배 '+(ltT-(sc.lt||0))+'세트');
-    return {lv:'ok',tag:'오늘 미기록',
-      txt:need.length?('주간 잔여 '+need.join(' · ')+' — 오늘 배치 권장'):'주간 옷맵시 목표를 이미 채움',
-      sub:sub,rec:'wk'};
-  }
-  return {lv:'ok',tag:'오늘 정상',
-    txt:'오늘 '+ts.ex+'종목 '+ts.sets+'세트 수행 — 퇴행·정체 없음',sub:sub,rec:'wk'};
+
+  /* 3) 신호가 없을 때만 옷맵시 현황을 덧붙이고, 연속일은 항상 끝에 */
+  if(lv==='ok'&&tag!=='잔여 목표')
+    seg.push('측면 '+(sc.sd||0)+'/'+sdT+'·광배 '+(sc.lt||0)+'/'+ltT);
+  if(st>0&&tag!=='회복 부채')seg.push('연속 '+st+'일');
+
+  return {lv:lv,tag:tag,line:seg.join(' · '),rec:rec};
 }
 /* ── 분석론 위젯: 리포트 상단 로컬 시각화 ── */
 var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10,16,20],uc:[4,6,12,14],mc:[6,10,16,18],qd:[8,12,18,20],hm:[6,10,16,20],gl:[0,4,12,16],cf:[8,12,16,20],bi:[8,14,20,26],tri:[6,10,14,18],ab:[0,16,20,25]};
@@ -3210,8 +3221,7 @@ function heroHtml(){
     +'</svg><div class="pc"><b>'+pct+'%</b><i>WEEK</i></div></div>'
     +'<div class="sigline">'
     +'<span class="sigtag'+(sg.lv==='ok'?' ok':(sg.lv==='warn'?' warn2':''))+'">'+sg.tag+'</span>'
-    +'<div class="sigtxt">'+sg.txt+'</div>'
-    +'<div class="sigsub">'+sg.sub+'</div>'
+    +'<div class="sigtxt">'+sg.line+'</div>'
     +(sg.rec!==ANL?'<button class="sigrec" data-act="anlpick" data-v="'+sg.rec+'">→ '+ANLN[sg.rec]+' 추천</button>':'')
     +'</div></div>';
   var gb='';
