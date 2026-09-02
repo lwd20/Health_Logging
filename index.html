@@ -165,6 +165,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ref{min-width:0;max-width:100%}
 .ref span{font-size:11.5px;color:var(--mut);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.setwrap{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
+.setwrap .vtot{margin-top:9px}
 .setr{display:flex;align-items:center;padding:1px 0;font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:0;max-width:100%}
 .sete{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;padding:6px 4px}
 .sete:active{opacity:.5}
@@ -1133,8 +1135,24 @@ function panelHtml(m){
     var p0=past[0];
     h+='<div class="ref"><i>Last '+md(p0.d)+'</i><b>'+fmtW(topOf(p0.s))+'<u>'+(isCardId(UI.open)?'min':'kg')+'</u></b><span>'+(isCardId(UI.open)?cardDetail(p0.s):(volOf(p0.s).toLocaleString()+'kg · '+detailOf(p0.s)))+'</span></div>';
   }
+  /* 입력 — 세트가 늘어나도 위치가 고정되도록 목록 위에 둠 */
+  var st=machStep(id);
+  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
+  var cd=isCardId(UI.open);
+  h+='<div class="inrow">'
+    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
+    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
+    +'</div>';
+  if(cd){
+    h+='<div class="inrow" style="margin-top:8px">'
+      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><i class="lu">incline %</i><button data-act="i+">＋</button></div>'
+      +'</div>';
+    h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
+  }
+  h+='<button class="plusbtn'+(rdy?'':' dis')+'" data-act="as">＋ Set</button>';
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
+    h+='<div class="setwrap">';
     for(var j=0;j<draft.length;j++){
       h+='<div class="setr">'
         +(cdRow?'':rirBtn(draft[j][2],j))
@@ -1154,32 +1172,16 @@ function panelHtml(m){
       var ra=rirAvg(draft);
       if(ra!==null)dt+='<span style="margin-left:8px;color:var(--dim)">RIR '+ra+'</span>';
       h+='<div class="vtot"><i>VOLUME</i><b>'+dv2.toLocaleString()+'</b><u>kg</u>'+dt+'</div>';
+    }else{
+      var sk=kcalSess(draft,m.n),skm=0;
+      if(isTreadName(m.n))for(var q6=0;q6<draft.length;q6++)skm+=(+draft[q6][0]||0)/60*(+draft[q6][1]||0);
+      if(sk>0)h+='<div class="pacehint" style="margin-top:6px">session ≈ <b>'+sk+' kcal</b>'+(skm>0?(' · <b>'+(Math.round(skm*10)/10)+' km</b>'):'')+'</div>';
     }
+    h+='</div>';
   }else{
     h+='<div class="empty">No sets yet</div>';
   }
-  /* 입력 */
-  var st=machStep(id);
-  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
-  var cd=isCardId(UI.open);
-  h+='<div class="inrow">'
-    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
-    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
-    +'</div>';
-  if(cd){
-    h+='<div class="inrow" style="margin-top:8px">'
-      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><i class="lu">incline %</i><button data-act="i+">＋</button></div>'
-      +'</div>';
-    h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
-    if(draft.length){
-      var sk=kcalSess(draft,m.n),skm=0;
-      if(isTreadName(m.n))for(var q6=0;q6<draft.length;q6++)skm+=(+draft[q6][0]||0)/60*(+draft[q6][1]||0);
-      if(sk>0)h+='<div class="pacehint" style="margin-top:2px">session ≈ <b>'+sk+' kcal</b>'+(skm>0?(' · <b>'+(Math.round(skm*10)/10)+' km</b>'):'')+'</div>';
-    }
-  }
-  h+=''
-    +'<button class="plusbtn'+(rdy?'':' dis')+'" data-act="as">＋ Set</button>'
-    +'<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>';
+  h+='<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>';
   /* 하단 */
   var armed=UI.arm==='dm'+id;
   h+='<div class="prow">'
