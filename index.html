@@ -172,12 +172,13 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr b{font-size:17px;font-weight:700}
 .setr u{font-size:9.5px;color:var(--dim)}
 .setr span{font-size:13.5px;color:var(--mut)}
-.setr .rir{flex:0 0 auto;min-width:34px;height:28px;margin-left:6px;border:1px solid var(--line);border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--dim);background:var(--inset)}
+.setr .rir{flex:0 0 auto;min-width:34px;height:28px;margin-right:10px;border:1px solid var(--line);border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--dim);background:var(--inset)}
 .setr .rir.on{color:#e3b95a;border-color:rgba(207,166,72,.45);background:rgba(207,166,72,.08)}
 .setr .rir.hard{color:#f0a184;border-color:rgba(209,85,46,.5);background:rgba(209,85,46,.1)}
 .setr .rir:active{opacity:.6}
 .setr .del{margin-left:auto;width:44px;height:44px;color:var(--dim);font-size:16px;flex:0 0 auto}
 .setr .del:active{color:var(--sig)}
+.setr .del.armed{color:var(--sig);background:rgba(209,85,46,.16);border-radius:3px;font-size:15px}
 
 .inrow{display:flex;gap:8px;margin-top:11px}
 .ctr{flex:1;display:flex;align-items:center;background:#080706;border:1px solid var(--line);border-radius:3px;padding:3px;box-shadow:inset 0 2px 7px rgba(0,0,0,.65)}
@@ -1134,11 +1135,11 @@ function panelHtml(m){
   if(draft.length){
     for(var j=0;j<draft.length;j++){
       h+='<div class="setr">'
+        +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><i>'+(j+1)+'</i><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+Math.round((+draft[j][0]||0)*(+draft[j][1]||0)).toLocaleString()+'</span>')
         +'</button>'
-        +(cdRow?'':rirBtn(draft[j][2],j))
-        +'<button class="del" data-act="ds" data-v="'+j+'">×</button></div>';
+        +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">'+(UI.arm==='ds'+j?'↺':'×')+'</button></div>';
     }
     if(!cdRow){
       var dv2=volOf(draft),de=e1rmAvg(draft),dt='';
@@ -3705,7 +3706,10 @@ document.addEventListener('click',function(e){
     case 'i-':if(HOLD.skip){HOLD.skip=false;break;}step('i',-1);break;
     case 'i+':if(HOLD.skip){HOLD.skip=false;break;}step('i',1);break;
     case 'as':addSet();break;
-    case 'ds':delSet(parseInt(v,10));break;
+    case 'ds':
+      if(UI.arm!=='ds'+v){UI.arm='ds'+v;render();break;}
+      UI.arm=null;delSet(parseInt(v,10));
+      break;
     case 'es':editSet(parseInt(v,10));break;
     case 'rr':
       (function(){
@@ -3715,6 +3719,7 @@ document.addEventListener('click',function(e){
         if(!d||!d[j])return;
         var nx=rirNext(d[j][2]);
         if(nx===null)d[j].length=2;else d[j][2]=nx;
+        UI.arm=null;
         UI.dirty[id]=true;
         saveDraft();render();
       })();
