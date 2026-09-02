@@ -351,6 +351,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .plusbtn.upd{background:rgba(var(--acc-rgb),.14);border-color:rgba(var(--acc-rgb),.45);color:var(--acc-br)}
 .cancelbtn{width:100%;height:36px;margin-top:8px;border-radius:9px;background:transparent;border:0;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .cancelbtn:active{color:var(--tx)}
+.badv{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:var(--sig);border:1px solid rgba(var(--sig-rgb),.5);border-radius:999px;padding:1px 6px;margin-left:5px}
 .setr .rir{flex:0 0 auto;width:30px;height:30px;margin-right:11px;border:1px solid transparent;border-radius:50%;font-family:var(--mono);letter-spacing:.02em;background:transparent;display:flex;align-items:center;justify-content:center}
 .setr .rir b{font-size:13px;font-weight:700;line-height:1}
 .setr .rir.off{font-size:0;border-color:transparent}
@@ -1461,7 +1462,9 @@ function rowHtml(m,noBadge){
     if(la){
       if(isCard(m.p)){
         right=rgt(fmtW(topOfM(m,la.s)),'min','');
-        sub='<span class="sub">'+repsOfC(la.s,true)+'</span>';
+        var badC=false,q9;
+        for(q9=0;q9<la.s.length;q9++)if(cardioOut(la.s[q9],m.n)){badC=true;break;}
+        sub='<span class="sub">'+repsOfC(la.s,true)+(badC?' <i class="badv">확인</i>':'')+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
         var pr2=prOf(m,la.d);
@@ -2265,6 +2268,11 @@ function addSet(){
     set.push(UI.rirHold);
   }
   UI.rirHold=null;
+  if(cd){
+    var mC=machById(UI.open);
+    if(mC&&cardioOut(set,mC.n))
+      toast('<em>범위 확인</em> 속도·경사가 일반 범위를 벗어남 — 칼로리는 상한으로 계산됨');
+  }
   /* 마지막 세트를 지우면 delSet이 draft 배열을 제거하므로 재생성함 */
   if(!UI.draft[UI.open])UI.draft[UI.open]=[];
   /* 휴식 기록: 타이머가 돌고 앞선 세트가 있으면 경과 초를 4번째 칸에 담음 */
@@ -2720,20 +2728,32 @@ function bodyLine(bw,bf,gf,hrm,act){
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
+/* 사람이 낼 수 있는 범위 — 오입력 한 건이 TDEE 전체를 무너뜨리지 않게 함 */
+var CARDIO_LIM={minMax:300,vTread:20,vStair:30,incMax:0.4,perMinMax:18};
+function cardioOut(st,name){
+  var v=+st[1]||0,inc=+st[2]||0;
+  var vm=isTreadName(name)?CARDIO_LIM.vTread:CARDIO_LIM.vStair;
+  return (v>vm)||(inc>CARDIO_LIM.incMax*100)||((+st[0]||0)>CARDIO_LIM.minMax);
+}
 function kcalSet(st,name){
   var min=+st[0]||0,v=+st[1]||0,inc=(+st[2]||0)/100;
   if(!(min>0)||!(v>0))return 0;
+  min=Math.min(min,CARDIO_LIM.minMax);
+  inc=Math.max(0,Math.min(CARDIO_LIM.incMax,inc));
   var perMin;
   if(isTreadName(name)){
+    v=Math.max(0.5,Math.min(CARDIO_LIM.vTread,v));
     var mmin=v*1000/60;
     var vo2=(v<7)
       ?3.5+0.1*mmin+1.8*mmin*inc
       :3.5+0.2*mmin+0.9*mmin*inc;
     perMin=vo2*BW/1000*5;
   }else{
+    v=Math.max(0.5,Math.min(CARDIO_LIM.vStair,v));
     var met=Math.max(4,Math.min(14,3.5+0.6*v));
     perMin=met*3.5*BW/200;
   }
+  perMin=Math.max(0,Math.min(CARDIO_LIM.perMinMax,perMin));
   return perMin*min;
 }
 function kcalSess(sets,name){
