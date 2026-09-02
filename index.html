@@ -319,13 +319,21 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ref span{font-size:11.5px;color:var(--mut);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .shsub{font-weight:400;letter-spacing:0;color:var(--dim);font-size:9.5px;margin-left:6px}
-.skpick{display:flex;align-items:center;gap:10px;width:100%;padding:11px 13px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);background:var(--btn-bg);text-align:left}
+.pickwrap{border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);background:var(--btn-bg);overflow:hidden}
+.pickwrap.open{border-color:rgba(var(--acc-rgb),.5);background:rgba(var(--acc-rgb),.06)}
+.skpick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 13px;border:0;background:none;text-align:left}
 .skpick b{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .skpick i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--chrome)}
-.skpick.open{border-color:rgba(var(--acc-rgb),.45);background:rgba(var(--acc-rgb),.08);border-bottom-left-radius:0;border-bottom-right-radius:0}
-.pickbody{padding:11px 11px 3px;border:var(--bw) solid rgba(var(--acc-rgb),.45);border-top:0;border-radius:0 0 var(--rad-m) var(--rad-m);background:rgba(var(--acc-rgb),.045)}
-.pickbody .wrapchips{margin:0}
+.skpick:active{opacity:.6}
+.pickbody{padding:0 10px 10px;border-top:1px solid rgba(var(--tx-rgb),.09)}
+.pickbody .wrapchips{gap:4px;margin-top:10px}
+.pickbody .chip{padding:6px 10px;font-size:10.5px;font-weight:600;border-radius:999px;background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08)}
+.pickbody .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.pickbody .chip i{font-size:8.5px;opacity:.7}
 .pickbody .namerow{margin-top:9px}
+.pickbody .namein{padding:8px 11px;border-radius:var(--rad-s);background:var(--sunk);border-color:rgba(var(--tx-rgb),.08)}
+.pickbody .namein input{font-size:13px}
+.pickbody .note{margin-top:9px;font-size:10.5px}
 .skpick:active{opacity:.65}
 .thcols{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
 .thcol{min-width:0}
@@ -1690,9 +1698,11 @@ function chipRow(items, act, cur, extra){
 function pickRow(key, label, sub, cur, body){
   var open = (UI.pickOpen === key);
   return '<div class="sh-l">' + label + (sub ? '<span class="shsub">' + sub + '</span>' : '') + '</div>'
-    + '<button class="skpick' + (open ? ' open' : '') + '" data-act="pkop" data-v="' + key + '">'
+    + '<div class="pickwrap' + (open ? ' open' : '') + '">'
+    + '<button class="skpick" data-act="pkop" data-v="' + key + '">'
     + '<b>' + esc(cur) + '</b><i>' + (open ? '접기' : '변경') + '</i></button>'
-    + (open ? ('<div class="pickbody">' + body + '</div>') : '');
+    + (open ? ('<div class="pickbody">' + body + '</div>') : '')
+    + '</div>';
 }
 function txtRow(id, ph, val){
   return '<div class="namerow"><span class="namein"><input id="' + id + '" enterkeyhint="done" placeholder="' + ph
