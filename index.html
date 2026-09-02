@@ -254,15 +254,20 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .mbtn.qbtn:active::before{border-color:var(--chrome);color:var(--chrome)}
 .mbtn:active{color:var(--tx)}
 .mbtn.warn::after{content:'';position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--sig)}
-nav{display:flex;gap:5px;margin-top:14px;border-top:1px solid var(--line);padding:12px 18px 11px;overflow-x:auto;scrollbar-width:none}
-nav::-webkit-scrollbar{display:none}
+nav{display:grid;grid-template-columns:44px 1fr 1fr 1fr;gap:5px;margin-top:14px;border-top:1px solid var(--line);padding:12px 18px 11px}
+#chips .chip{margin:0;min-width:0;padding:9px 5px;text-align:center;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ★는 부위 선택이 아니라 보기 전환이라 왼쪽에 세로로 뗼 */
+#chips .chip.favtg{grid-column:1;grid-row:1/3;display:flex;align-items:center;justify-content:center;width:auto;height:auto;padding:0;font-size:14px;letter-spacing:0;color:var(--chrome);opacity:1}
+#chips .chip.favtg.on{color:var(--on-acc)}
+/* 320px급 좁은 화면에서 SHOULDERS가 잘리지 않게 */
+@media (max-width:340px){nav{grid-template-columns:38px 1fr 1fr 1fr;gap:4px}#chips .chip{padding:9px 3px;font-size:10.5px;letter-spacing:0}}
 .chip{flex:0 0 auto;padding:8px 14px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:11.5px;font-weight:700;letter-spacing:.06em}
 .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .chip i{font-size:9px;opacity:.55;margin-left:3px}
 .chip{position:relative}
-.chip.stale::after{content:'';position:absolute;top:5px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--chrome);box-shadow:0 0 5px rgba(var(--acc-rgb),.5)}
+.chip.stale::after{content:'';position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--chrome);box-shadow:0 0 5px rgba(var(--acc-rgb),.5)}
 .chip.on.stale::after{background:rgba(var(--acc-rgb),.4);box-shadow:none}
-.chip.hot::after{content:'';position:absolute;top:5px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--sig);box-shadow:0 0 5px rgba(var(--sig-rgb),.55)}
+.chip.hot::after{content:'';position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--sig);box-shadow:0 0 5px rgba(var(--sig-rgb),.55)}
 .chip.on.hot::after{background:rgba(var(--sig-rgb),.45);box-shadow:none}
 
 /* ── 목록: 머신 랙 ── */
@@ -1389,7 +1394,7 @@ function partDot(part){
 }
 function renderChips(){
   var q=String(UI.q||'').trim(),h='',all=PARTS;
-  h+='<button class="chip'+(!q&&UI.favOnly?' on':'')+'" data-act="fo">★</button>';
+  h+='<button class="chip favtg'+(!q&&UI.favOnly?' on':'')+'" data-act="fo" aria-label="즐겨찾기만">★</button>';
   for(var i=0;i<all.length;i++){
     h+='<button class="chip'+(!q&&UI.filter===all[i]?' on':'')+(partDot(all[i])?' '+partDot(all[i]):'')+'" data-act="fl" data-v="'+all[i]+'">'+all[i]+'</button>';
   }
