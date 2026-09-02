@@ -64,8 +64,8 @@
 :root[data-pal="cobalt"]{
   --bg:#070a14;--plate:#101728;--plate2:#151e33;--inset:#05070f;--surf:#101728;--tx:#e6ecf9;--mut:#94a3c0;--dim:#5b6883;--chrome:#3d8bfd;--acc-br:#7fb2ff;--acc-sf:#3d8bfd;--acc-dk:#1f4d99;--on-acc:#03091a;--sig:#ff6b52;--pos:#4fd18b;--neg:#ff8f78;--acc-rgb:61,139,253;--sig-rgb:255,107,82;--tx-rgb:230,236,249;--surf-glass:rgba(255,255,255,.07);--btn-bg:rgba(var(--tx-rgb),.05);--sunk:rgba(0,0,0,.3);--grid-f:none;--hi-soft:rgba(255,255,255,.028);--glow:rgba(var(--acc-rgb),.11);--sheet-bg:var(--plate);
 }
-:root[data-pal="jade"]{
-  --bg:#04100c;--plate:#0c1d17;--plate2:#11261e;--inset:#030b08;--surf:#0c1d17;--tx:#dff5ec;--mut:#8ab3a4;--dim:#54756a;--chrome:#00d19c;--acc-br:#5fe8c4;--acc-sf:#00d19c;--acc-dk:#0b7a5c;--on-acc:#00160f;--sig:#ff7a52;--pos:#5fe8c4;--neg:#ff9a78;--acc-rgb:0,209,156;--sig-rgb:255,122,82;--tx-rgb:223,245,236;--surf-glass:rgba(255,255,255,.07);--btn-bg:rgba(var(--tx-rgb),.05);--sunk:rgba(0,0,0,.3);--grid-f:none;--hi-soft:rgba(255,255,255,.028);--glow:rgba(var(--acc-rgb),.11);--sheet-bg:var(--plate);
+:root[data-pal="slate"]{
+  --bg:#0c0e12;--plate:#171a20;--plate2:#1d212a;--inset:#080a0d;--surf:#171a20;--tx:#e9edf3;--mut:#98a2b2;--dim:#5e6877;--chrome:#e0a758;--acc-br:#f2c887;--acc-sf:#e0a758;--acc-dk:#8a6224;--on-acc:#180f02;--sig:#e8614a;--pos:#6fc99a;--neg:#eb8b72;--acc-rgb:224,167,88;--sig-rgb:232,97,74;--tx-rgb:233,237,243;--surf-glass:rgba(255,255,255,.07);--btn-bg:rgba(var(--tx-rgb),.05);--sunk:rgba(0,0,0,.3);--grid-f:none;--hi-soft:rgba(255,255,255,.028);--glow:rgba(var(--acc-rgb),.11);--sheet-bg:var(--plate);
 }
 :root[data-pal="solar"]{
   --bg:#0c0b06;--plate:#191710;--plate2:#201e15;--inset:#070603;--surf:#191710;--tx:#f6f2e2;--mut:#b0aa93;--dim:#6b6757;--chrome:#ffd93d;--acc-br:#ffe97a;--acc-sf:#ffd93d;--acc-dk:#8f7500;--on-acc:#141000;--sig:#ff5c3d;--pos:#8fd15f;--neg:#ff9070;--acc-rgb:255,217,61;--sig-rgb:255,92,61;--tx-rgb:246,242,226;--surf-glass:rgba(255,255,255,.07);--btn-bg:rgba(var(--tx-rgb),.05);--sunk:rgba(0,0,0,.3);--grid-f:none;--hi-soft:rgba(255,255,255,.028);--glow:rgba(var(--acc-rgb),.11);--sheet-bg:var(--plate);
@@ -236,10 +236,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ref{min-width:0;max-width:100%}
 .ref span{font-size:11.5px;color:var(--mut);margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.thsec{display:flex;align-items:baseline;gap:8px;margin:15px 2px 7px}
-.thsec b{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--chrome)}
-.thsec i{font-style:normal;font-size:9.5px;color:var(--dim)}
-.thgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.thcols{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
+.thcol{min-width:0}
+.thsec{margin:2px 2px 7px}
+.thsec b{font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--chrome);opacity:.8}
+.thcol>button{width:100%;margin-bottom:6px}
+.thtech{display:block;padding:9px 11px;border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);background:var(--btn-bg);text-align:left}
+.thtech b{display:block;font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.01em}
+.thtech i{display:block;font-style:normal;font-size:9px;color:var(--dim);margin-top:3px;line-height:1.35}
+.thtech.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.thtech.on b{color:var(--tx)}
+.thtech:active{opacity:.6}
 .throw{display:flex;align-items:center;gap:8px;padding:10px 11px;border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);background:rgba(var(--tx-rgb),.035);text-align:left;min-width:0}
 .throw.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
 .throw .sws{flex:0 0 auto;display:flex}
@@ -738,7 +745,7 @@ var PALS=[
   {k:'ruby',n:'Ruby',d:'핫 핑크레드',c:['#290e18','#ff3366','#ff7d9e']},
   {k:'orchid',n:'Orchid',d:'형광 보라',c:['#211534','#c86bff','#ddaaff']},
   {k:'cobalt',n:'Cobalt',d:'선명한 azure',c:['#151e33','#3d8bfd','#7fb2ff']},
-  {k:'jade',n:'Jade',d:'비비드 청록',c:['#11261e','#00d19c','#5fe8c4']},
+  {k:'slate',n:'Slate',d:'쿨 그레이 + 앰버',c:['#1d212a','#e0a758','#f2c887']},
   {k:'solar',n:'Solar',d:'일렉트릭 옐로',c:['#201e15','#ffd93d','#ffe97a']},
   {k:'cyber',n:'Cyber',d:'애시드라임',c:['#161c15','#a8f04a','#c9ff7a']},
   {k:'mono',n:'Mono',d:'무채색',c:['#1d1d1d','#d4d4d4','#f2f2f2']},
@@ -1548,20 +1555,23 @@ function renderSheet(){
     if(tb==='disp'){
       var pi,tj;
       h+='<div class="sh-l" style="margin-top:2px">Theme <span style="font-weight:400;letter-spacing:0;color:var(--dim)">'
-        +esc(techOf(TECH).n+' · '+palOf(PAL).n)+'</span></div>';
+        +esc(palOf(PAL).n+' · '+techOf(TECH).n)+'</span></div>';
+      h+='<div class="thcols"><div class="thcol"><div class="thsec"><b>COLOR</b></div>';
+      for(pi=0;pi<PALS.length;pi++){
+        var P2=PALS[pi];
+        h+='<button class="throw'+(PAL===P2.k?' on':'')+'" data-act="palpick" data-v="'+P2.k+'">'
+          +'<span class="sws"><span class="sw" style="background:'+P2.c[0]+'"></span>'
+          +'<span class="sw" style="background:'+P2.c[1]+'"></span>'
+          +'<span class="sw" style="background:'+P2.c[2]+'"></span></span>'
+          +'<span class="tn">'+esc(P2.n)+'</span></button>';
+      }
+      h+='</div><div class="thcol"><div class="thsec"><b>STYLE</b></div>';
       for(tj=0;tj<TECHS.length;tj++){
         var T2=TECHS[tj];
-        h+='<div class="thsec"><b>'+esc(T2.n)+'</b><i>'+esc(T2.d)+'</i></div><div class="thgrid">';
-        for(pi=0;pi<PALS.length;pi++){
-          var P2=PALS[pi],on=(TECH===T2.k&&PAL===P2.k);
-          h+='<button class="throw'+(on?' on':'')+'" data-act="thpick" data-v="'+T2.k+'|'+P2.k+'">'
-            +'<span class="sws"><span class="sw" style="background:'+P2.c[0]+'"></span>'
-            +'<span class="sw" style="background:'+P2.c[1]+'"></span>'
-            +'<span class="sw" style="background:'+P2.c[2]+'"></span></span>'
-            +'<span class="tn">'+esc(P2.n)+'</span></button>';
-        }
-        h+='</div>';
+        h+='<button class="thtech'+(TECH===T2.k?' on':'')+'" data-act="techpick" data-v="'+T2.k+'">'
+          +'<b>'+esc(T2.n)+'</b><i>'+esc(T2.d.split(' · ').pop())+'</i></button>';
       }
+      h+='</div></div>';
       h+='<div class="note">색과 질감만 바뀌며 기록에는 영향이 없음. 백업에도 함께 저장됨.</div>';
     }
     if(tb==='data'){
@@ -4115,15 +4125,19 @@ document.addEventListener('click',function(e){
       break;
     case 'px':UI.editRx=+v;render();break;
     case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';render();break;
-    case 'thpick':
-      (function(){
-        var pr2=String(v).split('|');
-        if(techOk(pr2[0])&&palOk(pr2[1])){
-          TECH=pr2[0];PAL=pr2[1];
-          if(canLS){try{localStorage.setItem(KEY+'.tech',TECH);localStorage.setItem(KEY+'.pal',PAL);}catch(eT){}}
-          applyTheme();render();
-        }
-      })();
+    case 'palpick':
+      if(palOk(v)){
+        PAL=v;
+        if(canLS){try{localStorage.setItem(KEY+'.pal',PAL);}catch(eP){}}
+        applyTheme();render();
+      }
+      break;
+    case 'techpick':
+      if(techOk(v)){
+        TECH=v;
+        if(canLS){try{localStorage.setItem(KEY+'.tech',TECH);}catch(eT){}}
+        applyTheme();render();
+      }
       break;
     case 'em2':
       (function(){
