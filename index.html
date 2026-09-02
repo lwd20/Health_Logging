@@ -244,7 +244,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .shd::after{content:'';flex:1;height:1px;background:var(--line)}
 .shd i{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:0}
 .grp{background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-card);padding:0 13px;box-shadow:var(--elev);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
-.mc{border-bottom:1px solid rgba(var(--tx-rgb),.055)}
+.mc{border-bottom:1px solid rgba(var(--tx-rgb),.055);position:relative}
+.mc.did::before{content:'';position:absolute;left:-13px;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--acc-sf)}
+.mc.did .nm b{color:var(--tx)}
+.dtag.done{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:2px 7px;margin-left:2px;vertical-align:1px}
 .grp .mc:last-child{border-bottom:0}
 .row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;text-align:left}
 .rl{flex:1 1 auto;min-width:0}
@@ -298,7 +301,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .throw .tn{font-size:12px;font-weight:700;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .throw.on .tn{color:var(--tx)}
 .throw:active{opacity:.6}
-.setwrap{margin-top:14px;padding-top:12px;border-top:1px solid rgba(var(--tx-rgb),.06)}
+.setwrap{margin-top:2px;max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.setwrap+.inrow{margin-top:13px;padding-top:12px;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .setwrap .vtot{margin-top:9px}
 .setr{display:flex;align-items:center;padding:1px 0;font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:0;max-width:100%}
 .sete{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;padding:6px 4px}
@@ -1311,7 +1315,10 @@ function rowHtml(m,noBadge){
     }
   }
   var badge=(!noBadge&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
-  return '<section class="mc'+(open?' on':'')+'">'
+  /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
+  var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
+  if(done&&!dirty)dtag='<i class="dtag done">'+ts2.s.length+(isCard(m.p)?'회':'세트')+'</i>';
+  return '<section class="mc'+(open?' on':'')+(done?' did':'')+'">'
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
@@ -1335,23 +1342,6 @@ function panelHtml(m){
     var p0=past[0];
     h+='<div class="ref"><i>Last '+md(p0.d)+'</i><b>'+fmtW(topOf(p0.s))+'<u>'+(isCardId(UI.open)?'min':'kg')+'</u></b><span>'+(isCardId(UI.open)?cardDetail(p0.s):(volOf(p0.s).toLocaleString()+'kg · '+detailOf(p0.s)))+'</span></div>';
   }
-  /* 입력 — 세트가 늘어나도 위치가 고정되도록 목록 위에 둠 */
-  var st=machStep(id);
-  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
-  var cd=isCardId(UI.open);
-  h+='<div class="inrow">'
-    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
-    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
-    +'</div>';
-  if(cd){
-    h+='<div class="inrow" style="margin-top:8px">'
-      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><i class="lu">incline %</i><button data-act="i+">＋</button></div>'
-      +'</div>';
-    h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
-  }
-  var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
-  h+='<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update set '+(UI.esIdx+1):'＋ Set')+'</button>'
-    +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'');
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
     h+='<div class="setwrap">';
@@ -1383,6 +1373,23 @@ function panelHtml(m){
   }else{
     h+='<div class="empty">No sets yet</div>';
   }
+  /* 입력 — 시트는 아래가 고정이므로 컨트롤을 하단에 두어야 위치가 안 밀림 */
+  var st=machStep(id);
+  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
+  var cd=isCardId(UI.open);
+  h+='<div class="inrow">'
+    +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
+    +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
+    +'</div>';
+  if(cd){
+    h+='<div class="inrow" style="margin-top:8px">'
+      +'<div class="ctr"><button data-act="i-">−</button><input id="inI" inputmode="decimal" placeholder="0" value="'+esc(UI.ci)+'"><i class="lu">incline %</i><button data-act="i+">＋</button></div>'
+      +'</div>';
+    h+='<div class="pacehint" id="paceHint">'+hintHtml(m.n)+'</div>';
+  }
+  var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
+  h+='<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update set '+(UI.esIdx+1):'＋ Set')+'</button>'
+    +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'');
   h+='<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>';
   /* 하단 */
   var armed=UI.arm==='dm'+id;
