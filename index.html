@@ -603,6 +603,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .bkwarn em{flex:0 0 auto;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:4px 10px}
 .bkwarn.hot em{background:var(--sig);color:var(--tx)}
 .bkwarn:active{opacity:.7}
+.htitle{font-size:14px;font-weight:800;color:var(--tx);letter-spacing:-.005em;margin:0 0 13px}
+.hstep{display:flex;gap:10px;margin-bottom:12px}
+.hstep b{flex:0 0 21px;height:21px;border-radius:50%;background:rgba(var(--acc-rgb),.16);color:var(--acc-br);font-family:var(--mono);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hstep span{flex:1;min-width:0;font-size:11.5px;line-height:1.55;color:var(--mut)}
+.hstep span em{font-style:normal;display:block;color:var(--tx);font-weight:700;font-size:12.5px;margin-bottom:2px}
+.hcap{margin:18px 0 8px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--chrome);opacity:.85}
+.htr{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(var(--tx-rgb),.055)}
+.htr:last-child{border-bottom:0}
+.hk{flex:0 0 82px;font-size:11px;font-weight:700;color:var(--tx);letter-spacing:-.005em}
+.hv{flex:1;min-width:0;font-size:11px;line-height:1.5;color:var(--mut)}
+.hv em{font-style:normal;color:var(--acc-br);font-weight:700}
+.hnote{margin-top:11px;padding:10px 12px;border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.04);font-size:11px;line-height:1.6;color:var(--mut)}
+.hnote b{color:var(--tx);font-weight:700}
 .note{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.55}
 
 /* ── 일지 ── */
@@ -707,7 +720,7 @@ html{color-scheme:dark}
     </div>
     <span class="hbtns">
       <button class="hjrn" data-act="ai">Analyze</button>
-      <button class="hjrn" id="sqBtn" data-act="sq">Search</button>
+      <button class="hjrn" data-act="help">Help</button>
       <button class="hjrn" data-act="jn">Log</button>
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
@@ -717,10 +730,6 @@ html{color-scheme:dark}
     <span class="tdig"><i>Recovery</i><b id="tmr">00:00</b></span>
     <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
     <button class="tbtn" data-act="tr">Stop</button>
-  </div>
-  <div class="srow" id="srow">
-    <span class="sin"><i>⌕</i><input id="q" type="search" enterkeyhint="search" placeholder="Name · brand · line" autocomplete="off" autocapitalize="none" spellcheck="false"></span>
-    <button class="sclr" data-act="qc" aria-label="Clear">×</button>
   </div>
 </div>
 
@@ -1001,7 +1010,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',rirHold:null,esIdx:null,draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -1568,6 +1577,116 @@ function closeEx(){
   if(UI.open){normDraft(UI.open);saveDraft();}
   UI.open=null;UI.hist=false;UI.esIdx=null;
 }
+/* ── Help: 좌측 패널로 나눈 사용 안내 ── */
+var HTABS=[
+  {k:'start', n:'시작',   t:'처음 설정'},
+  {k:'log',   n:'기록',   t:'훈련 기록하기'},
+  {k:'goal',  n:'목표',   t:'주간 목표와 볼륨 구간'},
+  {k:'anal',  n:'분석',   t:'AI 리포트'},
+  {k:'read',  n:'읽기',   t:'화면의 숫자 읽는 법'},
+  {k:'data',  n:'백업',   t:'데이터 보관'},
+  {k:'look',  n:'테마',   t:'색과 질감'}
+];
+function hStep(n,ttl,txt){return '<div class="hstep"><b>'+n+'</b><span><em>'+ttl+'</em>'+(txt?'<br>'+txt:'')+'</span></div>';}
+function hRow(k,v){return '<div class="htr"><span class="hk">'+k+'</span><span class="hv">'+v+'</span></div>';}
+function hNote(t){return '<div class="hnote">'+t+'</div>';}
+function hCap(t){return '<div class="hcap">'+t+'</div>';}
+function helpHtml(){
+  var t=UI.htab||'start',cur=HTABS[0],i;
+  for(i=0;i<HTABS.length;i++)if(HTABS[i].k===t)cur=HTABS[i];
+  var h='<div class="sh-t">Help</div><div class="dset"><div class="drail">';
+  for(i=0;i<HTABS.length;i++)h+='<button class="dtb'+(t===HTABS[i].k?' on':'')+'" data-act="htb" data-v="'+HTABS[i].k+'">'+HTABS[i].n+'</button>';
+  h+='</div><div class="dbody">';
+  h+='<div class="htitle">'+cur.t+'</div>';
+
+  if(t==='start'){
+    h+=hStep(1,'인바디 등록','설정 · DIET에서 사진을 올리면 체중·체지방을 읽어 TDEE를 계산함. 없으면 직접 입력 가능.')
+      +hStep(2,'감량 속도','주당 몇 kg 뺄지 정하면 하루 목표 칼로리(EAT)가 자동으로 나옴.')
+      +hStep(3,'종목 추가','부위를 고르고 <em>+ ADD EXERCISE</em>. 프리셋을 탭하거나 이름·브랜드를 직접 입력.')
+      +hStep(4,'주동근 확인','종목 편집에서 <em>Primary muscle</em>이 맞는지 확인. 자동 추정이 틀리면 직접 지정.')
+      +hStep(5,'주간 목표','설정 · GOALS에서 부위별·세부별 주간 세트 수를 정함.')
+      +hStep(6,'AI 키 (선택)','설정 · AI에 Gemini·GPT·Claude 키 중 하나를 넣으면 리포트를 쓸 수 있음.')
+      +hNote('1~3번만 해도 기록은 바로 시작할 수 있음. 나머지는 나중에 채워도 됨.');
+  }
+  if(t==='log'){
+    h+=hStep(1,'종목 탭','목록에서 종목을 누르면 아래에서 입력 시트가 올라옴.')
+      +hStep(2,'무게·반복 입력','− + 버튼이나 숫자를 직접 입력. 증량 단위는 종목마다 설정 가능.')
+      +hStep(3,'+ SET','세트가 아래에 쌓이고 휴식 타이머가 자동으로 시작됨.')
+      +hStep(4,'SAVE','저장하면 시트가 닫히고 목록에 완료 표시가 붙음.');
+    h+=hCap('세트 다루기')
+      +hRow('세트를 탭','값을 불러와 수정 · 버튼이 <em>Update</em>로 바뀜')
+      +hRow('× 버튼','한 번 탭하면 빨갛게 변하고, 한 번 더 눌러야 삭제')
+      +hRow('RIR 원','탭할 때마다 미입력 → 0 → 1 → 2 → 3 순환');
+    h+=hCap('RIR이란')
+      +hRow('0~1','실패 직전 · 빨강')
+      +hRow('2~3','여유 있음 · 강조색')
+      +hNote('선택 입력이지만, 넣으면 정체와 강도 부족을 구분하고 디로드 시점을 잡아줌.');
+  }
+  if(t==='goal'){
+    h+=hNote('목표는 두 층으로 나뉨. <b>부위</b>는 가슴·등처럼 큰 단위, <b>세부</b>는 측면 어깨·광배처럼 실제로 키우려는 근육.');
+    h+=hCap('볼륨 구간')
+      +hRow('MEV','성장에 필요한 최소 볼륨. 이 아래면 유지에 그침')
+      +hRow('MAV','성장이 가장 잘 나오는 구간. 여기를 겨냥함')
+      +hRow('MRV','회복 가능한 상한. 넘으면 피로만 쌓임');
+    h+=hCap('그래프 읽기')
+      +hRow('점','이번 주 실제 세트 수 위치')
+      +hRow('옅은 띠','MEV~MAV')
+      +hRow('진한 띠','MAV 구간')
+      +hRow('세로선','보정 MRV · 감량기라 상한을 낮춰 잡음')
+      +hNote('감량기에는 회복 여력이 줄어 MRV를 80퍼센트로 낮춰 표시함.');
+  }
+  if(t==='anal'){
+    h+=hNote('ANALYZE 탭에서 엔진과 분석 종류를 고르고 실행. 하루 20회까지.');
+    h+=hCap('분석 종류')
+      +hRow('주간 리포트','이번 주 전반 · 설정에서 프롬프트 수정 가능')
+      +hRow('볼륨 랜드마크','MEV·MAV·MRV 대조')
+      +hRow('점증·정체','종목별 진전과 정체 진단')
+      +hRow('회복·피로','연속 수행일과 디로드 판단')
+      +hRow('옷맵시 V-테이퍼','측면 어깨·광배 집중')
+      +hRow('균형·비율','당기기 대 밀기 등 배분')
+      +hRow('ACSM','일반 운동 권고 기준 대조');
+    h+=hNote('앱이 계산한 세부 근육 실적·주동근·RIR·휴식 시간이 함께 전달되므로, 리포트 숫자와 화면 그래프는 항상 같은 값을 씀.');
+  }
+  if(t==='read'){
+    h+=hCap('상단')
+      +hRow('EAT','오늘 먹을 목표 칼로리 · 아래 빨간 수는 적자')
+      +hRow('TDEE','총 소모 · 운동분이 있으면 +로 표시');
+    h+=hCap('종목 줄')
+      +hRow('큰 숫자','가장 최근 세션의 최고 무게')
+      +hRow('▲▼ %','직전 세션 대비 성장률')
+      +hRow('왼쪽 세로 바','오늘 기록을 저장한 종목')
+      +hRow('n세트 배지','오늘 수행한 세트 수');
+    h+=hCap('성장률 계산')
+      +hNote('톱세트 하나가 아니라 <b>그날 한 전 세트의 평균 e1RM</b>으로 계산함. 세트 수가 다른 두 날은 적은 쪽에 맞춰 공정하게 비교함. e1RM은 무게×(1+반복÷30).');
+  }
+  if(t==='data'){
+    h+=hNote('기록은 이 기기의 브라우저에만 저장됨. <b>캐시를 지우면 사라짐.</b>');
+    h+=hCap('백업 방법')
+      +hRow('Save File','파일로 내려받기 · 가장 확실함')
+      +hRow('Copy','텍스트로 복사해 메모 등에 보관')
+      +hRow('Apply Input','붙여넣은 백업으로 복원');
+    h+=hCap('자동 보호')
+      +hRow('영구 저장','브라우저가 임의로 비우지 못하게 요청함')
+      +hRow('자동 스냅샷','하루 한 번 별도 보관 · 데이터 손상 시 복구용')
+      +hRow('배너','7일 지나면 목록 위에 알림 · 21일이면 경고색')
+      +hNote('자동 스냅샷도 같은 기기 안에 있음. 정기적으로 파일로 저장하는 것을 권장함.');
+  }
+  if(t==='look'){
+    h+=hNote('설정 · DISPLAY에서 <b>색</b>과 <b>질감</b>을 따로 고름. 기록에는 영향 없음.');
+    h+=hCap('질감')
+      +hRow('Flat','기본 · 얇은 테두리')
+      +hRow('Glass','반투명 + 흐림')
+      +hRow('Depth','떠 있는 그림자')
+      +hRow('Soft','부드러운 양각')
+      +hRow('Carve','안쪽으로 파인 면')
+      +hRow('Neo','딱 떨어지는 오프셋 그림자')
+      +hRow('Sharp · Outline · Bare','각지거나 선만 · 장식 없음')
+      +hRow('Pill · Halo','완전 둥근 · 강조색 발광')
+      +hNote('색 14종과 조합해 70가지 이상. 밝은 테마는 Paper·Frost.');
+  }
+  h+='</div></div>';
+  return h;
+}
 function renderSheet(){
   var ov=document.getElementById('ov'),sh=document.getElementById('sheet');
   if(!UI.sheet){
@@ -1578,6 +1697,7 @@ function renderSheet(){
   }
   navPush();
   var h='<button class="grab" data-act="cl" aria-label="Close"></button>';
+  if(UI.sheet==='help')h+=helpHtml();
   if(UI.sheet==='ex'){
     var exm=machById(UI.open);
     if(!exm){UI.sheet=null;renderSheet();return;}
@@ -4054,19 +4174,7 @@ document.addEventListener('click',function(e){
     case 'fl':UI.filter=v;
       if(UI.q){UI.q='';var qe=document.getElementById('q');if(qe)qe.value='';}
       render();break;
-    case 'sq':
-      UI.qOpen=!UI.qOpen;
-      var sr=document.getElementById('srow'),qi=document.getElementById('q');
-      if(sr)sr.classList.toggle('on',UI.qOpen);
-      var sb=document.getElementById('sqBtn');
-      if(sb)sb.style.color=UI.qOpen?'var(--chrome)':'';
-      if(!UI.qOpen){UI.q='';if(qi)qi.value='';render();}
-      else if(qi)qi.focus();
-      break;
-    case 'qc':
-      UI.q='';var qi2=document.getElementById('q');
-      if(qi2){qi2.value='';qi2.focus();}
-      render();break;
+    case 'help':UI.sheet='help';render();break;
     case 'tg':
       openRow(v);UI.sheet='ex';render();
       break;
@@ -4156,6 +4264,7 @@ document.addEventListener('click',function(e){
       break;
     case 'mn':UI.sheet='data';render();break;
     case 'godata':UI.dtab='data';UI.sheet='data';render();break;
+    case 'htb':UI.htab=v;renderSheet();break;
     case 'snapld':
       (function(){
         if(!canLS)return;
