@@ -345,6 +345,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ctr input{text-align:center;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;min-width:0}
 .ctr .lu{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;color:var(--dim);padding-right:9px;letter-spacing:.04em}
 
+.inzone{margin-top:14px;padding:12px 12px 13px;border-radius:var(--rad-m);border:var(--bw) solid rgba(var(--tx-rgb),.08);background:rgba(var(--tx-rgb),.035)}
+.izl{font-size:8.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+.inzone .inrow{margin-top:0}
+.inzone .inrow+.inrow{margin-top:8px}
 .btnrow{display:flex;gap:8px;margin-top:12px}
 .plusbtn{flex:1.5 1 0;min-width:0;height:48px;border-radius:var(--rad-m);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .plusbtn:active{color:var(--tx);background:rgba(var(--tx-rgb),.1)}
@@ -644,6 +648,7 @@ html{color-scheme:dark}
 .drail .dtb{height:44px;text-align:left;padding:0 0 0 11px;background:none;border:none;border-left:2px solid transparent;border-radius:0;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.1em}
 .drail .dtb.on{border-left-color:var(--chrome);color:var(--tx);font-weight:800;background:linear-gradient(90deg,rgba(var(--acc-rgb),.1),transparent)}
 .dbody{flex:1;min-width:0}
+.sheet.tall .dbody{min-height:62dvh}
 .dbody .sh-l:first-child{margin-top:0}
 #bhD{letter-spacing:.05em}
 .strow{display:flex;align-items:center;gap:9px;margin:8px 0}
@@ -1010,7 +1015,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -1035,6 +1040,26 @@ function upsertSess(id,ds,copy){
   a.push({d:ds,s:copy});
 }
 function topOf(s){var t=0;for(var i=0;i<s.length;i++)if(s[i][0]>t)t=s[i][0];return t;}
+/* 어시스트 머신 — 설정 무게만큼 체중을 덜어주므로 실부하는 체중에서 뺀 값임 */
+function isAssist(m){return !!(m&&m.as);}
+function effOf(m,w){
+  if(!isAssist(m))return +w||0;
+  var b=(BW>0?BW:70);
+  return Math.max(0,Math.round((b-(+w||0))*10)/10);
+}
+function effSets(m,s){
+  if(!isAssist(m)||!s)return s;
+  var o=[],i;
+  for(i=0;i<s.length;i++){var c=s[i].slice();c[0]=effOf(m,c[0]);o.push(c);}
+  return o;
+}
+/* 표시용 대표 무게 — 어시스트는 보조가 적을수록 어려우므로 최솟값이 최고 기록임 */
+function topOfM(m,s){
+  if(!isAssist(m))return topOf(s);
+  var t=null,i;
+  for(i=0;i<s.length;i++){var w=+s[i][0]||0;if(t===null||w<t)t=w;}
+  return t===null?0:t;
+}
 function cUnit(x){return fmtW(x[1])+(x[2]>0?'/'+fmtW(x[2])+'%':'');}
 function repsOfC(s,card){
   if(!card)return repsOf(s);
@@ -1375,13 +1400,13 @@ function rowHtml(m,noBadge){
     return '<span class="rw"><b class="w">'+w2+'</b><i class="u">'+unit+'</i></span><span class="rp">'+(tag||'')+'</span>';
   }
   if(dirty){
-    var n=draft?draft.length:0,t=draft&&n?topOf(draft):0;
+    var n=draft?draft.length:0,t=draft&&n?topOfM(m,draft):0;
     dtag='<i class="dtag now">Editing</i>';
     if(isCard(m.p)){
       right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
-      right=rgt(fmtW(t),'kg',dp?gainTag(draft,dp.s):'');
+      right=rgt(fmtW(t),'kg',dp?gainTag(effSets(m,draft),effSets(m,dp.s)):'');
     }else{
       right='<span class="none">—</span>';
     }
@@ -1389,11 +1414,11 @@ function rowHtml(m,noBadge){
     var la=latest(m.i);
     if(la){
       if(isCard(m.p)){
-        right=rgt(fmtW(topOf(la.s)),'min','');
+        right=rgt(fmtW(topOfM(m,la.s)),'min','');
         sub='<span class="sub">'+repsOfC(la.s,true)+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
-        right=rgt(fmtW(topOf(la.s)),'kg',lp?gainTag(la.s,lp.s):'');
+        right=rgt(fmtW(topOfM(m,la.s)),'kg',lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'');
       }
     }else{
       right='<span class="none">No record</span>';
@@ -1419,7 +1444,7 @@ function lastLine(m){
   if(!p)return '<div class="exsub"><span class="none">첫 기록</span></div>';
   var cd=isCard(m.p);
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
-    +(cd?cardDetail(p.s):(fmtW(topOf(p.s))+'kg <u>'+detailOf(p.s)+'</u>'))+'</div>';
+    +(cd?cardDetail(p.s):(fmtW(topOfM(m,p.s))+'kg <u>'+detailOf(p.s)+'</u>'))+'</div>';
 }
 function panelHtml(m){
   var id=m.i,draft=UI.draft[id]||[],h='<div class="panel">';
@@ -1444,8 +1469,9 @@ function panelHtml(m){
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
     }
     if(!cdRow){
-      var dv2=volOf(draft),de=e1rmAvg(draft);
-      var g2=past.length?e1rmGain(draft,past[0].s):null;
+      var ed=effSets(m,draft);
+      var dv2=volOf(ed),de=e1rmAvg(ed);
+      var g2=past.length?e1rmGain(ed,effSets(m,past[0].s)):null;
       var ra=rirAvg(draft);
       h+='<div class="stats">'
         +'<div class="stc"><b>'+dv2.toLocaleString()+'</b><i>VOLUME <u>kg</u></i></div>'
@@ -1466,7 +1492,9 @@ function panelHtml(m){
   var st=machStep(id);
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
   var cd=isCardId(UI.open);
-  h+='<div class="inrow">'
+  h+='<div class="inzone">'
+    +'<div class="izl">'+(isAssist(m)?'보조 무게 · 낮을수록 고강도':'입력')+'</div>'
+    +'<div class="inrow">'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><i class="lu">'+(cd?'min ±5':'kg ±'+fmtW(st))+'</i><button data-act="w+">＋</button></div>'
     +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><i class="lu">'+(cd?'spd·lv':'reps')+'</i><button data-act="r+">＋</button></div>'
     +'</div>';
@@ -1481,7 +1509,8 @@ function panelHtml(m){
     +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update '+(UI.esIdx+1):'＋ Set')+'</button>'
     +'<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>'
     +'</div>'
-    +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'');
+    +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'')
+    +'</div>';
   /* 하단 */
   var armed=UI.arm==='dm'+id;
   h+='<div class="prow">'
@@ -1497,14 +1526,14 @@ function panelHtml(m){
     h+='<div class="hist">';
     if(all.length>=2){
       var tops=[];
-      for(var s=all.length-1;s>=0;s--)tops.push(cdRow?topOf(all[s].s):e1rmAvg(all[s].s));
+      for(var s=all.length-1;s>=0;s--)tops.push(cdRow?topOf(all[s].s):e1rmAvg(effSets(m,all[s].s)));
       if(tops.length>12)tops=tops.slice(tops.length-12);
       h+=spark(tops);
     }
     if(!all.length)h+='<div class="empty">No records</div>';
     for(var q=0;q<all.length;q++){
       var x=all[q];
-      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOf(x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s):detailOf(x.s))+'</span><button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
+      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s):detailOf(x.s))+'</span><button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
     }
     h+='</div>';
   }
@@ -1583,6 +1612,7 @@ var HTABS=[
   {k:'log',   n:'기록',   t:'훈련 기록하기'},
   {k:'goal',  n:'목표',   t:'주간 목표와 볼륨 구간'},
   {k:'anal',  n:'분석',   t:'AI 리포트'},
+  {k:'key',   n:'AI 키',  t:'API 키 발급과 적용'},
   {k:'read',  n:'읽기',   t:'화면의 숫자 읽는 법'},
   {k:'data',  n:'백업',   t:'데이터 보관'},
   {k:'look',  n:'테마',   t:'색과 질감'}
@@ -1646,6 +1676,25 @@ function helpHtml(){
       +hRow('균형·비율','당기기 대 밀기 등 배분')
       +hRow('ACSM','일반 운동 권고 기준 대조');
     h+=hNote('앱이 계산한 세부 근육 실적·주동근·RIR·휴식 시간이 함께 전달되므로, 리포트 숫자와 화면 그래프는 항상 같은 값을 씀.');
+  }
+  if(t==='key'){
+    h+=hNote('리포트를 쓰려면 AI 제공사의 API 키가 하나 필요함. 셋 중 <b>Gemini가 무료 한도가 넓어</b> 시작에 적합함.');
+    h+=hCap('Gemini · 권장')
+      +hStep(1,'aistudio.google.com 접속','구글 계정으로 로그인함.')
+      +hStep(2,'Get API key','좌측 메뉴에서 API 키 만들기를 누름.')
+      +hStep(3,'키 복사','<em>AIza</em>로 시작하는 문자열이 나옴.');
+    h+=hCap('OpenAI')
+      +hStep(1,'platform.openai.com 접속','로그인 후 API keys 메뉴로 이동함.')
+      +hStep(2,'Create new secret key','<em>sk-</em>로 시작하는 키가 한 번만 표시되므로 즉시 복사함.')
+      +hStep(3,'결제 등록','무료 한도가 없어 카드 등록이 필요함.');
+    h+=hCap('Claude')
+      +hStep(1,'console.anthropic.com 접속','로그인 후 API Keys 메뉴로 이동함.')
+      +hStep(2,'Create Key','<em>sk-ant-</em>로 시작하는 키를 복사함.');
+    h+=hCap('앱에 넣기')
+      +hStep(1,'설정 · AI 탭','우측 상단 <em>···</em> → 설정 → AI를 엶.')
+      +hStep(2,'키 붙여넣기','제공사에 맞는 칸에 붙여넣으면 자동 저장됨.')
+      +hStep(3,'엔진 선택','ANALYZE 탭 상단 <em>ENGINE</em>에서 사용할 엔진을 고름.');
+    h+=hNote('키는 이 기기에만 저장되고 서버로 보내지 않음. <b>백업 파일에는 포함되지 않으므로</b> 다른 기기에서는 다시 입력해야 함. 하루 20회까지 실행 가능.');
   }
   if(t==='read'){
     h+=hCap('상단')
@@ -1804,7 +1853,12 @@ function renderSheet(){
     for(var s3=0;s3<rxs.length;s3++){
       h+='<button class="chip'+((UI.editRx||12)===rxs[s3]?' on':'')+'" data-act="px" data-v="'+rxs[s3]+'">'+rxs[s3]+'</button>';
     }
-    h+='</div><div class="sh-l">Primary muscle <span style="font-weight:400;letter-spacing:0;color:var(--dim)">세부 타겟 집계 기준</span></div><div class="wrapchips">';
+    h+='</div><div class="sh-l">Machine type</div><div class="wrapchips">'
+      +'<button class="chip'+(UI.editAs?'':' on')+'" data-act="pas" data-v="0">일반<i>무게가 곧 부하</i></button>'
+      +'<button class="chip'+(UI.editAs?' on':'')+'" data-act="pas" data-v="1">어시스트<i>무게만큼 체중 보조</i></button>'
+      +'</div>'
+      +(UI.editAs?'<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중('+fmtW(BW)+'kg)에서 뺀 값으로 계산하고, 무게가 낮을수록 최고 기록으로 봄.</div>':'')
+      +'<div class="sh-l">Primary muscle <span style="font-weight:400;letter-spacing:0;color:var(--dim)">세부 타겟 집계 기준</span></div><div class="wrapchips">';
     var skAuto=subAuto({n:UI.addName,ln:UI.addLine,b:UI.addBrand,p:UI.addPart});
     h+='<button class="chip'+(UI.editSk?'':' on')+'" data-act="psk" data-v="">Auto<i>'+(skAuto?esc(subName(skAuto)):'미분류')+'</i></button>';
     for(var s5=0;s5<SUBS.length;s5++){
@@ -2067,7 +2121,7 @@ function renderSheet(){
     h+='</div></div>';
   }
   sh.innerHTML=h;ov.classList.add('on');sh.classList.add('on');
-  sh.classList.toggle('tall',UI.sheet==='ai'||UI.sheet==='data');
+  sh.classList.toggle('tall',UI.sheet==='ai'||UI.sheet==='data'||UI.sheet==='help');
   sh.style.height='';sh.style.transform='';
   grabBind();
   if(UI.sheet==='ai'&&AIFRESH){
@@ -2303,6 +2357,7 @@ function editMachine(){
   m.n=name;m.p=UI.addPart;m.b=brand;m.ln=line;m.st=UI.editStep||2.5;
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
   if(UI.editSk&&SUBRX[UI.editSk])m.sk=UI.editSk;else delete m.sk;
+  if(UI.editAs)m.as=1;else delete m.as;
   UI.sheet=null;
   save();
   toast('<em>Updated</em> '+esc(name));
@@ -3079,7 +3134,7 @@ function volTrendHtml(dm){
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
       if(!e.s.length||e.d<bounds[0]||e.d>=bounds[cols])continue;
-      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=volOf(e.s);break;}
+      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=volOf(effSets(pid[k],e.s));break;}
     }
   }
   var t2=[],sum=0;
@@ -4249,7 +4304,7 @@ document.addEventListener('click',function(e){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -4436,6 +4491,7 @@ document.addEventListener('click',function(e){
       break;
     case 'px':UI.editRx=+v;render();break;
     case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';render();break;
+    case 'pas':UI.editAs=(v==='1');render();break;
     case 'palpick':
       if(palOk(v)){
         PAL=v;
@@ -4455,7 +4511,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
