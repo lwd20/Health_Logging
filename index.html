@@ -322,7 +322,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .skpick{display:flex;align-items:center;gap:10px;width:100%;padding:11px 13px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);background:var(--btn-bg);text-align:left}
 .skpick b{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .skpick i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--chrome)}
-.skpick.open{border-color:rgba(var(--acc-rgb),.45);background:rgba(var(--acc-rgb),.08)}
+.skpick.open{border-color:rgba(var(--acc-rgb),.45);background:rgba(var(--acc-rgb),.08);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.pickbody{padding:11px 11px 3px;border:var(--bw) solid rgba(var(--acc-rgb),.45);border-top:0;border-radius:0 0 var(--rad-m) var(--rad-m);background:rgba(var(--acc-rgb),.045)}
+.pickbody .wrapchips{margin:0}
+.pickbody .namerow{margin-top:9px}
 .skpick:active{opacity:.65}
 .thcols{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
 .thcol{min-width:0}
@@ -1055,7 +1058,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,skOpen:false,rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,pickOpen:'',rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -1683,6 +1686,18 @@ function chipRow(items, act, cur, extra){
   }
   return h + (extra || '') + '</div>';
 }
+/* 접었다 펴는 선택 행 — 평소엔 현재 값 한 줄만 보이게 함 */
+function pickRow(key, label, sub, cur, body){
+  var open = (UI.pickOpen === key);
+  return '<div class="sh-l">' + label + (sub ? '<span class="shsub">' + sub + '</span>' : '') + '</div>'
+    + '<button class="skpick' + (open ? ' open' : '') + '" data-act="pkop" data-v="' + key + '">'
+    + '<b>' + esc(cur) + '</b><i>' + (open ? '접기' : '변경') + '</i></button>'
+    + (open ? ('<div class="pickbody">' + body + '</div>') : '');
+}
+function txtRow(id, ph, val){
+  return '<div class="namerow"><span class="namein"><input id="' + id + '" enterkeyhint="done" placeholder="' + ph
+    + '" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(val) + '"></span></div>';
+}
 /* 추가·편집 공용 입력 폼 */
 function exFormHtml(isEdit){
   var i, h = '';
@@ -1696,45 +1711,40 @@ function exFormHtml(isEdit){
   h += '<div class="sh-l">Name</div>'
     + '<div class="namerow"><span class="namein"><input id="addName" enterkeyhint="done" placeholder="종목 이름" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '"></span></div>';
 
-  /* 브랜드 — 칩 목록 + 직접 입력 */
+  /* 브랜드 */
   var bl = brandListAll(), bItems = [{ v: '', l: '없음' }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
-  h += '<div class="sh-l">Brand</div>' + chipRow(bItems, 'pb', normBrand(UI.addBrand))
-    + '<div class="namerow"><span class="namein"><input id="addBrand" enterkeyhint="done" placeholder="직접 입력" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(UI.addBrand) + '"></span></div>';
+  h += pickRow('brand', 'Brand', '', normBrand(UI.addBrand) || '없음',
+    chipRow(bItems, 'pb', normBrand(UI.addBrand)) + txtRow('addBrand', '직접 입력', UI.addBrand));
 
-  /* 라인 — 선택한 브랜드에 속한 것만 */
+  /* 라인 — 선택한 브랜드에 종속 */
   var ll = lineListOf(UI.addBrand), lItems = [{ v: '', l: '없음' }];
   for (i = 0; i < ll.length; i++) lItems.push({ v: ll[i], l: ll[i] });
-  h += '<div class="sh-l">Line <span class="shsub">' + (normBrand(UI.addBrand) ? esc(normBrand(UI.addBrand)) + ' 계열' : '브랜드를 먼저 고르면 목록이 나옴') + '</span></div>'
-    + (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine)) : '')
-    + '<div class="namerow"><span class="namein"><input id="addLine" enterkeyhint="done" placeholder="직접 입력" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(UI.addLine) + '"></span></div>';
+  h += pickRow('line', 'Line', normBrand(UI.addBrand) ? esc(normBrand(UI.addBrand)) + ' 계열' : '브랜드를 먼저 고르면 목록이 나옴',
+    cleanLine(UI.addLine) || '없음',
+    (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine)) : '') + txtRow('addLine', '직접 입력', UI.addLine));
 
   if (!cd) {
     var steps = [1, 2.5, 5], sItems = [];
     for (i = 0; i < steps.length; i++) sItems.push({ v: steps[i], l: fmtW(steps[i]) + 'kg' });
-    h += '<div class="sh-l">Weight step (±)</div>' + chipRow(sItems, 'ps', UI.editStep);
-
     var rxs = [10, 12, 15, 20], rItems = [];
     for (i = 0; i < rxs.length; i++) rItems.push({ v: rxs[i], l: String(rxs[i]) });
-    h += '<div class="sh-l">Reps max <span class="shsub">점증 판정 상한</span></div>' + chipRow(rItems, 'px', (UI.editRx || 12));
+    h += '<div class="sh-l">Weight step <span class="shsub">± 증량 단위</span></div>' + chipRow(sItems, 'ps', UI.editStep)
+      + '<div class="sh-l">Reps max <span class="shsub">점증 판정 상한</span></div>' + chipRow(rItems, 'px', (UI.editRx || 12));
 
-    h += '<div class="sh-l">Machine type</div>'
-      + chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0)
-      + (UI.editAs ? '<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중(' + fmtW(BW) + 'kg)에서 뺀 값으로 계산함.</div>' : '');
+    h += pickRow('mt', 'Machine type', '', UI.editAs ? '어시스트 · 무게만큼 체중 보조' : '일반 · 무게가 곧 부하',
+      chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0)
+      + (UI.editAs ? '<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중(' + fmtW(BW) + 'kg)에서 뺀 값으로 계산함.</div>' : ''));
 
-    /* 주동근 — 기본은 접힌 상태, 눌러야 전체 목록이 펼쳐짐 */
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
-    var curLbl = UI.editSk ? subName(UI.editSk) : ('Auto · ' + (skAuto ? subName(skAuto) : '미분류'));
-    h += '<div class="sh-l">Primary muscle <span class="shsub">세부 타겟 집계 기준</span></div>'
-      + '<button class="skpick' + (UI.skOpen ? ' open' : '') + '" data-act="skop"><b>' + esc(curLbl) + '</b><i>' + (UI.skOpen ? '접기' : '변경') + '</i></button>';
-    if (UI.skOpen) {
-      var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : '미분류' }];
-      for (i = 0; i < SUBS.length; i++) kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
-      h += chipRow(kItems, 'psk', UI.editSk);
-    }
+    var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : '미분류' }];
+    for (i = 0; i < SUBS.length; i++) kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
+    h += pickRow('sk', 'Primary muscle', '세부 타겟 집계 기준',
+      UI.editSk ? subName(UI.editSk) : ('Auto · ' + (skAuto ? subName(skAuto) : '미분류')),
+      chipRow(kItems, 'psk', UI.editSk));
   }
 
-  h += '<button class="savebtn' + (UI.addName.trim() ? '' : ' dis') + '" data-act="' + (isEdit ? 'em' : 'am') + '" style="margin-top:16px;width:100%;flex:none">' + (isEdit ? 'Save' : 'Add') + '</button>';
+  h += '<button class="savebtn' + (UI.addName.trim() ? '' : ' dis') + '" data-act="' + (isEdit ? 'em' : 'am') + '" style="margin-top:18px;width:100%;flex:none">' + (isEdit ? 'Save' : 'Add') + '</button>';
   return h;
 }
 
@@ -4552,13 +4562,13 @@ document.addEventListener('click',function(e){
         S=UNDO.s;UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
-    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.skOpen=false;render();break;
+    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.pickOpen='';render();break;
     case 'ed':
       (function(){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.skOpen=false;
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -4604,7 +4614,7 @@ document.addEventListener('click',function(e){
     case 'pp':UI.addPart=v;render();break;
     case 'pre':addMachine(v,UI.addPart,t.getAttribute('data-b')||'',t.getAttribute('data-l')||'');break;
     case 'am':addMachine(UI.addName,UI.addPart,UI.addBrand,UI.addLine);UI.addName='';UI.addLine='';render();break;
-    case 'pl':UI.addLine=(UI.addLine===v)?'':v;render();break;
+    case 'pl':UI.addLine=(UI.addLine===v)?'':v;UI.pickOpen='';render();break;
     case 'cp':
       var ta=document.getElementById('ioTa');
       ta.select();ta.setSelectionRange(0,999999);
@@ -4744,10 +4754,10 @@ document.addEventListener('click',function(e){
       UI.sheet='ai';render();
       break;
     case 'px':UI.editRx=+v;render();break;
-    case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';UI.skOpen=false;render();break;
-    case 'skop':UI.skOpen=!UI.skOpen;render();break;
-    case 'pb':UI.addBrand=v;UI.addLine='';render();break;
-    case 'pas':UI.editAs=(v==='1');render();break;
+    case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';UI.pickOpen='';render();break;
+    case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
+    case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
+    case 'pas':UI.editAs=(v==='1');UI.pickOpen='';render();break;
     case 'palpick':
       if(palOk(v)){
         PAL=v;
@@ -4767,7 +4777,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.skOpen=false;
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
