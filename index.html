@@ -280,6 +280,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mc.did{background:rgba(var(--acc-rgb),.05);margin:0 -13px;padding:0 13px}
 .mc.did .nm{color:var(--tx)}
 .mc.on .nm{color:var(--tx)}
+.rp .prtag{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:2px 6px;white-space:nowrap}
+.rr.thin{flex:0 0 auto}
+.stc b em.prm{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:1px 5px;margin-left:5px;vertical-align:3px;font-family:var(--sans)}
 .dtag.done{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--acc-br);background:transparent;border:1px solid rgba(var(--acc-rgb),.45);border-radius:999px;padding:1px 7px;margin-left:2px;vertical-align:1px}
 .grp .mc:last-child{border-bottom:0}
 .row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;text-align:left}
@@ -1084,6 +1087,19 @@ function effSets(m,s){
   return o;
 }
 /* 표시용 대표 무게 — 어시스트는 보조가 적을수록 어려우므로 최솟값이 최고 기록임 */
+/* 개인 최고 — 세션 평균 e1RM 기준. ds 세션이 그 이전 전부를 넘었는지 판정함 */
+function prOf(m,ds){
+  if(!m||isCard(m.p))return null;
+  var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
+  var cur=null,best=0,bd='',i;
+  for(i=0;i<a.length;i++){
+    var v=e1rmAvg(effSets(m,a[i].s));
+    if(a[i].d===ds){cur=v;continue;}
+    if(a[i].d<ds&&v>best){best=v;bd=a[i].d;}
+  }
+  if(cur===null||!(cur>0))return null;
+  return {cur:cur,best:best,bestDate:bd,isPR:(best>0&&cur>best),gain:best>0?Math.round((cur-best)/best*1000)/10:0};
+}
 function topOfM(m,s){
   if(!isAssist(m))return topOf(s);
   var t=null,i;
@@ -1424,7 +1440,7 @@ function bkBanner(){
     +'<em>저장</em></button>';
 }
 function rowHtml(m,noBadge){
-  var open=UI.open===m.i,right,sub='',dtag='';
+  var open=UI.open===m.i,right,sub='',dtag='',noRec=false;
   var dirty=!!UI.dirty[m.i],draft=UI.draft[m.i];
   function rgt(w2,unit,tag){
     return '<span class="rw"><b class="w">'+w2+'</b><i class="u">'+unit+'</i></span><span class="rp">'+(tag||'')+'</span>';
@@ -1448,22 +1464,26 @@ function rowHtml(m,noBadge){
         sub='<span class="sub">'+repsOfC(la.s,true)+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
-        right=rgt(fmtW(topOfM(m,la.s)),'kg',lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'');
+        var pr2=prOf(m,la.d);
+        var gt=lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'';
+        if(pr2&&pr2.isPR)gt='<i class="prtag">PR</i>';
+        right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
-      right='<span class="none">No record</span>';
+      right='<span class="none">No record</span>';noRec=true;
     }
   }
   var badge=(!noBadge&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
   var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
   if(done&&!dirty)dtag='<i class="dtag done">'+ts2.s.length+(isCard(m.p)?'회':'세트')+'</i>';
+
   return '<section class="mc'+(open?' on':'')+(done?' did':'')+'">'
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
     +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+dtag+'</span>'+sub+'</span>'
-    +'<span class="rr">'+right+'</span></button>'
+    +'<span class="rr'+(noRec?' thin':'')+'">'+right+'</span></button>'
     +'</div>'
     +'</section>';
 }
@@ -1506,7 +1526,11 @@ function panelHtml(m){
       var ra=rirAvg(draft);
       h+='<div class="stats">'
         +'<div class="stc"><b>'+dv2.toLocaleString()+'</b><i>VOLUME <u>kg</u></i></div>'
-        +'<div class="stc"><b>'+fmtW(de)+'</b><i class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">e1RM'
+        +'<div class="stc"><b>'+fmtW(de)+(function(){
+            var pb=0,pi;
+            for(pi=0;pi<past.length;pi++){var pv=e1rmAvg(effSets(m,past[pi].s));if(pv>pb)pb=pv;}
+            return (pb>0&&de>pb)?'<em class="prm">PR</em>':'';
+          })()+'</b><i class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">e1RM'
         +(g2?' <u>'+(g2.pct>0?'+':'')+g2.pct+'%</u>':'')+'</i></div>'
         +'<div class="stc"><b>'+(ra!==null?ra:'<span class="none">–</span>')+'</b><i>RIR</i></div>'
         +'</div>';
