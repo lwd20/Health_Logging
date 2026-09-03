@@ -682,14 +682,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .gbrow .gmg b.r{background:rgba(var(--sig-rgb),.72)}
 .gbrow .gmg i{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(232,226,216,.35)}
 .gbrow .bv{flex:0 0 auto;font-size:10.5px;color:var(--acc-br);font-variant-numeric:tabular-nums}
-.insmod{margin-bottom:15px}
-.inshd{display:flex;align-items:baseline;margin:2px 0 7px}
-.inshd .t{font-size:9.5px;font-weight:800;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
-.inshd .r{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
-.inshd .r b{color:var(--acc-br)}
-.inshd .r .u2{color:var(--pos)}
-.inshd .r .d2{color:var(--sig)}
-.axcap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:4px}
 .anlbtn:active{background:var(--acc-dk);box-shadow:none}
 .anlbtn.dis{background:rgba(var(--tx-rgb),.05);color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.08);box-shadow:none}
 .gmpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-m);box-shadow:0 16px 38px rgba(0,0,0,.32);overflow:hidden}
@@ -2153,7 +2145,6 @@ function renderSheet(){
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
     h+=heroHtml();
-    h+=insightsHtml();
     h+=kcalHtml();
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
@@ -3715,75 +3706,6 @@ function heroHtml(){
 }
 /* ── Insights: 전체 이력 기반 로컬 시각화 ── */
 function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function insDayMap(){
-  var pid={},i,k,map={},minD=null;
-  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
-  for(k in S.l){
-    var m=pid[k];if(!m||isCard(m.p))continue;
-    for(i=0;i<S.l[k].length;i++){
-      var e=S.l[k][i];
-      if(!e.s.length)continue;
-      map[e.d]=(map[e.d]||0)+e.s.length;
-      if(!minD||e.d<minD)minD=e.d;
-    }
-  }
-  return {map:map,minD:minD};
-}
-function insMonday(d){var t=new Date(d);t.setDate(t.getDate()-((t.getDay()+6)%7));t.setHours(0,0,0,0);return t;}
-function volTrendHtml(dm){
-  var pid={},i,k;
-  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
-  var thisMon=insMonday(new Date());
-  var firstMon=insMonday(new Date(dm.minD.replace(/-/g,'/')));
-  var cols=Math.min(8,Math.round((thisMon-firstMon)/604800000)+1);
-  if(cols<2)return '';
-  var start=new Date(thisMon);start.setDate(start.getDate()-(cols-1)*7);
-  var bounds=[],w;
-  for(w=0;w<=cols;w++){var t=new Date(start);t.setDate(t.getDate()+w*7);bounds.push(insISO(t));}
-  var vols=[];for(w=0;w<cols;w++)vols.push(0);
-  for(k in S.l){
-    var m=pid[k];if(!m||isCard(m.p))continue;
-    for(i=0;i<S.l[k].length;i++){
-      var e=S.l[k][i];
-      if(!e.s.length||e.d<bounds[0]||e.d>=bounds[cols])continue;
-      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=e.s.length;break;}
-    }
-  }
-  var t2=[],sum=0;
-  for(w=0;w<cols;w++){t2.push(vols[w]);sum+=t2[w];}
-  var avg=Math.round(sum/cols);
-  var cur=t2[cols-1],dtag='';
-  /* 기준선은 진행 중인 이번 주를 뺀 평균 — 라벨과 점선이 같은 값을 가리키게 함 */
-  var base=cols>1?Math.round((sum-cur)/(cols-1)):0;
-  if(base>0){
-    var pl2=paceLeft();
-    if(pl2>=20){
-      var exp2=base*pl2/100;
-      var dp=exp2>0?Math.round((cur-exp2)/exp2*100):0;
-      dtag=' <span class="'+(dp>0?'u2':(dp<0?'d2':''))+'">평균 대비 '+(dp>0?'+':'')+dp+'%</span>';
-    }else dtag=' <span>주 초반</span>';
-  }
-  var ref=base>0?base:avg;
-  var W=352,H=74,mx=Math.max.apply(null,t2.concat([ref]))*1.18||1;
-  var s='<line x1="0" x2="'+W+'" y1="'+(H-ref/mx*H).toFixed(1)+'" y2="'+(H-ref/mx*H).toFixed(1)+'" stroke="rgba(var(--acc-rgb),.2)" stroke-dasharray="3 3"/>';
-  var slot=W/cols,bw=Math.min(36,slot-8);
-  for(w=0;w<cols;w++){
-    var bh=t2[w]/mx*H,x=w*slot+(slot-bw)/2,last=w===cols-1;
-    s+='<rect x="'+x.toFixed(1)+'" y="'+(H-bh).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,bh).toFixed(1)+'" rx="2" fill="'+(last?'var(--acc-sf)':'rgba(var(--acc-rgb),.36)')+'"'+(last?' stroke="var(--acc-br)"':'')+'/>';
-    s+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+Math.min(H-2,H-bh-4).toFixed(1)+'" text-anchor="middle" font-size="8" font-family="monospace" fill="'+(last?'var(--acc-br)':'var(--dim)')+'">'+t2[w]+'</text>';
-  }
-  return '<div class="insmod">'
-    +'<div class="inshd"><span class="t">Weekly sets</span><span class="r">이번주 <b>'+cur+'</b>세트'+dtag+' · 이전 '+(cols-1)+'주 평균 '+base+'</span></div>'
-    +'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>'
-    +'<div class="axcap"><span>'+bounds[0].slice(5).replace('-','/')+'</span><span>이번 주</span></div>'
-    +'</div>';
-}
-function insightsHtml(){
-  if(!hasLogs())return '';
-  var dm=insDayMap();
-  if(!dm.minD)return '';
-  return volTrendHtml(dm);
-}
 function aiDayTag(d){
   if(!d)return '';
   var t=new Date(),y=new Date(Date.now()-864e5);
