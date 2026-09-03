@@ -3734,15 +3734,15 @@ function volTrendHtml(dm){
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
       if(!e.s.length||e.d<bounds[0]||e.d>=bounds[cols])continue;
-      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=volOf(effSets(pid[k],e.s));break;}
+      for(w=0;w<cols;w++)if(e.d>=bounds[w]&&e.d<bounds[w+1]){vols[w]+=e.s.length;break;}
     }
   }
   var t2=[],sum=0;
-  for(w=0;w<cols;w++){t2.push(Math.round(vols[w]/100)/10);sum+=t2[w];}
-  var avg=Math.round(sum/cols*10)/10;
+  for(w=0;w<cols;w++){t2.push(vols[w]);sum+=t2[w];}
+  var avg=Math.round(sum/cols);
   var cur=t2[cols-1],dtag='';
   /* 기준선은 진행 중인 이번 주를 뺀 평균 — 라벨과 점선이 같은 값을 가리키게 함 */
-  var base=cols>1?Math.round((sum-cur)/(cols-1)*10)/10:0;
+  var base=cols>1?Math.round((sum-cur)/(cols-1)):0;
   if(base>0){
     var pl2=paceLeft();
     if(pl2>=20){
@@ -3761,7 +3761,7 @@ function volTrendHtml(dm){
     s+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+Math.min(H-2,H-bh-4).toFixed(1)+'" text-anchor="middle" font-size="8" font-family="monospace" fill="'+(last?'var(--acc-br)':'var(--dim)')+'">'+t2[w]+'</text>';
   }
   return '<div class="insmod">'
-    +'<div class="inshd"><span class="t">Volume</span><span class="r">이번주 <b>'+cur+'t</b>'+dtag+' · 이전 '+(cols-1)+'주 평균 '+base+'t</span></div>'
+    +'<div class="inshd"><span class="t">Weekly sets</span><span class="r">이번주 <b>'+cur+'</b>세트'+dtag+' · 이전 '+(cols-1)+'주 평균 '+base+'</span></div>'
     +'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>'
     +'<div class="axcap"><span>'+bounds[0].slice(5).replace('-','/')+'</span><span>이번 주</span></div>'
     +'</div>';
