@@ -334,13 +334,15 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
 .favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(var(--acc-rgb),.4);border-radius:3px;background:linear-gradient(180deg,rgba(var(--acc-rgb),.14),rgba(var(--acc-rgb),.08));color:var(--chrome);font-size:10.5px;font-weight:800;letter-spacing:.1em;text-align:left}
 .favnote b{font-family:var(--mono);color:var(--acc-br)}
 .favnote:active{opacity:.7}
-.hstat{flex:0 0 100%;display:flex;align-items:baseline;justify-content:space-between;margin-top:11px;cursor:pointer}
-/* 오른쪽 값은 오른쪽 여백에 붙어 상단 버튼·세션 요약과 같은 세로선을 이룬다 */
-.hstat .hsc:last-child{text-align:right}
+/* 두 값을 좌우가 아니라 위아래로 세운다. 라벨 칸과 숫자 칸을 나눠 두면
+   글자 수가 달라도 숫자의 오른쪽 끝이 어긋나지 않는다. */
+.hstat{flex:0 0 100%;display:grid;grid-template-columns:auto auto;justify-content:end;
+  align-items:baseline;gap:6px 12px;margin-top:9px;cursor:pointer}
+.hsc{display:contents}
 .hstat:active{opacity:.6}
-.hsc b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut)}
-.hsc.eat b{font-size:25px;color:var(--acc-br)}
-.hsc i{display:block;margin-top:5px;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
+.hsc b{font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut);text-align:right}
+.hsc.eat b{font-size:24px;color:var(--acc-br)}
+.hsc i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
 .hsc i u.dfc{color:var(--sig)}
 .hnrg{flex:0 0 100%;display:grid;grid-template-columns:auto auto auto auto;justify-content:start;column-gap:8px;row-gap:3px;align-items:baseline;margin-top:6px;cursor:pointer}
@@ -1560,12 +1562,14 @@ function render(){
     se=sessOn(k,UI.wd);
     if(se&&se.s.length){tc++;sc+=se.s.length;}
   }
+  /* 요약을 왼쪽, 날짜를 오른쪽으로 — 날짜가 아래 두 숫자와 같은 오른쪽 열에
+     서면서 mono 숫자들이 한 줄로 정렬된다. */
   document.getElementById('hdate').innerHTML=
-    '<span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
+    (tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">기록 없음</em>')
+    +'<span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">기록 없음</em>')
     +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
         var base=Math.round(bmr(BW,BF)*ACT);
@@ -1573,9 +1577,10 @@ function render(){
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
+        /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
-          +'<div class="hsc eat"><b>'+eat.toLocaleString()+'</b><i>EAT <u class="dfc">−'+dfc.toLocaleString()+'</u></i></div>'
-          +'<div class="hsc"><b>'+tot.toLocaleString()+'</b><i>TDEE'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i></div>'
+          +'<div class="hsc eat"><i>EAT <u class="dfc">−'+dfc.toLocaleString()+'</u></i><b>'+eat.toLocaleString()+'</b></div>'
+          +'<div class="hsc"><i>TDEE'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i><b>'+tot.toLocaleString()+'</b></div>'
           +'</div>';
       })():'');
   /* 상태 줄 — 계산은 분석 탭과 같은 heroSignal 을 씀 */
