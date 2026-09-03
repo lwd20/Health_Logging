@@ -175,8 +175,8 @@ i,em,u{font-style:normal;text-decoration:none}
 ::selection{background:rgba(var(--acc-rgb),.28)}
 
 /* ── 헤더: 장비 네임플레이트 ── */
-.top::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.055)' stroke-width='1'%3E%3Cpath d='M0 19h38M19 0v38'/%3E%3Crect x='6.8' y='6.8' width='24.4' height='24.4'/%3E%3C/g%3E%3C/svg%3E");background-size:38px 38px;-webkit-mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));filter:var(--grid-f);pointer-events:none;z-index:-1}
-.top{position:sticky;top:0;z-index:10;background:var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid rgba(var(--tx-rgb),.14);transition:box-shadow .18s ease}
+.top::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;border-radius:inherit;overflow:hidden;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.055)' stroke-width='1'%3E%3Cpath d='M0 19h38M19 0v38'/%3E%3Crect x='6.8' y='6.8' width='24.4' height='24.4'/%3E%3C/g%3E%3C/svg%3E");background-size:38px 38px;-webkit-mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));filter:var(--grid-f);pointer-events:none;z-index:-1}
+.top{position:sticky;top:0;z-index:10;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid rgba(var(--tx-rgb),.18);border-radius:0 0 var(--rad-l) var(--rad-l);transition:box-shadow .18s ease}
 /* 목록이 밑으로 지나가기 시작하면 상단이 떠 보이게 함 */
 .top.lift{box-shadow:0 10px 20px -14px rgba(0,0,0,.55),0 1px 0 rgba(var(--tx-rgb),.05)}
 header{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:20px 18px 0}
