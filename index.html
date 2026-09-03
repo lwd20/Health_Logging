@@ -738,7 +738,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .zn.hi{background:rgba(var(--acc-rgb),.36)}
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(var(--sig-rgb),.7)}
 .lmg .cd{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--acc-br);transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(227,185,90,.5)}
-.lmg .cd.ov{background:var(--sig)}
+.lmg .cd.ov{background:var(--sig);box-shadow:0 0 5px rgba(var(--sig-rgb),.5)}
+/* 축을 벗어난 값 — 자리가 아니라 모양으로 알린다 */
+.lmg .cd.out{width:0;height:0;border-radius:0;background:none;box-shadow:none;
+  border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--sig)}
+.lmrow .bv.ov{color:var(--sig)}
 .lmsec{background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.06);border-radius:var(--rad-m);padding:11px 13px 8px;margin-bottom:9px}
 .lmcap{display:flex;align-items:center;gap:8px;font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 8px}
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -3454,13 +3458,18 @@ function lmRow(nm,cur,L){
   var mrv=Math.round(L[3]*0.8);
   var mx=Math.max(mrv,L[2])*1.15||1;
   function px(v){return Math.min(100,Math.round(v*100/mx));}
+  /* 표식이 막대 끝에 걸치면 절반이 밖으로 나가 테두리와 겹쳐 사라진 것처럼 보인다.
+     중심을 안쪽으로 물려 항상 온전히 보이게 한다. */
+  var cp=Math.max(2.5,Math.min(97.5,cur*100/mx));
+  /* 축을 벗어난 값은 자리로 구분되지 않으므로(23 이든 40 이든 끝) 화살표로 바꾼다 */
+  var out=cur>mx;
   return '<div class="lmrow"><span class="bn">'+nm+'</span>'
     +'<span class="lmg">'
     +'<i class="zn" style="left:'+px(L[0])+'%;width:'+(px(L[1])-px(L[0]))+'%"></i>'
     +'<i class="zn hi" style="left:'+px(L[1])+'%;width:'+(px(L[2])-px(L[1]))+'%"></i>'
     +'<i class="mrv" style="left:'+px(mrv)+'%"></i>'
-    +'<i class="cd'+(cur>mrv?' ov':'')+'" style="left:'+px(cur)+'%"></i>'
-    +'</span><span class="bv">'+cur+'</span></div>';
+    +'<i class="cd'+(cur>mrv?' ov':'')+(out?' out':'')+'" style="left:'+cp.toFixed(1)+'%"></i>'
+    +'</span><span class="bv'+(cur>mrv?' ov':'')+'">'+cur+'</span></div>';
 }
 function vzGauge(rows){
   var h='',i;
