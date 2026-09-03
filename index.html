@@ -1703,7 +1703,6 @@ function renderList(){
       var hid=totP-arr2.length;
       h+='<button class="favnote" data-act="fo">★ 즐겨찾기만 표시 중'+(hid>0?' · 숨김 <b>'+hid+'</b>':'')+' — 전체 보기</button>';
     }
-    arr2=favFirst(arr2);
     if(UI.filter==='CARDIO'){
       /* 네 줄 중 셋은 뺐다.
          - 「잔여 29분」은 121/150 과 막대가 이미 두 번 말한 값이다.
@@ -1726,15 +1725,18 @@ function renderList(){
       h+='<div class="shd" style="margin-top:8px">'+UI.filter+(UI.favOnly?' ★':'')+'<i>'+arr2.length+'</i></div>';
       if(UI.filter==='CARDIO'){
         /* 러닝머신에 제조사 구분은 뜻이 없다. 대신 배지를 살려 NEAT 를 드러낸다 */
+        var cds=favFirst(arr2);
         h+='<div class="grp">';
-        for(j=0;j<arr2.length;j++)h+=rowHtml(arr2[j]);
+        for(j=0;j<cds.length;j++)h+=rowHtml(cds[j]);
         h+='</div>';
       }else{
         var bgs=brandGroups(arr2),bg,bj;
         for(bj=0;bj<bgs.length;bj++){
           bg=bgs[bj];
-          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bg.items.length+'</i></div><div class="grp">';
-          for(j=0;j<bg.items.length;j++)h+=rowHtml(bg.items[j],true);
+          /* ★는 브랜드 묶음마다 그 안에서 위로 — 부위 전체에 걸면 묶음 순서까지 흔들린다 */
+          var bit=favFirst(bg.items);
+          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bit.length+'</i></div><div class="grp">';
+          for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
           h+='</div>';
         }
       }
