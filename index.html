@@ -309,7 +309,7 @@ i,em,u{font-style:normal;text-decoration:none}
 header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0}
 /* 여섯 줄이 같은 간격으로 놓이면 무엇이 한 덩어리인지 알 수 없다.
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
-.hsig{display:flex;align-items:center;gap:8px;margin:13px 0 0;padding:0 18px;cursor:pointer}
+.hsig{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:0 18px;cursor:pointer}
 .hsig:active{opacity:.6}
 .hsig .lv{flex:0 0 auto;font-size:8.5px;font-weight:800;letter-spacing:.1em;padding:3px 7px;border-radius:999px;background:rgba(var(--acc-rgb),.15);color:var(--acc-br);white-space:nowrap}
 .hsig.warn .lv{background:rgba(var(--acc-rgb),.18);color:var(--chrome)}
@@ -318,13 +318,14 @@ header{position:relative;display:flex;align-items:center;justify-content:space-b
 header>div:first-child{flex:1 1 auto;min-width:0}
 h1{font-size:19px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1}
 h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005em;color:var(--acc-br)}
-.top.nosig .hdate{margin-top:13px}
-.hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin:7px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
+/* 워드마크 바로 아래 — 날짜가 이 화면의 제목 노릇을 하므로 조금 크게 */
+.hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
+.henrg{padding:0 18px;margin-top:9px}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
 .hdate>em.none{color:var(--dim)}
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
    이 줄은 아래 큰 숫자에 자리를 내주고 물러난다. */
-.hdate em{color:var(--dim);font-weight:700;margin-left:3px}
+.hdate em{font-size:11px;color:var(--dim);font-weight:700;margin-left:3px}
 .sh-l.fold{cursor:pointer;display:flex;align-items:center;gap:6px}
 .sh-l.fold i{font-style:normal;font-size:9px;color:var(--dim)}
 .sh-l.fold:active{opacity:.6}
@@ -336,8 +337,8 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
 .favnote:active{opacity:.7}
 /* 두 값을 좌우가 아니라 위아래로 세운다. 라벨 칸과 숫자 칸을 나눠 두면
    글자 수가 달라도 숫자의 오른쪽 끝이 어긋나지 않는다. */
-.hstat{flex:0 0 100%;display:grid;grid-template-columns:auto auto;justify-content:end;
-  align-items:baseline;gap:6px 12px;margin-top:9px;cursor:pointer}
+.hstat{display:grid;grid-template-columns:auto auto;justify-content:end;
+  align-items:baseline;gap:6px 12px;cursor:pointer}
 .hsc{display:contents}
 .hstat:active{opacity:.6}
 .hsc b{font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut);text-align:right}
@@ -413,7 +414,8 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
   .hjrn{padding:12px 7px;letter-spacing:.05em}
   .mbtn{width:38px}
   .mbtn.qbtn{width:34px}
-  .hdate,nav,.trow{padding-left:14px;padding-right:14px}
+  /* 상단 패널의 모든 줄이 같은 세로선에서 시작해야 한다 */
+  .hdate,.hsig,.henrg,nav,.trow{padding-left:14px;padding-right:14px}
 }
 .mbtn.qbtn::before{content:'?';display:flex;align-items:center;justify-content:center;width:21px;height:21px;border:1px solid rgba(var(--tx-rgb),.22);border-radius:50%;font-size:11px;font-weight:800;line-height:1}
 .mbtn.qbtn:active::before{border-color:var(--chrome);color:var(--chrome)}
@@ -992,8 +994,9 @@ html{color-scheme:dark}
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
   </header>
-  <div class="hsig" id="hsig" data-act="ai"></div>
   <div class="hdate" id="hdate"></div>
+  <div class="hsig" id="hsig" data-act="ai"></div>
+  <div class="henrg" id="henrg"></div>
   <nav id="chips"></nav>
   <div class="trow" id="trow">
     <div class="tmain">
@@ -1562,15 +1565,16 @@ function render(){
     se=sessOn(k,UI.wd);
     if(se&&se.s.length){tc++;sc+=se.s.length;}
   }
-  /* 요약을 왼쪽, 날짜를 오른쪽으로 — 날짜가 아래 두 숫자와 같은 오른쪽 열에
-     서면서 mono 숫자들이 한 줄로 정렬된다. */
+  /* 날짜가 워드마크 바로 아래 왼쪽에 선다 — 아래 모든 숫자가 '어느 날' 것인지의
+     전제이므로 가장 먼저 읽혀야 한다. 세트 요약은 같은 줄 오른쪽. */
   document.getElementById('hdate').innerHTML=
-    (tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">기록 없음</em>')
-    +'<span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
+    '<span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
-    +(!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
+    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">기록 없음</em>');
+  document.getElementById('henrg').innerHTML=
+    (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
         var base=Math.round(bmr(BW,BF)*ACT);
         var ex=Math.round(dayExKcal(UI.wd));
@@ -1590,10 +1594,7 @@ function render(){
     hs.innerHTML='<b class="lv">'+esc(sg.tag)+'</b><p>'+esc(sg.line)+'</p>';
     /* 이 줄은 늘 오늘 기준이다. 지난 날짜를 보는 중에 '오늘 …' 을 같이
        띄우면 한 패널이 서로 다른 두 날을 말하게 된다. */
-    var sigOn=(UI.wd===today());
-    hs.style.display=sigOn?'':'none';
-    /* 숨기면 위 여백까지 같이 사라져 헤더에 달라붙는다 — 묶음 간격을 넘겨준다 */
-    document.querySelector('.top').classList.toggle('nosig',!sigOn);
+    hs.style.display=(UI.wd===today())?'':'none';
   }catch(eS){var hs2=document.getElementById('hsig');if(hs2)hs2.innerHTML='';}
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
