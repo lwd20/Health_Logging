@@ -851,6 +851,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .cdcard .lb{font-size:9.5px;font-weight:800;letter-spacing:.22em;color:var(--mut);text-transform:uppercase}
 .cdcard .num{margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--acc-br)}
 .cdcard .num em{font-style:normal;color:var(--dim);font-weight:400;font-size:12px}
+/* 목표를 채우면 색으로 알린다 — 「목표 달성」 이라고 적을 줄을 아낀다 */
+.cdcard .num.done{color:var(--pos)}
 .cdcard .sub2{display:flex;margin-top:7px;font-size:10px;color:var(--dim);letter-spacing:.05em}
 .cdcard .sub2 b{color:var(--mut);font-weight:700}
 .zband{display:inline-flex;align-items:center;gap:7px;background:rgba(var(--acc-rgb),.08);border:0;border-left:2px solid var(--chrome);border-radius:var(--rad-s);padding:6px 11px;margin-bottom:11px;font-family:var(--mono);font-size:10.5px;color:var(--mut);letter-spacing:.06em;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
@@ -1705,17 +1707,21 @@ function renderList(){
     }
     arr2=favFirst(arr2);
     if(UI.filter==='CARDIO'){
+      /* 네 줄 중 셋은 뺐다.
+         - 「잔여 29분」은 121/150 과 막대가 이미 두 번 말한 값이다.
+         - 「114–133 bpm」은 최대심박에서 나온 고정값이라 매번 볼 이유가 없다.
+         - 「걷기(NEAT) … 미포함」은 이제 행의 NEAT 배지가 대신한다.
+         - 「지방 약 0.20kg」은 소모 칼로리를 전부 지방으로 친 값이라 사실이 아니다. */
       var wc=wkCardio(),tg=WTGT['CARDIO']||90;
       var pc2=Math.max(0,Math.min(100,Math.round(wc.z2*100/tg)));
-      var rem=Math.max(0,tg-wc.z2);
+      var meta=[];
+      if(wc.days>0)meta.push('<b>'+wc.days+'</b>회');
+      if(wc.km>0)meta.push('<b>'+wc.km+'</b>km');
+      if(wc.kcal>0)meta.push('≈<b>'+wc.kcal.toLocaleString()+'</b>kcal');
       h+='<div class="cdcard"><div class="t"><span class="lb">This Week · Zone2</span>'
-        +'<span class="num">'+wc.z2+'<em> / '+tg+' min</em></span></div>'
+        +'<span class="num'+(wc.z2>=tg?' done':'')+'">'+wc.z2+'<em> / '+tg+' min</em></span></div>'
         +'<div class="ai-bar" style="margin-top:9px"><b style="width:'+pc2+'%"></b></div>'
-        +'<div class="sub2"><span><b>'+wc.days+'</b>/3회 · <b>'+zone2()[0]+'–'+zone2()[1]+'</b> bpm</span>'
-        +'<span style="margin-left:auto">'+(rem>0?('잔여 <b>'+rem+'</b>분'):'목표 달성')+'</span></div>'
-        +(wc.neat>0?('<div class="sub2" style="margin-top:4px"><span>걷기(NEAT) <b>+'+wc.neat+'</b>분 — 목표 회수엔 미포함</span></div>'):'')
-        +((wc.kcal>0||wc.km>0)?('<div class="sub2" style="margin-top:4px"><span>소비 ≈ <b>'+wc.kcal.toLocaleString()+'</b> kcal · 지방 약 <b>'+(wc.kcal/7700).toFixed(2)+'</b> kg'+(wc.km>0?(' · <b>'+wc.km+'</b> km'):'')+'</span>'
-        +'<span style="margin-left:auto">추정치</span></div>'):'')
+        +(meta.length?('<div class="sub2"><span>'+meta.join(' · ')+'</span></div>'):'')
         +'</div>';
     }
     if(arr2.length){
