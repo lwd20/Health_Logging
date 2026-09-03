@@ -2805,13 +2805,18 @@ function partIdxs(part){
 /* 목록은 브랜드로 묶여 보이므로 자리 이동도 같은 부위·같은 브랜드 안에서만 한다.
    부위 전체 순서로 바꾸면 S.m 은 바뀌어도 brandGroups 가 다시 제 그룹으로
    돌려놓아 화면이 그대로라, 버튼이 안 먹는 것처럼 보였다. */
-/* 이동 범위는 화면에 보이는 묶음과 같아야 한다.
-   유산소는 브랜드로 묶지 않고 한 줄로 늘어놓으므로 부위 전체가 범위다. */
+/* 이동 범위는 화면에 보이는 묶음과 정확히 같아야 한다.
+   - 유산소는 브랜드로 묶지 않으므로 부위 전체가 한 묶음이다.
+   - 목록은 favFirst 로 ★를 위로 몰아 놓는다. 이 경계를 넘겨 자리를 바꾸면
+     배열만 바뀌고 화면은 그대로라 '버튼이 안 먹는' 것처럼 보인다. */
 function ordIdxs(m){
-  var a=partIdxs(m.p),i;
-  if(isCard(m.p))return a;
-  var b=(m.b||'').trim(),out=[];
-  for(i=0;i<a.length;i++)if(((S.m[a[i]].b||'').trim())===b)out.push(a[i]);
+  var a=partIdxs(m.p),fv=!!m.f,b=(m.b||'').trim(),out=[],i,x;
+  for(i=0;i<a.length;i++){
+    x=S.m[a[i]];
+    if(!!x.f!==fv)continue;
+    if(!isCard(m.p)&&((x.b||'').trim())!==b)continue;
+    out.push(a[i]);
+  }
   return out;
 }
 function ordPos(m,a){
