@@ -863,10 +863,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .jdh i{font-family:var(--mono);font-size:10px;color:var(--dim)}
 .jgo{margin-left:auto;min-height:34px;display:flex;align-items:center;font-size:9.5px;font-weight:700;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 11px;color:var(--mut);letter-spacing:.08em}
 .jgo:active{color:var(--tx);border-color:var(--mut)}
-.jr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:4px 0;font-size:12px}
-.jr .jn2{font-weight:650;min-width:0}
-.jr .jn2 i{color:var(--chrome);opacity:.75;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
-.jrv{color:var(--mut);font-family:var(--mono);font-size:11px;font-variant-numeric:tabular-nums;text-align:right;flex:0 0 auto}
+/* 이름은 줄고 숫자는 온전히 — 잘려도 되는 쪽은 이름이다 */
+.jr{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0;font-size:12px}
+.jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.05)}
+.jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:8.5px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
+/* 대표 무게와 세트 내역은 읽는 목적이 다르다 — 굵기와 색으로 갈라 놓는다 */
+.jrv{flex:0 0 auto;display:flex;align-items:baseline;gap:9px;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.jrv b{font-size:11.5px;font-weight:700;color:var(--acc-br)}
+/* 내역에 자리를 미리 잡아 두면 앞의 무게들이 한 줄로 선다.
+   일지를 훑을 때 눈으로 좇는 건 세트 내역이 아니라 무게다. */
+.jrv em{flex:0 0 auto;min-width:104px;font-style:normal;font-size:10.5px;color:var(--dim)}
 
 /* ── 토스트 ── */
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);z-index:30;background:var(--sheet-bg);border:1px solid var(--edge);color:var(--tx);padding:11px 18px;border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:11.5px;font-weight:750;letter-spacing:.04em;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:86vw;text-align:center}
@@ -1851,7 +1858,7 @@ function journalHtml(){
     m=S.m[i];a=sess(m.i);
     for(j=0;j<a.length;j++){
       if(!a[j].s.length)continue;
-      (map[a[j].d]=map[a[j].d]||[]).push({n:m.n,b:m.b||'',ln:m.ln||'',s:a[j].s});
+      (map[a[j].d]=map[a[j].d]||[]).push({m:m,s:a[j].s});
     }
   }
   var dates=[],k;
@@ -1868,8 +1875,26 @@ function journalHtml(){
       +'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button></div>';
     for(j=0;j<ents.length;j++){
       e=ents[j];
-      h+='<div class="jr"><span class="jn2">'+esc(e.n)+(e.b?'<i>'+esc(e.b)+'</i>':'')+(e.ln?'<i>'+esc(e.ln)+'</i>':'')+'</span>'
-        +'<span class="jrv">'+fmtW(topOf(e.s))+'kg · '+detailOf(e.s)+'</span></div>';
+      var jm=e.m,jhd,jdt;
+      if(isCard(jm.p)){
+        /* 유산소는 무게가 아니라 시간·속도다. kg 을 붙이면 트레드밀이
+           31kg 을 든 것처럼 읽힌다. */
+        var tmin=0,q7;
+        for(q7=0;q7<e.s.length;q7++)tmin+=+e.s[q7][0]||0;
+        jhd=fmtW(tmin)+"'";
+        /* 일지에서는 자리가 있으니 단위를 적는다 — 5 만 있으면 뭘 뜻하는지 모른다 */
+        jdt='';
+        for(q7=0;q7<e.s.length;q7++)
+          jdt+=(q7?'  ':'')+fmtW(e.s[q7][1])+'km/h'+(e.s[q7][2]>0?' '+fmtW(e.s[q7][2])+'%':'');
+      }else{
+        /* 보조 머신은 적은 무게가 더 무거운 것이므로 최저값을 대표로 */
+        jhd=fmtW(topOfM(jm,e.s))+'kg';
+        jdt=detailOf(e.s);
+      }
+      var jln=cleanLine(jm.ln);
+      h+='<div class="jr"><span class="jn2">'+esc(jm.n)
+        +(jm.b?'<i>'+esc(jm.b)+'</i>':'')+(jln?'<i>'+esc(jln)+'</i>':'')+'</span>'
+        +'<span class="jrv"><b>'+jhd+'</b><em>'+jdt+'</em></span></div>';
     }
     h+='</div>';
   }
