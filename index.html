@@ -254,13 +254,24 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .mbtn.qbtn:active::before{border-color:var(--chrome);color:var(--chrome)}
 .mbtn:active{color:var(--tx)}
 .mbtn.warn::after{content:'';position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--sig)}
-nav{display:grid;grid-template-columns:44px 1fr 1fr 1fr;gap:5px;margin-top:14px;border-top:1px solid var(--line);padding:12px 18px 11px}
-#chips .chip{margin:0;min-width:0;padding:9px 5px;text-align:center;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* ★는 부위 선택이 아니라 보기 전환이라 왼쪽에 세로로 뗼 */
-#chips .chip.favtg{grid-column:1;grid-row:1/3;display:flex;align-items:center;justify-content:center;width:auto;height:auto;padding:0;font-size:14px;letter-spacing:0;color:var(--chrome);opacity:1}
-#chips .chip.favtg.on{color:var(--on-acc)}
-/* 320px급 좁은 화면에서 SHOULDERS가 잘리지 않게 */
-@media (max-width:340px){nav{grid-template-columns:38px 1fr 1fr 1fr;gap:4px}#chips .chip{padding:9px 3px;font-size:10.5px;letter-spacing:0}}
+/* 앱의 다른 라벨(CHEST 13, GYM80 4, RECOVERY)과 같은 소문자 대문자 체계로 맞춤.
+   칠해진 버튼 대신 글자만 두고 선택된 것만 강조색+밑줄로 표시함. */
+nav{display:grid;grid-template-columns:26px 1fr 1fr 1fr;gap:0 10px;margin-top:14px;border-top:1px solid var(--line);padding:9px 18px 8px}
+#chips .chip{position:relative;justify-self:start;max-width:100%;margin:0;min-width:0;
+  padding:11px 9px 10px 0;background:none;border:0;border-radius:0;text-align:left;
+  font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chips .chip.on{color:var(--acc-dk)}
+#chips .chip.on::before{content:'';position:absolute;left:0;right:9px;bottom:6px;height:2px;background:var(--acc-sf);border-radius:1px}
+#chips .chip:active{opacity:.55}
+/* 상태 점은 글자 바로 뒤에 붙음 */
+#chips .chip.stale::after,#chips .chip.hot::after{top:9px;right:0}
+/* ★는 부위 선택이 아니라 보기 전환이라 왼쪽에 따로 둠 */
+#chips .chip.favtg{grid-column:1;grid-row:1/3;justify-self:start;align-self:center;
+  width:auto;height:auto;padding:0;font-size:13px;letter-spacing:0;color:var(--chrome)}
+#chips .chip.favtg.on{color:var(--acc-dk)}
+#chips .chip.favtg::before{display:none}
+@media (max-width:340px){nav{grid-template-columns:22px 1fr 1fr 1fr;gap:0 6px}#chips .chip{font-size:10px;letter-spacing:.06em;padding-right:7px}#chips .chip.on::before{right:7px}}
 .chip{flex:0 0 auto;padding:8px 14px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:11.5px;font-weight:700;letter-spacing:.06em}
 .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .chip i{font-size:9px;opacity:.55;margin-left:3px}
