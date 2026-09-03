@@ -355,8 +355,12 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .rr i.eq{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.04em}
 .rr i.up{color:var(--pos)}
 .rr i.dn{color:var(--neg)}
-.setr .sv{margin-left:auto;font-size:10px;color:rgba(var(--tx-rgb),.26);letter-spacing:.02em}
-.setr .sv .rst{text-decoration:none;color:rgba(var(--tx-rgb),.36);margin-right:7px}
+/* 휴식과 볼륨이 여백만으로 붙어 있어 한 덩어리로 읽혔다 — 가운뎃점으로 가른다 */
+.setr .sv{margin-left:auto;display:flex;align-items:baseline;gap:7px;font-size:10px;color:rgba(var(--tx-rgb),.26);letter-spacing:.02em}
+.setr .sv u{text-decoration:none;font-size:10px;color:rgba(var(--tx-rgb),.36)}
+.setr .sv .rst+.vol::before{content:'·';margin-right:7px;color:rgba(var(--tx-rgb),.2)}
+.setr .sv .vol{color:rgba(var(--tx-rgb),.3)}
+.setr .sv .vol s{text-decoration:none;margin-left:2px;font-size:8.5px;color:rgba(var(--tx-rgb),.2)}
 .vtot{display:flex;align-items:baseline;gap:7px;margin-top:8px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.06);font-family:var(--mono);font-variant-numeric:tabular-nums}
 .vtot i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
 .vtot b{font-size:15px;font-weight:700;color:var(--acc-br)}
@@ -586,7 +590,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setwrap+.inrow{margin-top:13px;padding-top:12px;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .setwrap .vtot{margin-top:9px}
 .setr{display:flex;align-items:center;padding:1px 0;font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:0;max-width:100%}
-.sete{display:flex;align-items:baseline;gap:11px;flex:1;min-width:0;text-align:left;padding:8px 2px}
+.sete{display:flex;align-items:baseline;gap:13px;flex:1;min-width:0;text-align:left;padding:8px 2px}
 .sete:active{opacity:.5}
 .setr i{width:16px;font-size:9.5px;font-weight:700;color:rgba(var(--tx-rgb),.3)}
 .setr b{font-size:18px;font-weight:700;letter-spacing:-.01em}
@@ -1835,7 +1839,7 @@ function panelHtml(m){
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
-        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round(effOf(m,draft[j][0])*(+draft[j][1]||0)).toLocaleString()+'</span>')
+        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+'<u class="vol">'+Math.round(effOf(m,draft[j][0])*(+draft[j][1]||0)).toLocaleString()+'<s>kg</s></u></span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
     }
