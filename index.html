@@ -435,6 +435,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rl{flex:1 1 auto;min-width:0}
 .nm{display:flex;align-items:baseline;gap:7px;font-size:14px;font-weight:600;color:var(--mut);letter-spacing:-.005em;min-width:0}
 .nm b{font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ln{flex:0 6 auto;min-width:0;max-width:40%;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--chrome);opacity:.85;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(var(--acc-rgb),.35);border-radius:var(--rad-s);padding:2px 6px;background:rgba(var(--acc-rgb),.1);box-shadow:none}
 .ln{flex:0 0 auto;font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
@@ -1683,6 +1684,8 @@ function rowHtml(m,noBadge){
     }
   }
   var badge=(!noBadge&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
+  var lnm=cleanLine(m.ln);
+  var line=((noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
   var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
   if(done&&!dirty)dtag='<i class="dtag done">'+ts2.s.length+(isCard(m.p)?'회':'세트')+'</i>';
@@ -1691,7 +1694,7 @@ function rowHtml(m,noBadge){
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
-    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+dtag+'</span>'+sub+'</span>'
+    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+badge+line+dtag+'</span>'+sub+'</span>'
     +'<span class="rr'+(noRec?' thin':'')+'">'+right+'</span></button>'
     +'</div>'
     +'</section>';
