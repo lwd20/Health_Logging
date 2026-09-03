@@ -309,18 +309,7 @@ i,em,u{font-style:normal;text-decoration:none}
 header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0}
 /* 여섯 줄이 같은 간격으로 놓이면 무엇이 한 덩어리인지 알 수 없다.
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
-.hsig{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:0 18px;cursor:pointer}
-.hsig:active{opacity:.6}
-.hsig .lv{flex:0 0 auto;font-size:8.5px;font-weight:800;letter-spacing:.1em;padding:3px 7px;border-radius:999px;background:rgba(var(--acc-rgb),.15);color:var(--acc-br);white-space:nowrap}
-.hsig.warn .lv{background:rgba(var(--acc-rgb),.18);color:var(--chrome)}
-.hsig.bad .lv{background:rgba(var(--sig-rgb),.16);color:var(--sig)}
-.hsig p{flex:1;min-width:0;margin:0;font-size:11px;line-height:1.3;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header>div:first-child{flex:1 1 auto;min-width:0}
-h1{font-size:19px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1}
-h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005em;color:var(--acc-br)}
-/* 워드마크 바로 아래 — 날짜가 이 화면의 제목 노릇을 하므로 조금 크게 */
 .hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
-.henrg{padding:0 18px;margin-top:9px}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
 .hdate>em.none{color:var(--dim)}
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
@@ -386,26 +375,40 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
 .sclr{flex:0 0 auto;width:44px;height:44px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);background:var(--btn-bg);color:var(--mut);font-size:15px}
 .sclr:active{color:var(--tx)}
 .scnt{padding:2px 18px 0;font-family:var(--mono);font-size:10.5px;color:var(--chrome);letter-spacing:.08em}
-/* 휴식 타이머 — 목표 대비 어디쯤인지가 핵심이라 경과/목표와 진행 바를 함께 보여줌 */
-.trow{padding:10px 18px 11px}
-.tmain{display:flex;align-items:baseline;gap:8px;min-width:0}
-.tlab{flex:0 0 auto;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
-.tmain b{flex:0 0 auto;font-family:var(--mono);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--mut)}
-.tmain u{flex:0 0 auto;text-decoration:none;font-family:var(--mono);font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
-.tacts{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:2px}
-.tbtn{flex:0 0 auto;padding:8px 7px;border:0;border-radius:0;background:none;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+/* 휴식 타이머 — 가로로 눕던 줄을 없애고 칼로리 왼쪽 빈자리로 옮겼다.
+   진행은 숫자 뒤에 깔린 큰 링이 맡으므로 자리를 따로 쓰지 않는다. */
+/* 링이 잘리지 않게 줄 높이를 링에 맞춘다 — 자리를 안 쓰겠다고 줄을 낮추면
+   위아래가 잘려 나가 아무것도 안 보인다. */
+.trow{position:relative;overflow:hidden;min-height:82px;padding:2px 18px;margin-top:7px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* 경과와 목표는 한 줄에, 라벨과 버튼은 각자 한 줄 */
+.tmain{flex:0 0 auto;display:grid;grid-template-columns:auto auto;justify-content:start;
+  align-items:baseline;column-gap:6px;row-gap:2px;min-width:0}
+.tlab{grid-column:1/-1;font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
+.tmain b{font-family:var(--mono);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;color:var(--mut)}
+.tmain u{text-decoration:none;font-family:var(--mono);font-size:9.5px;font-variant-numeric:tabular-nums;color:var(--dim)}
+.tacts{grid-column:1/-1;display:flex;align-items:center;gap:5px;margin-top:3px}
+/* 링을 누르는 것으로는 리셋과 정지를 가릴 수 없어 글자 버튼을 그대로 둔다 */
+.tbtn{flex:0 0 auto;padding:4px 9px;border:var(--bw) solid rgba(var(--tx-rgb),.14);
+  border-radius:999px;background:none;color:var(--dim);
+  font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
 .tbtn:active{opacity:.55}
-.trow.run .tbtn.go{color:var(--acc-br)}
+.trow.run .tbtn.go{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.45)}
+#trBtn{color:var(--sig);border-color:rgba(var(--sig-rgb),.35)}
 /* 정지 상태에서는 STOP이 할 일이 없으므로 숨김 */
 .trow:not(.run) #trBtn{display:none}
-.tbar{margin-top:6px;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.08);overflow:hidden}
-.tbar>i{display:block;height:100%;width:0;border-radius:2px;background:var(--acc-sf)}
-.trow.done .tbar>i{background:var(--acc-br)}
+/* 숫자 뒤의 큰 링 — 자리를 차지하지 않도록 배경으로 깔고 위아래를 잘라 쓴다 */
+/* 숫자 뒤에 두면 띠가 자릿수를 가로질러 둘 다 못 읽는다.
+   비어 있던 왼쪽에 앉히면 시간 글자를 감싸고 숫자는 건드리지 않는다. */
+.tring{position:absolute;left:6px;top:50%;width:96px;height:96px;border-radius:50%;
+  transform:translateY(-50%) rotate(-90deg);pointer-events:none;opacity:.5;
+  background:conic-gradient(var(--acc-sf) 0 0deg, rgba(var(--tx-rgb),.12) 0deg 360deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 40px,#000 40.5px);
+  mask:radial-gradient(circle,transparent 0 40px,#000 40.5px)}
 .trow.run .tmain b{color:var(--chrome)}
 /* 목표 도달 — 이제 다음 세트로 갈 때 */
-.trow.done .tmain b,.trow.done .tmain u{color:var(--acc-br)}
+.trow.done .tmain b,.trow.done .tmain u{color:var(--pos)}
 .trow.mark .tmain b{color:var(--sig)}
-.trow.mark .tbar>i{background:var(--sig)}
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:38px;font-size:0}
 .mbtn.qbtn{margin-left:6px}
@@ -415,7 +418,7 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
   .mbtn{width:38px}
   .mbtn.qbtn{width:34px}
   /* 상단 패널의 모든 줄이 같은 세로선에서 시작해야 한다 */
-  .hdate,.hsig,.henrg,nav,.trow{padding-left:14px;padding-right:14px}
+  .hdate,nav,.trow{padding-left:14px;padding-right:14px}
 }
 .mbtn.qbtn::before{content:'?';display:flex;align-items:center;justify-content:center;width:21px;height:21px;border:1px solid rgba(var(--tx-rgb),.22);border-radius:50%;font-size:11px;font-weight:800;line-height:1}
 .mbtn.qbtn:active::before{border-color:var(--chrome);color:var(--chrome)}
@@ -995,10 +998,10 @@ html{color-scheme:dark}
     </span>
   </header>
   <div class="hdate" id="hdate"></div>
-  <div class="hsig" id="hsig" data-act="ai"></div>
-  <div class="henrg" id="henrg"></div>
-  <nav id="chips"></nav>
+  <!-- 타이머가 칼로리 왼쪽 빈자리로 들어오고, 진행은 숫자 뒤 큰 링이 맡는다.
+       가로로 눕던 RECOVERY 줄은 사라졌다. -->
   <div class="trow" id="trow">
+    <div class="tring" id="tring" aria-hidden="true"></div>
     <div class="tmain">
       <i class="tlab">Recovery</i>
       <b id="tmr">00:00</b>
@@ -1008,8 +1011,9 @@ html{color-scheme:dark}
         <button class="tbtn" data-act="tr" id="trBtn">Stop</button>
       </span>
     </div>
-    <div class="tbar"><i id="tmrBar"></i></div>
+    <div id="henrg"></div>
   </div>
+  <nav id="chips"></nav>
 </div>
 
 <main id="list"></main>
@@ -1587,15 +1591,7 @@ function render(){
           +'<div class="hsc"><i>TDEE'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i><b>'+tot.toLocaleString()+'</b></div>'
           +'</div>';
       })():'');
-  /* 상태 줄 — 계산은 분석 탭과 같은 heroSignal 을 씀 */
-  try{
-    var sg=heroSignal(),hs=document.getElementById('hsig');
-    hs.className='hsig'+(sg.lv==='ok'?'':' '+sg.lv);
-    hs.innerHTML='<b class="lv">'+esc(sg.tag)+'</b><p>'+esc(sg.line)+'</p>';
-    /* 이 줄은 늘 오늘 기준이다. 지난 날짜를 보는 중에 '오늘 …' 을 같이
-       띄우면 한 패널이 서로 다른 두 날을 말하게 된다. */
-    hs.style.display=(UI.wd===today())?'':'none';
-  }catch(eS){var hs2=document.getElementById('hsig');if(hs2)hs2.innerHTML='';}
+  /* 상태 줄은 상단에서 뺐다 — 같은 내용을 분석 탭 머리에서 보여 준다 */
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
   renderChips();renderList();renderSheet();
@@ -2841,16 +2837,21 @@ function tmrNativeSync(){
   else if(canLS){try{localStorage.setItem(KEY+'.tack',String(at2));}catch(e){}}
 }
 function tmrDraw(){
-  var ms=tmrMs(),tgt=Math.max(1,IVs)*1000,on=!!TMR.ts;
+  var ms=tmrMs(),tgt=Math.max(1,IVs)*1000,on=!!TMR.ts,done=on&&ms>=tgt;
   var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(ms);
   var tg=document.getElementById('tmrTgt');if(tg)tg.textContent='/ '+tmrFmt(tgt);
-  var bar=document.getElementById('tmrBar');
-  if(bar)bar.style.width=(on?Math.max(0,Math.min(100,ms/tgt*100)):0)+'%';
-  var row=document.getElementById('trow');
-  if(row){
-    row.classList.toggle('run',on);
-    row.classList.toggle('done',on&&ms>=tgt);
+  var rg=document.getElementById('tring');
+  if(rg){
+    /* 목표까지 채워 나가고, 넘기면 링을 초록으로 채운 뒤 두 번째 바퀴를 다시 돈다.
+       한 바퀴에서 멈춰 버리면 02:10 과 05:00 이 같은 모양이 된다. */
+    var frac=on?(done?(((ms-tgt)/tgt)%1):(ms/tgt)):0;
+    var deg=Math.round(frac*360);
+    var arc=done?'var(--acc-br)':'var(--acc-sf)';
+    var trk=done?'var(--pos)':'rgba(var(--tx-rgb),.10)';
+    rg.style.background='conic-gradient('+arc+' 0 '+deg+'deg,'+trk+' '+deg+'deg 360deg)';
   }
+  var row=document.getElementById('trow');
+  if(row){row.classList.toggle('run',on);row.classList.toggle('done',done);}
   var b=document.getElementById('tsBtn');if(b)b.textContent=on?'Reset':'Start';
 }
 /* 초기화가 끝나기 전에는 사본을 쓰지 않음 — 설정값이 아직 안 잡혀 있을 수 있음 */
