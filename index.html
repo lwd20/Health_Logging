@@ -1372,16 +1372,19 @@ function topOfM(m,s){
   return t===null?0:t;
 }
 function cUnit(x){return fmtW(x[1])+(x[2]>0?'/'+fmtW(x[2])+'%':'');}
-function repsOfC(s,card){
+/* 러닝머신은 시속(km/h), 스텝밀은 기기 레벨 — 같은 칸에 다른 뜻이 들어간다 */
+function cSpdU(n){return isTreadName(n)?'km/h':'Lv';}
+function cUnitN(x,n){return fmtW(x[1])+cSpdU(n)+(x[2]>0?' '+fmtW(x[2])+'%':'');}
+function repsOfC(s,card,n){
   if(!card)return repsOf(s);
-  var a=[],i;for(i=0;i<s.length;i++)a.push(cUnit(s[i]));
+  var a=[],i;for(i=0;i<s.length;i++)a.push(cUnitN(s[i],n));
   return a.join(' ');
 }
 function repsOf(s){var r=[];for(var i=0;i<s.length;i++)r.push(s[i][1]);return r.join('·');}
 function sameW(s){for(var i=1;i<s.length;i++)if(s[i][0]!==s[0][0])return false;return true;}
-function cardDetail(s){
+function cardDetail(s,n){
   var a=[],i;
-  for(i=0;i<s.length;i++)a.push(fmtW(s[i][0])+"' "+cUnit(s[i]));
+  for(i=0;i<s.length;i++)a.push(fmtW(s[i][0])+"' "+cUnitN(s[i],n));
   return a.join('  ');
 }
 function detailOf(s){
@@ -1734,7 +1737,7 @@ function rowHtml(m,noBadge){
         right=rgt(fmtW(topOfM(m,la.s)),'min','');
         var badC=false,q9;
         for(q9=0;q9<la.s.length;q9++)if(cardioOut(la.s[q9],m.n)){badC=true;break;}
-        sub='<span class="sub">'+repsOfC(la.s,true)+(badC?' <i class="badv">확인</i>':'')+'</span>';
+        sub='<span class="sub">'+repsOfC(la.s,true,m.n)+(badC?' <i class="badv">확인</i>':'')+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
         var gt=lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'';
@@ -1767,7 +1770,7 @@ function lastLine(m){
   if(!p)return '<div class="exsub"><span class="none">첫 기록</span></div>';
   var cd=isCard(m.p);
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
-    +(cd?('<span>'+cardDetail(p.s)+'</span>')
+    +(cd?('<span>'+cardDetail(p.s,m.n)+'</span>')
         :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailOf(p.s)+'</u>'))+'</div>';
 }
 function panelHtml(m){
@@ -1787,7 +1790,7 @@ function panelHtml(m){
     for(var j=0;j<draft.length;j++){
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
-        +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnit(draft[j]):('× '+draft[j][1]))+'</span>'
+        +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+Math.round(effOf(m,draft[j][0])*(+draft[j][1]||0)).toLocaleString()+'</span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
@@ -1825,7 +1828,7 @@ function panelHtml(m){
     +'<div class="inrow">'
     +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><button data-act="w+">＋</button></div></div>'
-    +'<div class="cwrap"><span class="clab">'+(cd?'SPD·LV':'REPS')+'</span>'
+    +'<div class="cwrap"><span class="clab">'+(cd?(isTreadName(m.n)?'KM/H':'LEVEL'):'REPS')+'</span>'
     +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><button data-act="r+">＋</button></div></div>'
     +'</div>';
   if(cd){
@@ -1864,7 +1867,7 @@ function panelHtml(m){
     if(!all.length)h+='<div class="empty">No records</div>';
     for(var q=0;q<all.length;q++){
       var x=all[q];
-      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s):detailOf(x.s))+'</span><button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
+      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailOf(x.s))+'</span><button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
     }
     h+='</div>';
   }
