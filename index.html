@@ -472,9 +472,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rl{flex:1 1 auto;min-width:0}
 .nm{display:flex;align-items:baseline;gap:7px;font-size:14px;font-weight:600;color:var(--mut);letter-spacing:-.005em;min-width:0}
 .nm b{font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ln{flex:0 6 auto;min-width:0;max-width:40%;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 자리가 모자라면 이 라벨이 먼저 줄어야 한다 — 종목 이름이 아니라.
+   같은 클래스에 규칙을 두 번 쓰면 뒤엣것이 flex 를 덮어써서 반대로 동작한다. */
+.ln{flex:0 100 auto;min-width:0;max-width:40%;font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--chrome);opacity:.85;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(var(--acc-rgb),.35);border-radius:var(--rad-s);padding:2px 6px;background:rgba(var(--acc-rgb),.1);box-shadow:none}
-.ln{flex:0 0 auto;font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
 .rr{flex:0 0 106px;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono);white-space:nowrap}
@@ -3786,11 +3787,14 @@ function heroHtml(){
   var pf=(((new Date().getDay()+6)%7)+1)/7;
   var pa=pf*2*Math.PI;
   var tk=[32+23*Math.cos(pa),32+23*Math.sin(pa),32+31*Math.cos(pa),32+31*Math.sin(pa)];
+  /* 일요일은 경과 100% 라 눈금이 12시로 돌아와 0% 자리와 겹친다.
+     그날은 링 한 바퀴가 곧 기준이므로 눈금을 그리지 않는다. */
+  var tkOn=pf<0.99;
   var h='<div class="aihero">'
     +'<div class="aircol"><div class="airing"><svg width="64" height="64" viewBox="0 0 64 64">'
     +'<circle cx="32" cy="32" r="27" fill="none" stroke="rgba(var(--tx-rgb),.13)" stroke-width="6"/>'
     +'<circle cx="32" cy="32" r="27" fill="none" stroke="'+rc+'" stroke-width="6" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/>'
-    +'<line x1="'+tk[0].toFixed(1)+'" y1="'+tk[1].toFixed(1)+'" x2="'+tk[2].toFixed(1)+'" y2="'+tk[3].toFixed(1)+'" stroke="rgba(var(--tx-rgb),.45)" stroke-width="1.5"/>'
+    +(tkOn?'<line x1="'+tk[0].toFixed(1)+'" y1="'+tk[1].toFixed(1)+'" x2="'+tk[2].toFixed(1)+'" y2="'+tk[3].toFixed(1)+'" stroke="rgba(var(--tx-rgb),.45)" stroke-width="1.5"/>':'')
     +'</svg><div class="pc'+(pct>=100?' done':'')+'"><b>'+pct+'%</b><i>WEEK</i></div></div>'
     +'<div class="rcap">'+tot+'/'+tg+' 세트</div></div>'
     +'<div class="sigline">'
