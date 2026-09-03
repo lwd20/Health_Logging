@@ -238,16 +238,26 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .sclr{flex:0 0 auto;width:44px;height:44px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);background:var(--btn-bg);color:var(--mut);font-size:15px}
 .sclr:active{color:var(--tx)}
 .scnt{padding:2px 18px 0;font-family:var(--mono);font-size:10.5px;color:var(--chrome);letter-spacing:.08em}
-.trow{display:flex;align-items:center;gap:8px;padding:0 18px 11px}
-.tdig{flex:1;display:flex;align-items:center;gap:10px;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-s);padding:10px 14px}
-.tdig i{font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
-.tdig b{font-family:var(--mono);font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--mut)}
-.trow.run .tdig b{color:var(--chrome)}
-.tbtn{flex:0 0 auto;min-width:74px;height:42px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);background:var(--btn-bg);color:var(--mut);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.tbtn:active{color:var(--tx)}
-.trow.run .tbtn.go{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
-.trow.mark .tdig{border-color:rgba(var(--sig-rgb),.55)}
-.trow.mark .tdig b{color:var(--sig)}
+/* 휴식 타이머 — 목표 대비 어디쯤인지가 핵심이라 경과/목표와 진행 바를 함께 보여줌 */
+.trow{padding:2px 18px 12px}
+.tmain{display:flex;align-items:baseline;gap:8px;min-width:0}
+.tlab{flex:0 0 auto;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+.tmain b{flex:0 0 auto;font-family:var(--mono);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--mut)}
+.tmain u{flex:0 0 auto;text-decoration:none;font-family:var(--mono);font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
+.tacts{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:2px}
+.tbtn{flex:0 0 auto;padding:8px 7px;border:0;border-radius:0;background:none;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.tbtn:active{opacity:.55}
+.trow.run .tbtn.go{color:var(--acc-br)}
+/* 정지 상태에서는 STOP이 할 일이 없으므로 숨김 */
+.trow:not(.run) #trBtn{display:none}
+.tbar{margin-top:6px;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.08);overflow:hidden}
+.tbar>i{display:block;height:100%;width:0;border-radius:2px;background:var(--acc-sf)}
+.trow.done .tbar>i{background:var(--acc-br)}
+.trow.run .tmain b{color:var(--chrome)}
+/* 목표 도달 — 이제 다음 세트로 갈 때 */
+.trow.done .tmain b,.trow.done .tmain u{color:var(--acc-br)}
+.trow.mark .tmain b{color:var(--sig)}
+.trow.mark .tbar>i{background:var(--sig)}
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:38px;font-size:0}
 .mbtn.qbtn::before{content:'?';display:flex;align-items:center;justify-content:center;width:21px;height:21px;border:1px solid rgba(var(--tx-rgb),.22);border-radius:50%;font-size:11px;font-weight:800;line-height:1}
@@ -263,14 +273,14 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
   padding:11px 0 10px;background:none;border:0;border-radius:0;
   font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--dim);
   overflow:visible;white-space:nowrap}
-#chips .chip.on{color:var(--acc-dk)}
+#chips .chip.on{color:var(--acc-br)}
 #chips .chip.on::before{content:'';position:absolute;left:0;right:0;bottom:5px;height:2px;background:var(--acc-sf);border-radius:1px}
 #chips .chip:active{opacity:.55}
 /* 상태 점은 글자 위에 얹음 — 한 줄이라 옆에 둘 자리가 없음 */
 #chips .chip.stale::after,#chips .chip.hot::after{top:3px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px}
 /* ★는 부위 선택이 아니라 보기 전환이라 맨 앞에 따로 둠 */
 #chips .chip.favtg{width:auto;height:auto;padding:11px 2px 10px 0;font-size:12px;letter-spacing:0;color:var(--chrome)}
-#chips .chip.favtg.on{color:var(--acc-dk)}
+#chips .chip.favtg.on{color:var(--acc-br)}
 #chips .chip.favtg::before{display:none}
 @media (max-width:344px){
   nav{padding-left:12px;padding-right:12px;gap:2px}
@@ -817,9 +827,16 @@ html{color-scheme:dark}
   <div class="hdate" id="hdate"></div>
   <nav id="chips"></nav>
   <div class="trow" id="trow">
-    <span class="tdig"><i>Recovery</i><b id="tmr">00:00</b></span>
-    <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
-    <button class="tbtn" data-act="tr">Stop</button>
+    <div class="tmain">
+      <i class="tlab">Recovery</i>
+      <b id="tmr">00:00</b>
+      <u id="tmrTgt"></u>
+      <span class="tacts">
+        <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
+        <button class="tbtn" data-act="tr" id="trBtn">Stop</button>
+      </span>
+    </div>
+    <div class="tbar"><i id="tmrBar"></i></div>
   </div>
 </div>
 
@@ -2591,9 +2608,17 @@ function tmrNativeSync(){
   else if(canLS){try{localStorage.setItem(KEY+'.tack',String(at2));}catch(e){}}
 }
 function tmrDraw(){
-  var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(tmrMs());
-  var row=document.getElementById('trow');if(row)row.classList.toggle('run',!!TMR.ts);
-  var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Reset':'Start';
+  var ms=tmrMs(),tgt=Math.max(1,IVs)*1000,on=!!TMR.ts;
+  var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(ms);
+  var tg=document.getElementById('tmrTgt');if(tg)tg.textContent='/ '+tmrFmt(tgt);
+  var bar=document.getElementById('tmrBar');
+  if(bar)bar.style.width=(on?Math.max(0,Math.min(100,ms/tgt*100)):0)+'%';
+  var row=document.getElementById('trow');
+  if(row){
+    row.classList.toggle('run',on);
+    row.classList.toggle('done',on&&ms>=tgt);
+  }
+  var b=document.getElementById('tsBtn');if(b)b.textContent=on?'Reset':'Start';
 }
 /* 위젯 기본 스타일 — 위젯을 개별 설정하지 않았을 때 적용됨 */
 var WOP=(function(){var v=canLS?+localStorage.getItem(KEY+'.wop'):NaN;return (v>=30&&v<=100)?Math.round(v):100;})();
@@ -5059,7 +5084,7 @@ document.addEventListener('click',function(e){
         var ivEl=document.getElementById('iv0');
         if(ivEl){
           var nv=Math.floor(+String(ivEl.value).replace(/[^0-9]/g,''));
-          if(nv>=30&&nv<=600){IVs=nv;tmrMark=Math.floor(tmrMs()/(IVs*1000));}
+          if(nv>=30&&nv<=600){IVs=nv;tmrMark=Math.floor(tmrMs()/(IVs*1000));tmrDraw();}
         }
         var drEl=document.getElementById('dr0');
         if(drEl&&!drEl.disabled){
