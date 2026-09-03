@@ -2979,16 +2979,28 @@ function bmr(bw,bf){
   if(!(bw>0&&bf>0))return 0;
   return Math.round(370+21.6*bw*(1-bf/100));
 }
-/* 해당 날짜 운동 소비 — 유산소: ACSM 실계산 / 근력: 5MET·세트당 2분 추정 */
+/* 근력 세트의 MET — 동원 근육량 순. Compendium of Physical Activities 의
+   저항운동 구간(가벼움 3.5 ~ 힘듦 6.0)을 부위에 배분했다.
+   스쿼트 한 세트와 레터럴레이즈 한 세트가 같을 수 없다. */
+var SMET={'LEGS':6.0,'BACK':5.5,'CHEST':5.0,'SHOULDERS':4.5,'ARMS·ETC':4.0};
+/* 세트 하나가 차지하는 시간 = 수행 + 다음 세트까지의 휴식.
+   MET 값은 이미 휴식을 포함해 평균 낸 수치라 한 덩어리로 계산한다.
+   휴식은 설정값을 쓰되 45~180초로 묶는다 — 타이머를 길게 잡아 뒀다고
+   소비가 늘어나면 안 된다. */
+function setKcal(p,reps){
+  var met=SMET[p]||4.5;
+  var min=(Math.max(1,+reps||1)*3+Math.min(180,Math.max(45,IVs)))/60;
+  return met*3.5*BW/200*min;
+}
+/* 해당 날짜 운동 소비 — 유산소: ACSM 실계산 / 근력: 부위별 MET x 세트 시간 */
 function dayExKcal(ds){
-  var k=0,i,j;
-  var perSet=5*3.5*BW/200*2;
+  var k=0,i,j,q;
   for(i=0;i<S.m.length;i++){
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
       if(a[j].d!==ds||!a[j].s.length)continue;
-      if(isCard(S.m[i].p))k+=kcalSess(a[j].s,S.m[i].n);
-      else k+=a[j].s.length*perSet;
+      if(isCard(S.m[i].p)){k+=kcalSess(a[j].s,S.m[i].n);continue;}
+      for(q=0;q<a[j].s.length;q++)k+=setKcal(S.m[i].p,a[j].s[q][1]);
     }
   }
   return Math.round(k);
