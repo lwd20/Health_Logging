@@ -4030,9 +4030,25 @@ function widgetSync(){
       prs=prs.slice(0,4);
     }catch(e5){}
 
+    /* 볼륨 랜드마크 — 분석탭 lmRow 와 같은 축·보정을 씀 */
+    var lm=[];
+    try{
+      var LPN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
+      var LPO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
+      var lws=wkSets();
+      for(i=0;i<LPO.length;i++){
+        var lk=LPO[i],LL=LMKP[lk];
+        if(!LL)continue;
+        var lmrv=Math.round(LL[3]*0.8);
+        var lmx=Math.max(lmrv,LL[2])*1.15;
+        var lcur=lws[lk]||0;
+        lm.push([LPN[lk],lcur,Math.round(lmx*100)/100,lcur>lmrv?1:0]);
+      }
+    }catch(e6){}
+
     /* o=기본 불투명도, tm=기본 글자 테마. k는 구버전 APK 호환용 */
     AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,
-      sd:tdISO,mon:days[0],cut:cut,next:next,prs:prs,
+      sd:tdISO,mon:days[0],cut:cut,next:next,prs:prs,lm:lm,
       o:WOP,tm:WTM,k:(WTM===2?1:0)}));
   }catch(e){}
 }
