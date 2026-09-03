@@ -2387,6 +2387,12 @@ function renderSheet(){
       +(function(){var mi=mirrorInfo();return mi?'<div class="note" style="margin-top:6px">앱 저장소 사본 '+esc(mi)+' \u2014 캐시를 지워도 이 사본으로 자동 복구됨</div>':'';})()
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
     h+=clsCheckHtml();
+    /* 앱 안에서 이 링크를 누르면 시스템 브라우저가 열린다.
+       채팅앱 같은 데서 주소를 열면 인앱 브라우저가 APK 내려받기를 막아
+       주소를 복사해 옮겨야 했다. */
+    h+='<div class="sh-l" style="margin-top:16px">App</div>'
+      +'<div class="note">새 버전이 나오면 여기서 받으면 됨. 기존 앱 위에 덮어써도 기록은 남음.'
+      +' <a class="xlink" href="'+APKURL+'">최신 APK 내려받기 &#9656;</a></div>';
     }
     if(tb==='diet'){
     h+='<div class="sh-l" style="margin-top:2px">Cut tracker</div>'
@@ -3898,6 +3904,8 @@ function aiDayTag(d){
   if(d===MONS[y.getMonth()]+' '+y.getDate())return '어제 생성';
   return '이전 리포트';
 }
+/* 앱 내려받기 주소 — latest 태그를 계속 덮어쓰므로 바뀌지 않는다 */
+var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
