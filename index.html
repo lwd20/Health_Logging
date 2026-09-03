@@ -175,8 +175,10 @@ i,em,u{font-style:normal;text-decoration:none}
 ::selection{background:rgba(var(--acc-rgb),.28)}
 
 /* ── 헤더: 장비 네임플레이트 ── */
-.top::before{content:'';position:absolute;left:0;right:0;top:0;height:132px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.055)' stroke-width='1'%3E%3Cpath d='M0 19h38M19 0v38'/%3E%3Crect x='6.8' y='6.8' width='24.4' height='24.4'/%3E%3C/g%3E%3C/svg%3E");background-size:38px 38px;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent);filter:var(--grid-f);pointer-events:none;z-index:-1}
-.top{position:sticky;top:0;z-index:10;background:linear-gradient(var(--bg) 86%,rgba(14,12,10,0));padding-top:env(safe-area-inset-top)}
+.top::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.055)' stroke-width='1'%3E%3Cpath d='M0 19h38M19 0v38'/%3E%3Crect x='6.8' y='6.8' width='24.4' height='24.4'/%3E%3C/g%3E%3C/svg%3E");background-size:38px 38px;-webkit-mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));filter:var(--grid-f);pointer-events:none;z-index:-1}
+.top{position:sticky;top:0;z-index:10;background:var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid rgba(var(--tx-rgb),.14);transition:box-shadow .18s ease}
+/* 목록이 밑으로 지나가기 시작하면 상단이 떠 보이게 함 */
+.top.lift{box-shadow:0 10px 20px -14px rgba(0,0,0,.55),0 1px 0 rgba(var(--tx-rgb),.05)}
 header{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:20px 18px 0}
 header>div:first-child{flex:1 1 auto;min-width:0}
 h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
@@ -268,7 +270,7 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
    칠해진 버튼 대신 글자만 두고 선택된 것만 강조색+밑줄로 표시함.
    6개가 한 줄에 들어가도록 자간과 크기를 맞췄고, 남는 폭은 간격으로 분배함. */
 nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
-  margin-top:14px;border-top:1px solid var(--line);padding:7px 18px 6px}
+  margin-top:10px;padding:7px 18px 6px}
 #chips .chip{position:relative;flex:0 0 auto;margin:0;min-width:0;
   padding:11px 0 10px;background:none;border:0;border-radius:0;
   font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--dim);
@@ -296,7 +298,7 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 .chip.on.hot::after{background:rgba(var(--sig-rgb),.45);box-shadow:none}
 
 /* ── 목록: 머신 랙 ── */
-main{padding:0 14px calc(122px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden;overflow-x:clip}
+main{padding:14px 14px calc(122px + env(safe-area-inset-bottom));max-width:100%;overflow-x:hidden;overflow-x:clip}
 html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none}
 .panel,.accin,.inrow{max-width:100%}
 .mc{max-width:100%}
@@ -473,7 +475,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .hr2 .hdel.armed{color:var(--sig);font-weight:900;font-size:11px;letter-spacing:.04em}
 
 /* ── 하단 ── */
-.foot{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(14,12,10,0),var(--bg) 58%);z-index:9}
+.foot{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 58%);z-index:9}
 .addm{width:100%;height:50px;border-radius:var(--rad-m);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);box-shadow:var(--elev);font-size:11.5px;font-weight:700;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
 .addm:active{color:var(--tx)}
 
@@ -5276,6 +5278,10 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 aiBgPoll();
 tmrNativeSync();
+addEventListener('scroll',function(){
+  var t=document.querySelector('.top');
+  if(t)t.classList.toggle('lift',(window.scrollY||document.documentElement.scrollTop||0)>2);
+},{passive:true});
 document.addEventListener('visibilitychange',function(){
   if(document.hidden){mirrorPush(true);return;}
   aiBgPoll();tmrNativeSync();
