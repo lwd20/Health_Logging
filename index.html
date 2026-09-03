@@ -3012,23 +3012,39 @@ var SMET={'LEGS':6.0,'BACK':5.5,'CHEST':5.0,'SHOULDERS':4.5,'ARMS·ETC':4.0};
    MET 값은 이미 휴식을 포함해 평균 낸 수치라 한 덩어리로 계산한다.
    휴식은 설정값을 쓰되 45~180초로 묶는다 — 타이머를 길게 잡아 뒀다고
    소비가 늘어나면 안 된다. */
-function setKcal(p,reps){
-  var met=SMET[p]||4.5;
-  var min=(Math.max(1,+reps||1)*3+Math.min(180,Math.max(45,IVs)))/60;
-  return met*3.5*BW/200*min;
+function setMin(reps){
+  return (Math.max(1,+reps||1)*3+Math.min(180,Math.max(45,IVs)))/60;
 }
-/* 해당 날짜 운동 소비 — 유산소: ACSM 실계산 / 근력: 부위별 MET x 세트 시간 */
+function setKcal(p,reps){
+  return (SMET[p]||4.5)*3.5*BW/200*setMin(reps);
+}
+/* 해당 날짜 운동 소비 — 유산소: ACSM 실계산 / 근력: 부위별 MET x 세트 시간.
+   MET 도 ACSM 도 '총소비'라 안정시 대사가 들어 있다. 그런데 하루 기본값
+   (기초대사 x 활동계수)은 이미 24시간을 덮으므로, 운동한 시간대도 거기
+   포함돼 있다. 그대로 더하면 그 시간만큼 두 번 세는 셈이다.
+   운동한 분수만큼의 기본 소비를 빼야 '운동으로 더 쓴 몫'이 된다. */
 function dayExKcal(ds){
-  var k=0,i,j,q;
+  var k=0,mn=0,i,j,q;
   for(i=0;i<S.m.length;i++){
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
       if(a[j].d!==ds||!a[j].s.length)continue;
-      if(isCard(S.m[i].p)){k+=kcalSess(a[j].s,S.m[i].n);continue;}
-      for(q=0;q<a[j].s.length;q++)k+=setKcal(S.m[i].p,a[j].s[q][1]);
+      var st=a[j].s;
+      if(isCard(S.m[i].p)){
+        k+=kcalSess(st,S.m[i].n);
+        for(q=0;q<st.length;q++)mn+=Math.min(+st[q][0]||0,CARDIO_LIM.minMax);
+        continue;
+      }
+      for(q=0;q<st.length;q++){
+        k+=setKcal(S.m[i].p,st[q][1]);
+        mn+=setMin(st[q][1]);
+      }
     }
   }
-  return Math.round(k);
+  /* 뺄 값은 이 앱이 실제로 쓰는 기본 소비율이어야 한다(1 MET 가 아니라) */
+  var b=bmr(BW,BF);
+  if(b>0)k-=b*ACT/1440*mn;
+  return Math.max(0,Math.round(k));
 }
 /* 소비 칼로리 — 기초대사 x 활동계수 는 매일 같고, 운동분만 날마다 다르다.
    막대를 둘로 나눠 쌓으면 '오늘 운동이 얼마나 보탰나'가 바로 보인다. */
