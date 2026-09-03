@@ -4377,7 +4377,8 @@ function widgetSync(){
     /* 볼륨 랜드마크 — 분석탭 lmRow 와 같은 축·보정을 씀 */
     var lm=[];
     try{
-      var LPN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
+      /* 위젯은 이름 칸이 32dp 뿐이라 '팔·기타'가 잘린다 */
+      var LPN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔'};
       var LPO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
       var lws=wkSets();
       for(i=0;i<LPO.length;i++){
