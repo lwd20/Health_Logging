@@ -179,10 +179,16 @@ i,em,u{font-style:normal;text-decoration:none}
 .top{position:sticky;top:0;z-index:10;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid rgba(var(--tx-rgb),.18);border-radius:0 0 var(--rad-l) var(--rad-l);transition:box-shadow .18s ease}
 /* 목록이 밑으로 지나가기 시작하면 상단이 떠 보이게 함 */
 .top.lift{box-shadow:0 10px 20px -14px rgba(0,0,0,.55),0 1px 0 rgba(var(--tx-rgb),.05)}
-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px 0}
+header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0}
+.hsig{display:flex;align-items:center;gap:8px;margin:8px 0 0;padding:0 18px;cursor:pointer}
+.hsig:active{opacity:.6}
+.hsig .lv{flex:0 0 auto;font-size:8.5px;font-weight:800;letter-spacing:.1em;padding:3px 7px;border-radius:999px;background:rgba(var(--acc-rgb),.15);color:var(--acc-br);white-space:nowrap}
+.hsig.warn .lv{background:rgba(var(--acc-rgb),.18);color:var(--chrome)}
+.hsig.bad .lv{background:rgba(var(--sig-rgb),.16);color:var(--sig)}
+.hsig p{flex:1;min-width:0;margin:0;font-size:11px;line-height:1.3;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 header>div:first-child{flex:1 1 auto;min-width:0}
 h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-.hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin:9px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
+.hdate{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin:12px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
 .hdate>em.none{color:var(--dim)}
 .hdate em{color:var(--chrome);font-weight:700;margin-left:3px}
@@ -195,13 +201,12 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(var(--acc-rgb),.4);border-radius:3px;background:linear-gradient(180deg,rgba(var(--acc-rgb),.14),rgba(var(--acc-rgb),.08));color:var(--chrome);font-size:10.5px;font-weight:800;letter-spacing:.1em;text-align:left}
 .favnote b{font-family:var(--mono);color:var(--acc-br)}
 .favnote:active{opacity:.7}
-.hstat{flex:0 0 100%;display:flex;align-items:baseline;justify-content:space-between;margin-top:13px;cursor:pointer}
+.hstat{flex:0 0 100%;display:flex;align-items:baseline;justify-content:space-between;margin-top:11px;cursor:pointer}
 /* 오른쪽 값은 오른쪽 여백에 붙어 상단 버튼·세션 요약과 같은 세로선을 이룬다 */
 .hstat .hsc:last-child{text-align:right}
 .hstat:active{opacity:.6}
 .hsc b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut)}
-/* 크기는 맞추고 강조는 색으로 — 칼로리가 훈련 기록보다 커 보일 이유가 없다 */
-.hsc.eat b{color:var(--acc-br)}
+.hsc.eat b{font-size:25px;color:var(--acc-br)}
 .hsc i{display:block;margin-top:5px;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
 .hsc i u.dfc{color:var(--sig)}
@@ -245,7 +250,7 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .sclr:active{color:var(--tx)}
 .scnt{padding:2px 18px 0;font-family:var(--mono);font-size:10.5px;color:var(--chrome);letter-spacing:.08em}
 /* 휴식 타이머 — 목표 대비 어디쯤인지가 핵심이라 경과/목표와 진행 바를 함께 보여줌 */
-.trow{padding:13px 18px 13px}
+.trow{padding:10px 18px 11px}
 .tmain{display:flex;align-items:baseline;gap:8px;min-width:0}
 .tlab{flex:0 0 auto;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
 .tmain b{flex:0 0 auto;font-family:var(--mono);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--mut)}
@@ -281,7 +286,7 @@ h1{font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
    칠해진 버튼 대신 글자만 두고 선택된 것만 강조색+밑줄로 표시함.
    6개가 한 줄에 들어가도록 자간과 크기를 맞췄고, 남는 폭은 간격으로 분배함. */
 nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
-  margin-top:13px;padding:0 18px}
+  margin-top:11px;padding:0 18px}
 #chips .chip{position:relative;flex:0 0 auto;margin:0;min-width:0;
   padding:11px 0 10px;background:none;border:0;border-radius:0;
   font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--dim);
@@ -836,6 +841,7 @@ html{color-scheme:dark}
       <button class="mbtn" id="mBtn" data-act="mn" aria-label="Data">⋯</button>
     </span>
   </header>
+  <div class="hsig" id="hsig" data-act="ai"></div>
   <div class="hdate" id="hdate"></div>
   <nav id="chips"></nav>
   <div class="trow" id="trow">
@@ -1416,6 +1422,12 @@ function render(){
           +'<div class="hsc"><b>'+tot.toLocaleString()+'</b><i>TDEE'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i></div>'
           +'</div>';
       })():'');
+  /* 상태 줄 — 계산은 분석 탭과 같은 heroSignal 을 씀 */
+  try{
+    var sg=heroSignal(),hs=document.getElementById('hsig');
+    hs.className='hsig'+(sg.lv==='ok'?'':' '+sg.lv);
+    hs.innerHTML='<b class="lv">'+esc(sg.tag)+'</b><p>'+esc(sg.line)+'</p>';
+  }catch(eS){var hs2=document.getElementById('hsig');if(hs2)hs2.innerHTML='';}
   var bk=getBk();
   document.getElementById('mBtn').classList.toggle('warn',hasLogs()&&(!bk||daysAgo(bk)>14));
   renderChips();renderList();renderSheet();
