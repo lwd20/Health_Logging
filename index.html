@@ -3909,7 +3909,14 @@ function widgetSync(){
         }
         cut={d:pc.done?-2:((pc.ok&&pc.rate<0)?pc.days:-1),
              w:fmtW(BW),tw:fmtW(pc.tw),rem:fmtW(pc.remain),pct:cpct,
-             rate:pc.ok?((pc.rate>0?'+':'')+pc.rate):'',wr:'-'+WR,tag:pc.tag||''};
+             rate:pc.ok?((pc.rate>0?'+':'')+pc.rate):'',wr:'-'+WR,
+             /* 위젯은 폭이 좁아 태그를 두 글자로 줄임 */
+             tag:(function(t){t=pc.tag||'';
+               if(t.indexOf('과속')>=0)return '과속';
+               if(t.indexOf('증량')>=0)return '증량';
+               if(t.indexOf('부족')>=0)return '부족';
+               if(t.indexOf('양호')>=0)return '양호';
+               return t;})()};
       }
     }catch(e2){}
     /* sd=스냅샷 기준일, mon=그 주의 월요일.
