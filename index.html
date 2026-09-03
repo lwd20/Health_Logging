@@ -377,17 +377,16 @@ header{position:relative;display:flex;align-items:center;justify-content:space-b
 .scnt{padding:2px 18px 0;font-family:var(--mono);font-size:10.5px;color:var(--chrome);letter-spacing:.08em}
 /* 휴식 타이머 — 가로로 눕던 줄을 없애고 칼로리 왼쪽 빈자리로 옮겼다.
    진행은 숫자 뒤에 깔린 큰 링이 맡으므로 자리를 따로 쓰지 않는다. */
-/* 링이 잘리지 않게 줄 높이를 링에 맞춘다 — 자리를 안 쓰겠다고 줄을 낮추면
-   위아래가 잘려 나가 아무것도 안 보인다. */
-.trow{position:relative;overflow:hidden;min-height:82px;padding:2px 18px;margin-top:7px;
-  display:flex;align-items:center;justify-content:space-between;gap:10px}
-/* 경과와 목표는 한 줄에, 라벨과 버튼은 각자 한 줄 */
-.tmain{flex:0 0 auto;display:grid;grid-template-columns:auto auto;justify-content:start;
-  align-items:baseline;column-gap:6px;row-gap:2px;min-width:0}
-.tlab{grid-column:1/-1;font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
+/* 배경에 크게 깔면 패널 모서리에 잘려 얼룩이 된다 — 제 크기의 시계로 세운다 */
+.trow{position:relative;padding:0 18px;margin-top:9px;
+  display:flex;align-items:center;gap:11px}
+#henrg{margin-left:auto}
+/* 시간은 링 안에 있으므로 여기는 라벨과 조작만 맡는다 */
+.tmain{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.tlab{font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
 .tmain b{font-family:var(--mono);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;color:var(--mut)}
-.tmain u{text-decoration:none;font-family:var(--mono);font-size:9.5px;font-variant-numeric:tabular-nums;color:var(--dim)}
-.tacts{grid-column:1/-1;display:flex;align-items:center;gap:5px;margin-top:3px}
+.tmain u{text-decoration:none;font-family:var(--mono);font-size:9.5px;font-variant-numeric:tabular-nums;color:var(--dim);margin-top:-3px}
+.tacts{display:flex;align-items:center;gap:5px;margin-top:1px}
 /* 링을 누르는 것으로는 리셋과 정지를 가릴 수 없어 글자 버튼을 그대로 둔다 */
 .tbtn{flex:0 0 auto;padding:4px 9px;border:var(--bw) solid rgba(var(--tx-rgb),.14);
   border-radius:999px;background:none;color:var(--dim);
@@ -397,18 +396,21 @@ header{position:relative;display:flex;align-items:center;justify-content:space-b
 #trBtn{color:var(--sig);border-color:rgba(var(--sig-rgb),.35)}
 /* 정지 상태에서는 STOP이 할 일이 없으므로 숨김 */
 .trow:not(.run) #trBtn{display:none}
-/* 숫자 뒤의 큰 링 — 자리를 차지하지 않도록 배경으로 깔고 위아래를 잘라 쓴다 */
-/* 숫자 뒤에 두면 띠가 자릿수를 가로질러 둘 다 못 읽는다.
-   비어 있던 왼쪽에 앉히면 시간 글자를 감싸고 숫자는 건드리지 않는다. */
-.tring{position:absolute;left:6px;top:50%;width:96px;height:96px;border-radius:50%;
-  transform:translateY(-50%) rotate(-90deg);pointer-events:none;opacity:.5;
-  background:conic-gradient(var(--acc-sf) 0 0deg, rgba(var(--tx-rgb),.12) 0deg 360deg);
-  -webkit-mask:radial-gradient(circle,transparent 0 40px,#000 40.5px);
-  mask:radial-gradient(circle,transparent 0 40px,#000 40.5px)}
-.trow.run .tmain b{color:var(--chrome)}
+/* 시간을 품은 링. 마스크는 자식까지 먹으므로 숫자는 링의 형제로 둔다 */
+.tclock{position:relative;flex:0 0 auto;width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center}
+.tring{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  transform:rotate(-90deg);
+  background:conic-gradient(var(--acc-sf) 0 0deg, rgba(var(--tx-rgb),.13) 0deg 360deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 21px,#000 21.5px);
+  mask:radial-gradient(circle,transparent 0 21px,#000 21.5px)}
+.tclock b{position:relative;font-family:var(--mono);font-size:11.5px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--mut)}
+.trow.run .tclock b{color:var(--chrome)}
 /* 목표 도달 — 이제 다음 세트로 갈 때 */
-.trow.done .tmain b,.trow.done .tmain u{color:var(--pos)}
-.trow.mark .tmain b{color:var(--sig)}
+.trow.done .tclock b{color:var(--pos)}
+.trow.done .tmain u{color:var(--pos)}
+.trow.mark .tclock b{color:var(--sig)}
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:38px;font-size:0}
 .mbtn.qbtn{margin-left:6px}
@@ -1001,10 +1003,12 @@ html{color-scheme:dark}
   <!-- 타이머가 칼로리 왼쪽 빈자리로 들어오고, 진행은 숫자 뒤 큰 링이 맡는다.
        가로로 눕던 RECOVERY 줄은 사라졌다. -->
   <div class="trow" id="trow">
-    <div class="tring" id="tring" aria-hidden="true"></div>
+    <span class="tclock">
+      <i class="tring" id="tring" aria-hidden="true"></i>
+      <b id="tmr">00:00</b>
+    </span>
     <div class="tmain">
       <i class="tlab">Recovery</i>
-      <b id="tmr">00:00</b>
       <u id="tmrTgt"></u>
       <span class="tacts">
         <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
