@@ -3282,6 +3282,9 @@ function heroSignal(){
   var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
   var PS={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔'};
   var td=today(),hasT=hasTodayStrength();
+  /* 기록이 하나도 없으면 볼륨 경고가 아니라 시작 안내가 맞다 —
+     첫 사용자에게 '측면 뒤처짐' 같은 판정은 근거가 없다 */
+  if(!hasLogs())return {lv:'ok',tag:'시작',line:'종목을 눌러 첫 세트를 기록해 보세요',rec:'wk'};
   var st=heroStreak(),ws=wkSets(),sc=subCnt(),pl=paceLeft();
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   var ts=hasT?todaySum():null;
