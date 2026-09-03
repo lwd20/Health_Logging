@@ -738,11 +738,13 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .zn.hi{background:rgba(var(--acc-rgb),.36)}
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(var(--sig-rgb),.7)}
 .lmg .cd{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--acc-br);transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(227,185,90,.5)}
-.lmg .cd.ov{background:var(--sig);box-shadow:0 0 5px rgba(var(--sig-rgb),.5)}
+/* 이름을 ov 로 하면 안 된다 — 시트 뒤 오버레이(.ov)가 position:fixed 와
+   opacity:0 을 얹어 표식이 통째로 사라진다. */
+.lmg .cd.over{background:var(--sig);box-shadow:0 0 5px rgba(var(--sig-rgb),.5)}
 /* 축을 벗어난 값 — 자리가 아니라 모양으로 알린다 */
 .lmg .cd.out{width:0;height:0;border-radius:0;background:none;box-shadow:none;
   border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--sig)}
-.lmrow .bv.ov{color:var(--sig)}
+.lmrow .bv.over{color:var(--sig)}
 .lmsec{background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.06);border-radius:var(--rad-m);padding:11px 13px 8px;margin-bottom:9px}
 .lmcap{display:flex;align-items:center;gap:8px;font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 8px}
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -3054,7 +3056,8 @@ function kcalHtml(){
   var rows='',k;
   for(k=0;k<4;k++){
     var pw=kcalWeek(k);
-    if(!pw||!pw.n)continue;
+    /* 운동이 아예 없는 주는 앱을 쓰기 전이라는 뜻이라 0 만 늘어놓게 된다 */
+    if(!pw||!pw.n||!pw.ex)continue;
     var pd=0,j;
     for(j=0;j<pw.days.length;j++)if(!pw.days[j].future&&pw.days[j].ex>0)pd++;
     rows+='<div class="kwrow'+(k===0?' cur':'')+'"><b>'+pw.mon.slice(5).replace('-','/')+'</b>'
@@ -3397,14 +3400,14 @@ function heroSignal(){
   var st=heroStreak(),ws=wkSets(),sc=subCnt(),pl=paceLeft();
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   var ts=hasT?todaySum():null;
-  function vt(v){return v>=1000?((Math.round(v/100)/10)+'t'):(v+'kg');}
   var seg=[],k;
 
-  /* 1) 오늘 무엇을 했는가 */
+  /* 1) 오늘 무엇을 했는가 — 총 볼륨(t)은 종목 구성이 바뀌면 널뛰어 뺐고,
+     대신 소비 칼로리를 붙인다. */
   if(ts&&ts.sets){
-    var pp=[];
+    var pp=[],kc=dayExKcal(today());
     for(k in ts.parts)pp.push((PS[k]||k)+' '+ts.parts[k]);
-    seg.push('오늘 '+pp.join('·')+'세트'+(ts.vol>0?' '+vt(ts.vol):''));
+    seg.push('오늘 '+pp.join('·')+'세트'+(kc>0?' '+kc+'kcal':''));
   }else{
     seg.push('오늘 미기록');
   }
@@ -3468,8 +3471,8 @@ function lmRow(nm,cur,L){
     +'<i class="zn" style="left:'+px(L[0])+'%;width:'+(px(L[1])-px(L[0]))+'%"></i>'
     +'<i class="zn hi" style="left:'+px(L[1])+'%;width:'+(px(L[2])-px(L[1]))+'%"></i>'
     +'<i class="mrv" style="left:'+px(mrv)+'%"></i>'
-    +'<i class="cd'+(cur>mrv?' ov':'')+(out?' out':'')+'" style="left:'+cp.toFixed(1)+'%"></i>'
-    +'</span><span class="bv'+(cur>mrv?' ov':'')+'">'+cur+'</span></div>';
+    +'<i class="cd'+(cur>mrv?' over':'')+(out?' out':'')+'" style="left:'+cp.toFixed(1)+'%"></i>'
+    +'</span><span class="bv'+(cur>mrv?' over':'')+'">'+cur+'</span></div>';
 }
 function vzGauge(rows){
   var h='',i;
