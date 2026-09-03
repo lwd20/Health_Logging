@@ -177,6 +177,28 @@ i,em,u{font-style:normal;text-decoration:none}
 /* ── 헤더: 장비 네임플레이트 ── */
 :root{--grid-img:none;--grid-size:38px 38px}
 
+.kwk{display:flex;gap:5px;margin-top:10px;align-items:flex-end}
+.kwd{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.kbar{width:100%;height:58px;display:flex;flex-direction:column-reverse;
+  border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.05);overflow:hidden}
+.kbar i{display:block;width:100%}
+.kbase{background:rgba(var(--acc-rgb),.30)}
+.kex{background:var(--acc-sf)}
+.kwd b{font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:.04em}
+.kwd u{font-family:var(--mono);font-size:9px;color:var(--dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.kwd.now b{color:var(--acc-br)}
+.kwd.now .kbar{box-shadow:inset 0 0 0 1px rgba(var(--acc-rgb),.55)}
+.kwd.fut .kbar{background:rgba(var(--tx-rgb),.025)}
+.kwl{margin-top:8px}
+.kwrow{display:flex;align-items:baseline;gap:8px;padding:6px 2px;
+  border-bottom:1px solid rgba(var(--tx-rgb),.06);font-family:var(--mono);font-size:11px}
+.kwrow:last-child{border-bottom:0}
+.kwrow b{flex:0 0 44px;font-weight:700;color:var(--mut)}
+.kwt{flex:0 0 auto;color:var(--acc-br);font-weight:700;font-variant-numeric:tabular-nums}
+.kwt em{font-style:normal;font-size:9px;font-weight:700;color:var(--dim);margin-left:4px}
+.kwrow.cur b{color:var(--acc-br)}
+.kwe{flex:1;min-width:0;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kwa{flex:0 0 auto;color:var(--dim);font-variant-numeric:tabular-nums}
 .patsub{font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);margin:12px 2px 0}
 .patgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
 .psw{position:relative;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:none;text-align:left}
@@ -2317,6 +2339,7 @@ function renderSheet(){
         }
         hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
         hh+='<div class="ctrow"><b class="k">섭취</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
+        hh+=kcalHtml();
         hh+='<div class="sh-l fold" data-act="ctog" style="margin-top:16px">Cut settings<i>'+(UI.cutOpen?'▾':'▸')+'</i></div>';
         if(UI.cutOpen){
           hh+='<div class="wtg">'
@@ -2971,6 +2994,70 @@ function dayExKcal(ds){
     }
   }
   return Math.round(k);
+}
+/* 소비 칼로리 — 기초대사 x 활동계수 는 매일 같고, 운동분만 날마다 다르다.
+   막대를 둘로 나눠 쌓으면 '오늘 운동이 얼마나 보탰나'가 바로 보인다. */
+function kcalISO(t){
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+function kcalMonday(back){
+  var t=new Date();
+  t.setDate(t.getDate()-((t.getDay()+6)%7)-7*(back||0));
+  return t;
+}
+/* 한 주(월~일)의 날짜별 소비. 아직 오지 않은 날은 null 로 남긴다. */
+function kcalWeek(back){
+  var b=bmr(BW,BF);
+  if(!b)return null;
+  var base=Math.round(b*ACT),mon=kcalMonday(back),td=today();
+  var days=[],i,tot=0,ex=0,n=0;
+  for(i=0;i<7;i++){
+    var t=new Date(mon);t.setDate(mon.getDate()+i);
+    var ds=kcalISO(t);
+    if(ds>td){days.push({d:ds,future:true});continue;}
+    var e=dayExKcal(ds);
+    days.push({d:ds,base:base,ex:e,tot:base+e,today:ds===td});
+    tot+=base+e;ex+=e;n++;
+  }
+  return {mon:kcalISO(mon),days:days,tot:tot,ex:ex,n:n,avg:n?Math.round(tot/n):0,base:base};
+}
+function kcalHtml(){
+  var w=kcalWeek(0);
+  if(!w)return '';
+  var DN=['월','화','수','목','금','토','일'],i;
+  var mx=1;
+  for(i=0;i<w.days.length;i++)if(!w.days[i].future&&w.days[i].tot>mx)mx=w.days[i].tot;
+  mx=mx*1.08;
+  var h='<div class="fgrp"><div class="ft">소비 칼로리 <span class="ftn">이번 주</span></div>'
+    +'<div class="kwk">';
+  for(i=0;i<w.days.length;i++){
+    var d=w.days[i];
+    h+='<div class="kwd'+(d.future?' fut':'')+(d.today?' now':'')+'">'
+      +'<span class="kbar">'
+      +(d.future?'':'<i class="kbase" style="height:'+(d.base/mx*100).toFixed(1)+'%"></i>'
+        +(d.ex>0?'<i class="kex" style="height:'+(d.ex/mx*100).toFixed(1)+'%"></i>':''))
+      +'</span>'
+      +'<b>'+DN[i]+'</b>'
+      +'<u>'+(d.future?'':Math.round(d.tot/100)/10+'k')+'</u></div>';
+  }
+  h+='</div>';
+  h+='<div class="ctrow"><b class="k">주 합계</b><span class="v"><b>'+w.tot.toLocaleString()+'</b> kcal'
+    +(w.n?' · 하루 평균 <b>'+w.avg.toLocaleString()+'</b>':'')+'</span></div>';
+  h+='<div class="ctrow"><b class="k">운동 분</b><span class="v"><b>+'+w.ex.toLocaleString()+'</b> kcal'
+    +(w.tot>0?' · 전체의 <b>'+Math.round(w.ex*100/w.tot)+'%</b>':'')+'</span></div>';
+  /* 최근 4주 — 주 단위 흐름은 하루 편차에 안 흔들린다 */
+  var rows='',k;
+  for(k=0;k<4;k++){
+    var pw=kcalWeek(k);
+    if(!pw||!pw.n)continue;
+    rows+='<div class="kwrow'+(k===0?' cur':'')+'"><b>'+pw.mon.slice(5).replace('-','/')+'</b>'
+      +'<span class="kwt">'+pw.tot.toLocaleString()+(pw.n<7?'<em>'+pw.n+'일</em>':'')+'</span>'
+      +'<span class="kwe">운동 +'+pw.ex.toLocaleString()+'</span>'
+      +'<span class="kwa">'+pw.avg.toLocaleString()+'/일</span></div>';
+  }
+  if(rows)h+='<div class="ft" style="margin-top:14px">최근 4주</div><div class="kwl">'+rows+'</div>';
+  h+='<div class="note">기초대사 '+Math.round(w.base).toLocaleString()+' kcal(활동계수 '+ACT+' 포함)은 날마다 같고, 막대의 밝은 부분이 운동으로 더한 몫임.</div>';
+  return h+'</div>';
 }
 function dayTDEE(ds){
   var b=bmr(BW,BF);
