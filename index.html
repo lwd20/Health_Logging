@@ -2677,17 +2677,27 @@ function partIdxs(part){
   for(i=0;i<S.m.length;i++)if(S.m[i].p===part)a.push(i);
   return a;
 }
+/* 목록은 브랜드로 묶여 보이므로 자리 이동도 같은 부위·같은 브랜드 안에서만 한다.
+   부위 전체 순서로 바꾸면 S.m 은 바뀌어도 brandGroups 가 다시 제 그룹으로
+   돌려놓아 화면이 그대로라, 버튼이 안 먹는 것처럼 보였다. */
+function ordIdxs(m){
+  var a=partIdxs(m.p),b=(m.b||'').trim(),out=[],i;
+  for(i=0;i<a.length;i++)if(((S.m[a[i]].b||'').trim())===b)out.push(a[i]);
+  return out;
+}
+function ordPos(m,a){
+  for(var i=0;i<a.length;i++)if(S.m[a[i]].i===m.i)return i;
+  return -1;
+}
 function canMove(id,dir){
   var m=machById(id);if(!m)return false;
-  var a=partIdxs(m.p),pos=-1,i;
-  for(i=0;i<a.length;i++)if(S.m[a[i]].i===id){pos=i;break;}
+  var a=ordIdxs(m),pos=ordPos(m,a);
   if(pos<0)return false;
   return dir<0?pos>0:pos<a.length-1;
 }
 function moveMachine(id,dir){
   var m=machById(id);if(!m)return;
-  var a=partIdxs(m.p),pos=-1,i;
-  for(i=0;i<a.length;i++)if(S.m[a[i]].i===id){pos=i;break;}
+  var a=ordIdxs(m),pos=ordPos(m,a);
   if(pos<0)return;
   var to=pos+dir;
   if(to<0||to>=a.length)return;
