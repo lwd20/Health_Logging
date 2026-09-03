@@ -316,7 +316,8 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
 .hnrg .tag.dfc{color:var(--sig)}
 .dtag{font-style:normal;font-size:10px;font-weight:500;color:var(--dim);margin-left:2px;white-space:nowrap}
 .dtag.now{color:var(--chrome);font-weight:700}
-.rr i.up,.rr i.dn{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.rr i.up,.rr i.dn,.rr i.eq{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.rr i.eq{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.04em}
 .rr i.up{color:var(--pos)}
 .rr i.dn{color:var(--neg)}
 .setr .sv{margin-left:auto;font-size:10px;color:rgba(var(--tx-rgb),.26);letter-spacing:.02em}
@@ -426,7 +427,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mc.did{background:rgba(var(--acc-rgb),.05);margin:0 -13px;padding:0 13px}
 .mc.did .nm{color:var(--tx)}
 .mc.on .nm{color:var(--tx)}
-.rp .prtag{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:2px 6px;white-space:nowrap}
 .rr.thin{flex:0 0 auto}
 .stc b em.prm{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:1px 5px;margin-left:5px;vertical-align:3px;font-family:var(--sans)}
 .dtag.done{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--acc-br);background:transparent;border:1px solid rgba(var(--acc-rgb),.45);border-radius:999px;padding:1px 7px;margin-left:2px;vertical-align:1px}
@@ -1365,7 +1365,8 @@ function prevSess(id,ds){var a=sess(id);for(var i=0;i<a.length;i++)if(a[i].d<ds&
 /* 세션 전체 기준 성장률 배지 */
 function gainTag(cur,prev){
   var g=e1rmGain(cur,prev);
-  if(!g||g.pct===0)return '';
+  if(!g)return '';                    /* 비교할 직전 세션이 없으면 표시하지 않음 */
+  if(g.pct===0)return '<i class="eq">유지</i>';
   return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>';
 }
 /* RIR(남은 반복) — 미입력/0/1/2/3+ 순환. 0=실패 직전 */
@@ -1674,9 +1675,7 @@ function rowHtml(m,noBadge){
         sub='<span class="sub">'+repsOfC(la.s,true)+(badC?' <i class="badv">확인</i>':'')+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
-        var pr2=prOf(m,la.d);
         var gt=lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'';
-        if(pr2&&pr2.isPR)gt='<i class="prtag">PR</i>';
         right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
