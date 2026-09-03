@@ -336,6 +336,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .frow.chiprow .fv{gap:5px}
 .frow.chiprow .wrapchips{gap:5px;justify-content:flex-end}
 .frow.chiprow .chip{padding:7px 11px;font-size:10.5px;font-weight:700}
+/* 설정 시트는 좌측 레일 때문에 본문이 233px로 좁음 — 라벨과 칩을 줄여 한 줄에 맞춤 */
+.dbody .frow{gap:8px;min-height:44px}
+.dbody .fk{flex:0 0 48px;font-size:10.5px}
+.dbody .frow.chiprow .chip{padding:7px 8px;font-size:10px}
 .frow.pk .fv b{font-size:13px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .frow.pk .fv u{flex:0 0 auto;text-decoration:none;font-size:9.5px;color:var(--dim);letter-spacing:.02em}
 .frow.pk .fv i{flex:0 0 auto;font-style:normal;font-size:13px;color:var(--chrome);width:14px;text-align:center}
@@ -971,6 +975,7 @@ function save(){
   demoClear();
   autoSnap();
   widgetSync();
+  mirrorPush(false);
   var s=JSON.stringify(S);
   if(canLS){
     try{localStorage.setItem(KEY,s);}
@@ -2054,6 +2059,13 @@ function renderSheet(){
       }
       h+='</div></div>';
       h+='<div class="note">색과 질감만 바뀌며 기록에는 영향이 없음. 백업에도 함께 저장됨.</div>';
+      /* 홈 화면 위젯 기본값 — 위젯을 개별 설정하면 그쪽이 우선함 */
+      h+='<div class="fgrp"><div class="ft">홈 위젯</div>'
+        +'<div class="frow chiprow"><span class="fk">불투명도</span><span class="fv">'
+        +chipRow([{v:60,l:'60%'},{v:80,l:'80%'},{v:100,l:'100%'}],'wop',WOP)+'</span></div>'
+        +'<div class="frow chiprow"><span class="fk">글자</span><span class="fv">'
+        +chipRow([{v:0,l:'자동'},{v:1,l:'밝게'},{v:2,l:'어둡게'}],'wtm',WTM)+'</span></div></div>'
+        +'<div class="note">위젯을 개별로 설정하지 않았을 때 적용됨.</div>';
     }
     if(tb==='data'){
     h+='<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
@@ -2063,6 +2075,7 @@ function renderSheet(){
       +(snapInfo()?'<div class="note" style="margin-top:8px">자동 스냅샷 '+snapInfo()+' — 본 데이터가 깨졌을 때 <b class="xlink" data-act="snapld">불러오기</b></div>':'')
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
+      +(function(){var mi=mirrorInfo();return mi?'<div class="note" style="margin-top:6px">앱 저장소 사본 '+esc(mi)+' \u2014 캐시를 지워도 이 사본으로 자동 복구됨</div>':'';})()
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
     h+=clsCheckHtml();
     }
@@ -2567,6 +2580,46 @@ function tmrDraw(){
   var row=document.getElementById('trow');if(row)row.classList.toggle('run',!!TMR.ts);
   var b=document.getElementById('tsBtn');if(b)b.textContent=TMR.ts?'Reset':'Start';
 }
+/* 위젯 기본 스타일 — 위젯을 개별 설정하지 않았을 때 적용됨 */
+var WOP=(function(){var v=canLS?+localStorage.getItem(KEY+'.wop'):NaN;return (v>=30&&v<=100)?Math.round(v):100;})();
+var WTM=(function(){var v=canLS?+localStorage.getItem(KEY+'.wtm'):NaN;return (v===1||v===2)?v:0;})();
+
+/* 초기화가 끝나기 전에는 사본을 쓰지 않음 — 설정값이 아직 안 잡혀 있을 수 있음 */
+var appReady=false,mirrorAt=0;
+/* 기기 저장소가 비워져도 살아남도록 앱 전용 저장소에 사본을 둠 */
+function mirrorPush(force){
+  if(!appReady||DEMO)return;
+  try{
+    if(!(window.AndroidFile&&AndroidFile.mirror))return;
+    var t=(new Date()).getTime();
+    if(!force&&t-mirrorAt<60000)return;
+    mirrorAt=t;
+    AndroidFile.mirror(bkText());
+  }catch(e){}
+}
+/* 기기 저장소가 비어 있을 때만 사본에서 되살림 — 살아 있는 데이터는 건드리지 않음 */
+function mirrorRestore(){
+  if(DEMO)return false;
+  try{
+    if(!(window.AndroidFile&&AndroidFile.mirrorRead))return false;
+    if(!canLS)return false;
+    if(localStorage.getItem(KEY))return false;
+    var raw=AndroidFile.mirrorRead();
+    if(!raw||raw.length<32)return false;
+    var ob=JSON.parse(raw);
+    if(!ob)return false;
+    applyBackup(ob);
+    save();
+    return true;
+  }catch(e){return false;}
+}
+function mirrorInfo(){
+  try{
+    if(!(window.AndroidFile&&AndroidFile.mirrorDate))return '';
+    return AndroidFile.mirrorDate()||'';
+  }catch(e){return '';}
+}
+
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
 var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
@@ -2641,7 +2694,7 @@ function bkText(){
   var S2=DEMO?{m:S.m,l:demoStrip(S.l)}:S;
   return JSON.stringify({v:2,S:S2,cfg:{
     wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
-    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH
+    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,wop:WOP,wtm:WTM
   }});
 }
 function applyBackup(o){
@@ -2664,6 +2717,8 @@ function applyBackup(o){
       if(+c.act>=1.1&&+c.act<=1.9)ACT=Math.round(+c.act*100)/100;
       if(+c.iv>=30&&+c.iv<=600)IVs=Math.floor(+c.iv);
       if(+c.wr>=0.1&&+c.wr<=1.5)WR=Math.round(+c.wr*100)/100;
+      if(+c.wop>=30&&+c.wop<=100){WOP=Math.round(+c.wop);if(canLS)try{localStorage.setItem(KEY+'.wop',WOP);}catch(eW3){}}
+      if(+c.wtm===0||+c.wtm===1||+c.wtm===2){WTM=+c.wtm;if(canLS)try{localStorage.setItem(KEY+'.wtm',WTM);}catch(eW4){}}
       if(c.st){
         var cT=(c.st.v===2&&c.st.t)?c.st.t:c.st;
         var cNew=(c.st.v===2);
@@ -3859,8 +3914,53 @@ function widgetSync(){
     }catch(e2){}
     /* sd=스냅샷 기준일, mon=그 주의 월요일.
        위젯이 '오늘'과 '이번 주'를 다시 판정하는 근거가 됨 */
+    /* 다음에 할 부위 — 오래 쉰 순, 같으면 주간 목표 미달분이 큰 순 */
+    var next=[];
+    try{
+      var norder=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'],cand=[];
+      for(i=0;i<norder.length;i++){
+        var np=norder[i],nset=partDays(np);
+        if(nset[0])continue;                       /* 오늘 이미 한 부위는 뺌 */
+        var nd=99,q5;
+        for(q5=1;q5<=30;q5++)if(nset[q5]){nd=q5;break;}
+        cand.push({p:np,d:nd,s:cnt[np]||0,t:WTGT[np]||10});
+      }
+      cand.sort(function(x,y4){
+        if(y4.d!==x.d)return y4.d-x.d;
+        return (y4.t-y4.s)-(x.t-x.s);
+      });
+      for(i=0;i<cand.length&&next.length<3;i++){
+        var cc=cand[i];
+        next.push([WCODE[cc.p]||cc.p,
+          (cc.d>=99?'기록 없음':cc.d+'일 안 함')+' \u00b7 '+cc.s+'/'+cc.t+'세트']);
+      }
+    }catch(e4){}
+
+    /* 최근 3주 안에 개인 최고를 넘긴 종목 */
+    var prs=[];
+    try{
+      for(i=0;i<S.m.length;i++){
+        var pm=S.m[i];
+        if(isCard(pm.p))continue;
+        var pa=(S.l[pm.i]||[]).filter(function(x){return x.s&&x.s.length;});
+        if(!pa.length)continue;
+        var plast=pa.slice().sort(function(x,y5){return x.d<y5.d?1:-1;})[0];
+        if(Math.round((new Date(tdISO)-new Date(plast.d))/86400000)>21)continue;
+        var pv=prOf(pm,plast.d);
+        if(!pv||!pv.isPR)continue;
+        var ps=effSets(pm,plast.s),ptp=ps[0],q6;
+        for(q6=1;q6<ps.length;q6++)
+          if(ps[q6][0]>ptp[0]||(ps[q6][0]===ptp[0]&&ps[q6][1]>ptp[1]))ptp=ps[q6];
+        prs.push([pm.n,fmtW(ptp[0])+'x'+ptp[1],(pv.gain>0?'+':'')+pv.gain,plast.d]);
+      }
+      prs.sort(function(x,y6){return x[3]<y6[3]?1:-1;});
+      prs=prs.slice(0,4);
+    }catch(e5){}
+
+    /* o=기본 불투명도, tm=기본 글자 테마. k는 구버전 APK 호환용 */
     AndroidWidget.sync(JSON.stringify({t:dow,w:w,v:v,c:c,td:td,lw:lw,
-      sd:tdISO,mon:days[0],cut:cut}));
+      sd:tdISO,mon:days[0],cut:cut,next:next,prs:prs,
+      o:WOP,tm:WTM,k:(WTM===2?1:0)}));
   }catch(e){}
 }
 
@@ -4821,6 +4921,8 @@ document.addEventListener('click',function(e){
     case 'px':UI.editRx=+v;render();break;
     case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';UI.pickOpen='';render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
+    case 'wop':WOP=+v;if(canLS)try{localStorage.setItem(KEY+'.wop',WOP);}catch(eW){}widgetSync();render();break;
+    case 'wtm':WTM=+v;if(canLS)try{localStorage.setItem(KEY+'.wtm',WTM);}catch(eW2){}widgetSync();render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
     case 'pas':UI.editAs=(v==='1');UI.pickOpen='';render();break;
     case 'palpick':
@@ -5112,8 +5214,12 @@ function syncBtns(){
 }
 
 ensureCardio();
+appReady=true;
+var restored=mirrorRestore();
 demoSeed();
 render();
+mirrorPush(true);
+if(restored)setTimeout(function(){try{toast('<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림');}catch(e){}},700);
 if(DEMO)setTimeout(function(){try{toast('샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐');}catch(e){}},600);
 tmrDraw();
 widgetSync();
@@ -5123,7 +5229,10 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 aiBgPoll();
 tmrNativeSync();
-document.addEventListener('visibilitychange',function(){if(!document.hidden){aiBgPoll();tmrNativeSync();}});
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){mirrorPush(true);return;}
+  aiBgPoll();tmrNativeSync();
+});
 if(window.AndroidAI)setInterval(function(){
   var was=aiBgPending();
   aiBgPoll();
