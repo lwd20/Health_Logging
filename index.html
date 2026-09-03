@@ -182,13 +182,14 @@ i,em,u{font-style:normal;text-decoration:none}
 .kbar{width:100%;height:58px;display:flex;flex-direction:column-reverse;
   border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.05);overflow:hidden}
 .kbar i{display:block;width:100%}
-.kbase{background:rgba(var(--acc-rgb),.30)}
 .kex{background:var(--acc-sf)}
 .kwd b{font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:.04em}
 .kwd u{font-family:var(--mono);font-size:9px;color:var(--dim);text-decoration:none;font-variant-numeric:tabular-nums}
 .kwd.now b{color:var(--acc-br)}
 .kwd.now .kbar{box-shadow:inset 0 0 0 1px rgba(var(--acc-rgb),.55)}
 .kwd.fut .kbar{background:rgba(var(--tx-rgb),.025)}
+.kwd.rest .kbar{background:rgba(var(--tx-rgb),.03)}
+.kwd.rest u{opacity:.5}
 .kwl{margin-top:8px}
 .kwrow{display:flex;align-items:baseline;gap:8px;padding:6px 2px;
   border-bottom:1px solid rgba(var(--tx-rgb),.06);font-family:var(--mono);font-size:11px}
@@ -3025,40 +3026,45 @@ function kcalHtml(){
   var w=kcalWeek(0);
   if(!w)return '';
   var DN=['월','화','수','목','금','토','일'],i;
-  var mx=1;
-  for(i=0;i<w.days.length;i++)if(!w.days[i].future&&w.days[i].tot>mx)mx=w.days[i].tot;
-  mx=mx*1.08;
-  var h='<div class="lmsec"><div class="lmcap">ENERGY OUT · 이번 주</div>'
-    +'<div class="kwk">';
+  /* 축은 운동분 범위에 맞춘다. 기초대사를 섞으면 전체의 94%를 차지해
+     날마다의 차이가 뭉개진다. */
+  var mx=0;
+  for(i=0;i<w.days.length;i++)if(!w.days[i].future&&w.days[i].ex>mx)mx=w.days[i].ex;
+  var flat=(mx<=0);
+  mx=(mx||1)*1.12;
+  var dn=0;
+  for(i=0;i<w.days.length;i++)if(!w.days[i].future&&w.days[i].ex>0)dn++;
+
+  var h='<div class="lmsec"><div class="lmcap">EXERCISE · 이번 주</div><div class="kwk">';
   for(i=0;i<w.days.length;i++){
-    var d=w.days[i];
-    h+='<div class="kwd'+(d.future?' fut':'')+(d.today?' now':'')+'">'
-      +'<span class="kbar">'
-      +(d.future?'':'<i class="kbase" style="height:'+(d.base/mx*100).toFixed(1)+'%"></i>'
-        +(d.ex>0?'<i class="kex" style="height:'+(d.ex/mx*100).toFixed(1)+'%"></i>':''))
-      +'</span>'
+    var d=w.days[i],pc=d.future?0:Math.max(d.ex>0?4:0,d.ex/mx*100);
+    h+='<div class="kwd'+(d.future?' fut':'')+(d.today?' now':'')+(!d.future&&d.ex<=0?' rest':'')+'">'
+      +'<span class="kbar">'+(d.future||d.ex<=0?'':'<i class="kex" style="height:'+pc.toFixed(1)+'%"></i>')+'</span>'
       +'<b>'+DN[i]+'</b>'
-      +'<u>'+(d.future?'':Math.round(d.tot/100)/10+'k')+'</u></div>';
+      +'<u>'+(d.future?'':(d.ex>0?d.ex:'—'))+'</u></div>';
   }
   h+='</div>';
-  h+='<div class="ctrow"><b class="k">주 합계</b><span class="v"><b>'+w.tot.toLocaleString()+'</b> kcal'
-    +(w.n?' · 하루 평균 <b>'+w.avg.toLocaleString()+'</b>':'')+'</span></div>';
-  h+='<div class="ctrow"><b class="k">운동 분</b><span class="v"><b>+'+w.ex.toLocaleString()+'</b> kcal'
-    +(w.tot>0?' · 전체의 <b>'+Math.round(w.ex*100/w.tot)+'%</b>':'')+'</span></div>';
-  /* 최근 4주 — 주 단위 흐름은 하루 편차에 안 흔들린다 */
+  h+='<div class="ctrow"><b class="k">주 합계</b><span class="v"><b>'+w.ex.toLocaleString()+'</b> kcal'
+    +(dn?' · 운동 <b>'+dn+'</b>일 · 하루 <b>'+Math.round(w.ex/dn).toLocaleString()+'</b>':'')+'</span></div>';
+  /* 주 단위 흐름은 하루 편차에 안 흔들린다 */
   var rows='',k;
   for(k=0;k<4;k++){
     var pw=kcalWeek(k);
     if(!pw||!pw.n)continue;
+    var pd=0,j;
+    for(j=0;j<pw.days.length;j++)if(!pw.days[j].future&&pw.days[j].ex>0)pd++;
     rows+='<div class="kwrow'+(k===0?' cur':'')+'"><b>'+pw.mon.slice(5).replace('-','/')+'</b>'
-      +'<span class="kwt">'+pw.tot.toLocaleString()+(pw.n<7?'<em>'+pw.n+'일</em>':'')+'</span>'
-      +'<span class="kwe">운동 +'+pw.ex.toLocaleString()+'</span>'
-      +'<span class="kwa">'+pw.avg.toLocaleString()+'/일</span></div>';
+      +'<span class="kwt">'+pw.ex.toLocaleString()+(pw.n<7?'<em>'+pw.n+'일차</em>':'')+'</span>'
+      +'<span class="kwe">'+pd+'일 운동</span>'
+      +'<span class="kwa">'+(pd?Math.round(pw.ex/pd).toLocaleString():0)+'/일</span></div>';
   }
   if(rows)h+='<div class="lmcap" style="margin-top:14px">최근 4주</div><div class="kwl">'+rows+'</div>';
-  h+='<div class="note">기초대사 '+Math.round(w.base).toLocaleString()+' kcal(활동계수 '+ACT+' 포함)은 날마다 같고, 막대의 밝은 부분이 운동으로 더한 몫임.</div>';
+  h+='<div class="note">운동으로 더 쓴 몫만 표시함. 기초대사와 일상 활동('
+    +Math.round(w.base).toLocaleString()+' kcal/일, 활동계수 '+ACT+')은 매일 같으므로 뺐음.'
+    +(flat?' 이번 주 운동 기록이 아직 없음.':'')+'</div>';
   return h+'</div>';
 }
+
 function dayTDEE(ds){
   var b=bmr(BW,BF);
   if(!b)return 0;
