@@ -609,9 +609,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr .del.armed{color:var(--on-acc);font-size:15px;font-weight:700;background:radial-gradient(circle at 50% 50%,var(--sig) 0 14px,rgba(var(--sig-rgb),.2) 14px 18px,transparent 18px)}
 
 .inrow{display:flex;gap:8px;margin-top:11px}
-/* 채운 상자 안에 채운 상자를 또 두면 두 겹으로 파여 보인다.
-   바깥은 선으로만 묶고, 안쪽은 아주 얕게 깐다. */
-.ctr{flex:1;display:flex;align-items:center;background:rgba(var(--tx-rgb),.028);border:var(--bw) solid rgba(var(--tx-rgb),.11);border-radius:var(--rad-s);padding:3px}
+/* 배경을 조금이라도 깔면 파인 상자로 읽힌다. 선으로만 자리를 잡는다. */
+.ctr{flex:1;display:flex;align-items:center;background:none;border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-s);padding:3px}
 .ctr button{width:42px;height:46px;font-size:19px;color:var(--mut);flex:0 0 auto;border-radius:8px}
 .ctr button:active{color:var(--tx);background:rgba(var(--tx-rgb),.06)}
 .ctr input{flex:1 1 auto;text-align:center;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;min-width:0}
@@ -857,9 +856,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .cdcard .num.done{color:var(--pos)}
 .cdcard .sub2{display:flex;margin-top:7px;font-size:10px;color:var(--dim);letter-spacing:.05em}
 .cdcard .sub2 b{color:var(--mut);font-weight:700}
-.zband{display:inline-flex;align-items:center;gap:7px;background:rgba(var(--acc-rgb),.08);border:0;border-left:2px solid var(--chrome);border-radius:var(--rad-s);padding:6px 11px;margin-bottom:11px;font-family:var(--mono);font-size:10.5px;color:var(--mut);letter-spacing:.06em;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
-.zband i{font-size:8.5px;font-weight:800;letter-spacing:.2em;color:var(--dim)}
-.zband b{color:var(--acc-br);font-weight:700}
 .pacehint{margin-top:6px;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em;min-height:14px}
 .pacehint b{color:var(--mut)}
 .ai-empty{margin:26px 0 14px;text-align:center;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:700}
@@ -1826,10 +1822,6 @@ function lastLine(m){
 function panelHtml(m){
   var id=m.i,draft=UI.draft[id]||[],h='<div class="panel">';
   var cdRow=isCard(m.p);
-  if(cdRow){
-    var z=zone2();
-    h+='<div class="zband"><i>ZONE2</i><b>'+z[0]+'–'+z[1]+'</b>bpm · HRmax '+HRM+'</div>';
-  }
   if(UI.wd!==today())h+='<div class="pdate">✎ Editing '+jdate(UI.wd)+'</div>';
   /* 직전 세션 — 성장률 비교 기준 (요약 표시는 시트 헤더가 담당) */
   var past=[],all=sess(id);
@@ -2813,8 +2805,12 @@ function partIdxs(part){
 /* 목록은 브랜드로 묶여 보이므로 자리 이동도 같은 부위·같은 브랜드 안에서만 한다.
    부위 전체 순서로 바꾸면 S.m 은 바뀌어도 brandGroups 가 다시 제 그룹으로
    돌려놓아 화면이 그대로라, 버튼이 안 먹는 것처럼 보였다. */
+/* 이동 범위는 화면에 보이는 묶음과 같아야 한다.
+   유산소는 브랜드로 묶지 않고 한 줄로 늘어놓으므로 부위 전체가 범위다. */
 function ordIdxs(m){
-  var a=partIdxs(m.p),b=(m.b||'').trim(),out=[],i;
+  var a=partIdxs(m.p),i;
+  if(isCard(m.p))return a;
+  var b=(m.b||'').trim(),out=[];
   for(i=0;i<a.length;i++)if(((S.m[a[i]].b||'').trim())===b)out.push(a[i]);
   return out;
 }
@@ -3343,7 +3339,6 @@ function kcalSess(sets,name){
   var k=0,i;for(i=0;i<sets.length;i++)k+=kcalSet(sets[i],name);
   return Math.round(k);
 }
-function zone2(){return [Math.round(HRM*0.6),Math.round(HRM*0.7)];}
 function isTreadName(n){n=String(n||'').toLowerCase();return !(n.indexOf('stair')>=0||n.indexOf('climb')>=0||n.indexOf('계단')>=0);}
 function hintHtml(name){
   var parts=[];
