@@ -493,6 +493,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rr{flex:0 0 106px;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono);white-space:nowrap}
 .rr .rw{flex:0 0 62px;min-width:0;text-align:right;white-space:nowrap}
 .rr .rp{flex:0 0 44px;min-width:0;text-align:right;white-space:nowrap}
+.rr .rp .ago{font-style:normal;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.03em}
 .rr .none{flex:1;text-align:right}
 .fav{flex:0 0 auto;width:42px;height:46px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
 .fav.on{color:var(--chrome);opacity:1;text-shadow:0 0 8px rgba(var(--acc-rgb),.35)}
@@ -1374,6 +1375,28 @@ function topOfM(m,s){
 function cUnit(x){return fmtW(x[1])+(x[2]>0?'/'+fmtW(x[2])+'%':'');}
 /* 러닝머신은 시속(km/h), 스텝밀은 기기 레벨 — 같은 칸에 다른 뜻이 들어간다 */
 function cSpdU(n){return isTreadName(n)?'km/h':'Lv';}
+/* 유산소는 최장 구간이 아니라 그날 합계가 주간 목표에 들어간다 */
+function cMin(s){var t=0,i;for(i=0;i<(s||[]).length;i++)t+=+s[i][0]||0;return Math.round(t);}
+/* 인터벌을 여러 번 하면 속도를 다 나열할 때 줄이 두세 겹으로 늘어난다.
+   구간 수와 속도 범위로 줄이면 한 줄에 들어가면서 인터벌이었다는 사실도 남는다. */
+function cSpdSum(s,n){
+  if(!s||!s.length)return '';
+  if(s.length===1)return cUnitN(s[0],n);
+  var lo=null,hi=null,inc=0,i;
+  for(i=0;i<s.length;i++){
+    var v=+s[i][1]||0,c=+s[i][2]||0;
+    if(lo===null||v<lo)lo=v;
+    if(hi===null||v>hi)hi=v;
+    if(c>inc)inc=c;
+  }
+  return s.length+'구간 '+(lo===hi?fmtW(lo):(fmtW(lo)+'–'+fmtW(hi)))+cSpdU(n)
+    +(inc>0?' '+fmtW(inc)+'%':'');
+}
+function cKm(s,n){
+  if(!isTreadName(n))return 0;
+  var d=0,i;for(i=0;i<(s||[]).length;i++)d+=(+s[i][0]||0)/60*(+s[i][1]||0);
+  return Math.round(d*10)/10;
+}
 function cUnitN(x,n){return fmtW(x[1])+cSpdU(n)+(x[2]>0?' '+fmtW(x[2])+'%':'');}
 function repsOfC(s,card,n){
   if(!card)return repsOf(s);
@@ -1690,12 +1713,19 @@ function renderList(){
     }
     if(arr2.length){
       h+='<div class="shd" style="margin-top:8px">'+UI.filter+(UI.favOnly?' ★':'')+'<i>'+arr2.length+'</i></div>';
-      var bgs=brandGroups(arr2),bg,bj;
-      for(bj=0;bj<bgs.length;bj++){
-        bg=bgs[bj];
-        h+='<div class="bhd">'+esc(bg.n)+'<i>'+bg.items.length+'</i></div><div class="grp">';
-        for(j=0;j<bg.items.length;j++)h+=rowHtml(bg.items[j],true);
+      if(UI.filter==='CARDIO'){
+        /* 러닝머신에 제조사 구분은 뜻이 없다. 대신 배지를 살려 NEAT 를 드러낸다 */
+        h+='<div class="grp">';
+        for(j=0;j<arr2.length;j++)h+=rowHtml(arr2[j]);
         h+='</div>';
+      }else{
+        var bgs=brandGroups(arr2),bg,bj;
+        for(bj=0;bj<bgs.length;bj++){
+          bg=bgs[bj];
+          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bg.items.length+'</i></div><div class="grp">';
+          for(j=0;j<bg.items.length;j++)h+=rowHtml(bg.items[j],true);
+          h+='</div>';
+        }
       }
     }else{
       h+='<div class="empty" style="padding:40px 0">'+(UI.favOnly?'No favorites in '+UI.filter+' — tap ☆':'No exercises')+'</div>';
@@ -1734,10 +1764,15 @@ function rowHtml(m,noBadge){
     var la=latest(m.i);
     if(la){
       if(isCard(m.p)){
-        right=rgt(fmtW(topOfM(m,la.s)),'min','');
+        /* 유산소에서 견줄 것은 무게 증감이 아니라 '얼마나 자주'다 */
+        var ago=Math.round((new Date(UI.wd)-new Date(la.d))/86400000);
+        var agoT=ago<=0?'오늘':(ago===1?'어제':ago+'일 전');
+        right=rgt(String(cMin(la.s)),'min','<i class="ago">'+agoT+'</i>');
         var badC=false,q9;
         for(q9=0;q9<la.s.length;q9++)if(cardioOut(la.s[q9],m.n)){badC=true;break;}
-        sub='<span class="sub">'+repsOfC(la.s,true,m.n)+(badC?' <i class="badv">확인</i>':'')+'</span>';
+        var kmv=cKm(la.s,m.n);
+        sub='<span class="sub">'+cSpdSum(la.s,m.n)+(kmv>0?' · '+kmv+'km':'')
+          +(badC?' <i class="badv">확인</i>':'')+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
         var gt=lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'';
