@@ -2147,6 +2147,7 @@ function renderSheet(){
     h+='<div class="sh-t">Analyze</div>';
     h+=heroHtml();
     h+=insightsHtml();
+    h+=kcalHtml();
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
     h+='<div class="gmwrap">';
@@ -2339,7 +2340,6 @@ function renderSheet(){
         }
         hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
         hh+='<div class="ctrow"><b class="k">섭취</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
-        hh+=kcalHtml();
         hh+='<div class="sh-l fold" data-act="ctog" style="margin-top:16px">Cut settings<i>'+(UI.cutOpen?'▾':'▸')+'</i></div>';
         if(UI.cutOpen){
           hh+='<div class="wtg">'
@@ -3028,7 +3028,7 @@ function kcalHtml(){
   var mx=1;
   for(i=0;i<w.days.length;i++)if(!w.days[i].future&&w.days[i].tot>mx)mx=w.days[i].tot;
   mx=mx*1.08;
-  var h='<div class="fgrp"><div class="ft">소비 칼로리 <span class="ftn">이번 주</span></div>'
+  var h='<div class="lmsec"><div class="lmcap">ENERGY OUT · 이번 주</div>'
     +'<div class="kwk">';
   for(i=0;i<w.days.length;i++){
     var d=w.days[i];
@@ -3055,7 +3055,7 @@ function kcalHtml(){
       +'<span class="kwe">운동 +'+pw.ex.toLocaleString()+'</span>'
       +'<span class="kwa">'+pw.avg.toLocaleString()+'/일</span></div>';
   }
-  if(rows)h+='<div class="ft" style="margin-top:14px">최근 4주</div><div class="kwl">'+rows+'</div>';
+  if(rows)h+='<div class="lmcap" style="margin-top:14px">최근 4주</div><div class="kwl">'+rows+'</div>';
   h+='<div class="note">기초대사 '+Math.round(w.base).toLocaleString()+' kcal(활동계수 '+ACT+' 포함)은 날마다 같고, 막대의 밝은 부분이 운동으로 더한 몫임.</div>';
   return h+'</div>';
 }
