@@ -609,15 +609,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .setr .del.armed{color:var(--on-acc);font-size:15px;font-weight:700;background:radial-gradient(circle at 50% 50%,var(--sig) 0 14px,rgba(var(--sig-rgb),.2) 14px 18px,transparent 18px)}
 
 .inrow{display:flex;gap:8px;margin-top:11px}
-.ctr{flex:1;display:flex;align-items:center;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-s);padding:3px}
+/* 채운 상자 안에 채운 상자를 또 두면 두 겹으로 파여 보인다.
+   바깥은 선으로만 묶고, 안쪽은 아주 얕게 깐다. */
+.ctr{flex:1;display:flex;align-items:center;background:rgba(var(--tx-rgb),.028);border:var(--bw) solid rgba(var(--tx-rgb),.11);border-radius:var(--rad-s);padding:3px}
 .ctr button{width:42px;height:46px;font-size:19px;color:var(--mut);flex:0 0 auto;border-radius:8px}
 .ctr button:active{color:var(--tx);background:rgba(var(--tx-rgb),.06)}
 .ctr input{flex:1 1 auto;text-align:center;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;min-width:0}
 .cwrap{flex:1;min-width:0}
 .clab{display:block;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--dim);margin:0 0 6px 3px;font-variant-numeric:tabular-nums}
 
-.inzone{margin-top:14px;padding:12px 12px 13px;border-radius:var(--rad-m);border:var(--bw) solid rgba(var(--tx-rgb),.08);background:rgba(var(--tx-rgb),.035)}
-.izl{font-size:8.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+.inzone{margin-top:14px;padding:0;border:0;background:none}
+.izl{font-size:8.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 2px 8px}
 .inzone .inrow{margin-top:0}
 .inzone .inrow+.inrow{margin-top:8px}
 .btnrow{display:flex;gap:8px;margin-top:12px}
@@ -2956,18 +2958,22 @@ var SUBS=[
  {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹/},
  {k:'pd', p:'SHOULDERS',n:'후면',      d:0, r:/rear|리어|reverse\s*pec|리버스\s*?펙|face\s*pull|페이스\s*?풀|reverse\s*fly|리버스\s*?플라이/},
  {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫풀|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|high\s*row|하이\s*?로우|dorsi|dorsy|도르시|광배/},
- {k:'tm', p:'BACK',     n:'승모·중부', d:0, r:/\brow|로우|shrug|슈러그|셰러그|t-?bar|티바|승모/},
+ {k:'ut', p:'BACK',     n:'승모 상부', d:0, r:/shrug|슈러그|셰러그|셸러그|upright\s*row|업라이트/},
+ {k:'tm', p:'BACK',     n:'중부·능형', d:0, r:/\brow|로우|t-?bar|티바|중부|능형/},
  {k:'uc', p:'CHEST',    n:'상부',      d:0, r:/incline|인클라인/},
  {k:'mc', p:'CHEST',    n:'중하부',    d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|\bfly|플라이|pec\s*deck|펙\s*?덱|flat\s*press|플랫|decline|디클라인/},
  {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션/},
  {k:'hm', p:'LEGS',     n:'햄스트링',  d:7, r:/leg\s*curl|레그\s*?컬|햄스트링|hamstring|\bham\b|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
- {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|abduct|어브덕|back\s*extension|백\s*?익스텐션|bridge|브릿지/},
+ {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|back\s*extension|백\s*?익스텐션|bridge|브릿지|킥\s*?백\s*?머신/},
+ {k:'abd',p:'LEGS',     n:'외전근',    d:0, r:/abduct|어브덕|앱덕|외전|outer\s*thigh|아웃터\s*?사이/},
+ {k:'adc',p:'LEGS',     n:'내전근',    d:0, r:/adduct|어덕|애덕|내전|inner\s*thigh|이너\s*?사이/},
  {k:'cf', p:'LEGS',     n:'종아리',    d:0, r:/calf|카프|종아리/},
  {k:'bi', p:'ARMS·ETC', n:'이두',      d:0, r:/bicep|바이셉|이두|curl|컬/},
  {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백/},
+ {k:'fa', p:'ARMS·ETC', n:'전완',      d:0, r:/forearm|전완|wrist\s*curl|리스트\s*?컬|grip|그립|손목/},
  {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈/}
 ];
-var EVORD=['sd','pd','ad','hm','lt','tm','uc','mc','qd','gl','tri','cf','bi','ab'];
+var EVORD=['sd','pd','ad','hm','abd','adc','lt','ut','tm','uc','mc','qd','gl','tri','cf','fa','bi','ab'];
 var WR=0.5; /* 주당 감량 목표 kg */
 var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 (function(){for(var i=0;i<SUBS.length;i++)STG[SUBS[i].k]=(SUBS[i].d>0?SUBS[i].d:-1);})();
@@ -3606,7 +3612,7 @@ function heroSignal(){
   return {lv:lv,tag:tag,line:seg.join(' · '),rec:rec};
 }
 /* ── 분석론 위젯: 리포트 상단 로컬 시각화 ── */
-var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10,16,20],uc:[4,6,12,14],mc:[6,10,16,18],qd:[8,12,18,20],hm:[6,10,16,20],gl:[0,4,12,16],cf:[8,12,16,20],bi:[8,14,20,26],tri:[6,10,14,18],ab:[0,16,20,25]};
+var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10,16,20],uc:[4,6,12,14],mc:[6,10,16,18],qd:[8,12,18,20],hm:[6,10,16,20],gl:[0,4,12,16],abd:[0,4,10,14],adc:[0,4,8,12],cf:[8,12,16,20],bi:[8,14,20,26],tri:[6,10,14,18],fa:[0,4,8,12],ut:[0,4,8,12],ab:[0,16,20,25]};
 var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'LEGS':[10,14,22,26],'ARMS·ETC':[8,12,18,22]};
 function lmRow(nm,cur,L){
   var mrv=Math.round(L[3]*0.8);
