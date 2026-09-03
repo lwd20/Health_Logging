@@ -308,8 +308,12 @@ i,em,u{font-style:normal;text-decoration:none}
 .top.lift{box-shadow:0 10px 20px -14px rgba(0,0,0,.55),0 1px 0 rgba(var(--tx-rgb),.05)}
 header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0}
 header>div:first-child{flex:1 1 auto;min-width:0}
-h1{font-size:19px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1}
-h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005em;color:var(--acc-br)}
+h1{font-size:22px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1}
+h1 em{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:.005em;color:var(--acc-br)}
+/* 꼬리 선 — 워드마크 쪽에서 금색으로 시작해 오른쪽으로 사라진다.
+   로고에 바닥을 깔아 주면서 헤더와 아래를 가르는 일도 함께 한다. */
+header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:1px;
+  background:linear-gradient(90deg,var(--acc-br),var(--line) 42%,transparent)}
 /* 여섯 줄이 같은 간격으로 놓이면 무엇이 한 덩어리인지 알 수 없다.
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
 .hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
@@ -419,6 +423,9 @@ h1 em{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.005
 .mbtn.qbtn{margin-left:6px}
 @media (max-width:360px){
   header{padding-left:14px;padding-right:14px}
+  header::after{left:14px;right:14px}
+  h1{font-size:20px}
+  h1 em{font-size:18px}
   .hjrn{padding:12px 7px;letter-spacing:.05em}
   .mbtn{width:38px}
   .mbtn.qbtn{width:34px}
