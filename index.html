@@ -329,13 +329,20 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hsc b{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut);text-align:right}
 .hsc.eat b{font-size:24px;color:var(--acc-br)}
 /* 곁들이는 줄이라 위 두 줄보다 작게 — 눈이 먼저 가면 안 된다 */
-.hsc.pro i{font-size:8.5px}
-.hsc.pro b{font-size:12px;color:var(--dim)}
-.hsc.pro b u{text-decoration:none;font-size:9px;color:var(--dim);opacity:.75;margin-left:1px}
+/* 두 칸을 가로질러 통째로 오른쪽에 붙는다 — 라벨이 숫자에서 떨어지지 않게 */
+.pro{grid-column:1/-1;text-align:right;font-family:var(--mono);font-size:12px;
+  color:var(--dim);font-variant-numeric:tabular-nums;margin-top:-2px}
+.pro i{font-style:normal;font-family:var(--sans);font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;margin-right:3px}
+/* --dim 은 이미 대비 하한(4.6)이라 더 흐리게 하면 밝은 팔레트에서 4.0 으로 떨어진다.
+   작게만 하고 색은 건드리지 않는다 */
+.pro u{text-decoration:none;font-size:9px;margin-left:1px}
 /* 단위는 숫자에 붙되 눈에 안 걸리게 — 값을 읽는 데 방해가 되면 안 된다 */
 .hsc b u{text-decoration:none;font-size:9px;font-weight:700;color:var(--dim);margin-left:2px}
 /* 목표를 넘겼으면 남은 값이 아니라 넘긴 값이라 색을 바꾼다 */
-.hsc.eat b.ov{color:var(--sig)}
+/* 오버레이 .ov 와 이름이 겹치면 position:fixed 와 검은 배경까지 딸려온다.
+   세션 초반에 같은 충돌로 MRV 표식이 사라졌던 적이 있다 — 이름을 갈라 둔다 */
+.hsc.eat b.exc{color:var(--sig)}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
 .hnrg{flex:0 0 100%;display:grid;grid-template-columns:auto auto auto auto;justify-content:start;column-gap:8px;row-gap:3px;align-items:baseline;margin-top:6px;cursor:pointer}
@@ -1687,14 +1694,17 @@ function render(){
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
           +'<div class="hsc eat"><i>'+(lf<0?'초과':'섭취 여유')+'</i>'
-          +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'<u>kcal</u></b></div>'
+          +'<b'+(lf<0?' class="exc"':'')+'>'+Math.abs(lf).toLocaleString()+'<u>kcal</u></b></div>'
           +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'<u>kcal</u></b></div>'
           /* 감량기에는 열량보다 단백질이 먼저 무너진다. 적자는 맞췄는데
              단백질이 모자라 근육을 잃는 것을 열량만 봐서는 못 잡는다.
              기록이 없으면 줄을 안 그린다 — 모르는 것을 0g 이라 적으면 안 된다. */
+          /* 라벨 칸과 값 칸이 따로 오른쪽 정렬이라 값이 짧은 이 줄만
+             '단백질' 과 숫자 사이가 벌어져 떨어져 보였다. 한 덩어리로 묶어
+             통째로 오른쪽에 붙인다. */
           +(hd&&BW>0
-            ? '<div class="hsc pro"><i>단백질</i><b>'+Math.round(hd.p).toLocaleString()
-              +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b></div>'
+            ? '<div class="pro"><i>단백질</i> '+Math.round(hd.p).toLocaleString()
+              +'<u>/'+Math.round(BW*PRO_PER_KG)+' g</u></div>'
             : '')
           +'</div>';
       })():'');
@@ -2479,6 +2489,7 @@ function renderSheet(){
               +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
               +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
               +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
+              +'<div><b>단백질 G/KG</b><input id="pp0" inputmode="decimal" maxlength="4" value="'+PRO_PER_KG+'"></div>'
               +'</div>'
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
@@ -4079,7 +4090,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 20:10';
+var BUILD='2026-09-04 21:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4784,7 +4795,9 @@ function aiPayload(){
    읽지 않게 한다. 모르는 것과 안 먹은 것은 다르다. */
 /* 단백질 하루 목표 — 체중당 g. 페이로드와 프롬프트가 같은 값을 봐야
    리포트에 '1.5/1.8' 과 '기준치 1.6g' 이 같이 나오는 일이 없다. */
-var PRO_PER_KG=1.8;
+var PRO_PER_KG=1.8;   /* 체중당 단백질 g — 설정에서 바꾼다 */
+(function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.ppk'));
+  if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 
 function nutriFacts(){
   var ks=[],k,td0=today();
@@ -5835,6 +5848,13 @@ document.addEventListener('click',function(e){
         if(bfEl){
           var fv=parseFloat(String(bfEl.value).replace(',','.'));
           if(fv>=3&&fv<=60){BF=Math.round(fv*10)/10;if(canLS){try{localStorage.setItem(KEY+'.bf',String(BF));}catch(e6){}}}
+        }
+        var ppEl=document.getElementById('pp0');
+        if(ppEl){
+          var pv2=parseFloat(String(ppEl.value).replace(',','.'));
+          /* 1 미만은 감량기에 근손실을 부르고 3 을 넘으면 실익이 없다 */
+          if(pv2>=1&&pv2<=3){PRO_PER_KG=Math.round(pv2*10)/10;
+            if(canLS){try{localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));}catch(e9){}}}
         }
         var si;
         for(si=0;si<SUBS.length;si++){
