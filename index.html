@@ -2629,7 +2629,14 @@ function setWd(ds){
   try{
     if(hcOn()&&!HC.days[ds]){
       var back=daysAgo(ds);
-      if(back>0&&back<=120)hcPull(Math.min(120,back+3));
+      /* 그날 아무것도 안 먹었으면 받아 와도 HC.days 에 안 남는다. 그래서
+         받아 온 범위를 따로 기억해 두지 않으면 그 날짜를 오갈 때마다
+         같은 요청을 되풀이한다. */
+      if(back>0&&back<=120&&back>(HC.back||14)){
+        HC.back=Math.min(120,back+3);
+        hcSave();
+        hcPull(HC.back);
+      }
     }
   }catch(eHc){}
   if(ds===today())loadDraft();
@@ -4025,7 +4032,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 16:15';
+var BUILD='2026-09-04 16:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4034,6 +4041,7 @@ var BUILD='2026-09-04 16:15';
 var HC=null;
 try{HC=JSON.parse(localStorage.getItem('tl_hc')||'null');}catch(e){}
 if(!HC||typeof HC!=='object')HC={days:{},at:0,why:''};
+if(!HC.back)HC.back=14;   /* 지금까지 받아 온 날짜 범위 */
 
 function hcOn(){return typeof AndroidHealth!=='undefined';}
 function hcState(){try{return hcOn()?AndroidHealth.state():'web';}catch(e){return 'web';}}
