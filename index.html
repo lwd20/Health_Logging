@@ -3398,6 +3398,8 @@ function bodyLine(bw,bf,gf,hrm,act){
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
 /* 사람이 낼 수 있는 범위 — 오입력 한 건이 TDEE 전체를 무너뜨리지 않게 함 */
 var CARDIO_LIM={minMax:300,vTread:20,vStair:30,incMax:0.2,perMinMax:25};
+/* 회전 계단 한 칸 높이 (m) — Matrix ClimbMill 은 8인치 */
+var STAIR_H=0.2032;
 function cardioOut(st,name){
   var v=+st[1]||0,inc=+st[2]||0;
   var vm=isTreadName(name)?CARDIO_LIM.vTread:CARDIO_LIM.vStair;
@@ -3429,9 +3431,14 @@ function kcalSet(st,name){
     var vo2=wk3+(rn3-wk3)*mix;
     perMin=vo2*BW/1000*5;                     /* mL/kg/min -> L/min -> kcal (5kcal/L) */
   }else{
+    /* 회전 계단(Matrix ClimbMill 기준) — 레벨 1~25 가 분당 24~162 걸음,
+       계단 높이 8인치(0.2032m). 오르기만 하고 내려오는 일은 기계가 하므로
+       벤치 스텝의 내려오는 몫(1.33배)과 앞으로 나아가는 몫(0.2x걸음수)이
+       없다. 수직 성분만 센다. */
     v=Math.max(0.5,Math.min(CARDIO_LIM.vStair,v));
-    var met=Math.max(4,Math.min(14,3.5+0.6*v));
-    perMin=met*3.5*BW/200;
+    var spm=Math.min(162,24+5.75*(v-1));
+    var vo2s=3.5+1.8*STAIR_H*spm;
+    perMin=vo2s*BW/1000*5;
   }
   perMin=Math.max(0,Math.min(CARDIO_LIM.perMinMax,perMin));
   return perMin*min;
@@ -4037,7 +4044,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 17:25';
+var BUILD='2026-09-04 17:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
