@@ -328,6 +328,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hstat:active{opacity:.6}
 .hsc b{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut);text-align:right}
 .hsc.eat b{font-size:24px;color:var(--acc-br)}
+/* 곁들이는 줄이라 위 두 줄보다 작게 — 눈이 먼저 가면 안 된다 */
+.hsc.pro i{font-size:8.5px}
+.hsc.pro b{font-size:12px;color:var(--dim)}
+.hsc.pro b u{text-decoration:none;font-size:9px;color:var(--dim);opacity:.75;margin-left:1px}
 /* 목표를 넘겼으면 남은 값이 아니라 넘긴 값이라 색을 바꾼다 */
 .hsc.eat b.ov{color:var(--sig)}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
@@ -1683,6 +1687,13 @@ function render(){
           +'<div class="hsc eat"><i>'+(lf<0?'초과':'섭취 여유')+'</i>'
           +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>'
           +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'</b></div>'
+          /* 감량기에는 열량보다 단백질이 먼저 무너진다. 적자는 맞췄는데
+             단백질이 모자라 근육을 잃는 것을 열량만 봐서는 못 잡는다.
+             기록이 없으면 줄을 안 그린다 — 모르는 것을 0g 이라 적으면 안 된다. */
+          +(hd&&BW>0
+            ? '<div class="hsc pro"><i>단백질</i><b>'+Math.round(hd.p).toLocaleString()
+              +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b></div>'
+            : '')
           +'</div>';
       })():'');
   /* 상태 줄은 상단에서 뺐다 — 같은 내용을 분석 탭 머리에서 보여 준다 */
@@ -4066,7 +4077,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 19:35';
+var BUILD='2026-09-04 19:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
