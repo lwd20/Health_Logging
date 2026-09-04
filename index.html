@@ -707,13 +707,25 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .stc i.dn{color:var(--sig)}
 .sh-l{font-size:10px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
-.console{margin-top:6px;background:var(--sheet-bg);border:1px solid var(--edge);border-radius:var(--rad-s);padding:2px 14px 14px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
+/* 배경이 시트와 같은 색이라 테두리와 그림자만 남아 있었고, 안의 셋이 이미
+   각자 상자라 겹겹이 두를 이유가 없다. 같은 높이·테두리·모서리로 맞추면
+   그 자체가 한 덩어리로 읽힌다. */
+.console{margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .gmwrap{position:relative}
-/* 줄이 하나뿐이라 가르는 선이 필요 없다 */
-.gmbtn{width:100%;display:flex;align-items:center;gap:8px;padding:11px 0;background:none;border:0}
+/* 분석칸·엔진칩·실행버튼을 같은 높이·테두리·모서리로 맞춘다.
+   면은 깔지 않는다 — --btn-bg 는 5% 밝기 덧칠이라 어두운 팔레트에서 바탕을
+   들어 올려 글자 대비를 4.57 에서 4.06 으로 떨어뜨렸다(AA 미달). 정작 면이
+   주는 구분은 1.1:1 뿐이라 상자로 읽히게 하는 일은 테두리가 다 한다.
+   테두리 .16 은 조작 컨테이너(.ctr)와 같은 값이다. 보조 버튼 기본값 .09 로
+   두면 비활성 버튼(.anlbtn.dis 5%면 + .08)과 거의 같아 꺼진 것처럼 보인다. */
+.gmbtn{width:100%;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-m);background:none}
+.gmbtn:active{background:rgba(var(--tx-rgb),.11)}
 /* 자간 .26em 은 9px 라벨을 값만큼 넓게 벌려 둘이 같은 무게로 읽혔다.
    봐야 할 것은 고른 값이므로 라벨을 뒤로 물리고 그만큼 값에 준다. */
-.gmbtn .clab{flex:0 0 auto;font-size:9px;letter-spacing:.13em;color:var(--dim);font-weight:800}
+/* .clab 밑값의 margin:0 0 6px 3px 가 남아 라벨이 왼쪽으로 3px 밀리고
+   세로로 3px 떠서 옆의 값과 가운데가 안 맞았다 */
+.gmbtn .clab{flex:0 0 auto;margin:0;font-size:9px;letter-spacing:.13em;color:var(--dim);font-weight:800}
 /* '볼륨 랜드마크 MEV·MRV' 가 두 줄로 감겨 그 줄만 68px 로 부풀었다 */
 .gmbtn .cval{flex:1 1 auto;min-width:0;margin-left:auto;text-align:right;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;color:var(--acc-sf);font-family:var(--mono);
@@ -724,25 +736,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   transform:rotate(45deg);transition:transform .18s}
 .gmbtn.open::after{transform:rotate(-135deg);margin-bottom:-2px}
 /* 엔진칸과 실행버튼이 한 줄을 나눠 쓴다. 목록은 이 줄 전체 폭으로 편다. */
-.runrow{position:relative;display:flex;align-items:stretch;gap:8px;margin-top:14px}
+.runrow{position:relative;display:flex;align-items:stretch;gap:8px}
 /* 래퍼가 내용 크기인데 안의 버튼이 width:100% 라 서로를 참조해 폭이 0 으로
    무너졌다. 래퍼는 상자를 만들지 않게 하고 버튼을 직접 항목으로 놓는다. */
 .runrow .gmwrap{display:contents}
-/* 채우면 옆의 실행 버튼과 같은 무게로 보인다 — 테두리만 두른다 */
-/* 채워진 실행 버튼 옆에서 한 단계 약해야 어느 쪽이 실행인지 읽힌다. 다만
-   보조 버튼 기본값(--btn-bg + .09)은 비활성 버튼(.anlbtn.dis 5%면 + .08)과
-   거의 같은 차림이라 꺼진 것처럼 보인다 — 테두리를 조작 컨테이너(.ctr)와
-   같은 .16 으로 올려 갈라 놓는다. */
-.runrow .gmbtn{flex:0 1 auto;width:auto;max-width:55%;height:44px;padding:0 10px;justify-content:center;gap:5px;
-  border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-m);
-  background:var(--btn-bg)}
-.runrow .gmbtn:active{background:rgba(var(--tx-rgb),.11)}
+/* 칩은 내용만큼만 차지하고 남는 폭은 실행 버튼이 가져간다 */
+.runrow .gmbtn{flex:0 1 auto;width:auto;max-width:55%;padding:0 10px;justify-content:center;gap:5px}
 .runrow .cval{flex:0 1 auto;min-width:0;margin-left:0;font-size:10.5px;
   color:var(--mut);letter-spacing:0}
 .runrow .gmbtn::after{width:5px;height:5px;border-width:1.5px;margin:0 0 2px 0}
 /* 화면 맨 아래 줄이라 아래로 펴면 접힌 부분이 안 보인다 */
-.runrow .gmpop{top:auto;bottom:calc(100% + 6px)}
-/* 남은 횟수는 버튼 안 오른쪽 끝에 붙는다 — 가운데 글자는 그대로 가운데 */
+.runrow .gmpop{top:auto;bottom:calc(100% + 7px)}
 /* 예전에는 오른쪽 끝에 띄워 뒀는데, 좁은 화면에서 'Gemini Latest' 를 고르고
    19회를 쓰면 가운데 글자와 겹쳤다. 흐름 안에 두면 겹칠 수가 없다. */
 .anlbtn u{flex:0 0 auto;text-decoration:none;font-family:var(--mono);font-size:9.5px;
@@ -776,7 +780,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .gbrow .bv{flex:0 0 auto;font-size:11px;color:var(--acc-br);font-variant-numeric:tabular-nums}
 .anlbtn:active{background:var(--acc-dk);box-shadow:none}
 .anlbtn.dis{background:rgba(var(--tx-rgb),.05);color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.08);box-shadow:none}
-.gmpop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-m);box-shadow:0 16px 38px rgba(0,0,0,.32);overflow:hidden}
+.gmpop{position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:6;background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-m);box-shadow:0 16px 38px rgba(0,0,0,.32);overflow:hidden}
 .gmpop button{width:100%;display:flex;align-items:center;padding:13px 14px;background:none;border:0;border-top:1px solid rgba(var(--tx-rgb),.055);color:var(--tx);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.05em;text-align:left}
 .gmpop .grp{padding:13px 14px 6px;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--chrome);opacity:.75;background:transparent;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .gmpop .grp:first-child{border-top:0}
@@ -4138,7 +4142,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 23:40';
+var BUILD='2026-09-05 00:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
