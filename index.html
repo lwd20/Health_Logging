@@ -3418,11 +3418,16 @@ function kcalSet(st,name){
   }
   if(isTreadName(name)){
     v=Math.max(0.5,Math.min(CARDIO_LIM.vTread,v));
-    var mmin=v*1000/60;
-    var vo2=(v<7)
-      ?3.5+0.1*mmin+1.8*mmin*inc
-      :3.5+0.2*mmin+0.9*mmin*inc;
-    perMin=vo2*BW/1000*5;
+    var mmin=v*1000/60;                       /* km/h -> m/min */
+    /* ACSM 대사 공식. 걷기는 3~6km/h, 달리기는 8km/h 이상에서만 유효하고
+       그 사이는 빠른 걸음인지 느린 조깅인지 식으로 가릴 수 없다.
+       경계를 하나 찍으면 그 지점에서 값이 튄다(6.9 -> 7.0 에서 79%).
+       두 식을 그 구간에서 비율로 섞어 이어 붙인다. */
+    var wk3=3.5+0.1*mmin+1.8*mmin*inc;        /* 걷기 */
+    var rn3=3.5+0.2*mmin+0.9*mmin*inc;        /* 달리기 */
+    var mix=v<=6?0:(v>=8?1:(v-6)/2);
+    var vo2=wk3+(rn3-wk3)*mix;
+    perMin=vo2*BW/1000*5;                     /* mL/kg/min -> L/min -> kcal (5kcal/L) */
   }else{
     v=Math.max(0.5,Math.min(CARDIO_LIM.vStair,v));
     var met=Math.max(4,Math.min(14,3.5+0.6*v));
@@ -4032,7 +4037,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 17:00';
+var BUILD='2026-09-04 17:25';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
