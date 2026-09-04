@@ -3151,36 +3151,36 @@ function kcalWeek(back){
 /* 감량 현황 — 설정 손잡이가 아니라 읽는 값이라 분석탭에서 그린다.
    바로 위 kcalHtml() 이 소비를 주간 막대로 보여 주므로 섭취가 그 옆에 온다. */
 function cutHtml(){
-  var d=hcDay(hcYday()),st=hcState();
+  var d=hcDay(today()),st=hcState();
   if(!d){
     if(st==='perm')
       return '<div class="lmsec"><div class="lmcap">DIET</div>'
         +'<button class="dietask" data-act="hcask">삼성헬스 섭취량 불러오기<i>연결</i></button></div>';
     if(st==='ok')
       return '<div class="lmsec"><div class="lmcap">DIET</div>'
-        +'<div class="dietnone">어제 기록 없음</div></div>';
+        +'<div class="dietnone">오늘 기록 없음</div></div>';
     return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
   }
-  /* 어제 먹은 양은 어제의 TDEE 와 맞대야 한다. today() 를 넣으면
-     운동한 어제를 운동 안 한 오늘의 기초대사와 견주게 된다.
-     dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다. */
-  var yd=hcYday(),td=dayTDEE(yd);
-  var gap=d.kcal-td;                       /* 음수면 적자 */
-  var want=Math.round(WR*7700/7);          /* 목표 적자 */
+  /* dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다 — 오늘 운동을 하면
+     그만큼 오늘 TDEE 가 오르고 남은 여유도 같이 는다. */
+  var td=dayTDEE(today());
+  var left=td-d.kcal;                      /* 남은 여유. 음수면 초과 */
+  var want=Math.round(WR*7700/7);          /* 하루 목표 적자 */
   /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
      그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
   var pk=d.p*4,ck=d.c*4,fk=d.f*9,tot=pk+ck+fk;
   var pp,cp,fp;
   if(tot>0){pp=Math.round(pk/tot*100);cp=Math.round(ck/tot*100);fp=100-pp-cp;}
   else{pp=cp=fp=0;}
-  /* 적자가 목표에 닿았으면 긍정, 남는 열량이 있으면 경고 */
-  var tone=gap>0?'over':(-gap>=want?'under':'');
+  /* 하루를 이대로 마치면 목표 적자에 닿는가로 색을 가른다.
+     TDEE 를 넘겼으면 경고, 남은 것이 목표 적자 이상이면 긍정. */
+  var tone=left<0?'over':(left>=want?'under':'');
   var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
-  var h='<div class="lmsec"><div class="lmcap">DIET · 어제</div>';
+  var h='<div class="lmsec"><div class="lmcap">DIET · 오늘</div>';
   h+='<div class="dietcard">';
   h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
     +'<span class="dgoal">TDEE '+td.toLocaleString()
-    +' <i class="'+tone+'">'+(gap>0?'+'+gap.toLocaleString():'\u2212'+Math.abs(gap).toLocaleString())+'</i></span></div>';
+    +' <i class="'+tone+'">'+(left<0?'초과 '+Math.abs(left).toLocaleString():'남은 '+left.toLocaleString())+'</i></span></div>';
   if(tot>0){
     h+='<div class="dbar">';
     for(i=0;i<M.length;i++)if(M[i].p>0)h+='<i class="d'+M[i].c+'" style="width:'+M[i].p+'%"></i>';
@@ -3920,9 +3920,6 @@ function hcState(){try{return hcOn()?AndroidHealth.state():'web';}catch(e){retur
 /* 하루치 섭취 — 기록이 없으면 null 이지 0 이 아니다.
    0 을 돌려주면 '굶었다'로 읽혀 적자 계산이 통째로 어긋난다. */
 function hcDay(ds){var d=HC.days&&HC.days[ds];return d&&d.n>0?d:null;}
-/* 온전한 하루는 어제까지다 — 오늘은 아직 저녁을 안 먹었을 수 있다 */
-function hcYday(){var d=new Date();d.setDate(d.getDate()-1);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function hcSave(){try{localStorage.setItem('tl_hc',JSON.stringify(HC));}catch(e){}}
 function hcPull(days){try{if(hcOn())AndroidHealth.pull(days||14);}catch(e){}}
 window.hcNative=function(r){
