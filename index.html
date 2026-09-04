@@ -2606,6 +2606,15 @@ function setWd(ds){
   }
   if(ds>today())ds=today();
   UI.wd=ds;UI.open=null;UI.hist=false;UI.esIdx=null;UI.draft={};UI.dirty={};
+  /* 앱을 켤 때 14일치만 받아 온다. 그보다 앞으로 넘기면 그 날짜는 아직
+     없는 구간이라 '기록 없음' 으로 보인다 — 필요한 만큼 더 당겨 온다.
+     결과가 오면 hcNative 가 병합하고 열려 있는 화면을 다시 그린다. */
+  try{
+    if(hcOn()&&!HC.days[ds]){
+      var back=daysAgo(ds);
+      if(back>0&&back<=120)hcPull(Math.min(120,back+3));
+    }
+  }catch(eHc){}
   if(ds===today())loadDraft();
   return true;
 }
@@ -3166,22 +3175,34 @@ function kcalWeek(back){
 }
 /* 감량 현황 — 설정 손잡이가 아니라 읽는 값이라 분석탭에서 그린다.
    바로 위 kcalHtml() 이 소비를 주간 막대로 보여 주므로 섭취가 그 옆에 온다. */
+/* 오늘은 아직 채울 시간이 있어 '남은 483' 이 맞지만, 지난 날이라면
+   그건 '목표보다 483 덜 먹음' 이다. 같은 숫자라도 말을 갈라 준다. */
+function gapTxt(left,isToday){
+  var n=Math.abs(left).toLocaleString();
+  if(left<0)return '초과 '+n;
+  if(isToday)return '남은 '+n;
+  return left===0?'목표 달성':'덜 먹음 '+n;
+}
 function cutHtml(){
-  var d=hcDay(today()),st=hcState();
+  /* 메인 화면에서 고른 날짜를 따라간다. today() 로 못 박아 두면 날짜
+     화살표를 눌러도 여기만 오늘에 머문다. */
+  var ds=UI.wd||today(),isToday=(ds===today());
+  var dLbl=isToday?'오늘':(daysAgo(ds)===1?'어제':md(ds));
+  var d=hcDay(ds),st=hcState();
   if(!d){
     if(st==='perm')
       return '<div class="lmsec"><div class="lmcap">DIET</div>'
         +'<button class="dietask" data-act="hcask">삼성헬스 섭취량 불러오기<i>연결</i></button></div>';
     if(st==='ok')
-      return '<div class="lmsec"><div class="lmcap">DIET</div>'
-        +'<div class="dietnone">오늘 기록 없음</div></div>';
+      return '<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>'
+        +'<div class="dietnone">'+dLbl+' 기록 없음</div></div>';
     return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
   }
   /* dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다 — 오늘 운동을 하면
      그만큼 오늘 TDEE 가 오르고 먹을 수 있는 양도 같이 는다. */
-  var td=dayTDEE(today());
+  var td=dayTDEE(ds);
   var want=Math.round(WR*7700/7);          /* 하루 감량분 — PACE 설정에서 나온다 */
-  var goal=Math.max(0,td-want);            /* 오늘 먹을 목표 */
+  var goal=Math.max(0,td-want);            /* 그날 먹을 목표 */
   var left=goal-d.kcal;                    /* 목표까지 남은 여유. 음수면 초과 */
   /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
      그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
@@ -3193,11 +3214,11 @@ function cutHtml(){
      아침부터 초록을 켜 두면 신호가 아니라 배경이 된다. */
   var tone=left<0?'over':'';
   var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
-  var h='<div class="lmsec"><div class="lmcap">DIET · 오늘</div>';
+  var h='<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>';
   h+='<div class="dietcard">';
   h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
     +'<span class="dgoal">목표 '+goal.toLocaleString()
-    +' <i class="'+tone+'">'+(left<0?'초과 '+Math.abs(left).toLocaleString():'남은 '+left.toLocaleString())+'</i></span></div>';
+    +' <i class="'+tone+'">'+gapTxt(left,isToday)+'</i></span></div>';
   /* 목표가 어디서 나온 값인지 보이지 않으면 PACE 를 바꿔도 반영된 줄 모른다 */
   h+='<div class="dsub">TDEE '+td.toLocaleString()+' \u2212 감량 '+want.toLocaleString()+'</div>';
   if(tot>0){
