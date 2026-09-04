@@ -3447,18 +3447,23 @@ function kcalSess(sets,name){
   var k=0,i;for(i=0;i<sets.length;i++)k+=kcalSet(sets[i],name);
   return Math.round(k);
 }
-function isStairName(n){n=String(n||'').toLowerCase();
-  return n.indexOf('stair')>=0||n.indexOf('climb')>=0||n.indexOf('계단')>=0;}
+/* 이름으로 종류를 알아내는 규칙. 헬스장에서 실제로 쓰는 말들을 담는다 —
+   '천계' 하나 빠져 있어서 계단이 러닝머신으로 잡히고 레벨을 시속으로
+   읽고 있었다. 새 기구를 넣을 때 여기 없는 이름을 쓰면 또 어긋난다. */
+function hasAny(n,list){n=String(n||'').toLowerCase();
+  for(var i=0;i<list.length;i++)if(n.indexOf(list[i])>=0)return true;
+  return false;}
+function isStairName(n){return hasAny(n,
+  ['stair','climb','클라임','계단','천계','천국','스텝밀','step mill','stepmill',
+   '스테퍼','stepper','c5x','c50','c-50']);}
 /* 러닝 대사식은 '속도 = 지면을 달린 속도' 를 전제한다. 사이클·로잉·
    일립티컬의 속도계는 뜻이 달라 그 식에 넣으면 터무니없이 커진다.
    Cycle 40분 25km/h 가 하루 목표를 +938kcal 밀어 올리던 이유다. */
-function isBikeName(n){n=String(n||'').toLowerCase();
-  return n.indexOf('cycle')>=0||n.indexOf('bike')>=0||n.indexOf('사이클')>=0||n.indexOf('자전거')>=0
-    ||n.indexOf('spin')>=0||n.indexOf('스핀')>=0;}
-function isRowName(n){n=String(n||'').toLowerCase();
-  return n.indexOf('row')>=0||n.indexOf('로잉')>=0||n.indexOf('노젓')>=0;}
-function isEllipName(n){n=String(n||'').toLowerCase();
-  return n.indexOf('ellip')>=0||n.indexOf('일립')>=0||n.indexOf('크로스트레이너')>=0||n.indexOf('cross\u00a0trainer')>=0;}
+function isBikeName(n){return hasAny(n,
+  ['cycle','bike','사이클','자전거','spin','스핀','어썰트','assault','에어바이크','air bike']);}
+function isRowName(n){return hasAny(n,['row','로잉','로워','노젓','concept2','컨셉2']);}
+function isEllipName(n){return hasAny(n,
+  ['ellip','일립','엘립','크로스트레이너','cross trainer','crosstrainer','아크트레이너','arc trainer']);}
 /* 러닝 대사식을 쓸 수 있는 것만 true — 걷기·달리기 기구 */
 function isTreadName(n){
   return !(isStairName(n)||isBikeName(n)||isRowName(n)||isEllipName(n));}
@@ -4044,7 +4049,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 17:45';
+var BUILD='2026-09-04 18:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
