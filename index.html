@@ -733,7 +733,13 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .gmpop .grp{padding:13px 14px 6px;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--chrome);opacity:.75;background:transparent;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .gmpop .grp:first-child{border-top:0}
 .gmpop button{padding-left:18px}
+/* 고르는 자리에서만 두 줄 — 용어 아래에 무엇을 보는지 */
+.gmpop button.anlopt{flex-direction:column;align-items:flex-start;gap:2px;padding-top:9px;padding-bottom:9px}
+.gmpop button.anlopt b{font-weight:700;line-height:1.15}
+.gmpop button.anlopt em{font-family:var(--sans);font-style:normal;font-size:9.5px;font-weight:600;
+  letter-spacing:0;color:var(--dim);line-height:1.2}
 .gmpop button.on{color:var(--acc-br);background:rgba(var(--acc-rgb),.08)}
+.gmpop button.anlopt.on em{color:var(--mut)}
 .gmpop button.on::after{content:'';margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--chrome);box-shadow:0 0 6px rgba(var(--acc-rgb),.6)}
 .namerow{display:flex;gap:8px;margin-top:2px}
 .namein{flex:1;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-size:17px}
@@ -2308,7 +2314,9 @@ function renderSheet(){
         h+='<div class="grp">'+ANLG[agi].name+'</div>';
         for(var aii=0;aii<ANLG[agi].items.length;aii++){
           var akey=ANLG[agi].items[aii];
-          h+='<button class="'+(ANL===akey?'on':'')+'" data-act="anlpick" data-v="'+akey+'">'+ANLN[akey]+'</button>';
+          h+='<button class="anlopt'+(ANL===akey?' on':'')+'" data-act="anlpick" data-v="'+akey+'">'
+            +'<b>'+ANLN[akey]+'</b>'
+            +(ANLD[akey]?'<em>'+ANLD[akey]+'</em>':'')+'</button>';
         }
       }
       h+='</div>';
@@ -3435,6 +3443,18 @@ var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
 var ANL='wk',ANLOPEN=false;
 var ANLL={cut:'CUT & NEXT MEAL',mac:'NUTRIENT BALANCE',wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
 var ANLN={cut:'감량 칼로리 · 끼니 추천',mac:'영양성분 · 탄단지 균형',wk:'주간 리포트',acsm:'ACSM 가이드라인',vol:'볼륨 랜드마크 MEV·MRV',prog:'점증·정체 진단',recov:'회복·피로 관리',bal:'균형·비율 평가',vt:'옷맵시 V-테이퍼'};
+/* 용어만 두면 안 읽히고 용어를 빼면 없어 보인다 — 고르는 자리에서만 둘 다 보인다 */
+var ANLD={
+ wk:'이번 주 훈련을 통째로 훑고 다음 주 방향을 잡음',
+ vol:'부위별 주간 세트가 적정 구간에 있는지',
+ vt:'어깨 측면과 광배 비중이 옷맵시에 맞는지',
+ acsm:'미국스포츠의학회 권고 대비 빈도·강도·유산소량',
+ recov:'휴식과 피로 신호로 디로드가 필요한지',
+ prog:'종목별로 무게가 늘고 있는지 멈췄는지',
+ bal:'부위 간 세트 배분이 한쪽으로 쏠렸는지',
+ cut:'섭취와 목표를 맞대고 다음 끼니를 제안',
+ mac:'단백질·탄수·지방 비율이 감량기 기준에 맞는지'
+};
 var ANLG=[
  {name:'종합',items:['wk']},
  {name:'볼륨',items:['vol','vt']},
