@@ -709,9 +709,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
 .console{margin-top:6px;background:var(--sheet-bg);border:1px solid var(--edge);border-radius:var(--rad-s);padding:2px 14px 14px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
 .gmwrap{position:relative}
-.gmbtn{width:100%;display:flex;align-items:center;gap:8px;padding:11px 0;background:none;border:0;border-bottom:1px solid var(--line)}
-/* 마지막 줄 아래는 버튼이라 선이 겹쳐 보인다 */
-.gmwrap+.gmwrap .gmbtn{border-bottom:0}
+/* 줄이 하나뿐이라 가르는 선이 필요 없다 */
+.gmbtn{width:100%;display:flex;align-items:center;gap:8px;padding:11px 0;background:none;border:0}
 /* 자간 .26em 은 9px 라벨을 값만큼 넓게 벌려 둘이 같은 무게로 읽혔다.
    봐야 할 것은 고른 값이므로 라벨을 뒤로 물리고 그만큼 값에 준다. */
 .gmbtn .clab{flex:0 0 auto;font-size:9px;letter-spacing:.13em;color:var(--dim);font-weight:800}
@@ -724,11 +723,33 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   border-right:1.6px solid var(--mut);border-bottom:1.6px solid var(--mut);
   transform:rotate(45deg);transition:transform .18s}
 .gmbtn.open::after{transform:rotate(-135deg);margin-bottom:-2px}
+/* 엔진칸과 실행버튼이 한 줄을 나눠 쓴다. 목록은 이 줄 전체 폭으로 편다. */
+.runrow{position:relative;display:flex;align-items:stretch;gap:8px;margin-top:14px}
+/* 래퍼가 내용 크기인데 안의 버튼이 width:100% 라 서로를 참조해 폭이 0 으로
+   무너졌다. 래퍼는 상자를 만들지 않게 하고 버튼을 직접 항목으로 놓는다. */
+.runrow .gmwrap{display:contents}
+/* 채우면 옆의 실행 버튼과 같은 무게로 보인다 — 테두리만 두른다 */
+/* 채워진 실행 버튼 옆에서 한 단계 약해야 어느 쪽이 실행인지 읽힌다. 다만
+   보조 버튼 기본값(--btn-bg + .09)은 비활성 버튼(.anlbtn.dis 5%면 + .08)과
+   거의 같은 차림이라 꺼진 것처럼 보인다 — 테두리를 조작 컨테이너(.ctr)와
+   같은 .16 으로 올려 갈라 놓는다. */
+.runrow .gmbtn{flex:0 1 auto;width:auto;max-width:55%;height:44px;padding:0 10px;justify-content:center;gap:5px;
+  border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-m);
+  background:var(--btn-bg)}
+.runrow .gmbtn:active{background:rgba(var(--tx-rgb),.11)}
+.runrow .cval{flex:0 1 auto;min-width:0;margin-left:0;font-size:10.5px;
+  color:var(--mut);letter-spacing:0}
+.runrow .gmbtn::after{width:5px;height:5px;border-width:1.5px;margin:0 0 2px 0}
+/* 화면 맨 아래 줄이라 아래로 펴면 접힌 부분이 안 보인다 */
+.runrow .gmpop{top:auto;bottom:calc(100% + 6px)}
 /* 남은 횟수는 버튼 안 오른쪽 끝에 붙는다 — 가운데 글자는 그대로 가운데 */
-.anlbtn u{position:absolute;right:13px;top:50%;transform:translateY(-50%);
-  text-decoration:none;font-family:var(--mono);font-size:10px;font-weight:700;
-  letter-spacing:.02em;opacity:.72}
-.anlbtn{position:relative;width:100%;height:44px;margin-top:14px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);border:var(--bw) solid transparent;color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
+/* 예전에는 오른쪽 끝에 띄워 뒀는데, 좁은 화면에서 'Gemini Latest' 를 고르고
+   19회를 쓰면 가운데 글자와 겹쳤다. 흐름 안에 두면 겹칠 수가 없다. */
+.anlbtn u{flex:0 0 auto;text-decoration:none;font-family:var(--mono);font-size:9.5px;
+  font-weight:700;letter-spacing:.02em;opacity:.72}
+.anlbtn span{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anlbtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 9px;
+  flex:1 1 auto;min-width:0;height:44px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);border:var(--bw) solid transparent;color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
 .aihero{display:flex;gap:13px;align-items:center;padding:2px 1px 12px;border-bottom:1px solid var(--line)}
 .aircol{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px}
 /* 링 아래에 분자·분모를 적어 둔다 — 퍼센트만 있으면 무엇의 82% 인지 모른다 */
@@ -2265,7 +2286,7 @@ function helpHtml(){
   }
   if(t==='rep'){
     h+=hStep(1,'ANALYZE 열기','위쪽에는 앱이 직접 계산한 그래프가 항상 보임. AI 없이도 이건 볼 수 있음.')
-      +hStep(2,'엔진과 분석 고르기','ENGINE에서 쓸 AI를, ANALYSIS에서 보고 싶은 관점을 고름.')
+      +hStep(2,'엔진과 분석 고르기','ANALYSIS에서 보고 싶은 관점을, 실행 버튼 왼쪽 칸에서 쓸 AI를 고름.')
       +hStep(3,'실행','RE-ANALYZE를 누름. 하루 20회까지.');
     h+=hCap('분석 7종')
       +hRow('주간 리포트','이번 주 전반 · 설정 · AI에서 지시문을 고칠 수 있음')
@@ -2295,7 +2316,7 @@ function helpHtml(){
     h+=hCap('앱에 넣기')
       +hStep(1,'설정 · AI','우측 상단 <em>···</em>를 누르고 AI 탭으로 감.')
       +hStep(2,'붙여넣기','제공사에 맞는 칸에 넣으면 자동으로 저장됨.')
-      +hStep(3,'엔진 고르기','ANALYZE 위쪽 ENGINE에서 쓸 엔진을 선택함.');
+      +hStep(3,'엔진 고르기','ANALYZE 의 실행 버튼 왼쪽 칸에서 쓸 엔진을 선택함.');
     h+=hNote('키는 이 기기에만 저장되고 다른 곳으로 보내지 않음. <b>백업 파일에는 들어가지 않으므로</b> 기기를 옮기면 다시 넣어야 함.');
   }
   if(t==='back'){
@@ -2353,23 +2374,6 @@ function renderSheet(){
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
     h+='<div class="gmwrap">';
-    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
-      +'<span class="clab">ENGINE</span><span class="cval">'+engLabel()+'</span></button>';
-    if(GMOPEN){
-      h+='<div class="gmpop">';
-      var grps=engGroups(),gi,ii;
-      var cur=(LM==='gem'?'gem|'+GM:LM+'|');
-      for(gi=0;gi<grps.length;gi++){
-        h+='<div class="grp">'+grps[gi].name+'</div>';
-        for(ii=0;ii<grps[gi].items.length;ii++){
-          var it=grps[gi].items[ii];
-          h+='<button class="'+(cur===it.v?'on':'')+'" data-act="gmpick" data-v="'+it.v+'">'+it.label+'</button>';
-        }
-      }
-      h+='</div>';
-    }
-    h+='</div>';
-    h+='<div class="gmwrap">';
     h+='<button class="gmbtn'+(ANLOPEN?' open':'')+'" data-act="anlopen">'
       +'<span class="clab">ANALYSIS</span><span class="cval">'+ANLN[ANL]+'</span></button>';
     if(ANLOPEN){
@@ -2387,10 +2391,32 @@ function renderSheet(){
     }
     h+='</div>';
     if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b></div>';
+    /* 엔진은 한 번 정하면 잘 안 바꾸는데 분석 종류와 같은 크기의 줄을 차지했다.
+       작은 글씨 한 줄로 내리면 누를 자리가 20px 밖에 안 나오므로, 버튼과 한 줄을
+       나눠 쓴다 — 높이를 버튼에서 빌려 44px 이 그대로 지켜지고 줄은 없어진다. */
+    h+='<div class="runrow">';
+    h+='<div class="gmwrap eng">';
+    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
+      +'<span class="cval">'+engShort()+'</span></button>';
+    if(GMOPEN){
+      h+='<div class="gmpop">';
+      var grps=engGroups(),gi,ii;
+      var cur=(LM==='gem'?'gem|'+GM:LM+'|');
+      for(gi=0;gi<grps.length;gi++){
+        h+='<div class="grp">'+grps[gi].name+'</div>';
+        for(ii=0;ii<grps[gi].items.length;ii++){
+          var it=grps[gi].items[ii];
+          h+='<button class="'+(cur===it.v?'on':'')+'" data-act="gmpick" data-v="'+it.v+'">'+it.label+'</button>';
+        }
+      }
+      h+='</div>';
+    }
+    h+='</div>';
     h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
-      +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))
+      +'<span>'+(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</span>'
       /* 한 번도 안 돌린 날의 '0/20' 은 알려 주는 것이 없다 */
       +(used>0?'<u>'+used+'/20</u>':'')+'</button>';
+    h+='</div>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
     h+='</div>';
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
@@ -4112,7 +4138,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 22:30';
+var BUILD='2026-09-04 23:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4217,10 +4243,14 @@ function engGroups(){
     {name:'CLAUDE',items:[{v:'ant|',label:'Sonnet 4.6'}]}
   ];
 }
-function engLabel(){
-  if(LM==='gem')return GML[GM];
+/* 좁은 칸용. 네 가지 제미나이가 전부 Flash 라 그 낱말은 어느 것인지
+   알려 주지 않는다 — 버리고 세대만 남긴다. */
+var GMS={'gemini-3.7-flash':'Gemini 3.7','gemini-3.6-flash':'Gemini 3.6',
+  'gemini-flash-latest':'Gemini Latest','gemini-2.5-flash':'Gemini 2.5'};
+function engShort(){
+  if(LM==='gem')return GMS[GM]||GML[GM]||'Gemini';
   if(LM==='oai')return 'GPT 5 Mini';
-  return 'Claude Sonnet 4.6';
+  return 'Sonnet 4.6';
 }
 var DEFPR='당신은 근비대와 체지방 감량에 특화된 보디빌딩 코치다. 아래 훈련 데이터(부위별 이번 주·지난주 세트 수, 주간 목표, 종목별 이번 주 세트 수(exercises: 종목명|부위|세트수|주동근, 4번째 칸은 앱이 확정한 주동근이며 있으면 절대 기준이므로 종목명으로 재판정 금지), 최근 2주 전체 세션 로그(log: 날짜 부위 종목명 무게x반복), 오늘 날짜)를 근거로 한국어 분석 보고서를 개조식으로 써라.\n전제: 사용자는 감량기(-400~500kcal, 근손실 방지 최우선)이며 주 5일 분할(화 등+팔, 수 가슴+어깨, 금 하체+어깨, 토 등+팔, 일 가슴+하체+어깨, 월·목 휴식)을 따른다. 우선순위는 측면 어깨와 광배이고 승모 상부 과자극은 피한다. 점증 규칙: 목표 반복을 전 세트 달성하면 다음 주 증량, 1~2회 부족은 유지, 2주 연속 실패는 5% 감량 후 재빌드.\n유산소: CARDIO 부위는 근력과 별개이며 log의 "n분v속도i경사"는 n분 지속·속도(또는 레벨)·경사%를 뜻하고 i가 없으면 경사 0임, thisWeek·exercises·targets의 CARDIO 수치는 세트가 아니라 주간 분임. 유산소는 회복 부채·부위 볼륨 판정에서 제외하고 Zone2 주 3회 관점으로만 평가하며 [금주 분석]에서 "유산소 n/n분(주 n회)" 한 줄로 표기함. 종목명에 Walking·걷기·산책이 포함된 유산소는 NEAT로 보고 Zone2 회수·분 판정에서 제외함(thisWeek.CARDIO에는 이미 미포함).\ntops: 종목별 최근 세션 이력("MM-DD 톱세트무게x반복 e세션평균e1RM/세트수" 최신순, 2주 창 밖 포함)이며 정체·진전 판정은 log보다 tops를 우선 사용함. 진전은 톱세트 하나가 아니라 e값(그날 한 전 세트의 평균 e1RM)의 변화율로 판정하고 성장률은 퍼센트로 제시함. 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교하며 ±0.5퍼센트 이내는 무진전으로 봄. RIR 활용: 무진전인데 평균 RIR이 3 이상이면 정체가 아니라 강도 부족으로 보고 증량 또는 근접실패 관리를 지시함. 무진전이면서 평균 RIR이 1 이하면 실제 정체로 보고 재빌드나 디로드를 검토함. e값과 RIR이 함께 내려가면 피로 누적으로 판정함. RIR 미입력 세션은 강도 판정 없이 e값만으로 판단함. 디로드 판정: 3주 내 3세션 이상인 종목에서 e값 변화가 +0.5퍼센트 이하이면서 평균 RIR이 1회 이상 낮아진 종목이 2개 이상이면 정체가 아니라 회복 부족으로 보고 디로드 주간(볼륨 40~50퍼센트 감축)을 권고함.\nbody: "MM-DD 체중/체지방%" 이력임. 제지방=체중×(1-체지방/100)이며 최근 두 지점 제지방이 0.5kg 이상 감소 추세면 근손실 위험으로 최우선 경고하고, 주당 감량이 체중의 1%를 넘으면 과속 감량으로 지적함. 세 번째 숫자가 있으면 골격근량(kg)이며 있으면 제지방 대신 골격근량 추세로 근손실을 판정함. paceTarget은 주당 감량 목표(kg)이며 body 실측 주당 감량이 이를 크게 밑돌면 부족, 체중의 1퍼센트를 넘으면 과속 감량으로 판정함. body가 비어 있으면 언급하지 않음.\ncomputed: 앱이 확정한 파생 지표이며 아래 값은 반드시 그대로 인용하고 절대 다시 계산하지 말 것. weekPhase=주간 단계(결산/초반/중반/마감), trainDaysPerWeek=주간 훈련 가능일, elapsedTrainDays=경과 훈련일 E, remainTrainDays=잔여 훈련일 R, streakDays=오늘 포함 연속 훈련일, progressedCount/stalledCount/regressedCount=진전·정체·퇴행 종목 수, stalledNames/regressedNames=해당 종목명, deloadCandidates=디로드 후보 종목 수(2 이상이면 디로드 권고). \nfreqThisWeek: 부위별 이번 주 수행 일수 맵, subFreqThisWeek: 세부 근육별 수행 일수 맵이며 둘 다 앱 확정값이므로 그대로 인용하고 절대 다시 세지 말 것. 없는 항목은 0회임.\nsubThisWeek: 세부 근육별 이번 주 실적 세트 맵이며 앱이 확정한 값이므로 그대로 인용하고 종목명으로 다시 세지 말 것. 여기 없는 세부는 0세트임. log의 부위 칸은 "부위/주동근" 형식임.\nsubTargets: 세부 근육별 주간 목표 세트 맵이며 포함된 세부만 그 값을 기준선 하한으로 사용하고, 맵에 없는 세부는 기준선 판정을 생략함.\nsubAvoid: 자극 회피 대상 세부 목록이며 여기 속한 세부의 실적 세트가 1 이상이면 금기 위반으로 지적함. 비어 있으면 생략함.\nrepMax: "종목명|상한" 목록이며 여기 있는 종목은 그 반복 상한을, 없는 종목은 12회를 점증 판정에 사용함.\nrestDays: 계획 휴식 요일이며 훈련 가능일 수는 7에서 restDays 개수를 뺀 값이고 경과·잔여 훈련일 계산에 이 요일들을 제외함.\nprevDirection: 직전 보고서의 방향 지시임. 이행 여부를 [평가]에서 한 줄로 점검하고, 비어 있으면 생략함.\n판정 기준: 부위별 유효 볼륨과 상한은 subTargets 의 목표와 앱의 랜드마크를 따르며, 10~20세트 같은 고정 구간을 임의로 적용하지 않음. 목표를 크게 넘긴 부위만 감량기 회복 부채로 평가함. 팔은 등·가슴 세트의 간접 자극을 감안해 직접 세트 부족을 완화 해석함. 톱세트는 그 세션에서 가장 무거운 세트임. 정체는 최근 톱세트의 무게와 반복이 약 2주 전 기록과 같거나 낮은 경우임. 그 사이 무게나 반복이 한 번이라도 늘었으면 진전임. 최근 2주 기록이 2회 이하인 종목은 판단을 보류하고 언급하지 않음.\n문체: 항목당 완결 문장 한 줄(20~50자), "-함/-됨/-요망" 종결. "어깨 +7" 같은 숫자 나열 금지, 수치는 문장 안에 자연스럽게. 마크다운 기호 금지.\n구성(섹션 제목은 대괄호 그대로):\n[금주 분석]\n이 섹션만은 문장이 아니라 정해진 형식으로 쓴다. 앱이 이 줄들을 진행바 카드로 그리므로 형식이 어긋나면 그래프가 안 나온다.\n- 부위 줄은 "부위 실적/목표세트 (괄호 안에 지난주 대비 증감)" 형식으로 부위당 한 줄. 예) 어깨 18/20세트 (지난주 +3)\n- 유산소는 "유산소 n/n분(주 n회)" 한 줄. 회수는 cardioThisWeek.days 를 쓴다.\n- 마지막 줄은 "총 n/m세트, 수행 n일" 형식.\n판정 없이 사실만. 초과/부족/과다 같은 판정 단어는 이 섹션에서 금지.\n[평가]\n판정 전담. 목표 대비 과다 부위 한 줄, 부족 부위 한 줄(간접 자극 반영, 해당 없으면 생략), 회복 위험 판단 한 줄, 잘한 점 한 줄. 루틴 대비 빈도 이탈이 보이면 한 줄 추가.\n[정체 종목]\n실제 수치를 반드시 포함해 한 줄씩: "Chest Press — 2주째 50kg 12회로 정체됨" 식으로 종목명과 설명을 긴 줄표로 가르고, 종목명은 26자 이내로 씀. "무게와 반복 흐름을 근거로" 같은 수치 없는 정형 문구 금지. 없으면 "정체 종목 없음"만.\n[방향]\n"남은 기간:" 오늘 요일과 루틴의 남은 세션 기준으로 추가·중단할 것만 지시함("어깨는 금주 추가 자극 없이 마무리 요망" 식). 이미 수행한 볼륨에 감축 표현 금지.\n"다음 주:" 부위별 목표 세트 조정 1~2줄과 정체 종목 처방 1줄(점증 규칙 준수: 무게 유지/5% 감량 재빌드/반복 목표 상향 중 택1).\n규칙: 데이터에 없는 것은 추정 금지, 항목당 한 줄 엄수, 장황한 근거 서술 금지.\n\n';
 (function(){
