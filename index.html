@@ -1667,7 +1667,7 @@ function render(){
         var hd=hcDay(UI.wd),lf=eat-(hd?hd.kcal:0);
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
-          +'<div class="hsc eat"><i>'+(lf<0?'초과':'먹을 수 있는')+'</i>'
+          +'<div class="hsc eat"><i>'+(lf<0?'초과':'섭취 여유')+'</i>'
           +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>'
           +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'</b></div>'
           +'</div>';
@@ -4049,7 +4049,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 18:30';
+var BUILD='2026-09-04 18:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
