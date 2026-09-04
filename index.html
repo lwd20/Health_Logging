@@ -2424,7 +2424,9 @@ function renderSheet(){
        주소를 복사해 옮겨야 했다. */
     h+='<div class="sh-l" style="margin-top:16px">App</div>'
       +'<div class="note">새 버전이 나오면 여기서 받으면 됨. 기존 앱 위에 덮어써도 기록은 남음.'
-      +' <a class="xlink" href="'+APKURL+'">최신 APK 내려받기 &#9656;</a></div>';
+      +' <a class="xlink" href="'+APKURL+'">최신 APK 내려받기 &#9656;</a></div>'
+      +'<div class="note" style="margin-top:6px">화면 판 <b>'+BUILD+'</b>'
+      +' <button class="xlink" data-act="rlod" style="background:none;border:0;padding:0">새로고침 &#9656;</button></div>';
     }
     if(tb==='diet'){
     h+=(function(){
@@ -3997,6 +3999,9 @@ function aiDayTag(d){
 }
 /* 앱 내려받기 주소 — latest 태그를 계속 덮어쓰므로 바뀌지 않는다 */
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
+/* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
+   그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
+var BUILD='2026-09-04 15:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5415,6 +5420,7 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'hcask':try{AndroidHealth.ask();}catch(e){}break;
+    case 'rlod':location.reload(true);break;
     /* 용어를 마주친 자리에서 바로 설명으로 보낸다 */
     case 'hgo':UI.htab=v||'num';UI.sheet='help';render();break;
     case 'mu':moveMachine(UI.open,-1);break;
@@ -5911,7 +5917,23 @@ tmrDraw();
 widgetSync();
 setTimeout(autoBackup,1500);
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.register('sw.js').catch(function(){});
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    /* 앱을 켜 둔 채로는 새 화면이 와도 모른다. 받아 놓고 알려만 준다 —
+       쓰던 중에 제멋대로 새로고침하면 입력하던 것이 날아간다. */
+    reg.addEventListener('updatefound',function(){
+      var w=reg.installing;
+      if(!w)return;
+      w.addEventListener('statechange',function(){
+        if(w.state==='installed'&&navigator.serviceWorker.controller){
+          try{toast('<em>새 버전</em> 준비됨 — <button class="tundo" data-act="rlod">새로고침</button>',9000);}catch(e){}
+        }
+      });
+    });
+    /* 앱으로 돌아올 때마다 새 판이 있는지 물어본다 */
+    addEventListener('visibilitychange',function(){
+      if(!document.hidden){try{reg.update();}catch(e){}}
+    });
+  }).catch(function(){});
 }
 aiBgPoll();
 tmrNativeSync();
