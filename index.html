@@ -707,15 +707,28 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .stc i.dn{color:var(--sig)}
 .sh-l{font-size:10px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
-.console{margin-top:6px;background:var(--sheet-bg);border:1px solid var(--edge);border-radius:var(--rad-s);padding:2px 14px 13px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
+.console{margin-top:6px;background:var(--sheet-bg);border:1px solid var(--edge);border-radius:var(--rad-s);padding:2px 14px 14px;box-shadow:0 1px 0 rgba(0,0,0,.45),inset 0 1px 0 var(--edge)}
 .gmwrap{position:relative}
-.gmbtn{width:100%;display:flex;align-items:center;gap:10px;padding:14px 0;background:none;border:0;border-bottom:1px solid var(--line)}
-.gmbtn .clab{font-size:9px;letter-spacing:.26em;color:var(--dim);font-weight:800}
-.gmbtn .cval{margin-left:auto;color:var(--acc-sf);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.03em}
-.gmbtn::after{content:'';margin-left:2px;width:0;height:0;border-left:4.5px solid transparent;border-right:4.5px solid transparent;border-top:5.5px solid var(--mut);transition:transform .15s}
-.gmbtn.open::after{transform:rotate(180deg)}
-.cmeta{display:flex;align-items:baseline;padding:11px 1px 0;font-size:9px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
-.anlbtn{width:100%;height:44px;margin-top:12px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);border:var(--bw) solid transparent;color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
+.gmbtn{width:100%;display:flex;align-items:center;gap:8px;padding:11px 0;background:none;border:0;border-bottom:1px solid var(--line)}
+/* 마지막 줄 아래는 버튼이라 선이 겹쳐 보인다 */
+.gmwrap+.gmwrap .gmbtn{border-bottom:0}
+/* 자간 .26em 은 9px 라벨을 값만큼 넓게 벌려 둘이 같은 무게로 읽혔다.
+   봐야 할 것은 고른 값이므로 라벨을 뒤로 물리고 그만큼 값에 준다. */
+.gmbtn .clab{flex:0 0 auto;font-size:9px;letter-spacing:.13em;color:var(--dim);font-weight:800}
+/* '볼륨 랜드마크 MEV·MRV' 가 두 줄로 감겨 그 줄만 68px 로 부풀었다 */
+.gmbtn .cval{flex:1 1 auto;min-width:0;margin-left:auto;text-align:right;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;color:var(--acc-sf);font-family:var(--mono);
+  font-size:12.5px;font-weight:700;letter-spacing:.01em}
+/* 채운 삼각형은 이 화면에서 유일하게 굵은 도형이었다 */
+.gmbtn::after{content:'';flex:0 0 auto;width:5.5px;height:5.5px;margin:0 2px 3px 2px;
+  border-right:1.6px solid var(--mut);border-bottom:1.6px solid var(--mut);
+  transform:rotate(45deg);transition:transform .18s}
+.gmbtn.open::after{transform:rotate(-135deg);margin-bottom:-2px}
+/* 남은 횟수는 버튼 안 오른쪽 끝에 붙는다 — 가운데 글자는 그대로 가운데 */
+.anlbtn u{position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  text-decoration:none;font-family:var(--mono);font-size:10px;font-weight:700;
+  letter-spacing:.02em;opacity:.72}
+.anlbtn{position:relative;width:100%;height:44px;margin-top:14px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);border:var(--bw) solid transparent;color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
 .aihero{display:flex;gap:13px;align-items:center;padding:2px 1px 12px;border-bottom:1px solid var(--line)}
 .aircol{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px}
 /* 링 아래에 분자·분모를 적어 둔다 — 퍼센트만 있으면 무엇의 82% 인지 모른다 */
@@ -2356,7 +2369,7 @@ function renderSheet(){
       h+='</div>';
     }
     h+='</div>';
-    h+='<div class="gmwrap" style="margin-top:2px">';
+    h+='<div class="gmwrap">';
     h+='<button class="gmbtn'+(ANLOPEN?' open':'')+'" data-act="anlopen">'
       +'<span class="clab">ANALYSIS</span><span class="cval">'+ANLN[ANL]+'</span></button>';
     if(ANLOPEN){
@@ -2373,12 +2386,11 @@ function renderSheet(){
       h+='</div>';
     }
     h+='</div>';
-    h+='<div class="cmeta">'
-      +'<span>'+(AIAT?((AIDT?AIDT+' · ':'')+AIBY+' · '+AIAT+(aiDayTag(AIDT)?' <i class="stale">'+aiDayTag(AIDT)+'</i>':'')):'Ready')+'</span>'
-      +'<span style="margin-left:auto">'+used+'/20 today</span></div>';
     if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b></div>';
     h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
-      +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</button>';
+      +(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))
+      /* 한 번도 안 돌린 날의 '0/20' 은 알려 주는 것이 없다 */
+      +(used>0?'<u>'+used+'/20</u>':'')+'</button>';
     if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
     h+='</div>';
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
@@ -4100,7 +4112,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 22:00';
+var BUILD='2026-09-04 22:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
