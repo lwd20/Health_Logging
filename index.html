@@ -328,6 +328,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hstat:active{opacity:.6}
 .hsc b{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mut);text-align:right}
 .hsc.eat b{font-size:24px;color:var(--acc-br)}
+/* 목표를 넘겼으면 남은 값이 아니라 넘긴 값이라 색을 바꾼다 */
+.hsc.eat b.ov{color:var(--sig)}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
 .hsc i u.dfc{color:var(--sig)}
@@ -789,6 +791,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   border-radius:var(--rad-card);padding:13px 14px 12px;box-shadow:var(--elev)}
 .dkc{display:flex;align-items:baseline;gap:5px;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .dkc b{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--acc-br)}
+/* 남은 양이 주인공이라 라벨을 숫자 앞에 붙여 한 덩어리로 읽히게 한다 */
+.dkc .dlab{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.1em;
+  color:var(--dim);margin-right:5px;align-self:center}
+.dkc .dlab.over{color:var(--sig)}
+.dkc b.over{color:var(--sig)}
 .dkc u{text-decoration:none;font-size:10px;color:var(--dim)}
 .dkc .dgoal{margin-left:auto;font-size:10px;color:var(--dim)}
 .dkc .dgoal i{font-style:normal;font-weight:700;color:var(--dim)}
@@ -1651,9 +1658,17 @@ function render(){
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
+        /* 목표는 하루 종일 같은 숫자라 한 번 보면 그만이다. 앱을 여는 이유는
+           '지금 얼마나 남았나' 이므로 그 자리를 남은 값이 갖는다.
+           기록이 없으면 목표를 그대로 둔다 — 남은 값을 띄우면 아무것도 안
+           먹었다고 단정하는 셈이다. */
+        var hd=hcDay(UI.wd),lf=hd?eat-hd.kcal:null;
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
-          +'<div class="hsc eat"><i>EAT <u class="dfc">−'+dfc.toLocaleString()+'</u></i><b>'+eat.toLocaleString()+'</b></div>'
+          +(lf===null
+            ? '<div class="hsc eat"><i>EAT <u class="dfc">−'+dfc.toLocaleString()+'</u></i><b>'+eat.toLocaleString()+'</b></div>'
+            : '<div class="hsc eat"><i>'+(lf<0?'초과':'남은')+' <u'+(lf<0?' class="dfc"':'')+'>/'+eat.toLocaleString()+'</u></i>'
+              +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>')
           +'<div class="hsc"><i>TDEE'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i><b>'+tot.toLocaleString()+'</b></div>'
           +'</div>';
       })():'');
@@ -3218,9 +3233,18 @@ function cutHtml(){
   var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
   var h='<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>';
   h+='<div class="dietcard">';
-  h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
-    +'<span class="dgoal">목표 '+goal.toLocaleString()
-    +' <i class="'+tone+'">'+gapTxt(left,isToday)+'</i></span></div>';
+  /* 오늘은 '앞으로 얼마나 먹어도 되나' 가 지금 정할 일이라 그것을 크게 쓴다.
+     지난 날은 하루가 끝나 남은 것이 없으므로 그날 먹은 양이 결론이다. */
+  if(isToday){
+    h+='<div class="dkc">'
+      +'<em class="dlab'+(tone?' '+tone:'')+'">'+(left<0?'초과':'남은')+'</em>'
+      +'<b'+(tone?' class="'+tone+'"':'')+'>'+Math.abs(left).toLocaleString()+'</b><u>kcal</u>'
+      +'<span class="dgoal">먹은 '+d.kcal.toLocaleString()+' · 목표 '+goal.toLocaleString()+'</span></div>';
+  }else{
+    h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
+      +'<span class="dgoal">목표 '+goal.toLocaleString()
+      +' <i class="'+tone+'">'+gapTxt(left,false)+'</i></span></div>';
+  }
   /* 목표가 어디서 나온 값인지 보이지 않으면 PACE 를 바꿔도 반영된 줄 모른다 */
   h+='<div class="dsub">TDEE '+td.toLocaleString()+' \u2212 감량 '+want.toLocaleString()+'</div>';
   if(tot>0){
@@ -4001,7 +4025,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 15:00';
+var BUILD='2026-09-04 15:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
