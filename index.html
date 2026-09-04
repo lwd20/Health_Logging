@@ -332,6 +332,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hsc.pro i{font-size:8.5px}
 .hsc.pro b{font-size:12px;color:var(--dim)}
 .hsc.pro b u{text-decoration:none;font-size:9px;color:var(--dim);opacity:.75;margin-left:1px}
+/* 단위는 숫자에 붙되 눈에 안 걸리게 — 값을 읽는 데 방해가 되면 안 된다 */
+.hsc b u{text-decoration:none;font-size:9px;font-weight:700;color:var(--dim);margin-left:2px}
 /* 목표를 넘겼으면 남은 값이 아니라 넘긴 값이라 색을 바꾼다 */
 .hsc.eat b.ov{color:var(--sig)}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
@@ -1685,8 +1687,8 @@ function render(){
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
           +'<div class="hsc eat"><i>'+(lf<0?'초과':'섭취 여유')+'</i>'
-          +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>'
-          +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'</b></div>'
+          +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'<u>kcal</u></b></div>'
+          +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'<u>kcal</u></b></div>'
           /* 감량기에는 열량보다 단백질이 먼저 무너진다. 적자는 맞췄는데
              단백질이 모자라 근육을 잃는 것을 열량만 봐서는 못 잡는다.
              기록이 없으면 줄을 안 그린다 — 모르는 것을 0g 이라 적으면 안 된다. */
@@ -4077,7 +4079,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 19:55';
+var BUILD='2026-09-04 20:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
