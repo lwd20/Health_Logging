@@ -2283,6 +2283,7 @@ function renderSheet(){
     h+='<div class="sh-t">Analyze</div>';
     h+=heroHtml();
     h+=kcalHtml();
+    h+=cutHtml();
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
     h+='<div class="gmwrap">';
@@ -2422,91 +2423,20 @@ function renderSheet(){
       +' <a class="xlink" href="'+APKURL+'">최신 APK 내려받기 &#9656;</a></div>';
     }
     if(tb==='diet'){
-    h+='<div class="sh-l" style="margin-top:2px">Cut tracker</div>'
-      +(function(){
-        var r=paceCalc(BW,BF,GF);
-        var td=dayTDEE(today());
-        var dfc=Math.round(WR*7700/7);
-        var intake=Math.max(0,td-dfc);
-        var dd,c1,c2,tone='';
-        if(r.done){dd='DONE';c1='목표 체지방 도달';c2='유지 구간';}
-        else if(!r.ok){dd='D-?';c1='도달일 계산 대기';c2='인바디 기록 2건부터 계산됨';}
-        else if(r.rate>=0){dd='D-?';c1='도달일 산출 불가';c2='';tone='bad';}
-        else{dd='D-'+r.days;c1=r.eta+' · '+fmtW(GF)+'% 도달 예상';c2='약 '+r.weeks+'주';}
-        var tagH='';
-        if(r.ok&&!r.done&&r.tag){
-          var tCls=(r.tag.indexOf('과속')>=0||r.tag.indexOf('증량')>=0)?'bad':(r.tag.indexOf('부족')>=0?'dim':'good');
-          tagH='<span class="cttag '+tCls+'">'+r.tag+'</span>';
-        }
-        var hh='<div class="cthero"><div class="dd'+(tone?' '+tone:'')+'">'+dd+'</div>'
-          +'<div class="cap"><b>'+c1+'</b>'+(c2?'<br>'+c2:'')+'</div>'
-          +(tagH?'<div style="margin-left:auto;align-self:center">'+tagH+'</div>':'')
-          +'</div>';
-        var a=bhLoad();
-        /* 여정 바: 시작 → 현재 → 목표 */
-        if(a.length>=1&&(r.tw<BW||r.done)){
-          var startW=a[0].w;
-          var span=startW-r.tw;
-          var pct=r.done?100:(span>0?Math.max(0,Math.min(100,Math.round((startW-BW)/span*100))):0);
-          var lost=Math.max(0,Math.round((startW-BW)*10)/10);
-          hh+='<div class="jwrap">'
-            +'<div class="jtop"><span>시작 <b>'+fmtW(startW)+'</b></span>'
-            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
-            +'<span>목표 <b>'+(r.done?'달성':fmtW(r.tw))+'</b></span></div>'
-            +'<div class="jbar"><b style="width:'+pct+'%"></b><i style="left:'+pct+'%"></i></div>'
-            +'</div>';
-        }
-        /* 체중 스파크라인 + 목표선 */
-        if(a.length>=2){
-          var pts=a.slice(-12),i2;
-          var ws=pts.map(function(x){return x.w;});
-          var lo=Math.min.apply(null,ws.concat([r.tw])),hi=Math.max.apply(null,ws);
-          var pad=(hi-lo)*0.12||0.5;lo-=pad;hi+=pad;
-          var W2=100,H2=30;
-          var xy=function(idx,wv){
-            var x=pts.length>1?idx/(pts.length-1)*W2:0;
-            var y=H2-((wv-lo)/(hi-lo))*H2;
-            return (Math.round(x*10)/10)+','+(Math.round(y*10)/10);
-          };
-          var pl='';
-          for(i2=0;i2<pts.length;i2++)pl+=(i2?' ':'')+xy(i2,pts[i2].w);
-          var gy=H2-((r.tw-lo)/(hi-lo))*H2;
-          var lastXY=xy(pts.length-1,pts[pts.length-1].w).split(',');
-          hh+='<svg class="spark" viewBox="0 0 '+W2+' '+H2+'" preserveAspectRatio="none">'
-            +(gy>=0&&gy<=H2?'<line x1="0" y1="'+Math.round(gy*10)/10+'" x2="'+W2+'" y2="'+Math.round(gy*10)/10+'" class="goal"/>':'')
-            +'<polyline points="'+pl+'" class="wline"/>'
-            +'<circle cx="'+lastXY[0]+'" cy="'+lastXY[1]+'" r="1.8" class="wdot"/>'
-            +'</svg>';
-          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
-        }
-        hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
-        hh+='<div class="ctrow"><b class="k">목표</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
-        hh+=(function(){
-          /* 어제까지가 온전한 하루다. 오늘은 아직 저녁을 안 먹었을 수 있어
-             적다고 나오는 게 당연하므로 어제를 기준으로 보여 준다 */
-          var d=hcDay(hcYday()), st=hcState();
-          if(!d){
-            if(st==='ok')return '<div class="ctrow"><b class="k">실제</b><span class="v"><span class="none">어제 기록 없음</span></span></div>';
-            if(st==='perm')return '<div class="ctrow hcask" data-act="hcask"><b class="k">실제</b><span class="v">삼성헬스 섭취량 불러오기 <b>연결</b></span></div>';
-            return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
+    h+=(function(){
+        /* 판독이 분석탭으로 빠져 이 칸에는 손잡이만 남았다.
+           접을 것이 없으니 접지 않는다 */
+        var hh='<div class="sh-l" style="margin-top:2px">Cut settings</div>';
+          {
+            hh+='<div class="wtg">'
+              +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
+              +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
+              +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
+              +'</div>'
+              +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
+              +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
-          var gap=d.kcal-intake, sign=gap>0?'+':'';
-          return '<div class="ctrow"><b class="k">실제</b><span class="v"><b>'+d.kcal.toLocaleString()+'</b> kcal'
-            +' <u class="'+(Math.abs(gap)<=150?'':(gap>0?'hcover':'hcunder'))+'">'+sign+gap.toLocaleString()+'</u>'
-            +'</span></div>'
-            +'<div class="ctrow"><b class="k">어제</b><span class="v hcmac">단백 <b>'+d.p+'</b>g · 탄수 <b>'+d.c+'</b>g · 지방 <b>'+d.f+'</b>g</span></div>';
-        })();
-        hh+='<div class="sh-l fold" data-act="ctog" style="margin-top:16px">Cut settings<i>'+(UI.cutOpen?'▾':'▸')+'</i></div>';
-        if(UI.cutOpen){
-          hh+='<div class="wtg">'
-            +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
-            +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
-            +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
-            +'</div>'
-            +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-            +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
-        }
-        return hh;
+          return hh;
       })()
       +(function(){
         var all=bhLoad().slice().reverse();
@@ -3223,6 +3153,87 @@ function kcalWeek(back){
   }
   return {mon:kcalISO(mon),days:days,tot:tot,ex:ex,n:n,avg:n?Math.round(tot/n):0,base:base};
 }
+/* 감량 현황 — 설정 손잡이가 아니라 읽는 값이라 분석탭에서 그린다.
+   바로 위 kcalHtml() 이 소비를 주간 막대로 보여 주므로 섭취가 그 옆에 온다. */
+function cutHtml(){
+  return '<div class="lmsec"><div class="lmcap">DIET · 감량</div>'
+    +(function(){
+        var r=paceCalc(BW,BF,GF);
+        var td=dayTDEE(today());
+        var dfc=Math.round(WR*7700/7);
+        var intake=Math.max(0,td-dfc);
+        var dd,c1,c2,tone='';
+        if(r.done){dd='DONE';c1='목표 체지방 도달';c2='유지 구간';}
+        else if(!r.ok){dd='D-?';c1='도달일 계산 대기';c2='인바디 기록 2건부터 계산됨';}
+        else if(r.rate>=0){dd='D-?';c1='도달일 산출 불가';c2='';tone='bad';}
+        else{dd='D-'+r.days;c1=r.eta+' · '+fmtW(GF)+'% 도달 예상';c2='약 '+r.weeks+'주';}
+        var tagH='';
+        if(r.ok&&!r.done&&r.tag){
+          var tCls=(r.tag.indexOf('과속')>=0||r.tag.indexOf('증량')>=0)?'bad':(r.tag.indexOf('부족')>=0?'dim':'good');
+          tagH='<span class="cttag '+tCls+'">'+r.tag+'</span>';
+        }
+        var hh='<div class="cthero"><div class="dd'+(tone?' '+tone:'')+'">'+dd+'</div>'
+          +'<div class="cap"><b>'+c1+'</b>'+(c2?'<br>'+c2:'')+'</div>'
+          +(tagH?'<div style="margin-left:auto;align-self:center">'+tagH+'</div>':'')
+          +'</div>';
+        var a=bhLoad();
+        /* 여정 바: 시작 → 현재 → 목표 */
+        if(a.length>=1&&(r.tw<BW||r.done)){
+          var startW=a[0].w;
+          var span=startW-r.tw;
+          var pct=r.done?100:(span>0?Math.max(0,Math.min(100,Math.round((startW-BW)/span*100))):0);
+          var lost=Math.max(0,Math.round((startW-BW)*10)/10);
+          hh+='<div class="jwrap">'
+            +'<div class="jtop"><span>시작 <b>'+fmtW(startW)+'</b></span>'
+            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
+            +'<span>목표 <b>'+(r.done?'달성':fmtW(r.tw))+'</b></span></div>'
+            +'<div class="jbar"><b style="width:'+pct+'%"></b><i style="left:'+pct+'%"></i></div>'
+            +'</div>';
+        }
+        /* 체중 스파크라인 + 목표선 */
+        if(a.length>=2){
+          var pts=a.slice(-12),i2;
+          var ws=pts.map(function(x){return x.w;});
+          var lo=Math.min.apply(null,ws.concat([r.tw])),hi=Math.max.apply(null,ws);
+          var pad=(hi-lo)*0.12||0.5;lo-=pad;hi+=pad;
+          var W2=100,H2=30;
+          var xy=function(idx,wv){
+            var x=pts.length>1?idx/(pts.length-1)*W2:0;
+            var y=H2-((wv-lo)/(hi-lo))*H2;
+            return (Math.round(x*10)/10)+','+(Math.round(y*10)/10);
+          };
+          var pl='';
+          for(i2=0;i2<pts.length;i2++)pl+=(i2?' ':'')+xy(i2,pts[i2].w);
+          var gy=H2-((r.tw-lo)/(hi-lo))*H2;
+          var lastXY=xy(pts.length-1,pts[pts.length-1].w).split(',');
+          hh+='<svg class="spark" viewBox="0 0 '+W2+' '+H2+'" preserveAspectRatio="none">'
+            +(gy>=0&&gy<=H2?'<line x1="0" y1="'+Math.round(gy*10)/10+'" x2="'+W2+'" y2="'+Math.round(gy*10)/10+'" class="goal"/>':'')
+            +'<polyline points="'+pl+'" class="wline"/>'
+            +'<circle cx="'+lastXY[0]+'" cy="'+lastXY[1]+'" r="1.8" class="wdot"/>'
+            +'</svg>';
+          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
+        }
+        hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
+        hh+='<div class="ctrow"><b class="k">목표</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
+        hh+=(function(){
+          /* 어제까지가 온전한 하루다. 오늘은 아직 저녁을 안 먹었을 수 있어
+             적다고 나오는 게 당연하므로 어제를 기준으로 보여 준다 */
+          var d=hcDay(hcYday()), st=hcState();
+          if(!d){
+            if(st==='ok')return '<div class="ctrow"><b class="k">실제</b><span class="v"><span class="none">어제 기록 없음</span></span></div>';
+            if(st==='perm')return '<div class="ctrow hcask" data-act="hcask"><b class="k">실제</b><span class="v">삼성헬스 섭취량 불러오기 <b>연결</b></span></div>';
+            return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
+          }
+          var gap=d.kcal-intake, sign=gap>0?'+':'';
+          return '<div class="ctrow"><b class="k">실제</b><span class="v"><b>'+d.kcal.toLocaleString()+'</b> kcal'
+            +' <u class="'+(Math.abs(gap)<=150?'':(gap>0?'hcover':'hcunder'))+'">'+sign+gap.toLocaleString()+'</u>'
+            +'</span></div>'
+            +'<div class="ctrow"><b class="k">어제</b><span class="v hcmac">단백 <b>'+d.p+'</b>g · 탄수 <b>'+d.c+'</b>g · 지방 <b>'+d.f+'</b>g</span></div>';
+        })();
+      return hh;
+    })()+'</div>';
+}
+
 function kcalHtml(){
   var w=kcalWeek(0);
   if(!w)return '';
@@ -3475,16 +3486,20 @@ var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
 /* ── 분석론 선택 ── */
 var ANL='wk',ANLOPEN=false;
-var ANLL={wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
-var ANLN={wk:'주간 리포트',acsm:'ACSM 가이드라인',vol:'볼륨 랜드마크 MEV·MRV',prog:'점증·정체 진단',recov:'회복·피로 관리',bal:'균형·비율 평가',vt:'옷맵시 V-테이퍼'};
+var ANLL={cut:'CUT DIAGNOSIS',mac:'PROTEIN & MACROS',wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
+var ANLN={cut:'감량 진단 · 섭취 대 목표',mac:'단백질·매크로 배분',wk:'주간 리포트',acsm:'ACSM 가이드라인',vol:'볼륨 랜드마크 MEV·MRV',prog:'점증·정체 진단',recov:'회복·피로 관리',bal:'균형·비율 평가',vt:'옷맵시 V-테이퍼'};
 var ANLG=[
  {name:'종합',items:['wk']},
  {name:'볼륨',items:['vol','vt']},
  {name:'부하·회복',items:['acsm','recov']},
- {name:'진전·구조',items:['prog','bal']}
+ {name:'진전·구조',items:['prog','bal']},
+ /* 삼성헬스 섭취량이 들어오면서 생긴 갈래 */
+ {name:'감량·영양',items:['cut','mac']}
 ];
-var ANLGLOS='최우선 규칙: 앱이 값을 제공하는 지표는 어떤 경우에도 log나 exercises로 다시 계산하지 않음. 확정값 목록은 thisWeek, subThisWeek, freqThisWeek, subFreqThisWeek, volThisWeek, computed임. 아래 섹션 지시가 직접 세라는 표현을 쓰더라도 이 규칙이 우선하며, 확정값에 없는 항목만 log로 계산함.\n데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 세트(CARDIO는 분). exercises="종목명|부위|이번주세트수|주동근"(4번째 칸은 앱이 확정한 주동근). computed=앱이 확정한 파생 지표이며 아래 값은 반드시 그대로 인용하고 절대 다시 계산하지 말 것. weekPhase=주간 단계(결산/초반/중반/마감), trainDaysPerWeek=주간 훈련 가능일, elapsedTrainDays=경과 훈련일 E, remainTrainDays=잔여 훈련일 R, streakDays=오늘 포함 연속 훈련일, progressedCount/stalledCount/regressedCount=진전·정체·퇴행 종목 수, stalledNames/regressedNames=해당 종목명, deloadCandidates=디로드 후보 종목 수(2 이상이면 디로드 권고). subThisWeek=세부 근육별 이번 주 실적 세트(앱이 확정한 값). freqThisWeek=부위별 이번 주 수행 일수, subFreqThisWeek=세부 근육별 수행 일수이며 둘 다 앱 확정값임. 빈도는 반드시 이 값을 인용하고 log로 다시 세지 말 것이며, 여기 없는 항목은 0회임. log=최근 2주 전체 세션("날짜 부위/주동근 종목명 무게x반복@RIRr휴식초"). r 값은 직전 세트 이후 휴식 시간(초)이며 없으면 미측정임. 휴식이 60초 미만으로 짧아진 세트에서 반복이 떨어졌다면 정체가 아니라 휴식 부족으로 해석함. (, 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 세션 이력("MM-DD 톱세트무게x반복 e세션평균e1RM/세트수@세션평균RIR" 최신순). RIR=세트 종료 시 남은 반복 수이며 0이 실패 직전, 값이 클수록 여유가 많음. @가 없으면 미입력이므로 강도 판정을 생략함. 진전 판정은 톱세트가 아니라 e값(그날 한 전 세트의 평균 e1RM)으로 하며, 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교함. body="MM-DD 체중/체지방%[/골격근kg]" 이력. volThisWeek/volLastWeek=부위별 주간 볼륨 kg(전 세트 무게×반복 합). restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 세부 근육별 실적은 subThisWeek가 앱 확정값이므로 그 숫자를 그대로 인용하고 절대 다시 세지 말 것. subThisWeek에 없는 세부는 0세트임. 개별 종목의 주동근은 exercises의 4번째 칸과 log의 "부위/주동근" 표기가 확정값이며 종목명으로 재판정 금지임. 확정값이 없을 때만 종목명으로 추정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(-400~500kcal), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 앱이 각 줄을 라벨·상태칩·진행바 카드로 렌더하므로 아래 형식을 반드시 지킴. 각 줄은 "- 대상 실제/목표 — 판정어와 핵심수치 하나" 형식이며 대상 라벨은 10자 이내로 짧게 씀. 주간 목표가 있는 항목은 실제/목표를 반드시 "5/18" 같은 n/m 숫자로 병기하고 목표가 없으면 대상 이름만 씀. 판정어는 달성·순항·양호·준수·적절·가능·확보·유지·보류·부족·미달·초과·이탈·정체·퇴행·시급·과중·위반 중에서만 고르고 설명부에 반드시 한 번 포함함. 설명부는 20자 이내 한 문장, -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 인사말·서론·맺음말·중복 설명 금지. 주 중반이면 단정 대신 페이스로 판정함.\n\n';
+var ANLGLOS='최우선 규칙: 앱이 값을 제공하는 지표는 어떤 경우에도 log나 exercises로 다시 계산하지 않음. 확정값 목록은 thisWeek, subThisWeek, freqThisWeek, subFreqThisWeek, volThisWeek, computed, nutrition임.\nnutrition은 삼성헬스에 사용자가 직접 기록한 실측 섭취량임. nutrition이 null이면 기록이 없다는 뜻이지 0kcal를 먹었다는 뜻이 아니므로, 그 경우 섭취 관련 판단을 하지 말고 기록이 없다고만 적음. byDay에 없는 날짜도 마찬가지로 굶은 날이 아니라 기록이 빠진 날임. 아래 섹션 지시가 직접 세라는 표현을 쓰더라도 이 규칙이 우선하며, 확정값에 없는 항목만 log로 계산함.\n데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 세트(CARDIO는 분). exercises="종목명|부위|이번주세트수|주동근"(4번째 칸은 앱이 확정한 주동근). computed=앱이 확정한 파생 지표이며 아래 값은 반드시 그대로 인용하고 절대 다시 계산하지 말 것. weekPhase=주간 단계(결산/초반/중반/마감), trainDaysPerWeek=주간 훈련 가능일, elapsedTrainDays=경과 훈련일 E, remainTrainDays=잔여 훈련일 R, streakDays=오늘 포함 연속 훈련일, progressedCount/stalledCount/regressedCount=진전·정체·퇴행 종목 수, stalledNames/regressedNames=해당 종목명, deloadCandidates=디로드 후보 종목 수(2 이상이면 디로드 권고). subThisWeek=세부 근육별 이번 주 실적 세트(앱이 확정한 값). freqThisWeek=부위별 이번 주 수행 일수, subFreqThisWeek=세부 근육별 수행 일수이며 둘 다 앱 확정값임. 빈도는 반드시 이 값을 인용하고 log로 다시 세지 말 것이며, 여기 없는 항목은 0회임. log=최근 2주 전체 세션("날짜 부위/주동근 종목명 무게x반복@RIRr휴식초"). r 값은 직전 세트 이후 휴식 시간(초)이며 없으면 미측정임. 휴식이 60초 미만으로 짧아진 세트에서 반복이 떨어졌다면 정체가 아니라 휴식 부족으로 해석함. (, 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 세션 이력("MM-DD 톱세트무게x반복 e세션평균e1RM/세트수@세션평균RIR" 최신순). RIR=세트 종료 시 남은 반복 수이며 0이 실패 직전, 값이 클수록 여유가 많음. @가 없으면 미입력이므로 강도 판정을 생략함. 진전 판정은 톱세트가 아니라 e값(그날 한 전 세트의 평균 e1RM)으로 하며, 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교함. body="MM-DD 체중/체지방%[/골격근kg]" 이력. volThisWeek/volLastWeek=부위별 주간 볼륨 kg(전 세트 무게×반복 합). restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 세부 근육별 실적은 subThisWeek가 앱 확정값이므로 그 숫자를 그대로 인용하고 절대 다시 세지 말 것. subThisWeek에 없는 세부는 0세트임. 개별 종목의 주동근은 exercises의 4번째 칸과 log의 "부위/주동근" 표기가 확정값이며 종목명으로 재판정 금지임. 확정값이 없을 때만 종목명으로 추정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(-400~500kcal), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 앱이 각 줄을 라벨·상태칩·진행바 카드로 렌더하므로 아래 형식을 반드시 지킴. 각 줄은 "- 대상 실제/목표 — 판정어와 핵심수치 하나" 형식이며 대상 라벨은 10자 이내로 짧게 씀. 주간 목표가 있는 항목은 실제/목표를 반드시 "5/18" 같은 n/m 숫자로 병기하고 목표가 없으면 대상 이름만 씀. 판정어는 달성·순항·양호·준수·적절·가능·확보·유지·보류·부족·미달·초과·이탈·정체·퇴행·시급·과중·위반 중에서만 고르고 설명부에 반드시 한 번 포함함. 설명부는 20자 이내 한 문장, -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 인사말·서론·맺음말·중복 설명 금지. 주 중반이면 단정 대신 페이스로 판정함.\n\n';
 var ANLDEF={
+cut:'당신은 감량기 관리에 정통한 보디빌딩 코치다. 아래 데이터로 감량이 계획대로 가고 있는지 진단한 한국어 보고서를 써라.\n핵심은 세 가지를 맞대는 것이다: (1) body의 실제 체중·체지방 변화 속도, (2) paceTarget(주간 목표 감량 kg), (3) nutrition의 avgIntake 대 targetIntake.\n체중이 목표대로 안 줄면 원인을 섭취 부족/과다와 훈련량 중 어디로 볼지 데이터로 가려라. 섭취가 목표보다 많은데 체중이 준다면 targetIntake 산출의 활동계수가 낮게 잡힌 것일 수 있음을 지적하라.\n근손실 위험도 보라 — 적자가 지나치게 크거나(하루 1000kcal 초과) 단백질이 체중당 1.6g 미만이면 경고하라.\nnutrition이 null이면 섭취 판단을 하지 말고 체중 추이만 다루되, 삼성헬스 기록을 시작하면 무엇을 더 볼 수 있는지 한 줄로 안내하라.',
+mac:'당신은 스포츠 영양 전문가다. 아래 nutrition 데이터로 매크로 배분을 평가한 한국어 보고서를 써라.\n기준: 감량기 단백질은 체중당 1.6~2.2g(proteinPerKg로 이미 계산돼 있음), 지방은 총열량의 20~30%, 나머지는 탄수화물.\nbyDay로 날마다의 편차를 보라 — 평균만 맞고 날마다 출렁이면 그것도 문제다. 훈련일과 휴식일(restDays)에 탄수화물 배분이 다른지도 확인하라.\nnutrition이 null이거나 daysLogged가 3 미만이면 판단할 데이터가 부족하다고 밝히고, 며칠치가 더 필요한지만 적어라.',
 acsm:'당신은 ACSM 가이드라인에 정통한 운동처방 전문가다. 아래 훈련 데이터를 ACSM 저항성·유산소 운동 권고 기준으로 평가한 한국어 보고서를 써라.\n평가 기준: 주요 근군당 주 2회 이상 자극(빈도는 freqThisWeek 값을 그대로 인용하고 직접 세지 말 것), 근비대 반복역 6~12회 중심, 동일 근군 48시간 회복, 유산소 중강도 주 150분(또는 고강도 75분) 및 주 3회 분산, 주간 부하 증가는 전주 대비 20% 이내의 점진적 과부하.\n구성:\n[빈도]\n- freqThisWeek의 부위별 수행 일수를 그대로 인용해 주 2회 기준과 대조하고 부위별 한 줄씩 씀. 앱이 확정한 값이므로 log로 다시 세지 말 것이며 freqThisWeek에 없는 부위는 0회임. 표기는 부위 n/2회 형식임.\n[유산소]\n- thisWeek.CARDIO 분과 회수를 150분·주 3회 기준과 대조해 한 줄로 판정함.\n[강도]\n- log의 반복수 분포가 근비대역(6~12회)에 드는 비율을 평가하고 이탈 종목을 지적함.\n[회복]\n- 연속 훈련일은 computed.streakDays를 그대로 인용하고 3일 이상이면 경고함. 같은 부위의 48시간 미만 재자극만 log 날짜로 점검함.\n[과부하]\n- volThisWeek를 volLastWeek와 부위별로 대조해 20% 초과 급증 또는 급감을 지적함.\n[종합]\n- 충족 항목과 미충족 항목을 각각 한 줄로 요약하고 다음 주 권고를 1~2줄로 마감함.\n\n',
 vol:'당신은 볼륨 랜드마크(MEV·MAV·MRV) 이론에 정통한 보디빌딩 코치다. 아래 훈련 데이터의 부위·세부별 주간 세트를 랜드마크와 대조한 한국어 보고서를 써라.\n랜드마크 기준(주당 직접 세트, 일반치): 가슴 MEV8·MAV12~20·MRV22, 등 10·14~22·25, 어깨측면 8·16~22·26, 어깨후면 6·16~22·26, 어깨전면 0·6~8·12(프레스 간접 감안), 대퇴사두 8·12~18·20, 햄스트링 6·10~16·20, 둔근 0·4~12·16, 이두 8·14~20·26, 삼두 6·10~14·18, 종아리 8·12~16·20, 복근 0·16~20·25.\n감량기 보정: 회복 저하로 MRV를 20% 낮춰 적용하고 이를 명시함.\n앱 위젯이 메인·세부 전체의 랜드마크 위치를 그래프로 표시하므로 세부별 나열은 쓰지 않음.\n구성:\n[초과 위험]\n- 보정 MRV의 90% 이상이거나 초과한 세부를 수치와 함께 지적함. 없으면 "MRV 접근 세부 없음"이라 씀.\n[증량 여지]\n- 옷맵시 우선 세부(측면·광배) 중 MAV까지 여유가 있는 곳과 추가 가능 세트 수를 씀.\n[처방]\n- 다음 주 세부별 세트 조정을 최대 3줄로 지시함. 조정 폭은 세부당 2~4세트 이내로 함.\n\n',
 prog:'당신은 점진적 과부하 진단 전문가다. 아래 훈련 데이터의 tops(종목별 톱세트 이력)를 근거로 종목별 진전 상태를 판정한 한국어 보고서를 써라.\n판정 정의: e1RM=무게×(1+반복/30)이며 tops의 e값은 그날 한 전 세트(보통 2~4세트)의 평균 e1RM임. 진전 판정은 톱세트 하나가 아니라 이 e값의 세션 간 변화율로 하고 성장률을 퍼센트로 제시함. 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교하며 변화율 ±0.5퍼센트 이내는 무진전으로 봄. RIR 활용: 무진전인데 평균 RIR이 3 이상이면 정체가 아니라 강도 부족으로 보고 증량 또는 근접실패 관리를 지시함. 무진전이면서 평균 RIR이 1 이하면 실제 정체로 보고 재빌드나 디로드를 검토함. e값과 RIR이 함께 내려가면 피로 누적으로 판정함. RIR 미입력 세션은 강도 판정 없이 e값만으로 판단함. 디로드 판정: 3주 내 3세션 이상인 종목에서 e값 변화가 +0.5퍼센트 이하이면서 평균 RIR이 1회 이상 낮아진 종목이 2개 이상이면 정체가 아니라 회복 부족으로 보고 디로드 주간(볼륨 40~50퍼센트 감축)을 권고함. 연속 두 세션 무진전=정체, 연속 두 세션 하락=퇴행(근손실 위험 신호). 인접 세션 간격 14일 초과면 "간격 n일로 보류"로만 표기함. 이력 2회 이하 종목은 언급하지 않음.\n구성:\n[진전]\n- 최근 세션에서 무게 또는 반복이 오른 종목을 "Lat Pulldown 59→66kg, e1RM +8%" 식 수치와 함께 한 줄씩 씀. 없으면 "신규 진전 없음"이라 씀.\n[정체]\n- 정체 종목을 마지막 갱신 날짜·수치와 함께 한 줄씩 씀. 없으면 "정체 종목 없음"만 씀.\n[퇴행]\n- 퇴행 종목을 두 세션의 수치 흐름과 함께 씀. body의 제지방·골격근 추세가 함께 하락 중이면 근손실 경고를 덧붙임. 없으면 "퇴행 종목 없음"만 씀.\n[처방]\n- 정체·퇴행 종목별로 무게 유지, 5% 감량 재빌드(재빌드 무게 명시), 반복 목표 상향 중 하나를 택해 한 줄씩 지시함. 옷맵시 핵심 종목을 우선 다룸.\n\n',
@@ -4611,7 +4626,35 @@ function aiPayload(){
     subTargets:(function(){var o2={},sq;for(sq=0;sq<SUBS.length;sq++)if(STG[SUBS[sq].k]>0)o2[subLabel(SUBS[sq])]=STG[SUBS[sq].k];return o2;})(),
     subAvoid:(function(){var a2=[],sq2;for(sq2=0;sq2<SUBS.length;sq2++)if(STG[SUBS[sq2].k]===0)a2.push(subLabel(SUBS[sq2]));return a2;})(),
     repMax:repMax,restDays:RD.map(function(x){return DN2[x];}),paceTarget:WR,
+    nutrition:nutriFacts(),
+
     log:log,today:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' ('+yo+'), 주는 월요일 시작',thisWeek:weekOf(0),lastWeek:weekOf(1),volThisWeek:weekVol(0),volLastWeek:weekVol(1),targets:WTGT};
+}
+
+/* 삼성헬스에서 들어온 섭취 실측 — 없으면 통째로 빼서 AI 가 0 을 굶은 것으로
+   읽지 않게 한다. 모르는 것과 안 먹은 것은 다르다. */
+function nutriFacts(){
+  var ks=[],k;
+  for(k in (HC.days||{}))if(HC.days[k]&&HC.days[k].n>0)ks.push(k);
+  if(!ks.length)return null;
+  ks.sort();ks=ks.slice(-21);
+  var td=dayTDEE(today()),dfc=Math.round(WR*7700/7);
+  var rows={},sum=0,pk=0,i,d;
+  for(i=0;i<ks.length;i++){
+    d=HC.days[ks[i]];
+    rows[ks[i]]={kcal:d.kcal,protein:d.p,carb:d.c,fat:d.f};
+    sum+=d.kcal;pk+=d.p;
+  }
+  return {
+    source:'Samsung Health',
+    daysLogged:ks.length,
+    targetIntake:Math.max(0,td-dfc),
+    tdee:td,
+    avgIntake:Math.round(sum/ks.length),
+    avgProtein:Math.round(pk/ks.length),
+    proteinPerKg:BW>0?Math.round(pk/ks.length/BW*10)/10:null,
+    byDay:rows
+  };
 }
 
 /* 앱이 확정한 파생 지표 — AI가 다시 계산하다 틀리는 것을 막기 위해 그대로 전달함 */
@@ -5269,7 +5312,6 @@ document.addEventListener('click',function(e){
         if(el){el.value=raw;toast('스냅샷을 입력칸에 불러옴 — <em>Apply Input</em>으로 복원');}
       })();
       break;
-    case 'ctog':UI.cutOpen=!UI.cutOpen;render();break;
     case 'aibgx':
       if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(eX){}}
       toast('대기 해제됨 — 다시 실행 가능');
