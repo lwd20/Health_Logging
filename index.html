@@ -322,9 +322,6 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
    이 줄은 아래 큰 숫자에 자리를 내주고 물러난다. */
 .hdate em{font-size:11px;color:var(--dim);font-weight:700;margin-left:3px}
-.sh-l.fold{cursor:pointer;display:flex;align-items:center;gap:6px}
-.sh-l.fold i{font-style:normal;font-size:9px;color:var(--dim)}
-.sh-l.fold:active{opacity:.6}
 /* 손가락이 닿는 넓이만 넓히는 덧판. 보이지 않으므로 화면은 그대로다.
    안드로이드 권장 최소 48dp 를 채우지 못하는 작은 조작에 쓴다. */
 .hit{position:relative}
@@ -792,6 +789,43 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .cd.out{width:0;height:0;border-radius:0;background:none;box-shadow:none;
   border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--sig)}
 .lmrow .bv.over{color:var(--sig)}
+/* 어제 먹은 것 한 장 — 큰 숫자 하나, 비율 막대 하나, 그램 세 개.
+   더 얹으면 매일 훑을 수 없다. */
+.dietcard{background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);
+  border-radius:var(--rad-card);padding:13px 14px 12px;box-shadow:var(--elev)}
+.dkc{display:flex;align-items:baseline;gap:5px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.dkc b{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--acc-br)}
+.dkc u{text-decoration:none;font-size:10px;color:var(--dim)}
+.dkc .dgoal{margin-left:auto;font-size:10px;color:var(--dim)}
+.dkc .dgoal i{font-style:normal;font-weight:700;color:var(--dim)}
+.dkc .dgoal i.over{color:var(--sig)}
+.dkc .dgoal i.under{color:var(--pos)}
+/* 비율은 숫자 셋보다 길이 셋으로 봐야 한눈에 갈린다 */
+.dbar{display:flex;height:8px;margin:11px 0 10px;border-radius:999px;overflow:hidden;
+  background:rgba(var(--tx-rgb),.07)}
+.dbar i{display:block;height:100%}
+.dp{background:var(--acc-br)}
+.dc{background:rgba(var(--acc-rgb),.42)}
+.df{background:rgba(var(--tx-rgb),.28)}
+.dmac{display:flex;gap:10px}
+.dm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dm s{display:block;width:14px;height:3px;border-radius:999px;text-decoration:none}
+.dm em{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
+.dm b{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+.dm b u{text-decoration:none;font-size:9px;color:var(--dim);margin-left:1px}
+.dm span{font-family:var(--mono);font-size:10px;color:var(--mut);font-variant-numeric:tabular-nums}
+.dfoot{display:flex;align-items:baseline;gap:7px;margin-top:9px;padding:0 2px;
+  font-family:var(--mono);font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+.dfoot em{font-style:normal;font-weight:700;letter-spacing:.04em;color:var(--chrome)}
+.dfoot span{margin-left:auto;text-align:right}
+.dietnone{padding:14px;text-align:center;font-size:11px;color:var(--dim);
+  border:1px dashed var(--line);border-radius:var(--rad-card)}
+.dietask{width:100%;display:flex;align-items:center;gap:8px;padding:13px 14px;
+  background:var(--surf);border:var(--bw) solid rgba(var(--acc-rgb),.4);
+  border-radius:var(--rad-card);color:var(--mut);font-size:11px;font-weight:700;text-align:left}
+.dietask i{margin-left:auto;font-style:normal;font-weight:800;letter-spacing:.1em;
+  font-size:10px;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:4px 10px}
+.dietask:active{opacity:.7}
 .lmsec{background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.06);border-radius:var(--rad-m);padding:11px 13px 8px;margin-bottom:9px}
 .lmcap{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 8px}
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -960,39 +994,12 @@ html{color-scheme:dark}
 .strow .ai-bar{flex:1;margin:0}
 .strow .stv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--acc-br);min-width:18px;text-align:right}
 .strow .stsl{color:var(--dim);font-size:11px}
-.cthero{display:flex;align-items:flex-start;gap:14px;margin:4px 0 12px}
-.cthero .dd{font-family:var(--mono);font-size:36px;font-weight:800;color:var(--acc-br);letter-spacing:.01em;line-height:1}
-.cthero .dd.bad{color:var(--neg)}
-.cthero .cap{font-size:11px;color:var(--mut);line-height:1.5;padding-top:3px}
-.cthero .cap b{color:var(--tx);font-size:12px}
-.cttag{font-size:9px;font-weight:800;letter-spacing:.14em;padding:3px 8px;border-radius:2px;border:1px solid}
-.cttag.good{color:var(--chrome);border-color:rgba(var(--acc-rgb),.45)}
-.cttag.dim{color:var(--dim);border-color:var(--line)}
-.cttag.bad{color:var(--neg);border-color:rgba(var(--sig-rgb),.3)}
-.jwrap{margin:2px 0 10px}
-.jtop{display:flex;justify-content:space-between;align-items:baseline;font-size:9px;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
-.jtop b{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:0}
-.jtop .jpct{font-size:10px;color:var(--mut)}
-.jtop .jpct b{color:var(--acc-br)}
-.jbar{position:relative;height:7px;background:rgba(var(--tx-rgb),.08);border:0;border-radius:999px}
-.jbar b{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,var(--acc-dk),var(--acc-sf));box-shadow:0 0 6px rgba(214,177,85,.35)}
-.jbar i{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--acc-br);border:1.5px solid rgba(var(--tx-rgb),.07);box-shadow:0 0 5px rgba(227,185,90,.6)}
-.spark{display:block;width:100%;height:48px;margin:2px 0 0}
-.spark .wline{fill:none;stroke:var(--chrome);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.spark .goal{stroke:var(--acc-dk);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
-.spark .wdot{fill:var(--acc-br);stroke:rgba(var(--tx-rgb),.07);stroke-width:.6}
-.sparkcap{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;color:var(--dim);margin-top:3px}
 .ctrow{display:flex;gap:10px;align-items:baseline;margin:6px 0;color:var(--mut);font-size:11px}
 .ctrow .k{flex:0 0 40px;font-size:9px;font-weight:800;letter-spacing:.18em;color:var(--dim)}
 .ctrow .v{font-family:var(--mono);letter-spacing:.01em}
 .ctrow .v b{color:var(--acc-br)}
-/* 목표보다 많이 먹었으면 경고색, 적게 먹었으면 긍정색.
-   150kcal 안쪽은 계량 오차 범위라 색을 주지 않는다 */
-.ctrow .v u.hcover{text-decoration:none;color:var(--sig);font-weight:700}
-.ctrow .v u.hcunder{text-decoration:none;color:var(--pos);font-weight:700}
 .ctrow.hcask{cursor:pointer}
 .ctrow.hcask:active{opacity:.6}
-.ctrow .hcmac b{color:var(--mut)}
 .stpt{display:flex;align-items:center;gap:9px;margin:13px 0 4px;font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--chrome)}
 .stpt::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.35),var(--line) 40%,transparent)}
 .stpt:first-of-type{margin-top:7px}
@@ -3156,82 +3163,51 @@ function kcalWeek(back){
 /* 감량 현황 — 설정 손잡이가 아니라 읽는 값이라 분석탭에서 그린다.
    바로 위 kcalHtml() 이 소비를 주간 막대로 보여 주므로 섭취가 그 옆에 온다. */
 function cutHtml(){
-  return '<div class="lmsec"><div class="lmcap">DIET · 감량</div>'
-    +(function(){
-        var r=paceCalc(BW,BF,GF);
-        var td=dayTDEE(today());
-        var dfc=Math.round(WR*7700/7);
-        var intake=Math.max(0,td-dfc);
-        var dd,c1,c2,tone='';
-        if(r.done){dd='DONE';c1='목표 체지방 도달';c2='유지 구간';}
-        else if(!r.ok){dd='D-?';c1='도달일 계산 대기';c2='인바디 기록 2건부터 계산됨';}
-        else if(r.rate>=0){dd='D-?';c1='도달일 산출 불가';c2='';tone='bad';}
-        else{dd='D-'+r.days;c1=r.eta+' · '+fmtW(GF)+'% 도달 예상';c2='약 '+r.weeks+'주';}
-        var tagH='';
-        if(r.ok&&!r.done&&r.tag){
-          var tCls=(r.tag.indexOf('과속')>=0||r.tag.indexOf('증량')>=0)?'bad':(r.tag.indexOf('부족')>=0?'dim':'good');
-          tagH='<span class="cttag '+tCls+'">'+r.tag+'</span>';
-        }
-        var hh='<div class="cthero"><div class="dd'+(tone?' '+tone:'')+'">'+dd+'</div>'
-          +'<div class="cap"><b>'+c1+'</b>'+(c2?'<br>'+c2:'')+'</div>'
-          +(tagH?'<div style="margin-left:auto;align-self:center">'+tagH+'</div>':'')
-          +'</div>';
-        var a=bhLoad();
-        /* 여정 바: 시작 → 현재 → 목표 */
-        if(a.length>=1&&(r.tw<BW||r.done)){
-          var startW=a[0].w;
-          var span=startW-r.tw;
-          var pct=r.done?100:(span>0?Math.max(0,Math.min(100,Math.round((startW-BW)/span*100))):0);
-          var lost=Math.max(0,Math.round((startW-BW)*10)/10);
-          hh+='<div class="jwrap">'
-            +'<div class="jtop"><span>시작 <b>'+fmtW(startW)+'</b></span>'
-            +'<span class="jpct">'+(r.done?('완주 · <b>'+fmtW(lost)+'</b>kg 감량'):(pct+'% · <b>'+fmtW(r.remain)+'</b>kg 남음'))+'</span>'
-            +'<span>목표 <b>'+(r.done?'달성':fmtW(r.tw))+'</b></span></div>'
-            +'<div class="jbar"><b style="width:'+pct+'%"></b><i style="left:'+pct+'%"></i></div>'
-            +'</div>';
-        }
-        /* 체중 스파크라인 + 목표선 */
-        if(a.length>=2){
-          var pts=a.slice(-12),i2;
-          var ws=pts.map(function(x){return x.w;});
-          var lo=Math.min.apply(null,ws.concat([r.tw])),hi=Math.max.apply(null,ws);
-          var pad=(hi-lo)*0.12||0.5;lo-=pad;hi+=pad;
-          var W2=100,H2=30;
-          var xy=function(idx,wv){
-            var x=pts.length>1?idx/(pts.length-1)*W2:0;
-            var y=H2-((wv-lo)/(hi-lo))*H2;
-            return (Math.round(x*10)/10)+','+(Math.round(y*10)/10);
-          };
-          var pl='';
-          for(i2=0;i2<pts.length;i2++)pl+=(i2?' ':'')+xy(i2,pts[i2].w);
-          var gy=H2-((r.tw-lo)/(hi-lo))*H2;
-          var lastXY=xy(pts.length-1,pts[pts.length-1].w).split(',');
-          hh+='<svg class="spark" viewBox="0 0 '+W2+' '+H2+'" preserveAspectRatio="none">'
-            +(gy>=0&&gy<=H2?'<line x1="0" y1="'+Math.round(gy*10)/10+'" x2="'+W2+'" y2="'+Math.round(gy*10)/10+'" class="goal"/>':'')
-            +'<polyline points="'+pl+'" class="wline"/>'
-            +'<circle cx="'+lastXY[0]+'" cy="'+lastXY[1]+'" r="1.8" class="wdot"/>'
-            +'</svg>';
-          hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
-        }
-        hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
-        hh+='<div class="ctrow"><b class="k">목표</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
-        hh+=(function(){
-          /* 어제까지가 온전한 하루다. 오늘은 아직 저녁을 안 먹었을 수 있어
-             적다고 나오는 게 당연하므로 어제를 기준으로 보여 준다 */
-          var d=hcDay(hcYday()), st=hcState();
-          if(!d){
-            if(st==='ok')return '<div class="ctrow"><b class="k">실제</b><span class="v"><span class="none">어제 기록 없음</span></span></div>';
-            if(st==='perm')return '<div class="ctrow hcask" data-act="hcask"><b class="k">실제</b><span class="v">삼성헬스 섭취량 불러오기 <b>연결</b></span></div>';
-            return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
-          }
-          var gap=d.kcal-intake, sign=gap>0?'+':'';
-          return '<div class="ctrow"><b class="k">실제</b><span class="v"><b>'+d.kcal.toLocaleString()+'</b> kcal'
-            +' <u class="'+(Math.abs(gap)<=150?'':(gap>0?'hcover':'hcunder'))+'">'+sign+gap.toLocaleString()+'</u>'
-            +'</span></div>'
-            +'<div class="ctrow"><b class="k">어제</b><span class="v hcmac">단백 <b>'+d.p+'</b>g · 탄수 <b>'+d.c+'</b>g · 지방 <b>'+d.f+'</b>g</span></div>';
-        })();
-      return hh;
-    })()+'</div>';
+  var d=hcDay(hcYday()),st=hcState();
+  if(!d){
+    if(st==='perm')
+      return '<div class="lmsec"><div class="lmcap">DIET</div>'
+        +'<button class="dietask" data-act="hcask">삼성헬스 섭취량 불러오기<i>연결</i></button></div>';
+    if(st==='ok')
+      return '<div class="lmsec"><div class="lmcap">DIET</div>'
+        +'<div class="dietnone">어제 기록 없음</div></div>';
+    return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
+  }
+  var td=dayTDEE(today()),dfc=Math.round(WR*7700/7);
+  var goal=Math.max(0,td-dfc),gap=d.kcal-goal;
+  /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
+     그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
+  var pk=d.p*4,ck=d.c*4,fk=d.f*9,tot=pk+ck+fk;
+  var pp,cp,fp;
+  if(tot>0){pp=Math.round(pk/tot*100);cp=Math.round(ck/tot*100);fp=100-pp-cp;}
+  else{pp=cp=fp=0;}
+  var tone=Math.abs(gap)<=150?'':(gap>0?'over':'under');
+  var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
+  var h='<div class="lmsec"><div class="lmcap">DIET · 어제</div>';
+  h+='<div class="dietcard">';
+  h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
+    +'<span class="dgoal">목표 '+goal.toLocaleString()
+    +' <i class="'+tone+'">'+(gap>0?'+':'')+gap.toLocaleString()+'</i></span></div>';
+  if(tot>0){
+    h+='<div class="dbar">';
+    for(i=0;i<M.length;i++)if(M[i].p>0)h+='<i class="d'+M[i].c+'" style="width:'+M[i].p+'%"></i>';
+    h+='</div>';
+  }
+  h+='<div class="dmac">';
+  for(i=0;i<M.length;i++)
+    h+='<div class="dm"><s class="d'+M[i].c+'"></s><em>'+M[i].k+'</em>'
+      +'<b>'+M[i].p+'<u>%</u></b><span>'+M[i].g+'g</span></div>';
+  h+='</div></div>';   /* .dmac, .dietcard */
+  /* 감량 진행은 매일 볼 값이 아니라 한 줄로 줄인다. 체중 그래프와 큰 D-day
+     카드는 뺐다 — 자세한 진단은 ANALYSIS 의 감량 진단이 맡는다. */
+  var r=paceCalc(BW,BF,GF);
+  if(r.ok&&!r.done)
+    h+='<div class="dfoot"><em>D-'+r.days+'</em>'+r.eta+' · '+fmtW(GF)+'%'
+      +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
+  else if(r.done)
+    h+='<div class="dfoot"><em>DONE</em>목표 체지방 도달 · 유지 구간</div>';
+  h+='</div>';   /* .lmsec */
+  return h;
 }
 
 function kcalHtml(){
