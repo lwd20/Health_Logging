@@ -789,7 +789,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .dkc .dgoal i.over{color:var(--sig)}
 .dkc .dgoal i.under{color:var(--pos)}
 /* 비율은 숫자 셋보다 길이 셋으로 봐야 한눈에 갈린다 */
-.dbar{display:flex;height:8px;margin:11px 0 10px;border-radius:999px;overflow:hidden;
+.dsub{margin-top:3px;font-family:var(--mono);font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+.dbar{display:flex;height:8px;margin:9px 0 10px;border-radius:999px;overflow:hidden;
   background:rgba(var(--tx-rgb),.07)}
 .dbar i{display:block;height:100%}
 .dp{background:var(--acc-br)}
@@ -3162,25 +3163,28 @@ function cutHtml(){
     return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
   }
   /* dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다 — 오늘 운동을 하면
-     그만큼 오늘 TDEE 가 오르고 남은 여유도 같이 는다. */
+     그만큼 오늘 TDEE 가 오르고 먹을 수 있는 양도 같이 는다. */
   var td=dayTDEE(today());
-  var left=td-d.kcal;                      /* 남은 여유. 음수면 초과 */
-  var want=Math.round(WR*7700/7);          /* 하루 목표 적자 */
+  var want=Math.round(WR*7700/7);          /* 하루 감량분 — PACE 설정에서 나온다 */
+  var goal=Math.max(0,td-want);            /* 오늘 먹을 목표 */
+  var left=goal-d.kcal;                    /* 목표까지 남은 여유. 음수면 초과 */
   /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
      그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
   var pk=d.p*4,ck=d.c*4,fk=d.f*9,tot=pk+ck+fk;
   var pp,cp,fp;
   if(tot>0){pp=Math.round(pk/tot*100);cp=Math.round(ck/tot*100);fp=100-pp-cp;}
   else{pp=cp=fp=0;}
-  /* 하루를 이대로 마치면 목표 적자에 닿는가로 색을 가른다.
-     TDEE 를 넘겼으면 경고, 남은 것이 목표 적자 이상이면 긍정. */
-  var tone=left<0?'over':(left>=want?'under':'');
+  /* 감량분은 이미 목표에 반영돼 있으므로 넘겼는지만 보면 된다.
+     아침부터 초록을 켜 두면 신호가 아니라 배경이 된다. */
+  var tone=left<0?'over':'';
   var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
   var h='<div class="lmsec"><div class="lmcap">DIET · 오늘</div>';
   h+='<div class="dietcard">';
   h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
-    +'<span class="dgoal">TDEE '+td.toLocaleString()
+    +'<span class="dgoal">목표 '+goal.toLocaleString()
     +' <i class="'+tone+'">'+(left<0?'초과 '+Math.abs(left).toLocaleString():'남은 '+left.toLocaleString())+'</i></span></div>';
+  /* 목표가 어디서 나온 값인지 보이지 않으면 PACE 를 바꿔도 반영된 줄 모른다 */
+  h+='<div class="dsub">TDEE '+td.toLocaleString()+' \u2212 감량 '+want.toLocaleString()+'</div>';
   if(tot>0){
     h+='<div class="dbar">';
     for(i=0;i<M.length;i++)if(M[i].p>0)h+='<i class="d'+M[i].c+'" style="width:'+M[i].p+'%"></i>';
