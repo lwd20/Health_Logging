@@ -332,7 +332,6 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hsc.eat b.ov{color:var(--sig)}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
-.hsc i u.dfc{color:var(--sig)}
 .hnrg{flex:0 0 100%;display:grid;grid-template-columns:auto auto auto auto;justify-content:start;column-gap:8px;row-gap:3px;align-items:baseline;margin-top:6px;cursor:pointer}
 .hnrg:active{opacity:.65}
 .hnrg .k{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
@@ -1662,14 +1661,15 @@ function render(){
            '지금 얼마나 남았나' 이므로 그 자리를 남은 값이 갖는다.
            기록이 없으면 목표를 그대로 둔다 — 남은 값을 띄우면 아무것도 안
            먹었다고 단정하는 셈이다. */
-        var hd=hcDay(UI.wd),lf=hd?eat-hd.kcal:null;
+        /* 기록이 없으면 먹은 것이 0 이라 먹을 수 있는 양은 목표 그대로다.
+           예전에는 그때 라벨이 EAT 로 바뀌었는데, 같은 자리가 날짜에 따라
+           다른 것을 뜻하면 읽을 수 없다. 이름을 하나로 둔다. */
+        var hd=hcDay(UI.wd),lf=eat-(hd?hd.kcal:0);
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
-          +(lf===null
-            ? '<div class="hsc eat"><i>EAT <u class="dfc">−'+dfc.toLocaleString()+'</u></i><b>'+eat.toLocaleString()+'</b></div>'
-            : '<div class="hsc eat"><i>'+(lf<0?'초과 칼로리':'남은 칼로리')+'</i>'
-              +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>')
-          +'<div class="hsc"><i>하루 소비'+(ex>0?' <u>+'+ex.toLocaleString()+'</u>':'')+'</i><b>'+tot.toLocaleString()+'</b></div>'
+          +'<div class="hsc eat"><i>'+(lf<0?'초과':'먹을 수 있는')+'</i>'
+          +'<b'+(lf<0?' class="ov"':'')+'>'+Math.abs(lf).toLocaleString()+'</b></div>'
+          +'<div class="hsc"><i>하루 소비</i><b>'+tot.toLocaleString()+'</b></div>'
           +'</div>';
       })():'');
   /* 상태 줄은 상단에서 뺐다 — 같은 내용을 분석 탭 머리에서 보여 준다 */
@@ -4049,7 +4049,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 18:05';
+var BUILD='2026-09-04 18:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
