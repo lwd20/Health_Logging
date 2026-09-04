@@ -351,7 +351,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .setr .sv .rst+.vol::before{content:'·';margin-right:7px;color:var(--dim)}
 .setr .sv .vol{color:var(--dim)}
 .setr .sv .vol s{text-decoration:none;margin-left:2px;font-size:9px;color:var(--dim)}
-.dnav{padding:13px 14px;margin:-8px 0;color:var(--dim);font-size:13px}
+.dnav{padding:13px 15px;margin:-8px 0;color:var(--dim);font-size:13px}
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
 .dtxt{font-variant-numeric:tabular-nums;letter-spacing:.02em}
@@ -510,7 +510,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rr .rp{flex:0 0 44px;min-width:0;text-align:right;white-space:nowrap}
 .rr .rp .ago{font-style:normal;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.03em}
 .rr .none{flex:1;text-align:right}
-.fav{flex:0 0 auto;width:42px;height:46px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
+.fav{flex:0 0 auto;width:44px;height:46px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
 .fav.on{color:var(--chrome);opacity:1;text-shadow:0 0 8px rgba(var(--acc-rgb),.35)}
 .w{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .u{font-size:9px;color:var(--dim);margin-left:3px;letter-spacing:.06em}
@@ -1380,15 +1380,28 @@ function upsertSess(id,ds,copy){
 function topOf(s){var t=0;for(var i=0;i<s.length;i++)if((+s[i][0]||0)>(+t||0))t=s[i][0];return t;}
 /* 어시스트 머신 — 설정 무게만큼 체중을 덜어주므로 실부하는 체중에서 뺀 값임 */
 function isAssist(m){return !!(m&&m.as);}
-function effOf(m,w){
-  if(!isAssist(m))return +w||0;
-  var b=(BW>0?BW:70);
-  return Math.max(0,Math.round((b-(+w||0))*10)/10);
+/* 그 날짜에 가장 가까운 인바디 체중. 어시스트 유효무게는 체중이 기준이라
+   지금 체중으로 옛 기록을 다시 계산하면 감량 중에 같은 기록이 계속 가벼워진
+   것으로 바뀐다 — 80에서 75kg 이 되면 -12.6% 퇴행으로 찍힌다. */
+function bwOn(ds){
+  var fb=(BW>0?BW:70);
+  if(!ds)return fb;
+  var a=bhLoad();if(!a.length)return fb;
+  var best=null,bd=1e9,i,t=new Date(ds).getTime();
+  for(i=0;i<a.length;i++){
+    var d=Math.abs((new Date(a[i].d).getTime()-t)/86400000);
+    if(d<bd&&a[i].w>0){bd=d;best=a[i];}
+  }
+  return best?best.w:fb;
 }
-function effSets(m,s){
+function effOf(m,w,ds){
+  if(!isAssist(m))return +w||0;
+  return Math.max(0,Math.round((bwOn(ds)-(+w||0))*10)/10);
+}
+function effSets(m,s,ds){
   if(!isAssist(m)||!s)return s;
   var o=[],i;
-  for(i=0;i<s.length;i++){var c=s[i].slice();c[0]=effOf(m,c[0]);o.push(c);}
+  for(i=0;i<s.length;i++){var c=s[i].slice();c[0]=effOf(m,c[0],ds);o.push(c);}
   return o;
 }
 /* 표시용 대표 무게 — 어시스트는 보조가 적을수록 어려우므로 최솟값이 최고 기록임 */
@@ -1398,7 +1411,7 @@ function prOf(m,ds){
   var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
   var cur=null,best=0,bd='',i;
   for(i=0;i<a.length;i++){
-    var v=e1rmAvg(effSets(m,a[i].s));
+    var v=e1rmAvg(effSets(m,a[i].s,a[i].d));
     if(a[i].d===ds){cur=v;continue;}
     if(a[i].d<ds&&v>best){best=v;bd=a[i].d;}
   }
@@ -1829,7 +1842,7 @@ function rowHtml(m,noBadge){
           +(badC?' <i class="badv">확인</i>':'')+'</span>';
       }else{
         var lp=prevSess(m.i,la.d);
-        var gt=lp?gainTag(effSets(m,la.s),effSets(m,lp.s)):'';
+        var gt=lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d)):'';
         right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
@@ -1885,13 +1898,13 @@ function panelHtml(m){
     if(!cdRow){
       var ed=effSets(m,draft);
       var dv2=volOf(ed),de=e1rmAvg(ed);
-      var g2=past.length?e1rmGain(ed,effSets(m,past[0].s)):null;
+      var g2=past.length?e1rmGain(ed,effSets(m,past[0].s,past[0].d)):null;
       var ra=rirAvg(draft);
       statsHtml='<div class="stats" data-act="hgo" data-v="num">'
         +'<div class="stc"><b>'+dv2.toLocaleString()+'</b><i>VOLUME <u>kg</u></i></div>'
         +'<div class="stc"><b>'+fmtW(de)+(function(){
             var pb=0,pi;
-            for(pi=0;pi<past.length;pi++){var pv=e1rmAvg(effSets(m,past[pi].s));if(pv>pb)pb=pv;}
+            for(pi=0;pi<past.length;pi++){var pv=e1rmAvg(effSets(m,past[pi].s,past[pi].d));if(pv>pb)pb=pv;}
             return (pb>0&&de>pb)?'<em class="prm">PR</em>':'';
           })()+'</b><i class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">e1RM'
         +(g2?' <u>'+(g2.pct>0?'+':'')+g2.pct+'%</u>':'')+'</i></div>'
@@ -1948,7 +1961,7 @@ function panelHtml(m){
     h+='<div class="hist">';
     if(all.length>=2){
       var tops=[];
-      for(var s=all.length-1;s>=0;s--)tops.push(cdRow?topOf(all[s].s):e1rmAvg(effSets(m,all[s].s)));
+      for(var s=all.length-1;s>=0;s--)tops.push(cdRow?topOf(all[s].s):e1rmAvg(effSets(m,all[s].s,all[s].d)));
       if(tops.length>12)tops=tops.slice(tops.length-12);
       h+=spark(tops);
     }
@@ -3642,7 +3655,7 @@ function heroProg(onDate){
   function gapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
   /* 세션 전체(2~4세트) 평균 e1RM 성장률로 판정하며 ±0.5%는 노이즈로 봄 */
   var DB=0.5;
-  function gp(m,x,y){var r=e1rmGain(effSets(m,x.s),effSets(m,y.s));return r?r.pct:0;}
+  function gp(m,x,y){var r=e1rmGain(effSets(m,x.s,x.d),effSets(m,y.s,y.d));return r?r.pct:0;}
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
@@ -3658,7 +3671,7 @@ function heroProg(onDate){
       if(dnN.length<3)dnN.push(m.n);
       /* 어시스트 머신은 보조 무게라 숫자가 클수록 약하다. 원값을 쓰면
          '43.9→56.5kg 하락' 처럼 오르는 숫자에 하락이라 적힌다 */
-        if(!regName){regName=m.n;regTxt=fmtW(e1rmAvg(effSets(m,a[2].s)))+'→'+fmtW(e1rmAvg(effSets(m,a[0].s)))+'kg';}
+        if(!regName){regName=m.n;regTxt=fmtW(e1rmAvg(effSets(m,a[2].s,a[2].d)))+'→'+fmtW(e1rmAvg(effSets(m,a[0].s,a[0].d)))+'kg';}
     }else if(p01<=DB&&p12<=DB){stall++;if(stN.length<3)stN.push(m.n);}
   }
   return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN};
@@ -3671,7 +3684,7 @@ function deloadSignal(){
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
     if(a.length<3)continue;
     if(Math.round((new Date(a[0].d)-new Date(a[2].d))/86400000)>21)continue;
-    var g=e1rmGain(effSets(m,a[0].s),effSets(m,a[2].s));
+    var g=e1rmGain(effSets(m,a[0].s,a[0].d),effSets(m,a[2].s,a[2].d));
     if(!g||g.pct>0.5)continue;              /* 진전이 있으면 대상 아님 */
     var r0=rirAvg(a[0].s),r2=rirAvg(a[2].s);  /* RIR은 무게 무관 */
     if(r0===null||r2===null)continue;        /* RIR 미입력이면 판정 보류 */
@@ -3692,7 +3705,7 @@ function todaySum(){
       if(a[i].d!==td||!a[i].s.length)continue;
       ex++;sets+=a[i].s.length;
       parts[m.p]=(parts[m.p]||0)+a[i].s.length;
-      vol+=volOf(effSets(m,a[i].s));
+      vol+=volOf(effSets(m,a[i].s,a[i].d));
     }
   }
   return {ex:ex,sets:sets,vol:vol,parts:parts};
@@ -3767,6 +3780,10 @@ var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10
 var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'LEGS':[10,14,22,26],'ARMS·ETC':[8,12,18,22]};
 function lmRow(nm,cur,L){
   var mrv=Math.round(L[3]*0.8);
+  /* 감량 보정을 MRV 에만 걸고 존에는 안 걸면, 가슴 19~20세트가 'MAV 존 안'
+     이면서 동시에 '보정 MRV 초과' 가 된다. 존을 보정 MRV 에서 끊는다 —
+     감량 중에 넘지 말아야 할 선 너머까지 권장 구간으로 칠할 이유가 없다. */
+  var z1=Math.min(L[1],mrv),z2=Math.min(L[2],mrv);
   var mx=Math.max(mrv,L[2])*1.15||1;
   function px(v){return Math.min(100,Math.round(v*100/mx));}
   /* 표식이 막대 끝에 걸치면 절반이 밖으로 나가 테두리와 겹쳐 사라진 것처럼 보인다.
@@ -3776,8 +3793,8 @@ function lmRow(nm,cur,L){
   var out=cur>mx;
   return '<div class="lmrow"><span class="bn">'+nm+'</span>'
     +'<span class="lmg">'
-    +'<i class="zn" style="left:'+px(L[0])+'%;width:'+(px(L[1])-px(L[0]))+'%"></i>'
-    +'<i class="zn hi" style="left:'+px(L[1])+'%;width:'+(px(L[2])-px(L[1]))+'%"></i>'
+    +'<i class="zn" style="left:'+px(L[0])+'%;width:'+Math.max(0,px(z1)-px(L[0]))+'%"></i>'
+    +'<i class="zn hi" style="left:'+px(z1)+'%;width:'+Math.max(0,px(z2)-px(z1))+'%"></i>'
     +'<i class="mrv" style="left:'+px(mrv)+'%"></i>'
     +'<i class="cd'+(cur>mrv?' over':'')+(out?' out':'')+'" style="left:'+cp.toFixed(1)+'%"></i>'
     +'</span><span class="bv'+(cur>mrv?' over':'')+'">'+cur+'</span></div>';
@@ -4049,7 +4066,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 18:45';
+var BUILD='2026-09-04 19:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
