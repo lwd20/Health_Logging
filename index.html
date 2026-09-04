@@ -986,6 +986,13 @@ html{color-scheme:dark}
 .ctrow .k{flex:0 0 40px;font-size:9px;font-weight:800;letter-spacing:.18em;color:var(--dim)}
 .ctrow .v{font-family:var(--mono);letter-spacing:.01em}
 .ctrow .v b{color:var(--acc-br)}
+/* 목표보다 많이 먹었으면 경고색, 적게 먹었으면 긍정색.
+   150kcal 안쪽은 계량 오차 범위라 색을 주지 않는다 */
+.ctrow .v u.hcover{text-decoration:none;color:var(--sig);font-weight:700}
+.ctrow .v u.hcunder{text-decoration:none;color:var(--pos);font-weight:700}
+.ctrow.hcask{cursor:pointer}
+.ctrow.hcask:active{opacity:.6}
+.ctrow .hcmac b{color:var(--mut)}
 .stpt{display:flex;align-items:center;gap:9px;margin:13px 0 4px;font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--chrome)}
 .stpt::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.35),var(--line) 40%,transparent)}
 .stpt:first-of-type{margin-top:7px}
@@ -2473,7 +2480,22 @@ function renderSheet(){
           hh+='<div class="sparkcap"><span>'+pts[0].d.slice(5)+'</span><span>'+pts[pts.length-1].d.slice(5)+'</span></div>';
         }
         hh+='<div class="ctrow" style="margin-top:12px"><b class="k">페이스</b><span class="v">'+(r.ok?('실측 <b>'+(r.rate>0?'+':'')+r.rate+'</b> · '):'')+'목표 <b>-'+WR+'</b> kg/주</span></div>';
-        hh+='<div class="ctrow"><b class="k">섭취</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
+        hh+='<div class="ctrow"><b class="k">목표</b><span class="v"><b>'+intake.toLocaleString()+'</b> kcal · TDEE '+td.toLocaleString()+'</span></div>';
+        hh+=(function(){
+          /* 어제까지가 온전한 하루다. 오늘은 아직 저녁을 안 먹었을 수 있어
+             적다고 나오는 게 당연하므로 어제를 기준으로 보여 준다 */
+          var d=hcDay(hcYday()), st=hcState();
+          if(!d){
+            if(st==='ok')return '<div class="ctrow"><b class="k">실제</b><span class="v"><span class="none">어제 기록 없음</span></span></div>';
+            if(st==='perm')return '<div class="ctrow hcask" data-act="hcask"><b class="k">실제</b><span class="v">삼성헬스 섭취량 불러오기 <b>연결</b></span></div>';
+            return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
+          }
+          var gap=d.kcal-intake, sign=gap>0?'+':'';
+          return '<div class="ctrow"><b class="k">실제</b><span class="v"><b>'+d.kcal.toLocaleString()+'</b> kcal'
+            +' <u class="'+(Math.abs(gap)<=150?'':(gap>0?'hcover':'hcunder'))+'">'+sign+gap.toLocaleString()+'</u>'
+            +'</span></div>'
+            +'<div class="ctrow"><b class="k">어제</b><span class="v hcmac">단백 <b>'+d.p+'</b>g · 탄수 <b>'+d.c+'</b>g · 지방 <b>'+d.f+'</b>g</span></div>';
+        })();
         hh+='<div class="sh-l fold" data-act="ctog" style="margin-top:16px">Cut settings<i>'+(UI.cutOpen?'▾':'▸')+'</i></div>';
         if(UI.cutOpen){
           hh+='<div class="wtg">'
@@ -3926,6 +3948,33 @@ function aiDayTag(d){
 }
 /* 앱 내려받기 주소 — latest 태그를 계속 덮어쓰므로 바뀌지 않는다 */
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
+
+/* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
+   앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
+   먹은 양이 아니다. 삼성헬스에 적은 음식이 헬스 커넥트를 거쳐 들어온다.
+   래퍼 APK 안에서만 통로가 열리므로, 웹으로 열면 조용히 없는 셈 친다. */
+var HC=null;
+try{HC=JSON.parse(localStorage.getItem('tl_hc')||'null');}catch(e){}
+if(!HC||typeof HC!=='object')HC={days:{},at:0,why:''};
+
+function hcOn(){return typeof AndroidHealth!=='undefined';}
+function hcState(){try{return hcOn()?AndroidHealth.state():'web';}catch(e){return 'web';}}
+/* 하루치 섭취 — 기록이 없으면 null 이지 0 이 아니다.
+   0 을 돌려주면 '굶었다'로 읽혀 적자 계산이 통째로 어긋난다. */
+function hcDay(ds){var d=HC.days&&HC.days[ds];return d&&d.n>0?d:null;}
+/* 온전한 하루는 어제까지다 — 오늘은 아직 저녁을 안 먹었을 수 있다 */
+function hcYday(){var d=new Date();d.setDate(d.getDate()-1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function hcSave(){try{localStorage.setItem('tl_hc',JSON.stringify(HC));}catch(e){}}
+function hcPull(days){try{if(hcOn())AndroidHealth.pull(days||14);}catch(e){}}
+window.hcNative=function(r){
+  if(!r||!r.ok){HC.why=(r&&r.why)||'?';hcSave();return;}
+  HC.why='';HC.at=Date.now();
+  /* 통째로 갈아끼우지 않고 덮어쓴다 — 읽어 온 구간 밖의 과거를 잃지 않는다 */
+  for(var k in r.days)HC.days[k]=r.days[k];
+  hcSave();
+  if(UI.sheet||UI.tab==='diet')render();
+};
 var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
@@ -5197,6 +5246,7 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
+    case 'hcask':try{AndroidHealth.ask();}catch(e){}break;
     /* 용어를 마주친 자리에서 바로 설명으로 보낸다 */
     case 'hgo':UI.htab=v||'num';UI.sheet='help';render();break;
     case 'mu':moveMachine(UI.open,-1);break;
@@ -5695,6 +5745,9 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 aiBgPoll();
 tmrNativeSync();
+hcPull(14);
+/* 음식은 다른 앱에서 적고 돌아오는 게 보통이라 복귀 시에도 다시 읽는다 */
+addEventListener('visibilitychange',function(){if(!document.hidden)hcPull(3);});
 addEventListener('scroll',function(){
   var t=document.querySelector('.top');
   if(t)t.classList.toggle('lift',(window.scrollY||document.documentElement.scrollTop||0)>2);
