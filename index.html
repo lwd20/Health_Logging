@@ -192,22 +192,9 @@ i,em,u{font-style:normal;text-decoration:none}
 .kwd.fut .kbar{background:rgba(var(--tx-rgb),.025)}
 .kwd.rest .kbar{background:rgba(var(--tx-rgb),.03)}
 .kwd.rest u{opacity:.5}
-.kwl{margin-top:8px}
 /* 네 칸을 고정 폭으로 세워야 주끼리 세로로 비교된다.
    flex 로 두면 자릿수에 따라 열이 흔들려 눈이 매번 자리를 다시 찾는다. */
-.kwrow{position:relative;display:grid;grid-template-columns:42px 1fr auto auto;gap:9px;
-  align-items:baseline;padding:7px 2px;border-bottom:1px solid rgba(var(--tx-rgb),.06);
-  font-family:var(--mono);font-size:11px}
-.kwrow:last-child{border-bottom:0}
 /* 행 길이 자체가 그 주의 크기 — 숫자를 읽기 전에 흐름이 먼저 보인다 */
-.kwb{position:absolute;left:0;bottom:0;height:2px;background:rgba(var(--acc-rgb),.28);border-radius:1px}
-.kwrow.cur .kwb{background:var(--acc-sf)}
-.kwrow b{font-weight:700;color:var(--mut)}
-.kwt{color:var(--acc-br);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
-.kwt em{font-style:normal;font-size:9px;font-weight:700;color:var(--dim);margin-left:4px}
-.kwrow.cur b{color:var(--acc-br)}
-.kwe{color:var(--dim);white-space:nowrap;text-align:right}
-.kwa{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right;min-width:52px}
 .patsub{font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);margin:12px 2px 0}
 .patgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
 .psw{position:relative;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:none;text-align:left}
@@ -774,7 +761,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ai-mast .nav:disabled{opacity:.3}
 .hl{font-family:var(--mono);color:var(--acc-br);font-weight:700}
 .anlviz{padding:10px 1px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
-.lmrow{display:flex;align-items:center;gap:8px;margin:8px 0;font-family:var(--mono)}
+/* 다섯 줄이 위아래 8px 씩 벌어져 카드가 필요 이상으로 높았다 */
+.lmrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-family:var(--mono)}
 .lmrow .bn{flex:0 0 52px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
 .lmrow .bv{flex:0 0 auto;font-size:11px;color:var(--acc-br);font-variant-numeric:tabular-nums;min-width:18px;text-align:right}
 .lmg{flex:1;height:8px;background:rgba(var(--tx-rgb),.07);border-radius:2px;position:relative;overflow:visible}
@@ -826,14 +814,14 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .dietask i{margin-left:auto;font-style:normal;font-weight:800;letter-spacing:.1em;
   font-size:10px;color:var(--on-acc);background:var(--acc-sf);border-radius:999px;padding:4px 10px}
 .dietask:active{opacity:.7}
-.lmsec{background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.06);border-radius:var(--rad-m);padding:11px 13px 8px;margin-bottom:9px}
-.lmcap{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 8px}
+.lmsec{background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.06);border-radius:var(--rad-m);padding:10px 13px 6px;margin-bottom:9px}
+.lmcap{display:flex;align-items:center;gap:8px;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--chrome);opacity:.8;margin:0 0 6px}
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:13px 3px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
 .bhd::after{content:'';flex:1;height:1px;background:var(--line);opacity:.7}
 /* 범례를 누르면 뜻을 설명한 도움말이 열린다 */
-.lmlg{display:flex;gap:12px;align-items:center;margin:0 -4px;padding:12px 4px 10px;font-family:var(--mono);font-size:9px;color:var(--dim);cursor:pointer}
+.lmlg{display:flex;gap:12px;align-items:center;margin:0 -4px;padding:9px 4px 7px;font-family:var(--mono);font-size:9px;color:var(--dim);cursor:pointer}
 .lmlg:active{opacity:.6}
 .lmq{margin-left:auto;font-style:normal;font-weight:800;width:15px;height:15px;border-radius:50%;
   border:1px solid rgba(var(--tx-rgb),.2);display:flex;align-items:center;justify-content:center;
@@ -3173,21 +3161,26 @@ function cutHtml(){
         +'<div class="dietnone">어제 기록 없음</div></div>';
     return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
   }
-  var td=dayTDEE(today()),dfc=Math.round(WR*7700/7);
-  var goal=Math.max(0,td-dfc),gap=d.kcal-goal;
+  /* 어제 먹은 양은 어제의 TDEE 와 맞대야 한다. today() 를 넣으면
+     운동한 어제를 운동 안 한 오늘의 기초대사와 견주게 된다.
+     dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다. */
+  var yd=hcYday(),td=dayTDEE(yd);
+  var gap=d.kcal-td;                       /* 음수면 적자 */
+  var want=Math.round(WR*7700/7);          /* 목표 적자 */
   /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
      그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
   var pk=d.p*4,ck=d.c*4,fk=d.f*9,tot=pk+ck+fk;
   var pp,cp,fp;
   if(tot>0){pp=Math.round(pk/tot*100);cp=Math.round(ck/tot*100);fp=100-pp-cp;}
   else{pp=cp=fp=0;}
-  var tone=Math.abs(gap)<=150?'':(gap>0?'over':'under');
+  /* 적자가 목표에 닿았으면 긍정, 남는 열량이 있으면 경고 */
+  var tone=gap>0?'over':(-gap>=want?'under':'');
   var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
   var h='<div class="lmsec"><div class="lmcap">DIET · 어제</div>';
   h+='<div class="dietcard">';
   h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
-    +'<span class="dgoal">목표 '+goal.toLocaleString()
-    +' <i class="'+tone+'">'+(gap>0?'+':'')+gap.toLocaleString()+'</i></span></div>';
+    +'<span class="dgoal">TDEE '+td.toLocaleString()
+    +' <i class="'+tone+'">'+(gap>0?'+'+gap.toLocaleString():'\u2212'+Math.abs(gap).toLocaleString())+'</i></span></div>';
   if(tot>0){
     h+='<div class="dbar">';
     for(i=0;i<M.length;i++)if(M[i].p>0)h+='<i class="d'+M[i].c+'" style="width:'+M[i].p+'%"></i>';
@@ -3239,34 +3232,8 @@ function kcalHtml(){
   h+='</div>';
   h+='<div class="ctrow"><b class="k">주 합계</b><span class="v"><b>'+w.ex.toLocaleString()+'</b> kcal'
     +(dn?' · 운동 <b>'+dn+'</b>일 · 하루 <b>'+Math.round(w.ex/dn).toLocaleString()+'</b>':'')+'</span></div>';
-  /* 주 단위 흐름은 하루 편차에 안 흔들린다 */
-  var wks=[],k,j;
-  for(k=0;k<4;k++){
-    var pw=kcalWeek(k);
-    /* 운동이 아예 없는 주는 앱을 쓰기 전이라는 뜻이라 0 만 늘어놓게 된다 */
-    if(!pw||!pw.n||!pw.ex)continue;
-    var pd=0;
-    for(j=0;j<pw.days.length;j++)if(!pw.days[j].future&&pw.days[j].ex>0)pd++;
-    wks.push({w:pw,d:pd,cur:k===0});
-  }
-  /* 숫자만 넷씩 늘어놓으면 어느 주가 많았는지 읽어야 알 수 있다.
-     행마다 길이를 주면 훑는 것만으로 흐름이 보인다. */
-  var wmx=1;
-  for(k=0;k<wks.length;k++)if(wks[k].w.ex>wmx)wmx=wks[k].w.ex;
-  var rows='';
-  for(k=0;k<wks.length;k++){
-    var x=wks[k],px=Math.max(3,Math.round(x.w.ex*100/wmx));
-    rows+='<div class="kwrow'+(x.cur?' cur':'')+'">'
-      +'<i class="kwb" style="width:'+px+'%"></i>'
-      +'<b>'+x.w.mon.slice(5).replace('-','/')+'</b>'
-      +'<span class="kwt">'+x.w.ex.toLocaleString()+(x.w.n<7?'<em>'+x.w.n+'일차</em>':'')+'</span>'
-      +'<span class="kwe">'+x.d+'일</span>'
-      +'<span class="kwa">'+(x.d?Math.round(x.w.ex/x.d).toLocaleString():0)+'/일</span></div>';
-  }
-  if(rows)h+='<div class="lmcap" style="margin-top:14px">최근 4주</div><div class="kwl">'+rows+'</div>';
-  h+='<div class="note">운동으로 더 쓴 몫만 표시함. 기초대사와 일상 활동('
-    +Math.round(w.base).toLocaleString()+' kcal/일, 활동계수 '+ACT+')은 매일 같으므로 뺐음.'
-    +(flat?' 이번 주 운동 기록이 아직 없음.':'')+'</div>';
+  /* 최근 4주 표와 설명 문장은 뺐다 — 이번 주만 보면 되고,
+     기초대사를 왜 뺐는지는 도움말이 설명한다 */
   return h+'</div>';
 }
 
