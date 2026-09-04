@@ -1649,7 +1649,7 @@ function render(){
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">기록 없음</em>');
+    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">운동 없음</em>');
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
@@ -3219,7 +3219,7 @@ function cutHtml(){
         +'<button class="dietask" data-act="hcask">삼성헬스 섭취량 불러오기<i>연결</i></button></div>';
     if(st==='ok')
       return '<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>'
-        +'<div class="dietnone">'+dLbl+' 기록 없음</div></div>';
+        +'<div class="dietnone">'+dLbl+' 섭취 기록 없음</div></div>';
     return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
   }
   /* dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다 — 오늘 운동을 하면
@@ -4032,7 +4032,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 16:40';
+var BUILD='2026-09-04 17:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4510,7 +4510,7 @@ function widgetSync(){
       for(i=0;i<cand.length&&next.length<3;i++){
         var cc=cand[i];
         next.push([WCODE[cc.p]||cc.p,
-          (cc.d>=99?'기록 없음':cc.d+'일 안 함')+' \u00b7 '+cc.s+'/'+cc.t+'세트']);
+          (cc.d>=99?'한 적 없음':cc.d+'일 안 함')+' \u00b7 '+cc.s+'/'+cc.t+'세트']);
       }
     }catch(e4){}
 
