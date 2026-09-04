@@ -3374,14 +3374,23 @@ function bhDel(dd){
   var a=bhLoad().filter(function(x){return x.d!==dd;});
   bhSave(a);
 }
+/* 지금 체중은 '마지막으로 잰 것' 이다. 예전에는 기록 날짜가 오늘일 때만
+   갱신해서, 어제 잰 것을 넣거나 날짜를 뒤로 적으면 체중이 기본값 78 에
+   머물렀다. 체중은 기초대사부터 단백질 목표까지 전부의 밑바탕이라
+   하나 어긋나면 다 어긋난다. */
+function bhSync(){
+  var a=bhLoad();
+  if(!a.length)return;
+  var last=a[a.length-1];
+  if(!(last&&last.w>0&&last.f>0))return;
+  BW=Math.round(last.w*10)/10;BF=Math.round(last.f*10)/10;
+  if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e){}}
+}
 function bhCommit(dd,w2,f2,m2){
   if(!(w2>=30&&w2<=200)||!(f2>=3&&f2<=60))return false;
   if(!dd||!/^\d{4}-\d{2}-\d{2}$/.test(dd)||dd>today())dd=today();
   bhAdd(dd,Math.round(w2*10)/10,Math.round(f2*10)/10,(m2>=10&&m2<=60)?Math.round(m2*10)/10:0);
-  if(dd===today()){
-    BW=Math.round(w2*10)/10;BF=Math.round(f2*10)/10;
-    if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e9){}}
-  }
+  bhSync();
   return dd;
 }
 function paceCalc(bw,bf,gf){
@@ -4090,7 +4099,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 21:05';
+var BUILD='2026-09-04 21:25';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5802,7 +5811,7 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'bhd':
-      bhDel(v);toast('<em>Deleted</em> '+v);render();break;
+      bhDel(v);bhSync();toast('<em>Deleted</em> '+v);render();break;
     case 'bhoc':
       (function(){
         if(!KS.gem&&!KS.oai&&!KS.ant){toast('<em>API key</em> 필요 — 설정에서 등록');return;}
@@ -6005,6 +6014,8 @@ function syncBtns(){
 }
 
 ensureCardio();
+/* 저장된 체중이 인바디 최신 기록과 어긋나 있을 수 있다 — 켤 때 맞춘다 */
+try{bhSync();}catch(eBS){}
 appReady=true;
 var restored=mirrorRestore();
 demoSeed();
