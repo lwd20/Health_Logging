@@ -2517,8 +2517,9 @@ function renderSheet(){
           +'<div style="flex:1"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
           +'</div>'
           +'<div class="wtg" style="margin-top:8px">'
-          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="77.8"></div>'
-          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="20"></div>'
+          /* 힌트가 고정 숫자면 옆의 실제 기록과 어긋나 보인다 — 지금 값을 비춘다 */
+          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="'+fmtW(BW)+'"></div>'
+          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="'+fmtW(BF)+'"></div>'
           +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
           +'</div>'
           +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
@@ -4099,7 +4100,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-04 21:25';
+var BUILD='2026-09-04 21:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
