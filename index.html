@@ -465,6 +465,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 배경을 깔면 --sig 가 밀려 올라가 5개 팔레트에서 4.5 아래로 떨어졌다(최저 3.87).
    평소 배지와 같은 모양에 색만 바꾼다 — 이미 검증된 조합이다. */
 .dfoot em.warn{color:var(--sig);letter-spacing:0}
+/* 값이 실측이 아닐 때 — 숫자를 그냥 보여 주면 실측인 줄 안다 */
+.note b.warn{color:var(--sig)}
 .dnav{padding:13px 15px;margin:-8px 0;color:var(--dim);font-size:13px}
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
@@ -1721,6 +1723,9 @@ function isAssist(m){return !!(m&&m.as);}
 function bwOn(ds){
   var fb=(BW>0?BW:70);
   if(!ds)return fb;
+  /* 매일 재는 체중이 있으면 그 무렵 7일 평균이 인바디보다 그날에 가깝다 */
+  var sw=swAvg(ds,7);
+  if(sw>0)return sw;
   var a=bhLoad();if(!a.length)return fb;
   var best=null,bd=1e9,i,t=new Date(ds).getTime();
   for(i=0;i<a.length;i++){
@@ -3789,12 +3794,21 @@ function bhDel(dd){
    갱신해서, 어제 잰 것을 넣거나 날짜를 뒤로 적으면 체중이 기본값 78 에
    머물렀다. 체중은 기초대사부터 단백질 목표까지 전부의 밑바탕이라
    하나 어긋나면 다 어긋난다. */
+/* 체중이 어디서 왔는지. 체지방은 체중계가 못 재므로 늘 인바디를 따른다.
+   체중은 더 최근에 잰 쪽을 쓴다 — 인바디는 한 달에 한 번이고 체중계는 매일이다. */
+function bwSrc(){
+  var a=bhLoad(),ib=a.length?a[a.length-1]:null;
+  var sd=swLast(),sw=sd?swAvg(sd,7):0;
+  if(sw>0&&(!ib||sd>=ib.d))return {w:sw,f:ib?ib.f:0,src:'scale',d:sd,n:ib?ib.w:0};
+  if(ib&&ib.w>0)return {w:Math.round(ib.w*10)/10,f:ib.f,src:'inbody',d:ib.d,n:sw};
+  if(sw>0)return {w:sw,f:0,src:'scale',d:sd,n:0};
+  return null;
+}
 function bhSync(){
-  var a=bhLoad();
-  if(!a.length)return;
-  var last=a[a.length-1];
-  if(!(last&&last.w>0&&last.f>0))return;
-  BW=Math.round(last.w*10)/10;BF=Math.round(last.f*10)/10;
+  var r=bwSrc();
+  if(!r||!(r.w>0))return;
+  BW=r.w;
+  if(r.f>0)BF=Math.round(r.f*10)/10;
   if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e){}}
 }
 function bhCommit(dd,w2,f2,m2){
@@ -3851,7 +3865,19 @@ function bodyLine(bw,bf,gf,hrm,act){
   if(!(bw>0&&bf>0))return 'Zone2 '+z1+'–'+z2+' bpm';
   var fat=bw*bf/100,lbm=bw-fat;
   var out='제지방 <b>'+lbm.toFixed(1)+'</b>kg · 기초 <b>'+(bmr(bw,bf)||0).toLocaleString()+'</b> × '+act+' = <b>'+Math.round((bmr(bw,bf)||0)*act).toLocaleString()+'</b> kcal';
-  out+='<br>체중·체지방은 인바디 기록에서 자동 반영됨';
+  /* 어디서 온 값인지 밝힌다 — 인바디가 없으면 체지방은 기본값 20% 이고,
+     그걸 실측처럼 보여 주면 하루 소비가 남의 숫자로 나오는 것을 모른다 */
+  var sc=bwSrc();
+  if(sc&&sc.src==='scale')
+    out+='<br>체중 <b>'+sc.w+'</b>kg — 체중계 7일 평균 (최근 '+md(sc.d)+')'
+      +(sc.f>0?' · 체지방은 인바디':' · <b class="warn">체지방은 기본값</b> — 인바디를 넣으면 실측으로 바뀜');
+  else if(sc&&sc.src==='inbody')
+    out+='<br>체중·체지방은 인바디 기록에서 자동 반영됨'
+      +(sc.n>0?' (체중계 '+sc.n+'kg 은 더 오래됨)':'');
+  else
+    out+='<br><b class="warn">인바디도 체중계 기록도 없음</b> — 기본값 '+BW+'kg / '+BF+'% 로 계산 중';
+  if(HC.wp===false&&hcOn())
+    out+='<br>체중 읽기 권한이 꺼져 있음 — 삼성헬스 체중을 쓰려면 허용 필요';
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -4569,7 +4595,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 10:00';
+var BUILD='2026-09-06 12:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4585,6 +4611,43 @@ function hcState(){try{return hcOn()?AndroidHealth.state():'web';}catch(e){retur
 /* 하루치 섭취 — 기록이 없으면 null 이지 0 이 아니다.
    0 을 돌려주면 '굶었다'로 읽혀 적자 계산이 통째로 어긋난다. */
 function hcDay(ds){var d=HC.days&&HC.days[ds];return d&&d.n>0?d:null;}
+/* 그날의 대표 체중. 하루에 여러 번 잰 값이 [분, kg] 로 들어오는데
+   아침 공복(04~10시) 첫 값이 가장 덜 흔들린다. 그 창에 없으면 그날 첫 값. */
+function swDay(ds){
+  var a=HC.w&&HC.w[ds];
+  if(!a||!a.length)return 0;
+  var best=null,i;
+  for(i=0;i<a.length;i++){
+    var mn=+a[i][0],kg=+a[i][1];
+    if(!(kg>0))continue;
+    if(mn>=240&&mn<=600){if(!best||mn<best[0])best=[mn,kg];}
+  }
+  if(best)return best[1];
+  for(i=0;i<a.length;i++){var m2=+a[i][0],k2=+a[i][1];
+    if(k2>0&&(!best||m2<best[0]))best=[m2,k2];}
+  return best?best[1]:0;
+}
+/* 하루 단위로는 1~2kg 씩 출렁이고 그 폭이 주간 점증 폭보다 크다. 그대로 쓰면
+   어시스트 진전·정체 판정이 '아침에 뭘 입었는지' 에 반응한다 — 7일로 누른다. */
+function swAvg(ds,n){
+  if(!HC.w)return 0;
+  n=n||7;
+  var t=new Date(ds||today()),sum=0,c=0,i;
+  for(i=0;i<n;i++){
+    var d=new Date(t);d.setDate(t.getDate()-i);
+    var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var w=swDay(k);
+    if(w>0){sum+=w;c++;}
+  }
+  return c?Math.round(sum/c*10)/10:0;
+}
+/* 가장 최근에 잰 날 */
+function swLast(){
+  if(!HC.w)return '';
+  var last='',k;
+  for(k in HC.w)if(swDay(k)>0&&k>last)last=k;
+  return last;
+}
 function hcSave(){try{localStorage.setItem('tl_hc',JSON.stringify(HC));}catch(e){}}
 function hcPull(days){try{if(hcOn())AndroidHealth.pull(days||14);}catch(e){}}
 window.hcNative=function(r){
@@ -4593,7 +4656,13 @@ window.hcNative=function(r){
   /* 통째로 갈아끼우지 않고 덮어쓴다 — 읽어 온 구간 밖의 과거를 잃지 않는다.
      끼니별(meals)은 새 APK 부터 들어온다 — 없으면 그냥 없는 채로 둔다 */
   for(var k in r.days)HC.days[k]=r.days[k];
+  /* 체중은 새 APK 부터 들어온다 — 없으면 그냥 없는 채로 둔다.
+     권한을 따로 거부했는지도 받아 둬야 '권한 없음' 과 '기록 없음' 이 갈린다 */
+  if(r.w){HC.w=HC.w||{};for(var k2 in r.w)HC.w[k2]=r.w[k2];}
+  try{HC.wp=(typeof AndroidHealth!=='undefined'&&AndroidHealth.canWeight)?!!AndroidHealth.canWeight():false;}catch(eW){}
   hcSave();
+  /* 체중이 바뀌면 기초대사부터 단백질 목표까지 전부 따라간다 */
+  try{bhSync();}catch(eS){}
   if(UI.sheet||UI.tab==='diet')render();
 };
 var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
