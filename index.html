@@ -200,13 +200,73 @@ i,em,u{font-style:normal;text-decoration:none}
 
 /* ── 헤더: 장비 네임플레이트 ── */
 :root[data-tech="bevel"]{
-  --rad-s:4px;--rad-m:6px;--rad-l:12px;--bw:0px;--elev:inset 2px 0 0 rgba(255,255,255,.07),inset -2px 0 0 rgba(0,0,0,.45),4px 0 0 -1px rgba(0,0,0,.42),11px 2px 18px -10px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 2px 0 0 rgba(255,255,255,.09),inset -2px 0 0 rgba(0,0,0,.4),3px 0 0 -1px rgba(0,0,0,.45);--blur:none;--rad-card:6px;--elev-p:3px 0 0 -1px rgba(0,0,0,.35),9px 2px 16px -9px rgba(0,0,0,.42);
+  --rad-s:4px;--rad-m:6px;--rad-l:12px;--bw:0px;--elev:inset 2px 0 0 rgba(255,255,255,.07),inset -2px 0 0 rgba(0,0,0,.45),4px 0 0 -1px rgba(0,0,0,.42),6px 2px 18px -10px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 2px 0 0 rgba(255,255,255,.09),inset -2px 0 0 rgba(0,0,0,.4),3px 0 0 -1px rgba(0,0,0,.45);--blur:none;--rad-card:6px;--elev-p:3px 0 0 -1px rgba(0,0,0,.35),6px 2px 16px -9px rgba(0,0,0,.42);
 }
 :root[data-tech="frame"]{
   --rad-s:6px;--rad-m:8px;--rad-l:14px;--bw:0px;--elev:0 0 0 1px rgba(var(--tx-rgb),.16),0 0 0 4px var(--bg),0 0 0 5px rgba(var(--tx-rgb),.10),0 10px 24px -14px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 1px rgba(var(--tx-rgb),.2),0 0 0 3px var(--bg),0 0 0 4px rgba(var(--tx-rgb),.14);--blur:none;--rad-card:8px;--elev-p:0 0 0 1px rgba(var(--tx-rgb),.14),0 0 0 3px var(--bg),0 0 0 4px rgba(var(--tx-rgb),.09),0 8px 20px -12px rgba(0,0,0,.4);
 }
 :root[data-tech="tag"]{
   --rad-s:2px 13px 2px 13px;--rad-m:3px 17px 3px 17px;--rad-l:20px;--bw:1px;--elev:0 2px 4px rgba(0,0,0,.32),0 12px 22px -10px rgba(0,0,0,.44);--elev2:inset 0 1px 0 rgba(255,255,255,.2),0 2px 4px rgba(0,0,0,.42);--blur:none;--rad-card:3px 20px 3px 20px;--elev-p:0 4px 12px rgba(0,0,0,.28);
+}
+:root[data-tech="uplit"]{
+  --rad-s:11px;--rad-m:14px;--rad-l:20px;--rad-card:14px;--bw:1px;--blur:none;--elev:inset 0 -1px 0 rgba(var(--tx-rgb),.20),inset 0 8px 12px -10px rgba(0,0,0,.5),0 -2px 6px -2px rgba(0,0,0,.32),0 7px 16px -10px rgba(var(--tx-rgb),.16);--elev2:inset 0 -1px 0 rgba(var(--tx-rgb),.26),inset 0 6px 10px -8px rgba(0,0,0,.42),0 -2px 5px -2px rgba(0,0,0,.36);--elev-p:inset 0 -1px 0 rgba(var(--tx-rgb),.16),0 -3px 10px -4px rgba(0,0,0,.3),0 6px 14px -10px rgba(var(--tx-rgb),.12);
+}
+:root[data-tech="backlit"]{
+  --rad-s:12px;--rad-m:16px;--rad-l:22px;--rad-card:18px;--bw:0px;--blur:none;--elev:inset 0 0 18px -7px rgba(0,0,0,.45),0 0 0 1px rgba(var(--tx-rgb),.07),0 0 24px 2px rgba(var(--tx-rgb),.09),0 4px 12px -6px rgba(0,0,0,.4);--elev2:inset 0 0 14px -7px rgba(0,0,0,.4),0 0 0 1px rgba(var(--tx-rgb),.10),0 0 16px 1px rgba(var(--tx-rgb),.12);--elev-p:inset 0 0 16px -7px rgba(0,0,0,.38),0 0 20px 2px rgba(var(--tx-rgb),.08);
+}
+:root[data-tech="flash"]{
+  --rad-s:9px;--rad-m:11px;--rad-l:16px;--rad-card:11px;--bw:0px;--blur:none;--elev:inset 0 0 0 1px rgba(var(--tx-rgb),.15),0 0 3px rgba(0,0,0,.3);--elev2:inset 0 0 0 1px rgba(var(--tx-rgb),.24),0 0 3px rgba(0,0,0,.34);--elev-p:inset 0 0 0 1px rgba(var(--tx-rgb),.13),0 0 4px rgba(0,0,0,.26);
+}
+:root[data-tech="duo"]{
+  --rad-s:12px;--rad-m:15px;--rad-l:21px;--rad-card:15px;--bw:0px;--blur:none;--elev:inset 1px 1px 0 rgba(var(--tx-rgb),.18),inset -1px -1px 0 rgba(var(--tx-rgb),.09),4px -3px 10px -7px rgba(0,0,0,.4),-4px 5px 14px -8px rgba(0,0,0,.48);--elev2:inset 1px 1px 0 rgba(var(--tx-rgb),.24),inset -1px -1px 0 rgba(var(--tx-rgb),.12),3px -2px 7px -6px rgba(0,0,0,.38),-3px 4px 10px -6px rgba(0,0,0,.44);--elev-p:inset 1px 1px 0 rgba(var(--tx-rgb),.14),inset -1px -1px 0 rgba(var(--tx-rgb),.07),-3px 4px 12px -8px rgba(0,0,0,.4);
+}
+:root[data-tech="rake"]{
+  --rad-s:8px;--rad-m:10px;--rad-l:16px;--rad-card:10px;--bw:0px;--blur:none;--elev:inset -1px 0 0 rgba(var(--tx-rgb),.2),inset 1px 0 0 rgba(0,0,0,.38),-5px 3px 14px -8px rgba(0,0,0,.48),-2px 1px 3px rgba(0,0,0,.26);--elev2:inset -1px 0 0 rgba(var(--tx-rgb),.26),inset 1px 0 0 rgba(0,0,0,.4),-4px 2px 8px -5px rgba(0,0,0,.44);--elev-p:inset -1px 0 0 rgba(var(--tx-rgb),.16),-4px 3px 12px -7px rgba(0,0,0,.4);
+}
+:root[data-tech="staple"]{
+  --rad-s:0 10px 10px 10px;--rad-m:0 13px 13px 13px;--rad-l:16px;--rad-card:0 15px 15px 15px;--bw:1px;--blur:none;--elev:1px 1px 0 rgba(0,0,0,.2),3px 4px 6px -3px rgba(0,0,0,.36),5px 8px 16px -8px rgba(0,0,0,.42);--elev2:inset 0 1px 0 rgba(255,255,255,.2),1px 1px 0 rgba(0,0,0,.3),3px 4px 7px -3px rgba(0,0,0,.42);--elev-p:2px 3px 5px -2px rgba(0,0,0,.3),5px 8px 16px -8px rgba(0,0,0,.38);
+}
+:root[data-tech="dogear"]{
+  --rad-s:2px 11px 2px 2px;--rad-m:3px 14px 3px 3px;--rad-l:15px;--rad-card:3px 16px 3px 3px;--bw:1px;--blur:none;--elev:inset -1px 1px 0 rgba(0,0,0,.3),inset 1px -1px 0 var(--hi-soft),0 2px 3px rgba(0,0,0,.3),0 7px 13px -7px rgba(0,0,0,.4);--elev2:inset 0 1px 0 rgba(255,255,255,.2),inset -1px 0 0 rgba(0,0,0,.28),0 2px 3px rgba(0,0,0,.4);--elev-p:inset -1px 1px 0 rgba(0,0,0,.25),0 5px 12px -5px rgba(0,0,0,.35);
+}
+:root[data-tech="idxtab"]{
+  --rad-s:9px 9px 1px 1px;--rad-m:12px 12px 2px 2px;--rad-l:18px;--rad-card:14px 14px 2px 2px;--bw:1px;--blur:none;--elev:inset 0 3px 0 -1px rgba(var(--acc-rgb),.4),0 1px 0 rgba(var(--tx-rgb),.09),0 5px 9px -5px rgba(0,0,0,.4);--elev2:inset 0 1px 0 rgba(255,255,255,.2),inset 0 4px 0 -2px rgba(var(--acc-rgb),.45),0 2px 3px rgba(0,0,0,.38);--elev-p:inset 0 3px 0 -1px rgba(var(--acc-rgb),.32),0 5px 12px -5px rgba(0,0,0,.35);
+}
+:root[data-tech="receipt"]{
+  --rad-s:2px;--rad-m:2px;--rad-l:6px;--rad-card:2px;--bw:0px;--blur:none;--elev:0 1px 0 rgba(var(--tx-rgb),.12),0 1px 2px rgba(0,0,0,.28),0 6px 7px -6px rgba(0,0,0,.34);--elev2:inset 0 1px 0 rgba(255,255,255,.18),0 1px 1px rgba(0,0,0,.36),0 4px 5px -4px rgba(0,0,0,.4);--elev-p:0 1px 2px rgba(0,0,0,.26),0 5px 7px -5px rgba(0,0,0,.32);
+}
+:root[data-tech="bind"]{
+  --rad-s:1px 10px 10px 1px;--rad-m:2px 13px 13px 2px;--rad-l:14px;--rad-card:2px 16px 16px 2px;--bw:1px;--blur:none;--elev:inset 5px 0 0 -4px rgba(var(--tx-rgb),.15),inset 5px 0 6px -5px rgba(0,0,0,.45),0 2px 3px rgba(0,0,0,.28),0 8px 15px -8px rgba(0,0,0,.4);--elev2:inset 0 1px 0 rgba(255,255,255,.2),inset 4px 0 0 -3px rgba(var(--tx-rgb),.14),0 2px 3px rgba(0,0,0,.4);--elev-p:inset 5px 0 0 -4px rgba(var(--tx-rgb),.13),0 6px 14px -6px rgba(0,0,0,.35);
+}
+:root[data-tech="anod"]{
+  --rad-s:999px;--rad-m:6px;--rad-l:12px;--rad-card:6px;--bw:1px;--blur:none;--elev:inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px rgba(var(--acc-rgb),.1),0 1px 2px rgba(0,0,0,.3);--elev2:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.35);--elev-p:inset 0 0 0 1px rgba(var(--acc-rgb),.12),0 4px 12px -4px rgba(0,0,0,.32);
+}
+:root[data-tech="cast"]{
+  --rad-s:11px 6px 11px 6px;--rad-m:16px 9px 16px 9px;--rad-l:18px;--rad-card:18px 10px 18px 10px;--bw:0px;--blur:none;--elev:inset 0 0 0 1px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05),0 4px 11px -3px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 0 1px rgba(0,0,0,.3),0 3px 7px -2px rgba(0,0,0,.5);--elev-p:inset 0 0 0 1px rgba(0,0,0,.3),0 5px 14px -5px rgba(0,0,0,.45);
+}
+:root[data-tech="rubber"]{
+  --rad-s:13px;--rad-m:16px;--rad-l:20px;--rad-card:17px;--bw:0px;--blur:none;--elev:inset 0 0 0 2px rgba(0,0,0,.22),inset 0 2px 0 rgba(255,255,255,.045),0 2px 3px rgba(0,0,0,.42);--elev2:inset 0 0 0 2px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.16),0 2px 2px rgba(0,0,0,.4);--elev-p:inset 0 0 0 2px rgba(0,0,0,.2),0 3px 6px rgba(0,0,0,.34);
+}
+:root[data-tech="weld"]{
+  --rad-s:3px;--rad-m:4px;--rad-l:8px;--rad-card:4px;--bw:1px;--blur:none;--elev:inset 0 -3px 4px -2px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.09),0 2px 5px -1px rgba(0,0,0,.45),0 6px 16px -10px rgba(var(--sig-rgb),.18);--elev2:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -3px 4px -2px rgba(0,0,0,.42),0 2px 4px rgba(0,0,0,.42);--elev-p:inset 0 -2px 3px -2px rgba(0,0,0,.4),0 4px 12px -6px rgba(0,0,0,.4);
+}
+:root[data-tech="hazard"]{
+  --rad-s:5px;--rad-m:6px;--rad-l:12px;--rad-card:6px;--bw:1px;--blur:none;--elev:inset 3px 0 0 rgba(var(--sig-rgb),.6),inset 0 -1px 0 rgba(0,0,0,.4),0 3px 8px -4px rgba(0,0,0,.42);--elev2:inset 0 1px 0 rgba(255,255,255,.2),inset 3px 0 0 rgba(0,0,0,.3),0 2px 4px rgba(0,0,0,.4);--elev-p:inset 2px 0 0 rgba(var(--sig-rgb),.45),0 5px 14px -6px rgba(0,0,0,.4);
+}
+:root[data-tech="scan"]{
+  --rad-s:3px;--rad-m:5px;--rad-l:10px;--rad-card:5px;--bw:1px;--blur:none;--elev:inset 0 3px 0 -2px rgba(var(--acc-rgb),.32),inset 0 7px 0 -4px rgba(var(--tx-rgb),.09),inset 0 13px 0 -7px rgba(var(--tx-rgb),.05),inset 0 -3px 0 -2px rgba(0,0,0,.45),0 6px 16px -9px rgba(0,0,0,.45);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 0 5px 0 -4px rgba(255,255,255,.14),inset 0 10px 0 -7px rgba(255,255,255,.07),inset 0 -2px 0 -1px rgba(0,0,0,.4),0 2px 4px rgba(0,0,0,.4);--elev-p:inset 0 3px 0 -2px rgba(var(--acc-rgb),.26),inset 0 8px 0 -5px rgba(var(--tx-rgb),.07),0 8px 20px -10px rgba(0,0,0,.45);
+}
+:root[data-tech="pixel"]{
+  --rad-s:0px;--rad-m:0px;--rad-l:0px;--rad-card:0px;--bw:1px;--blur:none;--elev:2px 2px 0 -1px rgba(var(--acc-rgb),.55),4px 4px 0 -2px rgba(var(--acc-rgb),.26),6px 6px 0 -3px rgba(var(--tx-rgb),.12),0 0 0 1px rgba(0,0,0,.35);--elev2:inset 0 1px 0 rgba(255,255,255,.22),2px 2px 0 -1px rgba(0,0,0,.55),4px 4px 0 -2px rgba(0,0,0,.3),6px 6px 0 -3px rgba(0,0,0,.16);--elev-p:2px 2px 0 -1px rgba(0,0,0,.42),4px 4px 0 -2px rgba(0,0,0,.26),6px 6px 0 -3px rgba(0,0,0,.14);
+}
+:root[data-tech="holo"]{
+  --rad-s:8px;--rad-m:11px;--rad-l:16px;--rad-card:11px;--bw:1px;--blur:blur(6px);--surf:var(--surf-glass);--elev:inset 0 2px 0 -1px rgba(var(--acc-rgb),.5),inset 0 -2px 0 -1px rgba(var(--acc-rgb),.22),0 5px 14px -8px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 0 -1px rgba(0,0,0,.35),0 2px 6px -2px rgba(0,0,0,.42);--elev-p:inset 0 2px 0 -1px rgba(var(--acc-rgb),.4),inset 0 -2px 0 -1px rgba(var(--acc-rgb),.18),0 8px 22px -10px rgba(0,0,0,.45);
+}
+:root[data-tech="seg"]{
+  --rad-s:2px;--rad-m:4px;--rad-l:8px;--rad-card:4px;--bw:1px;--blur:none;--elev:inset 0 2px 6px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,0,0,.5),inset 0 -3px 0 -1px rgba(var(--acc-rgb),.45),0 1px 0 var(--hi-soft);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 0 2px 5px -2px rgba(0,0,0,.4),inset 0 -3px 0 -1px rgba(0,0,0,.4);--elev-p:inset 0 2px 6px rgba(0,0,0,.45),inset 0 -3px 0 -1px rgba(var(--acc-rgb),.35),0 6px 16px -8px rgba(0,0,0,.4);
+}
+:root[data-tech="crt"]{
+  --rad-s:12px;--rad-m:18px;--rad-l:24px;--rad-card:22px;--bw:1px;--blur:none;--elev:inset 0 0 16px -4px rgba(0,0,0,.45),inset 0 0 0 1px rgba(var(--acc-rgb),.1),0 0 0 1px rgba(0,0,0,.55),0 7px 16px -10px rgba(0,0,0,.5);--elev2:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 9px -3px rgba(0,0,0,.42),0 0 0 1px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.4);--elev-p:inset 0 0 14px -4px rgba(0,0,0,.4),inset 0 0 0 1px rgba(var(--acc-rgb),.08),0 0 0 1px rgba(0,0,0,.5),0 8px 20px -10px rgba(0,0,0,.45);
 }
 :root{--grid-img:none;--grid-size:38px 38px}
 
@@ -357,7 +417,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .favnote:active{opacity:.7}
 /* 두 값을 좌우가 아니라 위아래로 세운다. 라벨 칸과 숫자 칸을 나눠 두면
    글자 수가 달라도 숫자의 오른쪽 끝이 어긋나지 않는다. */
-.hstat{display:grid;grid-template-columns:auto auto;justify-content:end;
+/* 테두리 2px 질감(sharp·neo)에서 320px 화면 밖으로 2px 밀려났다 —
+   min-width 기본값 auto 라 플렉스 안에서 줄어들 수 없었다 */
+#henrg{min-width:0}
+.hstat{min-width:0;display:grid;grid-template-columns:auto auto;justify-content:end;
   align-items:baseline;gap:6px 12px;cursor:pointer}
 .hsc{display:contents}
 .hstat:active{opacity:.6}
@@ -1413,26 +1476,46 @@ function thPreview(){
     +'<div class="dsubs">'+tb+'</div></div>';
 }
 var TECHS=[
-  {k:'flat',n:'Flat',d:'기본 · 얇은 테두리, 평면'},
-  {k:'glass',n:'Glass',d:'유리 · 반투명 + 블러'},
-  {k:'depth',n:'Depth',d:'입체 · 떠 있는 그림자'},
-  {k:'soft',n:'Soft',d:'뉴모피즘 · 부드러운 양각'},
-  {k:'sharp',n:'Sharp',d:'각짐 · 0 모서리, 두꺼운 선'},
-  {k:'neo',n:'Neo',d:'네오브루탈 · 딱딱한 오프셋 그림자'},
-  {k:'outline',n:'Outline',d:'와이어프레임 · 선만 남김'},
-  {k:'pill',n:'Pill',d:'알약 · 완전 둥근 컨트롤'},
-  {k:'carve',n:'Carve',d:'음각 · 안쪽으로 파인 면'},
-  {k:'bare',n:'Bare',d:'미니멀 · 선도 그림자도 없음'},
-  {k:'halo',n:'Halo',d:'네온 · 강조색 발광 테두리'},
-  {k:'float',n:'Float',d:'부양 · 넓고 부드러운 그림자'},
-  {k:'emboss',n:'Emboss',d:'양각 · 단단한 윗턱'},
-  {k:'ring',n:'Ring',d:'링 · 강조색 테두리 강조'},
-  {k:'stack',n:'Stack',d:'겹침 · 종이가 쌓인 층'},
-  {k:'slab',n:'Slab',d:'슬랩 · 두툼한 큰 모서리'},
-  {k:'etch',n:'Etch',d:'에칭 · 얇게 새긴 홈'},
-  {k:'bevel',n:'빗면',d:'좌측광 · 왼쪽 밝은 턱, 오른쪽 깎인 각, 옆으로 뻗는 그림자'},
-  {k:'frame',n:'액자',d:'이중 헤어라인 · 얇은 선 두 줄 사이에 바탕색 여백, 매트지 테두리'},
-  {k:'tag',n:'꼬리표',d:'대각 비대칭 · 왼위·오아래 각지고 나머지 둥글게, 자재 태그 실루엣'}
+  {k:'flat',n:'Flat',d:'기본 · 얇은 테두리, 평면',f:'평면'},
+  {k:'glass',n:'Glass',d:'유리 · 반투명 + 블러',f:'특수'},
+  {k:'depth',n:'Depth',d:'입체 · 떠 있는 그림자',f:'입체'},
+  {k:'soft',n:'Soft',d:'뉴모피즘 · 부드러운 양각',f:'입체'},
+  {k:'sharp',n:'Sharp',d:'각짐 · 0 모서리, 두꺼운 선',f:'윤곽'},
+  {k:'neo',n:'Neo',d:'네오브루탈 · 딱딱한 오프셋 그림자',f:'특수'},
+  {k:'outline',n:'Outline',d:'와이어프레임 · 선만 남김',f:'윤곽'},
+  {k:'pill',n:'Pill',d:'알약 · 완전 둥근 컨트롤',f:'평면'},
+  {k:'carve',n:'Carve',d:'음각 · 안쪽으로 파인 면',f:'입체'},
+  {k:'bare',n:'Bare',d:'미니멀 · 선도 그림자도 없음',f:'평면'},
+  {k:'halo',n:'Halo',d:'네온 · 강조색 발광 테두리',f:'특수'},
+  {k:'float',n:'Float',d:'부양 · 넓고 부드러운 그림자',f:'입체'},
+  {k:'emboss',n:'Emboss',d:'양각 · 단단한 윗턱',f:'입체'},
+  {k:'ring',n:'Ring',d:'링 · 강조색 테두리 강조',f:'특수'},
+  {k:'stack',n:'Stack',d:'겹침 · 종이가 쌓인 층',f:'입체'},
+  {k:'slab',n:'Slab',d:'슬랩 · 두툼한 큰 모서리',f:'입체'},
+  {k:'etch',n:'Etch',d:'에칭 · 얇게 새긴 홈',f:'평면'},
+  {k:'bevel',n:'빗면',d:'좌측광 · 왼쪽 밝은 턱, 오른쪽 깎인 각, 옆으로 뻗는 그림자',f:'입체'},
+  {k:'frame',n:'액자',d:'이중 헤어라인 · 얇은 선 두 줄 사이에 바탕색 여백, 매트지 테두리',f:'윤곽'},
+  {k:'tag',n:'꼬리표',d:'대각 비대칭 · 왼위·오아래 각지고 나머지 둥글게, 자재 태그 실루엣',f:'특수'},
+  {k:'uplit',n:'밑광',d:'아래광 · 밑턱이 밝고 그림자는 위로',f:'입체'},
+  {k:'backlit',n:'뒤광',d:'역광 · 가장자리만 새어 나오는 빛',f:'윤곽'},
+  {k:'flash',n:'평광',d:'정면광 · 방향 없이 사방 얇은 테',f:'평면'},
+  {k:'duo',n:'교차광',d:'두 광원 · 왼위 밝고 오아래 되비침',f:'입체'},
+  {k:'rake',n:'우광',d:'우측 스침광 · 오른쪽만 밝고 그림자는 왼쪽',f:'입체'},
+  {k:'staple',n:'스테이플',d:'철심 · 왼위 각지고 대각 그림자',f:'특수'},
+  {k:'dogear',n:'접힘',d:'개귀 · 오른위만 크게 접힌 자국',f:'특수'},
+  {k:'idxtab',n:'색인탭',d:'인덱스 · 위 둥글고 강조 띠',f:'특수'},
+  {k:'receipt',n:'영수증',d:'감열지 · 2px 모서리, 얇게 깔림',f:'평면'},
+  {k:'bind',n:'바인더',d:'철끈 · 왼쪽 변이 물린 자국',f:'특수'},
+  {k:'anod',n:'산화막',d:'아노다이징 · 둥근 압출재와 각진 판',f:'윤곽'},
+  {k:'cast',n:'주물',d:'주물 · 고르지 않은 모서리',f:'입체'},
+  {k:'rubber',n:'고무',d:'몰딩 · 두꺼운 이음선 테',f:'윤곽'},
+  {k:'weld',n:'용접',d:'비드 · 아래턱에 녹은 자국',f:'입체'},
+  {k:'hazard',n:'경고띠',d:'안전색 · 왼쪽 경고 띠',f:'특수'},
+  {k:'scan',n:'주사선',d:'주사 · 위에서 옅어지는 잔상 띠',f:'특수'},
+  {k:'pixel',n:'픽셀',d:'비트맵 · 계단식 픽셀 그림자',f:'특수'},
+  {k:'holo',n:'홀로',d:'홀로그램 · 위아래 가장자리만 발광',f:'특수'},
+  {k:'seg',n:'세그',d:'표시창 · 파인 창에 강조색 밑줄',f:'입체'},
+  {k:'crt',n:'곡면',d:'브라운관 · 둥근 화면 안쪽 비네트',f:'입체'}
 ];
 var PATS=[{k:'emgrid',n:'양각 격자',d:1},{k:'engrid',n:'음각 격자',d:1},{k:'dome',n:'리벳 판',d:1},{k:'tread3',n:'체커 플레이트',d:1},{k:'knurl3',n:'널링',d:1},{k:'corr',n:'골판',d:1},{k:'pleat',n:'주름',d:1},{k:'csink',n:'접시 구멍',d:1},{k:'brick',n:'블록',d:1},{k:'quilt',n:'쿠션',d:1},{k:'plate',n:'네임플레이트'},{k:'knurl',n:'널링'},{k:'tread',n:'체커 플레이트'},{k:'perf',n:'타공판'},{k:'hair',n:'헤어라인'},{k:'disc',n:'원판'},{k:'graph',n:'모눈'},{k:'blue',n:'청사진'},{k:'hatch',n:'사선'},{k:'cross',n:'크로스해치'},{k:'iso',n:'아이소메트릭'},{k:'herr',n:'헤링본'},{k:'pane',n:'윈도우페인'},{k:'pin',n:'핀스트라이프'},{k:'rib',n:'리브'},{k:'hex',n:'벌집'},{k:'carbon',n:'카본'},{k:'bead',n:'용접 비드'},{k:'stud',n:'리벳'},{k:'chain',n:'체인'},{k:'cable',n:'케이블'},{k:'chev',n:'셰브론'},{k:'barcode',n:'바코드'},{k:'wave',n:'파형'},{k:'scale',n:'비늘'},{k:'mesh',n:'철망'},{k:'zig',n:'지그재그'},{k:'tri',n:'삼각 타일'},{k:'dash',n:'파선 격자'},{k:'none',n:'없음'}];
 var PAL='bronze',TECH='flat',PAT='plate';
@@ -4430,7 +4513,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 13:10';
+var BUILD='2026-09-05 14:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
