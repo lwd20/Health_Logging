@@ -385,7 +385,9 @@ i,em,u{font-style:normal;text-decoration:none}
 .psw[data-v="quilt"] i::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg transform='translate(0,1)'%3E%3Cg fill='none' stroke='rgba(0,0,0,0.6)' stroke-width='1.2'%3E%3Cpath d='M16 0L32 16L16 32L0 16z'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='rgba(255,255,255,0.34)' stroke-width='1.2'%3E%3Cpath d='M16 0L32 16L16 32L0 16z'/%3E%3C/g%3E%3Cg fill='rgba(255,255,255,0.119)' stroke='none'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3C/g%3E%3C/svg%3E");background-size:30px 30px}
 [data-pat="none"]{--grid-img:none}
 .top::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;border-radius:inherit;overflow:hidden;background-image:var(--grid-img);background-size:var(--grid-size);-webkit-mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));mask-image:linear-gradient(#000 62%,rgba(0,0,0,.35));filter:var(--grid-f);pointer-events:none;z-index:-1}
-.top{position:sticky;top:0;z-index:10;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid rgba(var(--tx-rgb),.18);border-radius:0 0 var(--rad-l) var(--rad-l);transition:box-shadow .18s ease}
+/* 앱이 창을 상태바 밑까지 늘리면 그 높이만큼 머리글을 내려야 시계에 안 가린다.
+   env() 가 0 을 돌려주는 기기가 있어 네이티브가 알려 준 --sbh 를 먼저 쓴다. */
+.top{position:sticky;top:0;z-index:10;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);padding-top:var(--sbh,env(safe-area-inset-top));border-bottom:1px solid rgba(var(--tx-rgb),.18);border-radius:0 0 var(--rad-l) var(--rad-l);transition:box-shadow .18s ease}
 /* 목록이 밑으로 지나가기 시작하면 상단이 떠 보이게 함 */
 .top.lift{box-shadow:0 10px 20px -14px rgba(0,0,0,.55),0 1px 0 rgba(var(--tx-rgb),.05)}
 header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0}
@@ -1532,10 +1534,20 @@ function applyTheme(){
     r.setAttribute('data-tech',TECH);
     r.setAttribute('data-pat',PAT);
     var mt=document.querySelector('meta[name="theme-color"]'),bg='';
-    if(mt){
-      try{bg=getComputedStyle(r).getPropertyValue('--bg').trim();}catch(e2){}
-      if(bg)mt.setAttribute('content',bg);
-    }
+    try{bg=getComputedStyle(r).getPropertyValue('--bg').trim();}catch(e2){}
+    if(mt&&bg)mt.setAttribute('content',bg);
+    /* 창이 상태바 밑까지 늘어나 있으므로 시계·아이콘이 상단 판 위에 얹힌다.
+       밝은 팔레트에서 흰 아이콘은 안 보이므로 바탕 밝기에 맞춰 뒤집는다. */
+    try{
+      if(window.AndroidUI&&AndroidUI.icons&&bg){
+        var q=bg.replace('#','');
+        if(q.length===3)q=q[0]+q[0]+q[1]+q[1]+q[2]+q[2];
+        var rr=parseInt(q.slice(0,2),16),gg=parseInt(q.slice(2,4),16),bb=parseInt(q.slice(4,6),16);
+        var lin=[rr,gg,bb].map(function(x){x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);});
+        var lum=.2126*lin[0]+.7152*lin[1]+.0722*lin[2];
+        AndroidUI.icons(lum>0.4);
+      }
+    }catch(e3){}
   }catch(e){}
 }
 (function(){
@@ -4513,7 +4525,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 14:00';
+var BUILD='2026-09-05 16:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6445,6 +6457,9 @@ function syncBtns(){
 }
 
 ensureCardio();
+/* 창이 상태바 밑까지 늘어난 앱에서 그 높이를 받아 둔다. env() 가 0 인 기기 대비. */
+try{if(window.AndroidUI&&AndroidUI.inset){var sb=AndroidUI.inset();
+  if(sb>0)document.documentElement.style.setProperty('--sbh',sb+'px');}}catch(eSB){}
 /* 저장된 체중이 인바디 최신 기록과 어긋나 있을 수 있다 — 켤 때 맞춘다 */
 try{bhSync();}catch(eBS){}
 /* 이제 설정이 다 올라왔다. 로드 중에 건너뛴 하루치 스냅샷을 여기서 찍는다 */
