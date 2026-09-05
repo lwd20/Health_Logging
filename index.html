@@ -396,6 +396,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .setr .sv{margin-left:auto;display:flex;align-items:baseline;gap:7px;font-size:10px;color:var(--dim);letter-spacing:.02em}
 .setr .sv u{text-decoration:none;font-size:10px;color:var(--dim)}
 .lmunk{margin:8px 2px 0;font-size:10px;color:var(--dim);line-height:1.45}
+/* 도달일이 안 나오는 상태 — 날짜 배지 자리에 이유가 들어가므로 색을 달리한다 */
+/* 배경을 깔면 --sig 가 밀려 올라가 5개 팔레트에서 4.5 아래로 떨어졌다(최저 3.87).
+   평소 배지와 같은 모양에 색만 바꾼다 — 이미 검증된 조합이다. */
+.dfoot em.warn{color:var(--sig);letter-spacing:0}
 .dnav{padding:13px 15px;margin:-8px 0;color:var(--dim);font-size:13px}
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
@@ -1518,8 +1522,13 @@ function snapInfo(){
   if(!canLS)return '';
   try{var d=localStorage.getItem(KEY+'.snapd');return d?dayLbl(d):'';}catch(e){return '';}
 }
+/* save() 안에서 도는데 그 첫 호출은 설정 변수가 대입되기 한참 전이다(로드
+   1406줄 vs 설정 3057줄). 그대로 두면 하루치 복구본에 체중·체지방·활동계수·
+   감량목표·주간목표세트가 통째로 빠진 채 굳는다 — 복원하면 기본값으로 돌아간다.
+   설정이 올라온 뒤에만 찍는다. */
+var cfgReady=false;
 function autoSnap(){
-  if(!canLS)return;
+  if(!canLS||!cfgReady)return;
   try{
     var td=today();
     if(localStorage.getItem(KEY+'.snapd')===td)return;
@@ -2057,7 +2066,7 @@ function rowHtml(m,noBadge){
       right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
-      right=rgt(fmtW(t),'kg',dp?gainTag(effSets(m,draft),effSets(m,dp.s)):'');
+      right=rgt(fmtW(t),'kg',dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d)):'');
     }else{
       right='<span class="none">—</span>';
     }
@@ -2133,7 +2142,7 @@ function panelHtml(m){
       /* 세트 수는 바로 위에 나열돼 있어 또 셀 이유가 없고, 세트별 RIR 을 평균 낸
          '0.3' 은 없는 정밀도다 — 둘 다 뺐다. 남는 건 진전을 말해 주는 e1RM 하나라
          세 칸 격자를 한 줄로 바꾼다. */
-      var ed=effSets(m,draft),de=e1rmAvg(ed);
+      var ed=effSets(m,draft,UI.wd),de=e1rmAvg(ed);
       var g2=past.length?e1rmGain(ed,effSets(m,past[0].s,past[0].d)):null;
       var isPR=(function(){
         var pb=0,pi;
@@ -3558,8 +3567,15 @@ function cutHtml(){
   /* 감량 진행은 매일 볼 값이 아니라 한 줄로 줄인다. 체중 그래프와 큰 D-day
      카드는 뺐다 — 자세한 진단은 ANALYSIS 의 감량 진단이 맡는다. */
   var r=paceCalc(BW,BF,GF);
-  if(r.ok&&!r.done)
+  /* 체중이 늘고 있으면 paceCalc 가 도달일을 아예 안 채운다(days=0, eta='').
+     그걸 그대로 그리면 'D-0' 이 되어 '오늘 도달' 로 읽힌다 — 뜻이 정반대다.
+     같은 값을 쓰는 paceInfo·위젯은 이미 막고 있었고 여기만 뚫려 있었다. */
+  if(r.ok&&!r.done&&r.eta)
     h+='<div class="dfoot"><em>D-'+r.days+'</em>'+r.eta+' · '+fmtW(GF)+'%'
+      +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
+  else if(r.ok&&!r.done)
+    /* 계산해 두고도 안 쓰던 r.tag — 왜 도달일이 없는지 이 자리에서 말해 준다 */
+    h+='<div class="dfoot"><em class="warn">'+r.tag+'</em>'+fmtW(GF)+'% 도달일 미정'
       +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
   else if(r.done)
     h+='<div class="dfoot"><em>DONE</em>목표 체지방 도달 · 유지 구간</div>';
@@ -3666,7 +3682,9 @@ function paceCalc(bw,bf,gf){
   r.ok=true;
   r.rate=Math.round((last.w-base.w)/dd*7*100)/100;
   if(r.done)return r;
-  if(r.rate>=0)r.tag='증량 추세';
+  /* 0 은 늘어난 것이 아니라 제자리다 — 둘을 같은 말로 부르면 오해한다 */
+  if(r.rate>0)r.tag='증량 추세';
+  else if(r.rate===0)r.tag='변화 없음';
   else if(-r.rate>bw*0.01)r.tag='과속 — 근손실 주의';
   else if(-r.rate<WR*0.5)r.tag='페이스 부족';
   else r.tag='페이스 양호';
@@ -3754,13 +3772,18 @@ function hasAny(n,list){n=String(n||'').toLowerCase();
   for(var i=0;i<list.length;i++)if(n.indexOf(list[i])>=0)return true;
   return false;}
 function isStairName(n){return hasAny(n,
-  ['stair','climb','클라임','계단','천계','천국','스텝밀','step mill','stepmill',
-   '스테퍼','stepper','c5x','c50','c-50']);}
+  ['stair','climb','클라임','계단','천계','천국','스텝밀','스탭밀','step mill','stepmill',
+   '스테퍼','스텝퍼','stepper','climbmill','클라임밀','c5x','c50','c-50']);}
 /* 러닝 대사식은 '속도 = 지면을 달린 속도' 를 전제한다. 사이클·로잉·
    일립티컬의 속도계는 뜻이 달라 그 식에 넣으면 터무니없이 커진다.
    Cycle 40분 25km/h 가 하루 목표를 +938kcal 밀어 올리던 이유다. */
+/* hasAny 는 부분문자열이라 긴 낱말만 넣으면 짧은 쪽이 안 걸린다 —
+   '에어바이크'는 '바이크'를 포함하지만 그 반대는 아니고, '스핀'은 '스피닝'
+   안에 없다(스·피·닝). 어근을 직접 넣는다. 안 걸리면 러닝 식으로 떨어져
+   레벨을 km/h 로 읽는다 — 45분 레벨12 가 441 대신 783kcal 이 된다. */
 function isBikeName(n){return hasAny(n,
-  ['cycle','bike','사이클','자전거','spin','스핀','어썰트','assault','에어바이크','air bike']);}
+  ['cycle','bike','바이크','사이클','싸이클','자전거','spin','스핀','스피닝',
+   '어썰트','assault','에어바이크','air bike','실내자전거']);}
 function isRowName(n){return hasAny(n,['row','로잉','로워','노젓','concept2','컨셉2']);}
 function isEllipName(n){return hasAny(n,
   ['ellip','일립','엘립','크로스트레이너','cross trainer','crosstrainer','아크트레이너','arc trainer']);}
@@ -4375,7 +4398,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 10:20';
+var BUILD='2026-09-05 11:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4873,7 +4896,7 @@ function widgetSync(){
         if(Math.round((new Date(tdISO)-new Date(plast.d))/86400000)>21)continue;
         var pv=prOf(pm,plast.d);
         if(!pv||!pv.isPR)continue;
-        var ps=effSets(pm,plast.s),ptp=ps[0],q6;
+        var ps=effSets(pm,plast.s,plast.d),ptp=ps[0],q6;
         for(q6=1;q6<ps.length;q6++)
           if(ps[q6][0]>ptp[0]||(ps[q6][0]===ptp[0]&&ps[q6][1]>ptp[1]))ptp=ps[q6];
         prs.push([pm.n,fmtW(ptp[0])+'x'+ptp[1],(pv.gain>0?'+':'')+pv.gain,plast.d]);
@@ -4973,7 +4996,7 @@ function aiPayload(){
         var e=S.l[k][j];
         if(e.d<liso||!e.s.length)continue;
         var sets=[];
-        for(var q=0;q<e.s.length;q++)sets.push(isCard(m.p)?(e.s[q][0]+'분v'+e.s[q][1]+(e.s[q][2]>0?'i'+e.s[q][2]:'')):(fmtW(effOf(m,e.s[q][0]))+'x'+e.s[q][1]+((e.s[q][2]===0||e.s[q][2]>0)?'@'+e.s[q][2]:'')+(e.s[q][3]>0?'r'+e.s[q][3]:'')));
+        for(var q=0;q<e.s.length;q++)sets.push(isCard(m.p)?(e.s[q][0]+'분v'+e.s[q][1]+(e.s[q][2]>0?'i'+e.s[q][2]:'')):(fmtW(effOf(m,e.s[q][0],e.d))+'x'+e.s[q][1]+((e.s[q][2]===0||e.s[q][2]>0)?'@'+e.s[q][2]:'')+(e.s[q][3]>0?'r'+e.s[q][3]:'')));
         var lsb=isCard(m.p)?'':subName(subOf(m));
         rows.push([e.d,e.d.slice(5)+' '+m.p+(lsb?'/'+lsb:'')+' '+m.n+(m.b?' '+m.b:'')+' '+sets.join(' ')]);
       }
@@ -5015,7 +5038,7 @@ function aiPayload(){
     if(!ta.length)continue;
     ta=ta.slice().sort(function(a,b){return a.d<b.d?1:-1;}).slice(0,4);
     var seq=ta.map(function(x){
-      var es=effSets(tm,x.s),tp=[0,0],q;
+      var es=effSets(tm,x.s,x.d),tp=[0,0],q;
       for(q=0;q<es.length;q++){
         if(es[q][0]>tp[0]||(es[q][0]===tp[0]&&es[q][1]>tp[1]))tp=es[q];
       }
@@ -6295,6 +6318,9 @@ function syncBtns(){
 ensureCardio();
 /* 저장된 체중이 인바디 최신 기록과 어긋나 있을 수 있다 — 켤 때 맞춘다 */
 try{bhSync();}catch(eBS){}
+/* 이제 설정이 다 올라왔다. 로드 중에 건너뛴 하루치 스냅샷을 여기서 찍는다 */
+cfgReady=true;
+try{autoSnap();}catch(eAS){}
 appReady=true;
 var restored=mirrorRestore();
 demoSeed();
