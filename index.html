@@ -627,12 +627,12 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .tpv-tag{margin-left:auto;font-size:8.5px;font-weight:800;letter-spacing:.12em;
   color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.16);
   border-radius:var(--rad-s);padding:3px 7px}
-.tpv-body{display:flex;gap:8px;padding:10px;background:var(--bg)}
+.tpv-body{display:flex;gap:8px;padding:8px;background:var(--bg)}
 .tpv-card{flex:1 1 auto;min-width:0;background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);
   border-radius:var(--rad-card);padding:9px 11px;box-shadow:var(--elev)}
 .tpv-card i{display:block;font-style:normal;font-size:8.5px;font-weight:800;
   letter-spacing:.14em;color:var(--dim)}
-.tpv-card b{display:block;margin-top:1px;font-family:var(--mono);font-size:21px;
+.tpv-card b{display:block;margin-top:1px;font-family:var(--mono);font-size:18px;
   font-weight:700;color:var(--acc-br);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .tpv-card b u{text-decoration:none;font-family:var(--sans);font-size:9px;
   font-weight:700;color:var(--dim);margin-left:3px}
@@ -640,7 +640,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   background:rgba(var(--tx-rgb),.1);overflow:hidden}
 .tpv-bar s{display:block;height:100%;background:var(--acc-sf);text-decoration:none}
 .tpv-side{flex:0 0 84px;display:flex;flex-direction:column;justify-content:space-between;gap:7px}
-.tpv-btn{display:flex;align-items:center;justify-content:center;height:30px;
+.tpv-btn{display:flex;align-items:center;justify-content:center;height:27px;
   border-radius:var(--rad-m);background:var(--acc-sf);color:var(--on-acc);
   box-shadow:var(--elev2);font-size:8.5px;font-weight:800;letter-spacing:.1em}
 .tpv-tx{display:flex;flex-direction:column;gap:1px;text-align:right;line-height:1.25}
@@ -663,6 +663,15 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .pset.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
 .pset.on b{color:var(--tx)}
 .pset:active{opacity:.6}
+/* 붙박이가 화면의 3분의 1을 넘으면 정작 고를 자리가 없다 — 미리보기를 조금 낮춘다 */
+.dsubs{display:flex;gap:3px;margin-top:9px}
+.dsb{flex:1 1 0;min-width:0;height:34px;display:flex;align-items:center;justify-content:center;
+  gap:4px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);
+  background:none;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden}
+.dsb u{text-decoration:none;font-family:var(--mono);font-size:9px;font-weight:700;opacity:.7}
+.dsb.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
+.dsb:active{opacity:.6}
 .fg1{margin-top:14px}
 
 /* ── 색 격자 ── */
@@ -682,7 +691,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 미리보기가 질감을 실제로 보여 주므로 설명은 거들기만 하면 된다 — 3열 */
 .techgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:9px}
 
-.dnow{display:flex;align-items:center;gap:6px;margin:2px 2px 14px;font-size:12px}
+.dnow{display:flex;align-items:center;gap:6px;margin:8px 2px 0;font-size:11.5px}
 .dnow b{font-weight:700;color:var(--acc-br)}
 .dnow i{font-style:normal;color:var(--dim)}
 .ftn{font-weight:400;letter-spacing:0;text-transform:none;color:var(--dim);margin-left:5px}
@@ -1383,6 +1392,13 @@ function psetOf(k){for(var i=0;i<PSETS.length;i++)if(PSETS[i].k===k)return PSETS
 /* 지금 고른 조합을 실제 토큰으로 그린 작은 화면. 상단 판·카드·버튼·글자 세 단계가
    한 눈에 들어와야 색과 질감과 무늬가 같이 판단된다. */
 function thPreview(){
+  /* 고른 축만 그리므로 어디에 뭐가 몇 개 있는지 탭에 적어 둔다 */
+  var TB=[['set','시안',PSETS.length],['pal','색',PALS.length],
+          ['tech','질감',TECHS.length],['pat','무늬',PATS.length]];
+  var sub=UI.dsub||'set',tb='',ti;
+  for(ti=0;ti<TB.length;ti++)
+    tb+='<button class="dsb'+(sub===TB[ti][0]?' on':'')+'" data-act="dsub" data-v="'+TB[ti][0]+'">'
+      +TB[ti][1]+'<u>'+TB[ti][2]+'</u></button>';
   return '<div class="thprev"><div class="tpv">'
     +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
     +'<div class="tpv-body">'
@@ -1393,7 +1409,8 @@ function thPreview(){
         +'<span class="tpv-btn">ANALYZE</span>'
         +'<span class="tpv-tx">\ubcf8\ubb38<em>\ubcf4\uc870</em><ins>\ud750\ub9bc</ins></span>'
       +'</div>'
-    +'</div></div></div>';
+    +'</div></div>'
+    +'<div class="dsubs">'+tb+'</div></div>';
 }
 var TECHS=[
   {k:'flat',n:'Flat',d:'기본 · 얇은 테두리, 평면'},
@@ -1576,7 +1593,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,pickOpen:'',rirHold:null,esIdx:null,htab:'start',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2653,10 +2670,9 @@ function renderSheet(){
       /* 고르는 동안 결과가 계속 보이게 맨 위에 붙여 둔다 — 무늬 40개를 훑어도
          시트 스크롤은 유지되므로 견본이 눈앞에서 바뀐다 */
       h+=thPreview();
-      h+='<div class="dnow"><b>'+esc(palOf(PAL).n)+'</b><i>·</i><b>'+esc(techOf(TECH).n)
-        +'</b><i>·</i><b>'+esc(patOf(PAT).n)+'</b></div>';
+      var dsub=UI.dsub||'set';
 
-      if(PSETS.length){
+      if(dsub==='set'&&PSETS.length){
         h+='<div class="fgrp fg1"><div class="ft">시안 <span class="ftn">한 벌로 적용</span></div>'
           +'<div class="psets">';
         for(var si=0;si<PSETS.length;si++){
@@ -2674,6 +2690,7 @@ function renderSheet(){
 
       /* 줄 목록이던 것을 격자로 — 스와치와 이름만 있으면 되는데 한 줄을 통째로 썼다.
          밝은 것과 어두운 것을 갈라 둔다(낮에 쓸 것을 찾는 일이 잦다) */
+      if(dsub==='pal'){
       h+='<div class="fgrp"><div class="ft">색</div>';
       var pgrp=[['어두움',false],['밝음',true]];
       for(gq=0;gq<pgrp.length;gq++){
@@ -2694,17 +2711,31 @@ function renderSheet(){
         h+='</div>';
       }
       h+='</div>';
-
-      h+='<div class="fgrp"><div class="ft">질감</div><div class="techgrid">';
-      for(tj=0;tj<TECHS.length;tj++){
-        var T2=TECHS[tj];
-        h+='<button class="thtech'+(TECH===T2.k?' on':'')+'" data-act="techpick" data-v="'+T2.k+'">'
-          +'<b>'+esc(T2.n)+'</b><i>'+esc(T2.d.split(' · ').pop())+'</i></button>';
       }
-      h+='</div></div>';
+
+      /* 40종이라 성격별로 갈라 둔다 — 이름만 봐서는 무엇이 무엇인지 안 보인다 */
+      if(dsub==='tech'){
+      h+='<div class="fgrp"><div class="ft">질감</div>';
+      var tfam=['평면','입체','윤곽','특수'],tf,any2;
+      for(tf=0;tf<tfam.length;tf++){
+        any2=false;
+        for(tj=0;tj<TECHS.length;tj++)if((TECHS[tj].f||'평면')===tfam[tf]){any2=true;break;}
+        if(!any2)continue;
+        h+='<div class="patsub">'+tfam[tf]+'</div><div class="techgrid">';
+        for(tj=0;tj<TECHS.length;tj++){
+          var T2=TECHS[tj];
+          if((T2.f||'평면')!==tfam[tf])continue;
+          h+='<button class="thtech'+(TECH===T2.k?' on':'')+'" data-act="techpick" data-v="'+T2.k+'">'
+            +'<b>'+esc(T2.n)+'</b><i>'+esc(T2.d.split(' · ').pop())+'</i></button>';
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+      }
 
       /* 상단 판의 무늬 — 실제와 같은 필터가 걸린 견본으로 고른다.
          40종이라 명암이 있는 것과 선만 있는 것으로 나눠 둔다 */
+      if(dsub==='pat'){
       h+='<div class="fgrp"><div class="ft">무늬 <span class="ftn">상단 판</span></div>';
       var grp=[['입체',1],['평면',0]];
       for(gq=0;gq<grp.length;gq++){
@@ -2718,6 +2749,7 @@ function renderSheet(){
         h+='</div>';
       }
       h+='</div>';
+      }
 
       h+='<div class="note">보이는 것만 바뀌며 기록에는 영향이 없음. 백업에 함께 저장됨.</div>';
     }
@@ -4398,7 +4430,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 12:00';
+var BUILD='2026-09-05 13:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6003,6 +6035,20 @@ document.addEventListener('click',function(e){
         if(canLS){try{localStorage.setItem(KEY+'.pat',PAT);}catch(eG){}}
         applyTheme();render();
       }
+      break;
+    case 'dsub':
+      UI.dsub=v;render();
+      /* 이름줄을 없앤 대신 지금 고른 것을 보이는 자리로 데려온다 — 40개 목록
+         한가운데에 있으면 무엇을 쓰고 있는지 알 길이 없다 */
+      (function(){
+        var se=document.getElementById('sheet');if(!se)return;
+        se.scrollTop=0;
+        var on=se.querySelector('.pchip.on,.thtech.on,.psw.on,.pset.on');
+        if(!on)return;
+        var pv=se.querySelector('.thprev'),head=(pv?pv.getBoundingClientRect().height:0)+46;
+        var off=on.getBoundingClientRect().top-se.getBoundingClientRect().top;
+        if(off>se.clientHeight-70)se.scrollTop=off-head-8;
+      })();
       break;
     case 'psetpick':
       (function(){
