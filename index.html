@@ -196,14 +196,16 @@ i,em,u{font-style:normal;text-decoration:none}
    flex 로 두면 자릿수에 따라 열이 흔들려 눈이 매번 자리를 다시 찾는다. */
 /* 행 길이 자체가 그 주의 크기 — 숫자를 읽기 전에 흐름이 먼저 보인다 */
 .patsub{font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);margin:12px 2px 0}
-.patgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+/* 2열 40개는 1,251px 이었다. 미리보기가 결과를 바로 보여 주므로 견본은
+   무엇인지 알아볼 정도면 된다 — 4열로 줄인다 */
+.patgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:9px}
 .psw{position:relative;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:none;text-align:left}
-.psw i{display:block;height:34px;border-radius:var(--rad-s);overflow:hidden;position:relative;
+.psw i{display:block;height:30px;border-radius:var(--rad-s);overflow:hidden;position:relative;
   border:var(--bw) solid rgba(var(--tx-rgb),.10);
   background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg)}
 /* 무늬는 ::after 로 덧씌우고 실제 화면과 같은 필터를 건다 */
 .psw i::after{content:'';position:absolute;inset:0;filter:var(--grid-f)}
-.psw b{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.01em;
+.psw b{font-size:9px;font-weight:700;color:var(--dim);letter-spacing:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .psw.on i{border-color:var(--acc-br);box-shadow:0 0 0 1px var(--acc-br)}
 .psw.on b{color:var(--acc-br)}
@@ -573,6 +575,79 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 16px 미만이면 iOS 사파리가 입력할 때 화면을 확대해 버린다 */
 .pickbody .namein input{font-size:17px}
 .pickbody .note{margin-top:9px;font-size:11px}
+/* ── 붙박이 미리보기 ── */
+/* 고르는 동안 결과가 안 보이면 13,600 가지를 눈감고 고르는 셈이다.
+   시트 스크롤 꼭대기에 붙여 두면 무늬 목록 끝까지 내려가도 계속 보인다. */
+/* 탭줄(.drail)이 위에 붙어 있으므로 그 높이만큼 내려서 붙는다 */
+.thprev{position:sticky;top:42px;z-index:6;margin:-2px 0 12px;padding:4px 0 10px;
+  background:var(--sheet-bg)}
+.tpv{border-radius:var(--rad-l);overflow:hidden;box-shadow:var(--elev)}
+.tpv-top{position:relative;z-index:0;display:flex;align-items:center;gap:8px;
+  padding:9px 12px;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);
+  border-bottom:1px solid rgba(var(--tx-rgb),.18)}
+/* 상단 판의 무늬를 실제와 같은 방식으로 — 밝은 팔레트는 --grid-f 로 뒤집힌다 */
+.tpv-top::before{content:'';position:absolute;inset:0;background-image:var(--grid-img);
+  background-size:var(--grid-size);filter:var(--grid-f);pointer-events:none;z-index:-1}
+.tpv-top b{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--tx)}
+.tpv-top b i{font-style:normal;color:var(--acc-br);margin-left:1px}
+.tpv-tag{margin-left:auto;font-size:8.5px;font-weight:800;letter-spacing:.12em;
+  color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.16);
+  border-radius:var(--rad-s);padding:3px 7px}
+.tpv-body{display:flex;gap:8px;padding:10px;background:var(--bg)}
+.tpv-card{flex:1 1 auto;min-width:0;background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);
+  border-radius:var(--rad-card);padding:9px 11px;box-shadow:var(--elev)}
+.tpv-card i{display:block;font-style:normal;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--dim)}
+.tpv-card b{display:block;margin-top:1px;font-family:var(--mono);font-size:21px;
+  font-weight:700;color:var(--acc-br);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tpv-card b u{text-decoration:none;font-family:var(--sans);font-size:9px;
+  font-weight:700;color:var(--dim);margin-left:3px}
+.tpv-bar{display:block;height:5px;margin-top:7px;border-radius:99px;
+  background:rgba(var(--tx-rgb),.1);overflow:hidden}
+.tpv-bar s{display:block;height:100%;background:var(--acc-sf);text-decoration:none}
+.tpv-side{flex:0 0 84px;display:flex;flex-direction:column;justify-content:space-between;gap:7px}
+.tpv-btn{display:flex;align-items:center;justify-content:center;height:30px;
+  border-radius:var(--rad-m);background:var(--acc-sf);color:var(--on-acc);
+  box-shadow:var(--elev2);font-size:8.5px;font-weight:800;letter-spacing:.1em}
+.tpv-tx{display:flex;flex-direction:column;gap:1px;text-align:right;line-height:1.25}
+.tpv-tx em{font-style:normal;color:var(--mut)}
+.tpv-tx ins{text-decoration:none;color:var(--dim)}
+.tpv-tx{font-size:9px;font-weight:700;color:var(--tx)}
+
+/* ── 시안 ── */
+.psets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+.pset{display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  padding:9px 10px;border:var(--bw) solid rgba(var(--tx-rgb),.09);
+  border-radius:var(--rad-m);background:none;text-align:left;min-width:0}
+.pset .pss{display:flex}
+.pset .sw{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.pset .sw+.sw{margin-left:-5px}
+.pset b{font-size:11.5px;font-weight:700;color:var(--mut);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pset i{font-style:normal;font-size:9px;color:var(--dim);line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.pset.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.pset.on b{color:var(--tx)}
+.pset:active{opacity:.6}
+.fg1{margin-top:14px}
+
+/* ── 색 격자 ── */
+/* 스와치와 이름만 있으면 되는데 한 줄을 통째로 쓰고 있었다 */
+.palgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+.pchip{display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:9px 4px 8px;border:var(--bw) solid rgba(var(--tx-rgb),.09);
+  border-radius:var(--rad-m);background:none;min-width:0}
+.pchip .sws{display:flex}
+.pchip .sw{width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.pchip .sw+.sw{margin-left:-5px}
+.pchip b{font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pchip.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.pchip.on b{color:var(--tx)}
+.pchip:active{opacity:.6}
+/* 미리보기가 질감을 실제로 보여 주므로 설명은 거들기만 하면 된다 — 3열 */
+.techgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:9px}
+
 .dnow{display:flex;align-items:center;gap:6px;margin:2px 2px 14px;font-size:12px}
 .dnow b{font-weight:700;color:var(--acc-br)}
 .dnow i{font-style:normal;color:var(--dim)}
@@ -581,9 +656,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .thcol>.ft{margin:0 2px 7px}
 .thcol{min-width:0}
 .thcol>button{width:100%;margin-bottom:6px}
-.thtech{display:block;padding:9px 11px;border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);background:var(--btn-bg);text-align:left}
-.thtech b{display:block;font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.01em}
-.thtech i{display:block;font-style:normal;font-size:9px;color:var(--dim);margin-top:3px;line-height:1.35}
+.thtech{display:block;padding:8px 8px 7px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);background:none;text-align:left;min-width:0}
+.thtech b{display:block;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thtech i{display:block;font-style:normal;font-size:8.5px;color:var(--dim);margin-top:2px;
+  line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .thtech.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
 .thtech.on b{color:var(--tx)}
 .thtech:active{opacity:.6}
@@ -1031,12 +1108,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 html{color-scheme:dark}
-.dset{display:flex;align-items:flex-start;margin-top:2px}
-.drail{flex:0 0 92px;position:sticky;top:0;display:flex;flex-direction:column;gap:3px;padding:2px 12px 2px 0;border-right:1px solid rgba(var(--tx-rgb),.07);margin-right:18px}
-.drail .dtb{height:44px;text-align:left;padding:0 0 0 11px;background:none;border:none;border-left:2px solid transparent;border-radius:0;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.1em;white-space:nowrap}
+/* 세로 레일이 360px 화면에서 폭의 34%(110px)를 먹어 본문이 218px 만 남았다.
+   설정은 다섯 갈래뿐이라 한 줄에 다 들어간다 — 눕히면 모든 탭이 그만큼 넓어진다. */
+.dset{display:flex;flex-direction:column;margin-top:2px}
+.drail{position:sticky;top:0;z-index:7;display:flex;gap:2px;padding:0 0 2px;
+  border-bottom:1px solid rgba(var(--tx-rgb),.07);margin:0 0 14px;background:var(--sheet-bg)}
+.drail .dtb{flex:1 1 0;min-width:0;height:40px;text-align:center;padding:0 2px;background:none;
+  border:none;border-bottom:2px solid transparent;border-radius:0;color:var(--dim);
+  font-size:9.5px;font-weight:700;letter-spacing:.06em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .hrail{flex:0 0 82px;padding-right:10px;margin-right:12px}
 .hrail .dtb{height:auto;min-height:46px;padding:9px 0 9px 10px;white-space:normal;line-height:1.35;letter-spacing:.01em;font-size:11px}
-.drail .dtb.on{border-left-color:var(--chrome);color:var(--tx);font-weight:800;background:linear-gradient(90deg,rgba(var(--acc-rgb),.1),transparent)}
+.drail .dtb.on{border-bottom-color:var(--chrome);color:var(--tx);font-weight:800;
+  background:linear-gradient(rgba(var(--acc-rgb),.11),transparent)}
 .dbody{flex:1;min-width:0}
 .sheet.tall .dbody{min-height:62dvh}
 .dbody .sh-l:first-child{margin-top:0}
@@ -1228,9 +1312,28 @@ var PALS=[
   {k:'plum',n:'Plum',d:'딥 플럼',c:['#25142c','#b558d9','#d795ee']},
   {k:'steel',n:'Steel',d:'건메탈 + 아이스',c:['#1c2126','#8fd0e8','#c2e8f7']},
   {k:'olive',n:'Olive',d:'밀리터리 올리브',c:['#1f2415','#b8c94a','#d6e380']},
-  {k:'paper',n:'Paper',d:'종이 · 밝음',c:['#faf8f3','#a8792a','#8a6320']},
-  {k:'frost',n:'Frost',d:'서리 · 밝음',c:['#f7f9fb','#2f6fb0','#245a92']}
+  {k:'paper',n:'Paper',d:'종이 · 밝음',c:['#faf8f3','#a8792a','#8a6320'],lt:1},
+  {k:'frost',n:'Frost',d:'서리 · 밝음',c:['#f7f9fb','#2f6fb0','#245a92'],lt:1}
 ];
+/* 색·질감·무늬를 따로 고르게만 두면 13,600 가지 앞에서 아무도 안 고른다.
+   어울리는 한 벌을 이름 붙여 내놓는다 — 고른 뒤 낱개로 다시 손봐도 된다. */
+var PSETS=[];
+function psetOf(k){for(var i=0;i<PSETS.length;i++)if(PSETS[i].k===k)return PSETS[i];return null;}
+/* 지금 고른 조합을 실제 토큰으로 그린 작은 화면. 상단 판·카드·버튼·글자 세 단계가
+   한 눈에 들어와야 색과 질감과 무늬가 같이 판단된다. */
+function thPreview(){
+  return '<div class="thprev"><div class="tpv">'
+    +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
+    +'<div class="tpv-body">'
+      +'<div class="tpv-card"><i>\uc12d\ucde8 \uc5ec\uc720</i>'
+      +'<b>514<u>kcal</u></b>'
+      +'<span class="tpv-bar"><s style="width:62%"></s></span></div>'
+      +'<div class="tpv-side">'
+        +'<span class="tpv-btn">ANALYZE</span>'
+        +'<span class="tpv-tx">\ubcf8\ubb38<em>\ubcf4\uc870</em><ins>\ud750\ub9bc</ins></span>'
+      +'</div>'
+    +'</div></div></div>';
+}
 var TECHS=[
   {k:'flat',n:'Flat',d:'기본 · 얇은 테두리, 평면'},
   {k:'glass',n:'Glass',d:'유리 · 반투명 + 블러'},
@@ -2460,22 +2563,53 @@ function renderSheet(){
       +tbBtn('diet','DIET')+tbBtn('goals','GOALS')+tbBtn('disp','DISPLAY')+tbBtn('ai','AI')+tbBtn('data','DATA')
       +'</div><div class="dbody">';
     if(tb==='disp'){
-      var pi,tj,pq;
-      /* 지금 고른 것 세 가지를 한 줄로 — 아래 목록에서 다시 찾을 필요가 없게 */
+      var pi,tj,pq,gq;
+      /* 고르는 동안 결과가 계속 보이게 맨 위에 붙여 둔다 — 무늬 40개를 훑어도
+         시트 스크롤은 유지되므로 견본이 눈앞에서 바뀐다 */
+      h+=thPreview();
       h+='<div class="dnow"><b>'+esc(palOf(PAL).n)+'</b><i>·</i><b>'+esc(techOf(TECH).n)
         +'</b><i>·</i><b>'+esc(patOf(PAT).n)+'</b></div>';
 
-      h+='<div class="thcols">';
-      h+='<div class="thcol"><div class="ft">색</div>';
-      for(pi=0;pi<PALS.length;pi++){
-        var P2=PALS[pi];
-        h+='<button class="throw'+(PAL===P2.k?' on':'')+'" data-act="palpick" data-v="'+P2.k+'">'
-          +'<span class="sws"><span class="sw" style="background:'+P2.c[0]+'"></span>'
-          +'<span class="sw" style="background:'+P2.c[1]+'"></span>'
-          +'<span class="sw" style="background:'+P2.c[2]+'"></span></span>'
-          +'<span class="tn">'+esc(P2.n)+'</span></button>';
+      if(PSETS.length){
+        h+='<div class="fgrp fg1"><div class="ft">시안 <span class="ftn">한 벌로 적용</span></div>'
+          +'<div class="psets">';
+        for(var si=0;si<PSETS.length;si++){
+          var PS=PSETS[si],pp=palOf(PS.pal);
+          var on=(PAL===PS.pal&&TECH===PS.tech&&PAT===PS.pat);
+          h+='<button class="pset'+(on?' on':'')+'" data-act="psetpick" data-v="'+PS.k+'">'
+            +'<span class="pss">'
+              +'<span class="sw" style="background:'+pp.c[0]+'"></span>'
+              +'<span class="sw" style="background:'+pp.c[1]+'"></span>'
+              +'<span class="sw" style="background:'+pp.c[2]+'"></span></span>'
+            +'<b>'+esc(PS.n)+'</b><i>'+esc(PS.d)+'</i></button>';
+        }
+        h+='</div></div>';
       }
-      h+='</div><div class="thcol"><div class="ft">질감</div>';
+
+      /* 줄 목록이던 것을 격자로 — 스와치와 이름만 있으면 되는데 한 줄을 통째로 썼다.
+         밝은 것과 어두운 것을 갈라 둔다(낮에 쓸 것을 찾는 일이 잦다) */
+      h+='<div class="fgrp"><div class="ft">색</div>';
+      var pgrp=[['어두움',false],['밝음',true]];
+      for(gq=0;gq<pgrp.length;gq++){
+        var any=false;
+        for(pi=0;pi<PALS.length;pi++)if(!!PALS[pi].lt===pgrp[gq][1]){any=true;break;}
+        if(!any)continue;
+        h+='<div class="patsub">'+pgrp[gq][0]+'</div><div class="palgrid">';
+        for(pi=0;pi<PALS.length;pi++){
+          var P2=PALS[pi];
+          if(!!P2.lt!==pgrp[gq][1])continue;
+          h+='<button class="pchip'+(PAL===P2.k?' on':'')+'" data-act="palpick" data-v="'+P2.k+'"'
+            +' title="'+esc(P2.d)+'">'
+            +'<span class="sws"><span class="sw" style="background:'+P2.c[0]+'"></span>'
+            +'<span class="sw" style="background:'+P2.c[1]+'"></span>'
+            +'<span class="sw" style="background:'+P2.c[2]+'"></span></span>'
+            +'<b>'+esc(P2.n)+'</b></button>';
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+
+      h+='<div class="fgrp"><div class="ft">질감</div><div class="techgrid">';
       for(tj=0;tj<TECHS.length;tj++){
         var T2=TECHS[tj];
         h+='<button class="thtech'+(TECH===T2.k?' on':'')+'" data-act="techpick" data-v="'+T2.k+'">'
@@ -2487,7 +2621,7 @@ function renderSheet(){
          40종이라 명암이 있는 것과 선만 있는 것으로 나눠 둔다 */
       h+='<div class="fgrp"><div class="ft">무늬 <span class="ftn">상단 판</span></div>';
       var grp=[['입체',1],['평면',0]];
-      for(var gq=0;gq<grp.length;gq++){
+      for(gq=0;gq<grp.length;gq++){
         h+='<div class="patsub">'+grp[gq][0]+'</div><div class="patgrid">';
         for(pq=0;pq<PATS.length;pq++){
           var PP=PATS[pq];
@@ -4142,7 +4276,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 00:10';
+var BUILD='2026-09-05 01:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5764,6 +5898,22 @@ document.addEventListener('click',function(e){
         if(canLS){try{localStorage.setItem(KEY+'.pat',PAT);}catch(eG){}}
         applyTheme();render();
       }
+      break;
+    case 'psetpick':
+      (function(){
+        var ps=psetOf(v);
+        if(!ps)return;
+        /* 세 값을 한꺼번에 — 한 번에 하나씩 저장하면 중간 상태가 화면에 스친다 */
+        if(palOk(ps.pal))PAL=ps.pal;
+        if(techOk(ps.tech))TECH=ps.tech;
+        if(patOk(ps.pat))PAT=ps.pat;
+        if(canLS){try{
+          localStorage.setItem(KEY+'.pal',PAL);
+          localStorage.setItem(KEY+'.tech',TECH);
+          localStorage.setItem(KEY+'.pat',PAT);
+        }catch(eS){}}
+        applyTheme();render();
+      })();
       break;
     case 'palpick':
       if(palOk(v)){
