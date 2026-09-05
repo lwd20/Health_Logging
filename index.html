@@ -4398,7 +4398,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 11:10';
+var BUILD='2026-09-05 12:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6331,6 +6331,33 @@ if(DEMO)setTimeout(function(){try{toast('샘플 데이터 표시 중 — 실제 
 tmrDraw();
 widgetSync();
 setTimeout(autoBackup,1500);
+/* updatefound 는 sw.js 가 바이트로 바뀌어야만 울린다. 화면(index.html)만 고치면
+   sw.js 는 그대로라 알림이 영영 안 뜨고, 앱은 WebView 라 한 번 띄우면 계속 살아
+   있어 옛 판을 며칠씩 본다 — 설정에서 고른 새 시안이 안 먹는 것처럼 보인다.
+   서버의 index.html 이 바뀌었는지 ETag 로 직접 묻는다. 본문은 400KB 라 HEAD 만. */
+var BTAG='',BTAGT=0,BTOLD=false;
+function newBuild(){
+  if(BTOLD)return;
+  BTOLD=true;
+  try{toast('<em>새 버전</em>이 나왔음 — <button class="tundo" data-act="rlod">새로고침</button>',12000);}catch(e){}
+}
+function buildPing(force){
+  var now=+new Date();
+  if(!force&&now-BTAGT<600000)return;   /* 10분에 한 번이면 넉넉하다 */
+  BTAGT=now;
+  try{
+    fetch('index.html',{method:'HEAD',cache:'no-cache'}).then(function(r){
+      var t=r.headers.get('ETag')||r.headers.get('Last-Modified')||'';
+      if(!t)return;
+      if(!BTAG){BTAG=t;return;}          /* 처음 본 값이 기준 */
+      if(t!==BTAG)newBuild();
+    }).catch(function(){});
+  }catch(e){}
+}
+if(location.protocol==='https:'){
+  buildPing(true);
+  addEventListener('visibilitychange',function(){if(!document.hidden)buildPing(false);});
+}
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').then(function(reg){
     /* 앱을 켜 둔 채로는 새 화면이 와도 모른다. 받아 놓고 알려만 준다 —
@@ -6339,9 +6366,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
       var w=reg.installing;
       if(!w)return;
       w.addEventListener('statechange',function(){
-        if(w.state==='installed'&&navigator.serviceWorker.controller){
-          try{toast('<em>새 버전</em> 준비됨 — <button class="tundo" data-act="rlod">새로고침</button>',9000);}catch(e){}
-        }
+        if(w.state==='installed'&&navigator.serviceWorker.controller)newBuild();
       });
     });
     /* 앱으로 돌아올 때마다 새 판이 있는지 물어본다 */
