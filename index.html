@@ -1688,7 +1688,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -1885,13 +1885,14 @@ function rirAvg(s){
 function machById(id){for(var i=0;i<S.m.length;i++)if(S.m[i].i===id)return S.m[i];return null;}
 function machStep(id){if(isCardId(id))return 5;var m=machById(id);return (m&&m.st>0)?m.st:2.5;}
 function anyDirty(){for(var k in UI.dirty)if(UI.dirty[k])return true;return false;}
-function isWalkName(n){n=String(n||'').toLowerCase();return n.indexOf('walk')>=0||n.indexOf('걷기')>=0||n.indexOf('산책')>=0||n.indexOf('워킹')>=0;}
+function nmWalk(n){n=String(n||'').toLowerCase();return n.indexOf('walk')>=0||n.indexOf('걷기')>=0||n.indexOf('산책')>=0||n.indexOf('워킹')>=0;}
+function isWalkName(x){return cKind(x)==='walk';}
 function ensureCardio(){
   var i,has=false,hasWalk=false;
   for(i=0;i<S.m.length;i++){
     if(S.m[i].p==='CARDIO'){
       has=true;
-      if(isWalkName(S.m[i].n))hasWalk=true;
+      if(isWalkName(S.m[i]))hasWalk=true;
     }
   }
   if(!has){
@@ -2271,8 +2272,8 @@ function panelHtml(m){
              +(g2.pct?Math.abs(g2.pct)+'%':'유지')):'–')+'</s>'
         +'</div>';   /* 그리는 자리는 저장 버튼 아래 */
     }else{
-      var sk=kcalSess(draft,m.n),skm=0;
-      if(isTreadName(m.n))for(var q6=0;q6<draft.length;q6++)skm+=(+draft[q6][0]||0)/60*(+draft[q6][1]||0);
+      var sk=kcalSess(draft,m),skm=0;
+      if(isTreadName(m))for(var q6=0;q6<draft.length;q6++)skm+=(+draft[q6][0]||0)/60*(+draft[q6][1]||0);
       if(sk>0)h+='<div class="pacehint" style="margin-top:6px">session ≈ <b>'+sk+' kcal</b>'+(skm>0?(' · <b>'+(Math.round(skm*10)/10)+' km</b>'):'')+'</div>';
     }
     h+='</div>';
@@ -2288,7 +2289,7 @@ function panelHtml(m){
     +'<div class="inrow">'
     +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><button data-act="w+">＋</button></div></div>'
-    +'<div class="cwrap"><span class="clab">'+(cd?(isTreadName(m.n)?'KM/H':'LEVEL'):'REPS')+'</span>'
+    +'<div class="cwrap"><span class="clab">'+(cd?(isTreadName(m)?'KM/H':'LEVEL'):'REPS')+'</span>'
     +'<div class="ctr"><button data-act="r-">−</button><input id="inR" inputmode="decimal" placeholder="0" value="'+esc(UI.r)+'"><button data-act="r+">＋</button></div></div>'
     +'</div>';
   if(cd){
@@ -2470,6 +2471,17 @@ function exFormHtml(isEdit){
     (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine), 2) : '') + txtRow('addLine', '목록에 없으면 직접 입력', UI.addLine));
   h += '</div>';
 
+  if (cd) {
+    /* 종류를 값으로 받는다 — 이름 추측은 어느 키워드에도 안 걸리면 전부
+       트레드밀로 떨어져 레벨을 km/h 로 읽는다 */
+    var ck = UI.editCt || 'tread', cItems = [];
+    for (i = 0; i < CTYPES.length; i++) cItems.push({ v: CTYPES[i].k, l: CTYPES[i].n });
+    h += '<div class="fgrp"><div class="ft">기록 설정</div>'
+      + pickRow('ct', '기구 종류', ctOf(ck).n, ctOf(ck).d,
+          chipRow(cItems, 'pct', ck, 3))
+      + '<div class="note" style="margin:6px 0 0">종류에 따라 속도 단위(km/h·레벨)와 소비 열량 계산식이 달라짐</div>'
+      + '</div>';
+  }
   if (!cd) {
     h += '<div class="fgrp"><div class="ft">기록 설정</div>';
     var steps = [1, 2.5, 5], sItems = [];
@@ -3241,6 +3253,7 @@ function addMachine(name,part,brand,line){
   if(UI.editRx&&UI.editRx!==12)nm.rx=UI.editRx;
   if(UI.editAs)nm.as=1;
   if(UI.editSk&&SUBRX[UI.editSk])nm.sk=UI.editSk;
+  if(isCard(part)&&ctOk(UI.editCt))nm.ct=UI.editCt;
   S.m.push(nm);
   save();render();
 }
@@ -3299,6 +3312,7 @@ function editMachine(){
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
   if(UI.editSk&&SUBRX[UI.editSk])m.sk=UI.editSk;else delete m.sk;
   if(UI.editAs)m.as=1;else delete m.as;
+  if(isCard(UI.addPart)&&ctOk(UI.editCt))m.ct=UI.editCt;else delete m.ct;
   UI.sheet=null;
   save();
   toast('<em>Updated</em> '+esc(name));
@@ -3583,7 +3597,7 @@ function dayExKcal(ds){
       if(a[j].d!==ds||!a[j].s.length)continue;
       var st=a[j].s;
       if(isCard(S.m[i].p)){
-        k+=kcalSess(st,S.m[i].n);
+        k+=kcalSess(st,S.m[i]);
         for(q=0;q<st.length;q++)mn+=Math.min(+st[q][0]||0,CARDIO_LIM.minMax);
         continue;
       }
@@ -3898,7 +3912,33 @@ function kcalSess(sets,name){
 function hasAny(n,list){n=String(n||'').toLowerCase();
   for(var i=0;i<list.length;i++)if(n.indexOf(list[i])>=0)return true;
   return false;}
-function isStairName(n){return hasAny(n,
+/* 유산소 기구 종류. 이름 추측은 어느 키워드에도 안 걸리면 전부 트레드밀로
+   떨어뜨려 레벨을 km/h 로 읽는다 — '바이크' 45분 레벨12 가 441 대신 783kcal 이
+   되던 이유다. 기구에 값으로 달아 두면 그것이 절대 기준이고, 없을 때만 추측한다. */
+var CTYPES=[
+  {k:'tread',n:'트레드밀',d:'걷기·달리기 · 속도 km/h'},
+  {k:'walk', n:'걷기',    d:'산책 · km/h · 유산소 합계에서 빼고 NEAT 로 셈'},
+  {k:'stair',n:'계단',    d:'스텝밀·천국의계단 · 레벨'},
+  {k:'bike', n:'사이클',  d:'실내자전거 · 레벨'},
+  {k:'row',  n:'로잉',    d:'로잉머신 · 레벨'},
+  {k:'ellip',n:'일립티컬', d:'크로스트레이너 · 레벨'}
+];
+function ctOf(k){for(var i=0;i<CTYPES.length;i++)if(CTYPES[i].k===k)return CTYPES[i];return CTYPES[0];}
+function ctOk(k){for(var i=0;i<CTYPES.length;i++)if(CTYPES[i].k===k)return true;return false;}
+/* 머신 객체와 이름 문자열을 둘 다 받는다 — 옛 호출부가 이름만 넘기기 때문 */
+function cKind(x){
+  if(x&&typeof x==='object'){
+    if(x.ct&&ctOk(x.ct))return x.ct;
+    x=x.n;
+  }
+  if(nmWalk(x))return 'walk';
+  if(nmStair(x))return 'stair';
+  if(nmBike(x))return 'bike';
+  if(nmRow(x))return 'row';
+  if(nmEllip(x))return 'ellip';
+  return 'tread';
+}
+function nmStair(n){return hasAny(n,
   ['stair','climb','클라임','계단','천계','천국','스텝밀','스탭밀','step mill','stepmill',
    '스테퍼','스텝퍼','stepper','climbmill','클라임밀','c5x','c50','c-50']);}
 /* 러닝 대사식은 '속도 = 지면을 달린 속도' 를 전제한다. 사이클·로잉·
@@ -3908,23 +3948,27 @@ function isStairName(n){return hasAny(n,
    '에어바이크'는 '바이크'를 포함하지만 그 반대는 아니고, '스핀'은 '스피닝'
    안에 없다(스·피·닝). 어근을 직접 넣는다. 안 걸리면 러닝 식으로 떨어져
    레벨을 km/h 로 읽는다 — 45분 레벨12 가 441 대신 783kcal 이 된다. */
-function isBikeName(n){return hasAny(n,
+function nmBike(n){return hasAny(n,
   ['cycle','bike','바이크','사이클','싸이클','자전거','spin','스핀','스피닝',
    '어썰트','assault','에어바이크','air bike','실내자전거']);}
-function isRowName(n){return hasAny(n,['row','로잉','로워','노젓','concept2','컨셉2']);}
-function isEllipName(n){return hasAny(n,
+function nmRow(n){return hasAny(n,['row','로잉','로워','노젓','concept2','컨셉2']);}
+function nmEllip(n){return hasAny(n,
   ['ellip','일립','엘립','크로스트레이너','cross trainer','crosstrainer','아크트레이너','arc trainer']);}
-/* 러닝 대사식을 쓸 수 있는 것만 true — 걷기·달리기 기구 */
-function isTreadName(n){
-  return !(isStairName(n)||isBikeName(n)||isRowName(n)||isEllipName(n));}
+/* 아래 넷은 종류 하나로 갈린다 — 예전 호출부가 그대로 쓰도록 이름을 남겨 둔다 */
+function isStairName(x){return cKind(x)==='stair';}
+function isBikeName(x){return cKind(x)==='bike';}
+function isRowName(x){return cKind(x)==='row';}
+function isEllipName(x){return cKind(x)==='ellip';}
+/* 러닝 대사식을 쓰는 것 — 트레드밀과 걷기 */
+function isTreadName(x){var k=cKind(x);return k==='tread'||k==='walk';}
 /* 속도 단위가 러닝과 다른 기구는 고정 MET 로 센다 (ACSM 표 중간값) */
-function fixedMet(n){
-  if(isBikeName(n))return 7.0;
-  if(isRowName(n))return 7.0;
-  if(isEllipName(n))return 5.0;
+function fixedMet(x){
+  var k=cKind(x);
+  if(k==='bike'||k==='row')return 7.0;
+  if(k==='ellip')return 5.0;
   return 0;
 }
-function hintHtml(name){
+function hintHtml(name){   /* name 은 머신 객체도 받는다 */
   var parts=[];
   var ph=isTreadName(name)?paceOf(UI.r):'';
   if(ph)parts.push('pace ≈ <b>'+ph+'</b>');
@@ -3981,7 +4025,7 @@ function wkCardio(){
   var z2=0,nt=0,kc=0,km=0,dset={},k,j;
   for(i=0;i<S.m.length;i++){
     if(!isCard(S.m[i].p))continue;
-    var wk2=isWalkName(S.m[i].n),tr2=isTreadName(S.m[i].n);
+    var wk2=isWalkName(S.m[i]),tr2=isTreadName(S.m[i]);
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
       if(!days[a[j].d]||!a[j].s.length)continue;
@@ -3991,7 +4035,7 @@ function wkCardio(){
         if(tr2&&!wk2&&sp2>0)km+=mn2/60*sp2;
       }
       /* 걷기 열량은 nt(NEAT)로 따로 잡으므로 유산소 합계에 또 넣지 않는다 */
-      if(!wk2)kc+=kcalSess(a[j].s,S.m[i].n);
+      if(!wk2)kc+=kcalSess(a[j].s,S.m[i]);
     }
   }
   var d=0;for(k in dset)d++;
@@ -4461,7 +4505,7 @@ function weekVolCardio(){
   var pid={},i,k,min=0;
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
-    var m=pid[k];if(!m||!isCard(m.p)||isWalkName(m.n))continue;
+    var m=pid[k];if(!m||!isCard(m.p)||isWalkName(m))continue;
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
       if(!days[e.d])continue;
@@ -4525,7 +4569,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-05 16:00';
+var BUILD='2026-09-06 10:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -4902,8 +4946,8 @@ function widgetSync(){
     var days=[],dset=[],i;
     for(i=0;i<7;i++){var t=new Date(mon);t.setDate(mon.getDate()+i);days.push(iso(t));dset.push({});}
     var cnt={'CHEST':0,'BACK':0,'SHOULDERS':0,'LEGS':0,'ARMS·ETC':0,'CARDIO':0};
-    var pid={},pnm={},k;
-    for(i=0;i<S.m.length;i++){pid[S.m[i].i]=S.m[i].p;pnm[S.m[i].i]=S.m[i].n;}
+    var pid={},pnm={},pmm={},k;
+    for(i=0;i<S.m.length;i++){pid[S.m[i].i]=S.m[i].p;pnm[S.m[i].i]=S.m[i].n;pmm[S.m[i].i]=S.m[i];}
     for(k in S.l){
       var p=pid[k];if(!p)continue;
       var a=S.l[k],j;
@@ -4913,7 +4957,7 @@ function widgetSync(){
         dset[di][p]=1;
         if(cnt[p]!=null){
           if(isCard(p)){
-            if(!isWalkName(pnm[k]))for(var q9=0;q9<a[j].s.length;q9++)cnt[p]+=(+a[j].s[q9][0]||0);
+            if(!isWalkName(pmm[k]||pnm[k]))for(var q9=0;q9<a[j].s.length;q9++)cnt[p]+=(+a[j].s[q9][0]||0);
           }
           else cnt[p]+=a[j].s.length;
         }
@@ -5104,7 +5148,7 @@ function aiPayload(){
       var m=pid[k];if(!m)continue;
       for(var j=0;j<S.l[k].length;j++){
         if(days.indexOf(S.l[k][j].d)<0)continue;
-        if(isCard(m.p)){if(!isWalkName(m.n))for(var q7=0;q7<S.l[k][j].s.length;q7++)cnt[m.p]=(cnt[m.p]||0)+(+S.l[k][j].s[q7][0]||0);}
+        if(isCard(m.p)){if(!isWalkName(m))for(var q7=0;q7<S.l[k][j].s.length;q7++)cnt[m.p]=(cnt[m.p]||0)+(+S.l[k][j].s[q7][0]||0);}
         else cnt[m.p]=(cnt[m.p]||0)+hardOf(S.l[k][j].s).n;
       }
     }
@@ -5142,7 +5186,7 @@ function aiPayload(){
     for(var k in S.l){
       var m=pid[k];if(!m)continue;
       /* 걷기는 NEAT 라 훈련 세트에도 유산소 분에도 넣지 않는다 */
-      if(isWalkName(m.n))continue;
+      if(isWalkName(m))continue;
       var c=0;
       for(var j=0;j<S.l[k].length;j++){
         if(days.indexOf(S.l[k][j].d)<0)continue;
@@ -5922,13 +5966,13 @@ document.addEventListener('click',function(e){
         S=UNDO.s;UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
-    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.pickOpen='';render();break;
+    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editCt='tread';UI.pickOpen='';render();break;
     case 'ed':
       (function(){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -6120,6 +6164,7 @@ document.addEventListener('click',function(e){
       UI.sheet='ai';render();
       break;
     case 'px':UI.editRx=+v;render();break;
+    case 'pct':UI.editCt=ctOk(v)?v:'tread';UI.pickOpen='';render();break;
     case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';UI.pickOpen='';render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
@@ -6180,7 +6225,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
