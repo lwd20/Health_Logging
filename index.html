@@ -1745,7 +1745,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'body',vzd:'today',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2749,17 +2749,8 @@ function renderSheet(){
        붙여 더 낫게 그리므로 여기서 또 그리면 랜드마크가 위아래로 두 번 나온다.
        주간 소비(kcalHtml)만 대시보드에 자리가 없어 '몸' 갈래로 옮겼다. */
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
-    /* 지금 바로 보는 것 — 앱이 낸다 */
-    var isD=!!DIETMODES[ANL];
-    var vlist=isD?VZD:VZT,vcur=(isD?UI.vzd:UI.vzt)||vlist[0][0];
-    h+='<section class="zsec"><div class="zhd"><b>지금 바로</b><i>앱이 냄</i></div>'
-      +vzTabs(vlist,vcur,isD?'vzd':'vzt')
-      +anlViz(ANL,vcur)
-      +'</section>';
-    /* AI 것은 조작부부터 리포트까지 한 덩어리로 — 예전에는 버튼이 맨 위,
-       머리글이 중간, 결과가 아래여서 무엇이 AI 인지 알 수 없었다 */
-    h+='<section class="zsec ai"><div class="zhd"><b>AI 분석</b><i>하루 '+used+'/20</i></div>';
-    h+='<div class="console">';
+    /* 이 칸이 훈련 표를 볼지 식단 표를 볼지까지 정한다 — 표보다 아래에 두면
+       무엇이 무엇을 바꾸는지 알 수 없다. 맨 위로 올린다. */
     h+='<div class="gmwrap">';
     h+='<button class="gmbtn'+(ANLOPEN?' open':'')+'" data-act="anlopen">'
       +'<span class="clab">ANALYSIS</span><span class="cval">'+ANLN[ANL]+'</span></button>';
@@ -2777,6 +2768,17 @@ function renderSheet(){
       h+='</div>';
     }
     h+='</div>';
+    /* 지금 바로 보는 것 — 앱이 낸다 */
+    var isD=!!DIETMODES[ANL];
+    var vlist=isD?VZD:VZT,vcur=(isD?UI.vzd:UI.vzt)||vlist[0][0];
+    h+='<section class="zsec"><div class="zhd"><b>지금 바로</b><i>앱이 냄</i></div>'
+      +vzTabs(vlist,vcur,isD?'vzd':'vzt')
+      +anlViz(ANL,vcur)
+      +'</section>';
+    /* AI 것은 조작부부터 리포트까지 한 덩어리로 — 예전에는 버튼이 맨 위,
+       머리글이 중간, 결과가 아래여서 무엇이 AI 인지 알 수 없었다 */
+    h+='<section class="zsec ai"><div class="zhd"><b>AI 분석</b><i>하루 '+used+'/20</i></div>';
+    h+='<div class="console">';
     if(aiBgPending())h+='<div class="note" style="margin-top:10px">백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b></div>';
     /* 엔진은 한 번 정하면 잘 안 바꾸는데 분석 종류와 같은 크기의 줄을 차지했다.
        작은 글씨 한 줄로 내리면 누를 자리가 20px 밖에 안 나오므로, 버튼과 한 줄을
@@ -4626,7 +4628,8 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
 
 /* ── 훈련 대시보드 ──
    예전 아홉 모드가 나눠 그리던 것을 한 자리에 모은다. AI 없이 즉시 나온다. */
-var VZT=[['set','부위'],['sub','세부'],['prog','진전'],['recov','회복'],['bal','균형'],['body','몸']];
+/* 체중과 소비가 모든 계산의 밑바탕이라 몸부터 본다 */
+var VZT=[['body','몸'],['set','부위'],['sub','세부'],['prog','진전'],['recov','회복'],['bal','균형']];
 var VZD=[['today','오늘'],['avg','추이']];
 /* 갈래 고르는 줄. 예전 아홉 모드가 관심사별 창구였던 것을 여기서 되살린다 —
    다만 AI 호출이 아니라 보기 전환이라 기다림도 한도도 없다. */
@@ -4641,13 +4644,19 @@ function vzTrain(tab){
   tab=tab||'set';
   var h='',ws=wkSets(),sc=subCnt(),i,k;
   if(tab==='set'){
-  /* 부위 */
-  var tot=0,tgt=0;
+  /* 세부에는 눈금이 있는데 부위에는 없을 이유가 없다 — LMKP 가 이미
+     다섯 부위의 랜드마크를 갖고 있다. 목표 대비는 숫자로, 구간은 눈금으로. */
+  h+=vzCap('부위 · MEV~MRV');
+  var tot=0,tgt=0,ph2='';
   for(k in PN_KO){
     var c=ws[k]||0,g=WTGT[k]||0;
     tot+=c;tgt+=g;
-    h+=vzBar(PN_KO[k],c,g,'',vzVerdict(c,g),true);
+    ph2+=LMKP[k]?lmRow(PN_KO[k],c,LMKP[k]):'';
   }
+  if(ph2)h+='<div class="lmsec">'+ph2
+    +'<div class="lmlg" data-act="hgo" data-v="goal"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
+  /* 눈금과 숫자 줄을 둘 다 그리면 같은 것을 두 번 본다 — 눈금이 자리로
+     보여 주므로 목표 대비는 총계 한 줄이면 된다 */
   var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
   h+=vzBar('유산소',wc.z2,ctg,wc.days+'회'+(wc.neat>0?' · 걷기 '+wc.neat+'분 별도':''),
            vzVerdict(wc.z2,ctg),false);
@@ -4675,18 +4684,23 @@ function vzTrain(tab){
     +'<span class="stt up2"><b>'+pr.up+'</b><i>진전</i></span>'
     +'<span class="stt"><b>'+pr.stall+'</b><i>정체</i></span>'
     +'<span class="stt dn2"><b>'+pr.down+'</b><i>퇴행</i></span></div>';
-  function nmRow(list,cls,vd){
+  /* 한꺼번에 다 펼치면 읽을 수가 없다. 손댈 것(퇴행·정체)만 줄로 펴고
+     잘 되는 것과 보류는 한 줄로 접는다 — 진전은 세어만 두면 된다. */
+  function act(list,vd){
     var o2='',j;
     for(j=0;j<list.length;j++)
-      o2+=vzLine(list[j].n,list[j].t||'',(list[j].p!==undefined?((list[j].p>0?'+':'')+list[j].p+'%'):'')
-        +(list[j].r!==null&&list[j].r!==undefined?'  RIR '+list[j].r:'')
-        +(list[j].why?list[j].why:''),vd);
+      o2+=vzLine(list[j].n,list[j].t||'',
+        (list[j].r!==null&&list[j].r!==undefined?'RIR '+list[j].r:''),vd);
     return o2;
   }
-  h+=nmRow(pr.dnL,'dn',{t:'퇴행',c:'neg'});
-  h+=nmRow(pr.stL,'st',{t:'정체',c:'warn'});
-  h+=nmRow(pr.upL,'up',{t:'진전',c:'pos'});
-  if(pr.holdL.length)h+=nmRow(pr.holdL,'hd',{t:'보류',c:''});
+  if(pr.dnL.length)h+=vzCap('손댈 것')+act(pr.dnL,{t:'퇴행',c:'neg'})+act(pr.stL,{t:'정체',c:'warn'});
+  else if(pr.stL.length)h+=vzCap('손댈 것')+act(pr.stL,{t:'정체',c:'warn'});
+  if(pr.upL.length)
+    h+=vzLine('진전 중',pr.upL.length+'종목',
+      pr.upL.slice(0,3).map(function(x){return x.n;}).join(', ')+(pr.upL.length>3?' 외':''),{t:'순항',c:'pos'});
+  if(pr.holdL.length)
+    h+=vzLine('판정 보류',pr.holdL.length+'종목',
+      pr.holdL.slice(0,2).map(function(x){return x.n+' '+x.why;}).join(', '),{t:'보류',c:''});
   if(!pr.dnL.length&&!pr.stL.length&&!pr.upL.length)
     h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
   }
@@ -4977,7 +4991,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 13:00';
+var BUILD='2026-09-07 15:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
