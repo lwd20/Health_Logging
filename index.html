@@ -2750,7 +2750,9 @@ function renderSheet(){
         +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+(aiDayTag(cur.d)?' <i class="stale">'+aiDayTag(cur.d)+'</i>':'')+'</span>'
         +'<button class="nav" data-act="ainext"'+(AIVIEW>0?'':' disabled')+'>&#9654;</button>'
         +'</span></div>';
-      h+=anlViz(cur.k||'wk');
+      /* 저장해 둔 그림이 있으면 그것을 쓴다 — 지금 값으로 다시 그리면
+         글과 그래프가 다른 주를 말한다. 옛 리포트에는 vz 가 없다. */
+      h+=(cur.vz!==undefined&&cur.vz!==null)?cur.vz:anlViz(cur.k||'wk');
       h+=aiFmt(cur.o,cur.ck||[],cur.ph);
     }else if(!AIRUN){
       h+='<div class="ai-empty">NO REPORT YET</div>';
@@ -4069,6 +4071,8 @@ function wkCardio(){
 }
 var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
 var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
+/* 요청을 보낼 때의 모드·시점. 도착 시점 전역값을 쓰면 기다리는 사이 바뀐다 */
+var AIREQ=null;
 /* ── 분석론 선택 ── */
 var ANL='wk',ANLOPEN=false;
 var ANLL={cut:'CUT & NEXT MEAL',mac:'NUTRIENT BALANCE',wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
@@ -4595,7 +4599,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 14:00';
+var BUILD='2026-09-06 16:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5652,12 +5656,26 @@ function aiBgPoll(){
 }
 function aiSave(txt){
   AIRUN=false;
+  /* 실패는 리포트가 아니다. 예전에는 '오류: …' 도 이력에 넣고 4개로 잘라서
+     실패 두 번이면 지난 리포트가 사라졌다 — 되돌릴 수 없는 손실이다.
+     대신 토스트로 알린다. 조용히 삼키면 지난 리포트가 그대로 보여서
+     방금 돌린 것이 성공한 줄 안다. */
+  if(/^(오류|요청 실패)/.test(String(txt||''))){
+    AIREQ=null;AIVIEW=0;AIFRESH=false;
+    try{toast('<em>실패</em> '+esc(String(txt).slice(0,60)),7000);}catch(e0){}
+    renderSheet();
+    return;
+  }
   AIOUT=txt;
   var t=new Date();
   AIAT=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
   AIBY=LMN[LM]+(LM==='gem'?' '+GMN[GM]:'');
   AIDT=MONS[t.getMonth()]+' '+t.getDate();
-  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT,k:ANL,ph:hasTodayStrength()?'post':'pre'});
+  var rq=AIREQ||{k:ANL,ph:hasTodayStrength()?'post':'pre'};
+  AIREQ=null;
+  /* 그릴 때 쓴 값을 함께 남긴다 — 지난 리포트를 넘겨 볼 때 글은 그때 것인데
+     그래프만 지금 주 것이면 둘이 다른 주를 말한다 */
+  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT,k:rq.k,ph:rq.ph,vz:anlViz(rq.k)});
   AIH=AIH.slice(0,4);
   AIVIEW=0;
   AIFRESH=true;
@@ -5733,6 +5751,9 @@ function sseFetch(url,opt,idleMs,onText){
 function runAI(){
   if(AIRUN)return;
   AIRUN=true;
+  /* 응답을 기다리는 동안 모드를 바꿀 수 있다. 도착 시점의 ANL 로 제목을 달면
+     볼륨 리포트에 진전 위젯이 붙는다 — 보낼 때의 모드를 잡아 둔다. */
+  AIREQ={k:ANL,ph:hasTodayStrength()?'post':'pre'};
   aiCount();
   UI.sheet='ai';
   render();
@@ -6303,6 +6324,8 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'airun':
+      /* 배경 실행도 보낼 때의 모드를 잡아 둔다 */
+      if(!AIREQ)AIREQ={k:ANL,ph:hasTodayStrength()?'post':'pre'};
       /* 샘플 데이터로 리포트를 뽑으면 남의 기록을 자기 것으로 읽는다.
          전경(runAI)과 배경(AndroidAI) 두 경로가 갈리기 전에 막는다 */
       if(DEMO){toast('샘플 데이터로는 분석할 수 없음 — 기록을 먼저 남겨주세요');break;}
