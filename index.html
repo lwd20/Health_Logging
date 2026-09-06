@@ -5495,10 +5495,18 @@ function vzDiet(tab){
       h+=vzLine('먹은 끼니',t.eatenMeals.join(', '),'',{t:'기록됨',c:'pos'});
   }
   if(tab==='avg'&&nf.completedDaysCount>0){
-    h+=vzCap('끝난 날 '+nf.completedDaysCount+'일 평균');
+    /* '끝난 날 4일' 이 최근 나흘로 읽힌다. 창(21일)과 그 안에서 기록이 들어온
+       날 수는 다른 값이라 둘 다 적는다 — 나흘은 기간이 아니라 표본 크기다. */
+    h+=vzCap('최근 21일 · 기록 있는 '+nf.completedDaysCount+'일 평균');
+    /* 하루 판정은 ±100 밴드로 초과·부족·지킴을 가르는데 평균은 부호만 보고
+       음수면 전부 '준수' 라 했다. 같은 -158 이 하루로는 부족이고 평균으로는
+       준수가 된다. 게다가 감량기에 만성적으로 덜 먹는 것은 근손실 쪽이라
+       칭찬할 일이 아니다 — 밴드를 하루 판정과 같게 맞춘다. */
+    var avD=nf.completedDaysAvgDiff;
     h+=vzLine('섭취',Math.round(nf.completedDaysAvgIntake)+' kcal',
-      '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(nf.completedDaysAvgDiff>0?'+':'')+Math.round(nf.completedDaysAvgDiff),
-      nf.completedDaysAvgDiff>0?{t:'초과',c:'warn'}:{t:'준수',c:'pos'});
+      '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(avD>0?'+':'')+Math.round(avD)
+        +' · 하루 판정과 같은 ±100 기준',
+      avD>100?{t:'초과',c:'warn'}:(avD<-100?{t:'부족',c:'warn'}:{t:'준수',c:'pos'}));
     h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
       '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)+'일','');
   }
@@ -5610,7 +5618,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 02:30';
+var BUILD='2026-09-08 03:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
