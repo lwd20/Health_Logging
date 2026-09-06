@@ -4885,10 +4885,39 @@ function pgList(items,empty){
   if(seen['변동 안'])lg.push('<b>변동 안</b> 그 종목이 실제로 보인 흔들림 폭 안이라 움직였다고 못 함');
   if(seen['반등'])lg.push('<b>반등</b> 묶음 비교는 오히려 오름 — 타일은 직전 세션만 봄');
   if(seen['표본'])lg.push('<b>표본</b> 4세션부터 묶음 비교가 섬');
+  if(seen['기록'])lg.push('<b>기록</b> 세션이 둘뿐이거나 간격이 보름을 넘어 애초에 판정 대상이 아님');
+  if(seen['잣대'])lg.push('<b>잣대</b> 반복대가 바뀌어 e1RM 을 같은 자로 못 댐');
   if(seen['감량중'])lg.push('<b>감량중</b> 적자에서 e1RM 유지는 정상');
   if(seen['체중'])lg.push('<b>체중</b> 어시스트 유효부하가 체중을 따라 내린 것');
   return '<div class="pgl">'+h+'</div>'
     +(lg.length?'<div class="pglg">'+lg.join('<i>·</i>')+'</div>':'');
+}
+/* heroProg 의 판정은 직전 두 세션 비교(±0.5%)이고 pgDiag 는 묶음 비교다.
+   타일을 앞엣것으로 세고 목록을 뒤엣것으로 그리면 '정체' 칸에 +40% 가 앉는다.
+   센 것과 보여 준 것이 다르면 어느 수도 못 믿는다 — 묶음 비교로 통일한다.
+   heroProg 자체는 안 건드린다: 그 up/stall/down 을 computedFacts 가 쓰고
+   있어 여기서 바꾸면 그 값이 무엇을 세는지가 또 갈린다. 대신 이 갈래와
+   AI 페이로드가 같은 이 함수를 본다. */
+function progBuckets(){
+  var pr=heroProg(),sc=subCnt(),i,d;
+  var t=wTrend(),pl=paceLeft();
+  var cx={cut:!!(t&&t.rate<0&&-t.rate>=BW*0.003),dn:pr.dnL.length,
+          streak:heroStreak(),wk:(pl<0?100:pl),sa:{}};
+  var up=[],st=[],dn=[],hold=[];
+  function put(x,kind){
+    d=pgDiag(x,kind,cx,sc);
+    /* 묶음 비교가 오름이면 정체·퇴행이 아니라 진전이다 */
+    if(d.c==='반등'){up.push(d);return;}
+    /* 판정이 안 선 것(변동 안·표본·잣대)은 정체가 아니라 보류다 —
+       '정체 9' 안에 못 가른 넷이 섞여 있으면 그 9 가 거짓이 된다 */
+    if(d.k==='obs'){hold.push(d);return;}
+    (kind==='dn'?dn:st).push(d);
+  }
+  for(i=0;i<pr.dnL.length;i++)put(pr.dnL[i],'dn');
+  for(i=0;i<pr.stL.length;i++)put(pr.stL[i],'st');
+  return {pr:pr,cx:cx,sc:sc,up:up,st:st,dn:dn,hold:hold,
+          nUp:pr.upL.length+up.length,nSt:st.length,nDn:dn.length,
+          nHold:hold.length+pr.holdL.length};
 }
 /* .zrow 의 네 슬롯(이름·칩·숫자·근거)을 그대로 쓰고 '왜' 한 줄만 더한다.
    칩 자리에는 판정이 아니라 원인을 넣는다 — 판정은 바로 위 타일과 줄 색과
@@ -5345,11 +5374,9 @@ function vzTrain(tab){
   if(uk>0)h+='<div class="lmunk">이번 주 <b>'+uk+'세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨</div>';
   }
   if(tab==='prog'){
-  var pr=heroProg();
+  var B=progBuckets(),pr=B.pr;
   h+=vzCap('종목 판정 · 눌러서 펼침');
-  /* 타일은 heroProg 의 원 판정 그대로 둔다 — 홈의 heroSignal 과 같은 셈이라
-     여기서만 바꾸면 화면 둘이 다른 수를 말한다. 아래에서 걸러진 몫은
-     '판정 보류' 줄이 받아 셈이 닫힌다. */
+  /* 타일도 목록도 묶음 비교 하나로 센다 */
   /* 수만 세고 있으면 '정체 9' 를 보고도 그 아홉이 무엇인지 알 길이 없다.
      누르면 펴진다 — 아래에서 걸러진 것까지 전부. 다시 누르면 닫힌다. */
   function stt(k,n,lb,cls){
@@ -5359,49 +5386,49 @@ function vzTrain(tab){
   /* 보류까지 넷으로 둔다. 셋만 두면 heroProg 가 판정에서 뺀 종목(기록 2회·
      간격 15일 이상)이 어느 타일에도 안 들어가, 아래 요약 줄을 없앤 순간
      화면에서 통째로 사라진다. 넷이면 모든 종목이 어딘가에 속하고 셈이 닫힌다. */
-  h+='<div class="sttrow four">'+stt('up',pr.up,'진전','up2')
-    +stt('st',pr.stall,'정체','')+stt('dn',pr.down,'퇴행','dn2')
-    +stt('hd',pr.holdL.length,'보류','')+'</div>';
-  var pgCx=(function(){
-    var t=wTrend();
-    var pl=paceLeft();
-    return {cut:!!(t&&t.rate<0&&-t.rate>=BW*0.003),dn:pr.dnL.length,streak:heroStreak(),
-            wk:(pl<0?100:pl),sa:{}};
-  })();
-  var pgA=[],pgK=[],pgO=[],pgAll=[],pgi,pgd,pgL;
-  for(pgi=0;pgi<pr.dnL.length;pgi++){
-    pgd=pgDiag(pr.dnL[pgi],'dn',pgCx,sc);
-    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);pgAll.push(pgd);
-  }
-  for(pgi=0;pgi<pr.stL.length;pgi++){
-    pgd=pgDiag(pr.stL[pgi],'st',pgCx,sc);
-    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);pgAll.push(pgd);
+  h+='<div class="sttrow four">'+stt('up',B.nUp,'진전','up2')
+    +stt('st',B.nSt,'정체','')+stt('dn',B.nDn,'퇴행','dn2')
+    +stt('hd',B.nHold,'보류','')+'</div>';
+  var pgA=[],pgK=[],pgi,pgd;
+  /* 손댈 것은 확정된 정체·퇴행 중 원인이 붙은 것뿐이다. 보류로 간 것은
+     애초에 무엇을 손대야 할지 모르는 것들이라 여기 안 온다. */
+  var pgCon=B.dn.concat(B.st);
+  for(pgi=0;pgi<pgCon.length;pgi++){
+    pgd=pgCon[pgi];
+    (pgd.k==='keep'?pgK:pgA).push(pgd);
   }
   /* 타일을 누른 갈래의 목록. 진전은 pgDiag 를 안 돌린다 — 타일이 센 것과
      같은 자(직전 세션 대비)를 써야 한 화면이 두 수를 말하지 않는다. */
   function pgPart(id){var mm=id?machById(id):null;return mm?mm.p:'';}
+  /* 값 칸이 곧 그 줄이 거기 있는 이유다. 판정이 안 선 것은 무엇이 모자란지를
+     적는다 — 표본이면 몇 세션이 더 있어야 하는지, 변동 안이면 그 변화율이
+     얼마인지(그 수가 흔들림 폭 안이라 판정이 안 섰다는 뜻이다). */
+  function pgVal(x){
+    if(x.c==='표본')return x.ns?x.ns+'/4세션':'기록 부족';
+    if(x.kind==='dn'||x.k==='obs'||x.c==='반등')return (x.pct>0?'+':'')+x.pct+'%';
+    return x.wk+'주째';
+  }
+  function pgMap(a){return a.map(function(x){
+    return {n:x.n,c:x.c,p:x.p||pgPart(x.id),v:pgVal(x)};});}
   if(UI.pgt==='up'){
+    /* heroProg 가 센 진전과 묶음 비교가 뒤집은 반등을 한자리에 둔다 —
+       타일이 그 둘을 합쳐 세므로 목록도 같아야 한다 */
     h+=pgList(pr.upL.slice().sort(function(u,v){return v.p-u.p;})
-      .map(function(x){return {n:x.n,c:'',p:pgPart(x.i),v:(x.p>0?'+':'')+x.p+'%'};}),
+      .map(function(x){return {n:x.n,c:'',p:pgPart(x.i),v:(x.p>0?'+':'')+x.p+'%'};})
+      .concat(pgMap(B.up.slice().sort(function(u,v){return v.pct-u.pct;}))),
       '진전 중인 종목 없음');
   }else if(UI.pgt==='hd'){
-    h+=pgList(pr.holdL.map(function(x){
-      return {n:x.n,c:'',p:pgPart(x.i),v:x.why||''};}),'보류된 종목 없음');
+    var PGH={'표본':0,'변동 안':1,'잣대':2};
+    h+=pgList(pgMap(B.hold.slice().sort(function(u,v){
+        return (PGH[u.c]===undefined?9:PGH[u.c])-(PGH[v.c]===undefined?9:PGH[v.c]);}))
+      .concat(pr.holdL.map(function(x){
+        return {n:x.n,c:'기록',p:pgPart(x.i),v:x.why||''};})),'보류된 종목 없음');
   }else if(UI.pgt==='st'||UI.pgt==='dn'){
-    var pgKd=UI.pgt,PGO={act:0,keep:1,obs:2};
-    h+=pgList(pgAll.filter(function(x){return x.kind===pgKd;})
-      .sort(function(u,v){
-        if(PGO[u.k]!==PGO[v.k])return PGO[u.k]-PGO[v.k];
-        return pgKd==='dn'?u.pct-v.pct:(v.wk-u.wk)||(v.ns-u.ns);})
-      .map(function(x){
-        /* 값 칸이 곧 그 줄이 거기 있는 이유다. 근거가 모자란 것은 몇 개가
-           더 있어야 하는지까지 적는다 — '3세션' 만으로는 무엇이 모자란지
-           모른다. 변동 안·반등처럼 세션은 넉넉한데 판정만 못 선 것은 변화율을
-           보여 준다: 그 수가 변동폭 안이라 판정이 안 선 것이기 때문이다. */
-        return {n:x.n,c:x.c,p:x.p,
-          v:(x.c==='표본'?(x.ns?x.ns+'/4세션':'기록 부족')
-            :(x.kind==='dn'||x.k==='obs'?(x.pct>0?'+':'')+x.pct+'%':x.wk+'주째'))};}),
-      (pgKd==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'));
+    var pgKd=UI.pgt,src=(pgKd==='dn'?B.dn:B.st).slice();
+    src.sort(function(u,v){
+      if((u.k==='keep')!==(v.k==='keep'))return u.k==='keep'?1:-1;
+      return pgKd==='dn'?u.pct-v.pct:(v.wk-u.wk);});
+    h+=pgList(pgMap(src),(pgKd==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'));
   }
   /* 퇴행 먼저, 그 안에서 많이 내려간 것부터. 정렬은 표현이지 처방이 아니다 —
      '1순위' 같은 라벨은 안 붙인다. 그건 AI 의 [한 줄] 이고 홈의 heroSignal
@@ -5440,7 +5467,7 @@ function vzTrain(tab){
   /* '진전 중 11종목' 과 '판정 보류 12종목' 은 타일이 이미 세고 있는 것을
      한 번 더 적는 줄이었다. 눌러서 이름까지 볼 수 있게 된 뒤로는 셈도
      이름도 겹치므로 뺀다. 보류는 넷째 타일이 받는다. */
-  if(!pgA.length&&!pgK.length&&!pr.upL.length&&!pgO.length&&!pr.holdL.length)
+  if(!pgA.length&&!pgK.length&&!B.nUp&&!B.nHold)
     h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
   }
   if(tab==='recov'){
@@ -5634,7 +5661,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 04:00';
+var BUILD='2026-09-08 05:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6245,8 +6272,12 @@ function planPayload(){
     if(v.t==='적절'||v.t==='유지')continue;
     subs.push({세부:subLabel(sb),실적:cur,보정MRV:Math.round(L[3]*0.8),여지:Math.max(0,Math.min(L[2],Math.round(L[3]*0.8))-cur),vd:v.t});
   }
-  var pr=heroProg();
+  var B=progBuckets(),pr=B.pr;
   function nm(a){return a.map(function(x){return {종목:x.n,수치:x.t||'',변화:(x.p!==undefined?x.p+'%':''),RIR:x.r,사유:x.why||''};});}
+  /* 화면과 같은 통을 본다. 예전에는 여기가 heroProg 원 판정을 보내서,
+     화면이 '정체 3' 이라 적는 동안 AI 는 9 를 받았다. */
+  function bk(a){return a.map(function(x){
+    return {종목:x.n,원인:x.c,변화:(x.pct>0?'+':'')+x.pct+'%',주:x.wk,세션:x.ns};});}
   var dl=deloadSignal(),lt=lbmTrend(),pc=paceCalc(BW,BF,GF),rz=repZone();
   /* 간접 자극 — 팔의 부족을 등·가슴 볼륨으로 깎을지는 판단이라 AI 몫이다.
      감산 비율은 안 넘기고 기여 세트 수만 준다. */
@@ -6264,7 +6295,8 @@ function planPayload(){
     휴식요일:RD.map(function(x){return '일월화수목금토'.charAt(x);}),
     실제훈련일:wkTrainDays(),이번주쉰날:wkOffCount(),오늘쉬는날:isOff(todayISO()),
     부위:parts,손댈세부:subs,
-    진전:nm(pr.upL),정체:nm(pr.stL),퇴행:nm(pr.dnL),보류:nm(pr.holdL),
+    진전:nm(pr.upL).concat(bk(B.up)),정체:bk(B.st),퇴행:bk(B.dn),
+    보류:bk(B.hold).concat(nm(pr.holdL)),
     빈도:wkDaysByPart(),
     회복:{연속일:heroStreak(),이틀연속:partGap48().map(function(x){return PN_KO[x.p]||x.p;}),
           디로드후보:dl?dl.n:0,디로드종목:dl?dl.names:[],
