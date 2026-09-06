@@ -441,10 +441,19 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .pro{grid-column:1/-1;text-align:right;font-family:var(--mono);font-size:12px;
   color:var(--dim);font-variant-numeric:tabular-nums;margin-top:-2px}
 .pro i{font-style:normal;font-family:var(--sans);font-size:8.5px;font-weight:800;
-  letter-spacing:.14em;margin-right:3px}
+  letter-spacing:.08em;margin-right:2px}
 /* --dim 은 이미 대비 하한(4.6)이라 더 흐리게 하면 밝은 팔레트에서 4.0 으로 떨어진다.
    작게만 하고 색은 건드리지 않는다 */
 .pro u{text-decoration:none;font-size:9px;margin-left:1px}
+/* 두 조각 사이의 가운뎃점. 조각이 하나뿐이면 아예 안 생긴다 */
+.pro s{text-decoration:none;margin:0 4px;color:var(--dim);opacity:.6}
+.pro s::before{content:' B7'}
+/* 조각은 통째로만 접힌다 — 안 걸면 '단백질 95/' 에서 잘린다 */
+.pro b{font-weight:inherit;white-space:nowrap}
+/* 한 줄에 넣으려면 168px 이 필요한데 그만한 자리가 나는 것은 360px 부터다
+   (tclock+tmain 167px + gap 22px 를 뺀 나머지: 320→131 · 360→171 · 375→186).
+   좁은 화면에서는 조각 사이에서 접혀 각 조각이 온전히 남는다. */
+@media (min-width:360px){.pro{white-space:nowrap}}
 /* 단위는 숫자에 붙되 눈에 안 걸리게 — 값을 읽는 데 방해가 되면 안 된다 */
 .hsc b u{text-decoration:none;font-size:9px;font-weight:700;color:var(--dim);margin-left:2px}
 /* 목표를 넘겼으면 남은 값이 아니라 넘긴 값이라 색을 바꾼다 */
@@ -2255,13 +2264,19 @@ function render(){
              큰 글씨로 두면 섭취 여유·하루 소비와 같은 급으로 보이는데, 이
              값은 그 둘을 설명하는 부속이라 단백질과 같은 급이 맞다.
              안 한 날은 줄을 안 그린다: 0 을 적으면 눈이 걸릴 자리만 는다. */
-          +(ex>0
-            ? '<div class="pro"><i>운동 소비</i> '+ex.toLocaleString()+'<u>kcal</u></div>'
-            : '')
-          +(hd&&BW>0
-            ? '<div class="pro"><i>단백질</i> '+Math.round(hd.p).toLocaleString()
-              +'<u>/'+Math.round(BW*PRO_PER_KG)+' g</u></div>'
-            : '')
+          /* 둘 다 위 두 수를 거드는 부속이라 한 줄에 둔다 — 줄을 따로 쓰면
+             각자가 하나의 지표처럼 보여 머리 위 두 수와 급이 헷갈린다.
+             하나만 있을 때 가운뎃점이 남지 않게 조각으로 모아 잇는다. */
+          +(function(){
+              /* 조각마다 nowrap 을 걸어 둔다. 한 줄에 다 못 들어가는 좁은 화면
+                 (320px 언저리)에서는 조각 사이에서만 접혀 각 조각이 온전히
+                 남는다 — 안 걸면 '단백질 95/' 에서 잘린다. */
+              var pc=[];
+              if(ex>0)pc.push('<b><i>운동</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
+              if(hd&&BW>0)pc.push('<b><i>단백질</i> '+Math.round(hd.p).toLocaleString()
+                +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b>');
+              return pc.length?'<div class="pro">'+pc.join('<s></s>')+'</div>':'';
+            })()
           +'</div>';
       })():'');
   /* 상태 줄은 상단에서 뺐다 — 같은 내용을 분석 탭 머리에서 보여 준다 */
@@ -5551,7 +5566,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 11:00';
+var BUILD='2026-09-08 12:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
