@@ -2238,7 +2238,9 @@ function render(){
         /* 기록이 없으면 먹은 것이 0 이라 먹을 수 있는 양은 목표 그대로다.
            예전에는 그때 라벨이 EAT 로 바뀌었는데, 같은 자리가 날짜에 따라
            다른 것을 뜻하면 읽을 수 없다. 이름을 하나로 둔다. */
-        var hd=hcDay(UI.wd),lf=eat-(hd?hd.kcal:0);
+        /* 삼성헬스가 매크로만 주고 열량을 안 준 날이 있다 — 그대로 빼면
+           '섭취 여유' 자리에 NaN 이 뜬다 */
+        var hd=hcDay(UI.wd),lf=eat-(hd?(+hd.kcal||0):0);
         /* 라벨을 앞, 숫자를 뒤로 — 두 숫자의 오른쪽 끝이 맞아야 위아래로 견줘진다 */
         return '<div class="hstat" data-act="godiet">'
           +'<div class="hsc eat"><i>'+(lf<0?'초과':'섭취 여유')+'</i>'
@@ -3865,7 +3867,8 @@ function applyBackup(o){
         OFF={};
         for(var ok2 in c.off)if(c.off[ok2]&&/^\d{4}-\d{2}-\d{2}$/.test(ok2))OFF[ok2]=1;
       }
-      if(Array.isArray(c.bh))bhSave(c.bh.filter(function(x){return x&&x.d&&+x.w>0&&+x.f>0;}));
+      if(Array.isArray(c.bh))bhSave(c.bh.filter(function(x){
+        return x&&x.d&&+x.w>=30&&+x.w<=300&&+x.f>=3&&+x.f<=60;}));
       if(typeof c.pr==='string')PR=c.pr;
       if(c.dot&&typeof c.dot==='object'){
         DOT.r=c.dot.r?1:0;DOT.y=c.dot.y?1:0;
@@ -3895,13 +3898,19 @@ function applyBackup(o){
 /* 기초대사 — Katch-McArdle(제지방 기반) */
 function bmr(bw,bf){
   bw=+bw;bf=+bf;
-  if(!(bw>0&&bf>0))return 0;
+  /* 복원 파일에 체지방 125% 짜리 기록이 들어오면 기초대사가 -62 가 된다.
+     사람의 범위를 벗어난 값은 계산할 것이 아니라 모른다고 해야 한다. */
+  if(!(bw>=30&&bw<=300))return 0;
+  if(!(bf>=3&&bf<=60))return 0;
   return Math.round(370+21.6*bw*(1-bf/100));
 }
-/* 근력 세트의 MET — 동원 근육량 순. Compendium of Physical Activities 의
-   저항운동 구간(가벼움 3.5 ~ 힘듦 6.0)을 부위에 배분했다.
-   스쿼트 한 세트와 레터럴레이즈 한 세트가 같을 수 없다. */
-var SMET={'LEGS':6.0,'BACK':5.5,'CHEST':5.0,'SHOULDERS':4.5,'ARMS·ETC':4.0};
+/* 근력 세트의 MET — 동원 근육량 순. 부위마다 값을 가르는 발상은 문헌이
+   지지한다: Compendium 2011 도 02052(스쿼트·데드 5.0)와 02054(다종목
+   8~15회 3.5)를 실제로 갈라 놓았다.
+   다만 예전 값 4.0~6.0(평균 5.0)은 그 밴드보다 43% 높았다. 6.0 은 02050
+   '격렬 · 파워리프팅' 이라 레그익스텐션 세트에 쓸 값이 아니다. 서열은 두고
+   밴드 안으로 내린다 — 감량기에 소비를 높이 잡으면 그만큼 더 먹게 된다. */
+var SMET={'LEGS':5.0,'BACK':4.3,'CHEST':4.0,'SHOULDERS':3.7,'ARMS·ETC':3.5};
 /* 세트 하나가 차지하는 시간 = 수행 + 다음 세트까지의 휴식.
    MET 값은 이미 휴식을 포함해 평균 낸 수치라 한 덩어리로 계산한다.
    휴식은 설정값을 쓰되 45~180초로 묶는다 — 타이머를 길게 잡아 뒀다고
@@ -3910,10 +3919,24 @@ var SMET={'LEGS':6.0,'BACK':5.5,'CHEST':5.0,'SHOULDERS':4.5,'ARMS·ETC':4.0};
    휴식을 설정값(IVs)으로만 잡으면 알림 간격을 45->180 으로 바꾸는 순간
    지난 3주치 소비가 통째로 다시 계산돼 진단이 뒤집힌다. 그날 실제로
    기록된 휴식(set[3])이 있으면 그것을 쓴다 — 과거는 과거대로 둔다. */
-function setMin(reps,rest){
-  var r=(rest>=5&&rest<=3600)?rest:Math.min(180,Math.max(45,IVs));
-  return (Math.max(1,+reps||1)*3+Math.min(600,r))/60;
+/* 수행과 휴식을 따로 낸다. 합쳐 돌려주고 세트마다 더하면 세트가 N개일 때
+   휴식도 N번 세어진다 — 실제 세션은 N-1 번이다. 4세트를 10분으로 세던 것이
+   실제로는 8분이라, 종목마다 휴식 한 번씩이 유령으로 붙었다. */
+function setWorkMin(reps){
+  /* 반복에 상한이 없어 1000 을 넣으면 한 세트가 400kcal 이 됐다 */
+  return Math.max(1,Math.min(50,+reps||1))*3/60;
 }
+function setRestMin(rest){
+  var r=+rest;
+  if(!(r>=5))r=Math.min(180,Math.max(45,IVs));   /* 미기록이면 기본 휴식 */
+  /* 600 초까지 세던 것을 300 에서 끊는다. 10분을 쉬어도 10분치 운동으로
+     세면 한 세트가 80.9kcal — 정상 세트(19.3)의 네 배다. MET 표는 이미
+     통상 휴식을 품고 있고 그 너머는 운동이 아니라 앉아 있는 것이다.
+     상한에서 자르므로 3600 초를 넘으면 기본값으로 떨어져 1초 차이로 값이
+     4.2배 뛰던 벼랑도 없어진다. */
+  return Math.min(300,r)/60;
+}
+function setMin(reps,rest){return setWorkMin(reps)+setRestMin(rest);}
 function setKcal(p,reps,rest){
   return (SMET[p]||4.5)*3.5*BW/200*setMin(reps,rest);
 }
@@ -3934,13 +3957,25 @@ function dayExKcal(ds){
         for(q=0;q<st.length;q++)mn+=Math.min(+st[q][0]||0,CARDIO_LIM.minMax);
         continue;
       }
+      /* 마지막 세트 뒤의 휴식은 세션에 안 들어간다. 세트마다 수행+휴식을
+         더하면 종목마다 휴식 한 번이 유령으로 붙는다. */
+      var met=SMET[S.m[i].p]||4.5;
       for(q=0;q<st.length;q++){
-        k+=setKcal(S.m[i].p,st[q][1],st[q][3]);
-        mn+=setMin(st[q][1],st[q][3]);
+        var sm=setWorkMin(st[q][1])+(q<st.length-1?setRestMin(st[q][3]):0);
+        k+=met*3.5*BW/200*sm;
+        mn+=sm;
       }
     }
   }
-  /* 뺄 값은 이 앱이 실제로 쓰는 기본 소비율이어야 한다(1 MET 가 아니라) */
+  /* 종목의 부위를 CARDIO 로 바꾸면 이미 있던 근력 세트가 [분,속도,경사] 로
+     읽혀 무게 70 이 70분이 된다. 근본 고침은 자료 구조 쪽이라 여기서는
+     터무니없는 값이 화면까지 오지 못하게 막는다 — 하루 여섯 시간, 분당
+     25kcal(유산소 상한과 같은 값)을 넘는 소비는 기록 오류다. */
+  mn=Math.min(mn,360);
+  k=Math.min(k,CARDIO_LIM.perMinMax*mn);
+  /* 뺄 값은 이 앱이 실제로 쓰는 기본 소비율이어야 한다(1 MET 가 아니라).
+     MET 식이 내장한 1 MET 기준선은 이 체중에서 하루 1,993kcal 인데
+     기초대사는 1,737 이다 — 기초대사만 빼면 이중계상이 남는다. */
   var b=bmr(BW,BF);
   if(b>0)k-=b*ACT/1440*mn;
   return Math.max(0,Math.round(k));
@@ -4059,9 +4094,11 @@ function bwSrc(){
 }
 function bhSync(){
   var r=bwSrc();
-  if(!r||!(r.w>0))return;
+  /* 체중계가 780kg 을 보내도 그대로 받던 자리 — 손으로 넣는 길(bhCommit)은
+     이미 30~200 으로 묶여 있는데 자동으로 들어오는 길만 뚫려 있었다 */
+  if(!r||!(r.w>=30&&r.w<=300))return;
   BW=r.w;
-  if(r.f>0)BF=Math.round(r.f*10)/10;
+  if(r.f>=3&&r.f<=60)BF=Math.round(r.f*10)/10;
   if(canLS){try{localStorage.setItem(KEY+'.bw',String(BW));localStorage.setItem(KEY+'.bf',String(BF));}catch(e){}}
 }
 function bhCommit(dd,w2,f2,m2){
@@ -5566,7 +5603,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 12:30';
+var BUILD='2026-09-08 14:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
