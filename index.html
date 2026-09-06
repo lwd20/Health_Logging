@@ -1213,6 +1213,28 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
    알린다 — 위 타일이 이미 센 '퇴행/정체' 를 네 번째로 적지 않기 위해서다.
    배경은 깔지 않는다: 틴트가 밀려 올라가 어두운 팔레트에서 대비가 무너진다
    (경고 배지에서 이미 세 번 겪었다). */
+/* 누를 수 있는 타일. 51px 이라 크기는 이미 넉넉하다 */
+.stt[data-act]{cursor:pointer}
+.stt[data-act]:active{opacity:.6}
+/* 9% 틴트로는 켜진 티가 안 난다 — frost 계열에서 꺼진 타일과 1.02 로
+   사실상 같은 색이었다. 강조색으로 채운다. --on-acc 가 바로 그 위에
+   얹으라고 있는 글자색이라 대비가 팔레트와 무관하게 선다.
+   .stt.up2/.dn2 의 초록·빨강도 이때는 덮는다 — 채운 칸에서 그 색을 그대로
+   쓰면 대비가 팔레트마다 널뛴다. 색은 안 켜진 두 칸이 계속 나른다. */
+.stt.on{border-color:var(--acc-sf);background:var(--acc-sf)}
+.stt.on b,.stt.on i,.stt.on.up2 b,.stt.on.dn2 b{color:var(--on-acc)}
+/* 타일이 편 목록 — .zrow 는 한 줄 50px 이라 열한 줄이면 550px 다.
+   여기는 이름과 값만 있으면 되므로 좁은 줄을 따로 쓴다. */
+.pgl{margin:8px 0 2px}
+.pgli{display:flex;align-items:baseline;gap:8px;padding:7px 2px;
+  border-top:1px solid rgba(var(--tx-rgb),.06)}
+.pgli:first-child{border-top:0}
+.pgli b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:12.5px;font-weight:600;color:var(--tx)}
+.pgli i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;color:var(--mut)}
+.pgli u{margin-left:auto;text-decoration:none;font-family:var(--mono);font-size:11.5px;
+  color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pgli.mt{color:var(--mut);font-size:11px}
 .zrow.pgr{padding-left:9px;border-left:2px solid rgba(var(--tx-rgb),.14)}
 .zrow.pgr.neg{border-left-color:var(--sig)}
 /* 정체 레일에 금색(--acc-br)을 쓰면 다섯 팔레트(ember wine ruby crimson
@@ -1794,7 +1816,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'body',vzd:'today',pgo:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'body',vzd:'today',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -4581,7 +4603,7 @@ function pgWhy(m,a,cx,sc){
    k: 'act' 손댈 것 / 'keep' 감량 중 유지 / 'obs' 판정 보류 */
 function pgDiag(x,kind,cx,sc){
   var m=x.i?machById(x.i):null;
-  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1};
+  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1,ns:0};
   if(!m)return d;
   var ss=pgSess(m),a=ss.a,q=ss.q;
   if(a.length<2)return d;
@@ -4589,6 +4611,7 @@ function pgDiag(x,kind,cx,sc){
   var sig=pgSigma(q),bl=pgBlock(q);
   var span=pgGapD(a[0],a[a.length-1]);
   d.n=pgName(m);
+  d.ns=q.length;
   d.wk=Math.max(1,Math.round(span/7));
   d.sub=q.length+'세션 '+d.wk+'주';
   /* 세션 두 개 뺄셈은 표본이 2다. 반복 한 회가 Epley 로 2.4~2.9% 인데 그
@@ -4634,6 +4657,22 @@ function pgDiag(x,kind,cx,sc){
   return d;
 }
 
+/* 타일을 누르면 나오는 목록. .zrow 는 한 줄이 50px 이라 열한 줄이면 550px 다 —
+   여기는 이름과 값만 있으면 되므로 훨씬 좁은 줄을 쓴다.
+   값 칸의 규칙은 손댈 것과 같다: 퇴행이면 변화율, 정체면 몇 주째, 근거가
+   모자라 판정을 못 한 것이면 몇 세션인지. 무엇이 모자란지가 곧 그 줄이
+   거기 있는 이유다. */
+function pgList(items,empty){
+  var h='',i;
+  if(!items.length)return '<div class="pgl"><div class="pgli mt">'+esc(empty)+'</div></div>';
+  for(i=0;i<items.length;i++){
+    var x=items[i];
+    h+='<div class="pgli"><b>'+esc(x.n)+'</b>'
+      +(x.c?'<i>'+esc(x.c)+'</i>':'')
+      +'<u>'+esc(x.v)+'</u></div>';
+  }
+  return '<div class="pgl">'+h+'</div>';
+}
 /* .zrow 의 네 슬롯(이름·칩·숫자·근거)을 그대로 쓰고 '왜' 한 줄만 더한다.
    칩 자리에는 판정이 아니라 원인을 넣는다 — 판정은 바로 위 타일과 줄 색과
    숫자 부호로 이미 세 번 나오므로 네 번째로 적을 이유가 없고, 비운 그 자리를
@@ -5051,24 +5090,49 @@ function vzTrain(tab){
   /* 타일은 heroProg 의 원 판정 그대로 둔다 — 홈의 heroSignal 과 같은 셈이라
      여기서만 바꾸면 화면 둘이 다른 수를 말한다. 아래에서 걸러진 몫은
      '판정 보류' 줄이 받아 셈이 닫힌다. */
-  h+='<div class="sttrow">'
-    +'<span class="stt up2"><b>'+pr.up+'</b><i>진전</i></span>'
-    +'<span class="stt"><b>'+pr.stall+'</b><i>정체</i></span>'
-    +'<span class="stt dn2"><b>'+pr.down+'</b><i>퇴행</i></span></div>';
+  /* 수만 세고 있으면 '정체 9' 를 보고도 그 아홉이 무엇인지 알 길이 없다.
+     누르면 펴진다 — 아래에서 걸러진 것까지 전부. 다시 누르면 닫힌다. */
+  function stt(k,n,lb,cls){
+    return '<span class="stt'+(cls?' '+cls:'')+(UI.pgt===k?' on':'')
+      +'" data-act="pgt" data-v="'+k+'"><b>'+n+'</b><i>'+lb+'</i></span>';
+  }
+  h+='<div class="sttrow">'+stt('up',pr.up,'진전','up2')
+    +stt('st',pr.stall,'정체','')+stt('dn',pr.down,'퇴행','dn2')+'</div>';
   var pgCx=(function(){
     var t=wTrend();
     var pl=paceLeft();
     return {cut:!!(t&&t.rate<0&&-t.rate>=BW*0.003),dn:pr.dnL.length,streak:heroStreak(),
             wk:(pl<0?100:pl),sa:{}};
   })();
-  var pgA=[],pgK=[],pgO=[],pgi,pgd,pgL;
+  var pgA=[],pgK=[],pgO=[],pgAll=[],pgi,pgd,pgL;
   for(pgi=0;pgi<pr.dnL.length;pgi++){
     pgd=pgDiag(pr.dnL[pgi],'dn',pgCx,sc);
-    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);
+    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);pgAll.push(pgd);
   }
   for(pgi=0;pgi<pr.stL.length;pgi++){
     pgd=pgDiag(pr.stL[pgi],'st',pgCx,sc);
-    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);
+    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);pgAll.push(pgd);
+  }
+  /* 타일을 누른 갈래의 목록. 진전은 pgDiag 를 안 돌린다 — 타일이 센 것과
+     같은 자(직전 세션 대비)를 써야 한 화면이 두 수를 말하지 않는다. */
+  if(UI.pgt==='up'){
+    h+=pgList(pr.upL.slice().sort(function(u,v){return v.p-u.p;})
+      .map(function(x){return {n:x.n,c:'',v:(x.p>0?'+':'')+x.p+'%'};}),'진전 중인 종목 없음');
+  }else if(UI.pgt==='st'||UI.pgt==='dn'){
+    var pgKd=UI.pgt,PGO={act:0,keep:1,obs:2};
+    h+=pgList(pgAll.filter(function(x){return x.kind===pgKd;})
+      .sort(function(u,v){
+        if(PGO[u.k]!==PGO[v.k])return PGO[u.k]-PGO[v.k];
+        return pgKd==='dn'?u.pct-v.pct:(v.wk-u.wk)||(v.ns-u.ns);})
+      .map(function(x){
+        /* 값 칸이 곧 그 줄이 거기 있는 이유다. 근거가 모자란 것은 몇 개가
+           더 있어야 하는지까지 적는다 — '3세션' 만으로는 무엇이 모자란지
+           모른다. 잡음·반등처럼 세션은 넉넉한데 판정만 못 선 것은 변화율을
+           보여 준다: 그 수가 변동폭 안이라 판정이 안 선 것이기 때문이다. */
+        return {n:x.n,c:x.c,
+          v:(x.c==='표본'?(x.ns?x.ns+'/4세션':'기록 부족')
+            :(x.kind==='dn'||x.k==='obs'?(x.pct>0?'+':'')+x.pct+'%':x.wk+'주째'))};}),
+      (pgKd==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'));
   }
   /* 퇴행 먼저, 그 안에서 많이 내려간 것부터. 정렬은 표현이지 처방이 아니다 —
      '1순위' 같은 라벨은 안 붙인다. 그건 AI 의 [한 줄] 이고 홈의 heroSignal
@@ -5409,7 +5473,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 19:40';
+var BUILD='2026-09-07 20:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7186,6 +7250,15 @@ document.addEventListener('click',function(e){
       break;
     case 'vzt':UI.vzt=v;renderSheet();break;
     case 'vzd':UI.vzd=v;renderSheet();break;
+    case 'pgt':
+      /* 같은 타일을 다시 누르면 닫는다. 목록이 타일 바로 아래에 나오므로
+         자리는 안 옮기고 스크롤만 지킨다. */
+      (function(){
+        var se=document.getElementById('sheet'),sy=se?se.scrollTop:0;
+        UI.pgt=(UI.pgt===v)?'':v;renderSheet();
+        se=document.getElementById('sheet');if(se)se.scrollTop=sy;
+      })();
+      break;
     case 'pgo':
       /* renderSheet 은 sh.innerHTML=h 로 자식을 전멸시키므로 scrollTop 이
          0 으로 클램프된다 — 그냥 두면 줄을 누를 때마다 시트가 맨 위로 튀어
