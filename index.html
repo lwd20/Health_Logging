@@ -1222,6 +1222,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
    배경은 깔지 않는다: 틴트가 밀려 올라가 어두운 팔레트에서 대비가 무너진다
    (경고 배지에서 이미 세 번 겪었다). */
 /* 누를 수 있는 타일. 51px 이라 크기는 이미 넉넉하다 */
+/* 넷이 되면 한 칸이 좁아진다 — 글자를 한 단계 줄이고 여백을 조인다 */
+.sttrow.four{gap:5px}
+.sttrow.four .stt{padding:8px 2px}
+.sttrow.four .stt b{font-size:15px}
+.sttrow.four .stt i{font-size:8.5px;letter-spacing:.1em}
 .stt[data-act]{cursor:pointer}
 .stt[data-act]:active{opacity:.6}
 /* 9% 틴트로는 켜진 티가 안 난다 — frost 계열에서 꺼진 타일과 1.02 로
@@ -1234,13 +1239,28 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 타일이 편 목록 — .zrow 는 한 줄 50px 이라 열한 줄이면 550px 다.
    여기는 이름과 값만 있으면 되므로 좁은 줄을 따로 쓴다. */
 .pgl{margin:8px 0 2px}
+/* 부위 머리 — 긴 목록의 눈금. 오른쪽 실선이 개수까지 밀어 붙여 묶음의
+   경계가 글자 없이도 보인다. */
+.pgh{display:flex;align-items:center;gap:7px;margin:13px 0 1px;
+  font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--mut)}
+.pgh:first-child{margin-top:2px}
+.pgh span{flex:0 0 auto}
+/* .lmcap 의 --chrome + opacity 를 베꼈다가 3.2~3.5 로 AA 를 못 넘겼다.
+   저것은 장식 캡션이고 이것은 긴 목록의 길잡이라 읽혀야 한다 — 색 대신
+   크기·굵기·자간으로 줄과 구분한다. */
+.pgh i{flex:0 0 auto;order:3;font-style:normal;font-family:var(--mono);
+  font-size:9.5px;letter-spacing:0;color:var(--mut)}
+.pgh::after{content:'';order:2;flex:1 1 auto;height:1px;background:rgba(var(--tx-rgb),.12)}
 .pgli{display:flex;align-items:baseline;gap:8px;padding:7px 2px;
   border-top:1px solid rgba(var(--tx-rgb),.06)}
-.pgli:first-child{border-top:0}
+/* 줄 사이 선은 묶음 안에서만 — 머리 바로 밑에 선이 겹치면 두 줄로 보인다 */
+.pgg>.pgli:first-child{border-top:0}
 .pgli b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;font-size:12.5px;font-weight:600;color:var(--tx)}
 .pgli i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;color:var(--mut)}
-.pgli u{margin-left:auto;text-decoration:none;font-family:var(--mono);font-size:11.5px;
+/* 값은 고정폭으로 두어 줄이 많아도 세로줄이 선다 */
+.pgli u{margin-left:auto;flex:0 0 auto;min-width:56px;text-align:right;
+  text-decoration:none;font-family:var(--mono);font-size:11.5px;
   color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pgli.mt{color:var(--mut);font-size:11px}
 .zrow.pgr{padding-left:9px;border-left:2px solid rgba(var(--tx-rgb),.14)}
@@ -4461,11 +4481,11 @@ function heroProg(onDate){
     if(a.length<2)continue;
     if(onDate&&a[0].d!==onDate)continue;   /* 그날 수행한 종목만 */
     /* 예전에는 조용히 버려서 카운터 합과 실제 종목 수가 안 맞았다 */
-    if(gapD(a[0],a[1])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[0],a[1])+'일'});continue;}
+    if(gapD(a[0],a[1])>14){holdL.push({i:m.i,n:m.n,why:'간격 '+gapD(a[0],a[1])+'일'});continue;}
     var p01=gp(m,a[0],a[1]);
     if(p01>DB){up++;upL.push({i:m.i,n:m.n,p:p01,t:txt(m,a[1],a[0]),r:rirAvg(a[0].s)});continue;}
-    if(a.length<3){holdL.push({n:m.n,why:'기록 2회'});continue;}
-    if(gapD(a[1],a[2])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[1],a[2])+'일'});continue;}
+    if(a.length<3){holdL.push({i:m.i,n:m.n,why:'기록 2회'});continue;}
+    if(gapD(a[1],a[2])>14){holdL.push({i:m.i,n:m.n,why:'간격 '+gapD(a[1],a[2])+'일'});continue;}
     var p12=gp(m,a[1],a[2]);
     if(p01<-DB&&p12<-DB){
       down++;
@@ -4706,8 +4726,9 @@ function pgWhy(m,a,cx,sc){
    k: 'act' 손댈 것 / 'keep' 감량 중 유지 / 'obs' 판정 보류 */
 function pgDiag(x,kind,cx,sc){
   var m=x.i?machById(x.i):null;
-  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1,ns:0};
+  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1,ns:0,p:''};
   if(!m)return d;
+  d.p=m.p;
   var ss=pgSess(m),a=ss.a,q=ss.q;
   if(a.length<2)return d;
   var pskip=ss.skip?' · e1RM 미산출 '+ss.skip+'세션 제외':'';
@@ -4727,7 +4748,9 @@ function pgDiag(x,kind,cx,sc){
   d.sub=q.length+'세션 · 변동폭 ±'+thr+'%'+pskip;
   /* 적자에서 e1RM 유지는 결함이 아니라 목표 달성이다 — 목록에서 빼낸다.
      감량 중에 볼륨을 올리라는 진단은 해롭다. 퇴행은 감량 중이어도 남긴다. */
-  if(cx.cut&&kind==='st'&&Math.abs(bl.pct)<=2){d.k='keep';return d;}
+  /* 원인 칩이 '표본' 인 채로 목록에 나오면 뜻이 어긋난다 — 표본이 모자란
+     것이 아니라 감량 중이라 유지가 정상인 것이다 */
+  if(cx.cut&&kind==='st'&&Math.abs(bl.pct)<=2){d.k='keep';d.c='감량중';return d;}
   /* 어시스트 유효부하는 '그날 체중 − 보조무게' 다. 체중이 내려가면 같은
      보조무게로도 유효부하가 내려간다 — 78→73kg 이면 보조 30kg 을 그대로
      써도 48→43kg, -10.4% 다. 아무것도 안 했는데 확정 퇴행이 되고 거기에
@@ -4765,14 +4788,28 @@ function pgDiag(x,kind,cx,sc){
    값 칸의 규칙은 손댈 것과 같다: 퇴행이면 변화율, 정체면 몇 주째, 근거가
    모자라 판정을 못 한 것이면 몇 세션인지. 무엇이 모자란지가 곧 그 줄이
    거기 있는 이유다. */
+var PGP=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
 function pgList(items,empty){
-  var h='',i;
   if(!items.length)return '<div class="pgl"><div class="pgli mt">'+esc(empty)+'</div></div>';
-  for(i=0;i<items.length;i++){
-    var x=items[i];
-    h+='<div class="pgli"><b>'+esc(x.n)+'</b>'
-      +(x.c?'<i>'+esc(x.c)+'</i>':'')
-      +'<u>'+esc(x.v)+'</u></div>';
+  /* 열 줄이 넘어가면 이름만 죽 늘어서서 어디가 어디인지 안 보인다.
+     부위가 곧 사람이 찾는 축이므로 부위로 묶는다 — 묶음 머리가 긴 목록의
+     눈금 노릇을 하고, 줄 사이 선은 묶음 안에서만 긋는다. */
+  var by={},h='',i,j,x,k;
+  for(i=0;i<items.length;i++){x=items[i];k=x.p||'기타';(by[k]||(by[k]=[])).push(x);}
+  var ord=PGP.concat(['기타']).filter(function(p){return by[p];});
+  /* 부위가 하나뿐이면 머리를 안 단다 — 한 덩어리에 이름표는 군더더기다 */
+  var one=(ord.length<2);
+  for(i=0;i<ord.length;i++){
+    k=ord[i];
+    if(!one)h+='<div class="pgh"><span>'+esc(PN_KO[k]||k)+'</span><i>'+by[k].length+'</i></div>';
+    h+='<div class="pgg">';
+    for(j=0;j<by[k].length;j++){
+      x=by[k][j];
+      h+='<div class="pgli"><b>'+esc(x.n)+'</b>'
+        +(x.c?'<i>'+esc(x.c)+'</i>':'')
+        +'<u>'+esc(x.v)+'</u></div>';
+    }
+    h+='</div>';
   }
   return '<div class="pgl">'+h+'</div>';
 }
@@ -5192,7 +5229,7 @@ function vzTrain(tab){
   }
   if(tab==='prog'){
   var pr=heroProg();
-  h+=vzCap('진전 · 정체 · 퇴행');
+  h+=vzCap('종목 판정 · 눌러서 펼침');
   /* 타일은 heroProg 의 원 판정 그대로 둔다 — 홈의 heroSignal 과 같은 셈이라
      여기서만 바꾸면 화면 둘이 다른 수를 말한다. 아래에서 걸러진 몫은
      '판정 보류' 줄이 받아 셈이 닫힌다. */
@@ -5202,8 +5239,12 @@ function vzTrain(tab){
     return '<span class="stt'+(cls?' '+cls:'')+(UI.pgt===k?' on':'')
       +'" data-act="pgt" data-v="'+k+'"><b>'+n+'</b><i>'+lb+'</i></span>';
   }
-  h+='<div class="sttrow">'+stt('up',pr.up,'진전','up2')
-    +stt('st',pr.stall,'정체','')+stt('dn',pr.down,'퇴행','dn2')+'</div>';
+  /* 보류까지 넷으로 둔다. 셋만 두면 heroProg 가 판정에서 뺀 종목(기록 2회·
+     간격 15일 이상)이 어느 타일에도 안 들어가, 아래 요약 줄을 없앤 순간
+     화면에서 통째로 사라진다. 넷이면 모든 종목이 어딘가에 속하고 셈이 닫힌다. */
+  h+='<div class="sttrow four">'+stt('up',pr.up,'진전','up2')
+    +stt('st',pr.stall,'정체','')+stt('dn',pr.down,'퇴행','dn2')
+    +stt('hd',pr.holdL.length,'보류','')+'</div>';
   var pgCx=(function(){
     var t=wTrend();
     var pl=paceLeft();
@@ -5221,9 +5262,14 @@ function vzTrain(tab){
   }
   /* 타일을 누른 갈래의 목록. 진전은 pgDiag 를 안 돌린다 — 타일이 센 것과
      같은 자(직전 세션 대비)를 써야 한 화면이 두 수를 말하지 않는다. */
+  function pgPart(id){var mm=id?machById(id):null;return mm?mm.p:'';}
   if(UI.pgt==='up'){
     h+=pgList(pr.upL.slice().sort(function(u,v){return v.p-u.p;})
-      .map(function(x){return {n:x.n,c:'',v:(x.p>0?'+':'')+x.p+'%'};}),'진전 중인 종목 없음');
+      .map(function(x){return {n:x.n,c:'',p:pgPart(x.i),v:(x.p>0?'+':'')+x.p+'%'};}),
+      '진전 중인 종목 없음');
+  }else if(UI.pgt==='hd'){
+    h+=pgList(pr.holdL.map(function(x){
+      return {n:x.n,c:'',p:pgPart(x.i),v:x.why||''};}),'보류된 종목 없음');
   }else if(UI.pgt==='st'||UI.pgt==='dn'){
     var pgKd=UI.pgt,PGO={act:0,keep:1,obs:2};
     h+=pgList(pgAll.filter(function(x){return x.kind===pgKd;})
@@ -5235,7 +5281,7 @@ function vzTrain(tab){
            더 있어야 하는지까지 적는다 — '3세션' 만으로는 무엇이 모자란지
            모른다. 잡음·반등처럼 세션은 넉넉한데 판정만 못 선 것은 변화율을
            보여 준다: 그 수가 변동폭 안이라 판정이 안 선 것이기 때문이다. */
-        return {n:x.n,c:x.c,
+        return {n:x.n,c:x.c,p:x.p,
           v:(x.c==='표본'?(x.ns?x.ns+'/4세션':'기록 부족')
             :(x.kind==='dn'||x.k==='obs'?(x.pct>0?'+':'')+x.pct+'%':x.wk+'주째'))};}),
       (pgKd==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'));
@@ -5274,18 +5320,9 @@ function vzTrain(tab){
     h+=vzLine('감량 중 유지',pgK.length+'종목',
       pgK.slice(0,3).map(function(z){return z.n;}).join(', ')+(pgK.length>3?' 외':'')
       +' — 적자에서 e1RM 유지는 정상',{t:'순항',c:'pos'});
-  if(pr.upL.length)
-    h+=vzLine('진전 중',pr.upL.length+'종목',
-      pr.upL.slice(0,3).map(function(z){return z.n;}).join(', ')+(pr.upL.length>3?' 외':''),
-      {t:'순항',c:'pos'});
-  /* 근거 미달과 기록 부족은 둘 다 '판정 안 함' 이라 한 줄로 합친다.
-     위 타일이 센 수와 여기 수를 더하면 셈이 닫힌다 — 손댈 것이 비어도
-     '없음' 줄을 따로 그리지 않는 이유가 이것이다. */
-  if(pgO.length||pr.holdL.length)
-    h+=vzLine('판정 보류',(pgO.length+pr.holdL.length)+'종목',
-      (pgO.length?'근거 미달 '+pgO.length+'종목':'')
-      +(pgO.length&&pr.holdL.length?' · ':'')
-      +(pr.holdL.length?'기록 부족 '+pr.holdL.length+'종목':''),{t:'보류',c:''});
+  /* '진전 중 11종목' 과 '판정 보류 12종목' 은 타일이 이미 세고 있는 것을
+     한 번 더 적는 줄이었다. 눌러서 이름까지 볼 수 있게 된 뒤로는 셈도
+     이름도 겹치므로 뺀다. 보류는 넷째 타일이 받는다. */
   if(!pgA.length&&!pgK.length&&!pr.upL.length&&!pgO.length&&!pr.holdL.length)
     h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
   }
@@ -5579,7 +5616,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 22:50';
+var BUILD='2026-09-07 23:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
