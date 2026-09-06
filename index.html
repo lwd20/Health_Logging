@@ -1160,6 +1160,13 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .pacehint{margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em;min-height:14px}
 .pacehint b{color:var(--mut)}
 .ai-empty{margin:26px 0 14px;text-align:center;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:700}
+/* 넘쳤을 때 — 축 끝을 실적에 맞추고 목표 자리에 선을 긋는다.
+   예전에는 100% 로 잘려 24/21 과 21/21 이 같은 꽉 찬 막대였다 */
+.ai-bar.ov b{background:linear-gradient(90deg,var(--acc-dk),var(--sig))}
+.ai-bar .gl{position:absolute;top:-2px;bottom:-2px;width:2px;border-radius:1px;
+  background:var(--tx);opacity:.75;transform:translateX(-1px)}
+/* 막대가 뜻을 갖지 않는 줄 */
+.ai-row.nb .ai-bar{display:none}
 .ai-load{margin:11px 1px 0;font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
 .ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
 @keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
@@ -5644,6 +5651,82 @@ function bhHead(body){
   if(ix<1||ix>26)return body;
   return '<b class="bh">'+body.slice(0,ix)+'</b><em class="bd2">—</em>'+body.slice(ix+3);
 }
+/* ── 판정 ──
+   문턱은 전부 이미 코드에 있던 것을 그대로 쓴다. heroSignal 의 목표+3 초과,
+   페이스 환산, 디로드 2종목, 연속 3일 — 새 숫자를 지어내지 않는다. */
+function vzVerdict(cur,goal){
+  cur=+cur||0;goal=+goal||0;
+  if(!(goal>0))return {t:'미기록',c:''};
+  var ph=(computedFacts()||{}).weekPhase||'';
+  var late=(ph==='마감'||ph==='결산');
+  if(!late){
+    /* 주 중반에 목표와 그대로 맞대면 늘 미달로 보인다 — 경과분으로 환산한다 */
+    var pl=paceLeft();
+    if(pl>=20){
+      var exp=Math.round(goal*pl/100);
+      return cur>=exp?{t:'순항',c:'pos'}:{t:'부족',c:'neg'};
+    }
+    return {t:'보류',c:''};
+  }
+  if(cur>=goal+3)return {t:'초과',c:'warn'};   /* heroSignal 의 목표+3 문턱 */
+  if(cur>=goal)return {t:'달성',c:'pos'};
+  return {t:'미달',c:'neg'};
+}
+/* 랜드마크는 목표 대비가 아니라 구간 안에 있는지로 본다 */
+function vzZone(cur,L){
+  cur=+cur||0;
+  var mrv=Math.round(L[3]*0.8);                 /* 감량기 보정 — lmRow 와 같은 식 */
+  var z1=Math.min(L[1],mrv),z2=Math.min(L[2],mrv);
+  if(cur>mrv)return {t:'초과',c:'neg'};
+  if(cur>=Math.round(mrv*0.9))return {t:'접근',c:'warn'};
+  if(cur<L[0])return {t:'미달',c:'neg'};
+  if(cur>=z1&&cur<=z2)return {t:'적절',c:'pos'};
+  return {t:'유지',c:''};
+}
+
+/* ── 앱이 직접 그리는 조각 ──
+   지금까지 이 마크업은 aiFmt 안에만 있어서, 앱이 그리려면 같은 HTML 을
+   다시 써야 했다. 함수로 빼서 앱과 AI 렌더가 같은 조각을 쓴다. */
+
+/* 진행바 한 줄. 예전에는 Math.min(100) 으로 잘라 24/21 과 21/21 이 같은
+   꽉 찬 막대였다. 넘치면 lmRow 처럼 눈금을 옮긴다 — 축의 끝을 실적에 맞추고
+   목표 자리에 선을 그어 '이 선을 넘었다' 가 자리로 보이게 한다.
+   mark: 경과일 눈금을 켤지. 유산소 줄에 근력 경과일을 꽂으면 뜻이 안 맞는다. */
+function vzBar(name,cur,goal,sub,vd,mark){
+  cur=+cur||0;goal=+goal||0;
+  var over=goal>0&&cur>goal;
+  var mx=Math.max(goal,cur)||1;
+  var fill=Math.max(0,Math.min(100,Math.round(cur*100/mx)));
+  var gp=Math.max(0,Math.min(100,Math.round(goal*100/mx)));
+  var mk='';
+  if(over)mk='<i class="gl" style="left:'+gp+'%"></i>';
+  else if(mark){var pl=paceLeft();if(pl>0&&pl<100)mk='<i class="mk" style="left:'+pl+'%"></i>';}
+  return '<div class="ai-row"><div class="t"><span class="nm">'+esc(name)+'</span>'
+    +(vd?vzChip(vd):'')
+    +'<span class="num">'+cur+'<em>/'+goal+'</em></span></div>'
+    +'<div class="ai-bar'+(over?' ov':'')+'"><b style="width:'+fill+'%"></b>'+mk+'</div>'
+    +(sub?('<div class="ai-sub">'+esc(sub)+'</div>'):'')
+    +'</div>';
+}
+function vzTotal(label,cur,goal){
+  return '<div class="ai-total"><span>'+esc(label)+'</span>'
+    +'<span class="num">'+(+cur||0)+'<em>/'+(+goal||0)+'</em></span></div>';
+}
+/* 값 대신 사실 한 줄. 막대가 뜻을 갖지 않는 것들(연속일, 정체 종목 등) */
+function vzLine(name,val,sub,vd){
+  return '<div class="ai-row nb"><div class="t"><span class="nm">'+esc(name)+'</span>'
+    +(vd?vzChip(vd):'')
+    +'<span class="num">'+esc(String(val==null?'':val))+'</span></div>'
+    +(sub?('<div class="ai-sub">'+esc(sub)+'</div>'):'')+'</div>';
+}
+/* 판정 칩. AI 글에서는 aiStat 이 문자열을 되짚어 붙이느라
+   '신규 진전 없음' 이 ['없음','정상'] 에 선매돼 초록이 됐다.
+   앱이 그릴 때는 되짚을 이유가 없으므로 판정을 그대로 받는다. */
+function vzChip(vd){
+  if(!vd||!vd.t)return '';
+  return '<span class="st '+(vd.c||'')+'">'+esc(vd.t)+'</span>';
+}
+
 function aiFmt(txt,ck,ph){
   ck=ck||[];
   var ckOn=ph!=='post';
