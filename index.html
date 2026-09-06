@@ -4179,29 +4179,41 @@ function heroStreak(){
 function heroTop(s){var t=s[0],i;for(i=1;i<s.length;i++){if(s[i][0]>t[0]||(s[i][0]===t[0]&&s[i][1]>t[1]))t=s[i];}return t;}
 function heroProg(onDate){
   var up=0,down=0,stall=0,regName='',regTxt='',i,dnN=[],stN=[];
+  /* 개수만 세고 버리던 것들 — 앱이 직접 그리려면 이름과 수치가 있어야 한다.
+     upL/stL/dnL 은 3개 컷 없이 전부 담는다(예전 stN·dnN 은 그대로 둔다). */
+  var upL=[],stL=[],dnL=[],holdL=[];
   function gapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
   /* 세션 전체(2~4세트) 평균 e1RM 성장률로 판정하며 ±0.5%는 노이즈로 봄 */
   var DB=0.5;
   function gp(m,x,y){var r=e1rmGain(effSets(m,x.s,x.d),effSets(m,y.s,y.d));return r?r.pct:0;}
+  /* 어시스트 머신은 보조 무게라 숫자가 클수록 약하다. 원값을 쓰면
+     '43.9→56.5kg 하락' 처럼 오르는 숫자에 하락이라 적힌다 */
+  function txt(m,x,y){return fmtW(e1rmAvg(effSets(m,x.s,x.d)))+'\u2192'+fmtW(e1rmAvg(effSets(m,y.s,y.d)))+'kg';}
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
     if(a.length<2)continue;
     if(onDate&&a[0].d!==onDate)continue;   /* 그날 수행한 종목만 */
-    if(gapD(a[0],a[1])>14)continue;
+    /* 예전에는 조용히 버려서 카운터 합과 실제 종목 수가 안 맞았다 */
+    if(gapD(a[0],a[1])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[0],a[1])+'일'});continue;}
     var p01=gp(m,a[0],a[1]);
-    if(p01>DB){up++;continue;}
-    if(a.length<3||gapD(a[1],a[2])>14)continue;
+    if(p01>DB){up++;upL.push({n:m.n,p:p01,t:txt(m,a[1],a[0]),r:rirAvg(a[0].s)});continue;}
+    if(a.length<3){holdL.push({n:m.n,why:'기록 2회'});continue;}
+    if(gapD(a[1],a[2])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[1],a[2])+'일'});continue;}
     var p12=gp(m,a[1],a[2]);
     if(p01<-DB&&p12<-DB){
       down++;
       if(dnN.length<3)dnN.push(m.n);
-      /* 어시스트 머신은 보조 무게라 숫자가 클수록 약하다. 원값을 쓰면
-         '43.9→56.5kg 하락' 처럼 오르는 숫자에 하락이라 적힌다 */
-        if(!regName){regName=m.n;regTxt=fmtW(e1rmAvg(effSets(m,a[2].s,a[2].d)))+'→'+fmtW(e1rmAvg(effSets(m,a[0].s,a[0].d)))+'kg';}
-    }else if(p01<=DB&&p12<=DB){stall++;if(stN.length<3)stN.push(m.n);}
+      dnL.push({n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
+      if(!regName){regName=m.n;regTxt=txt(m,a[2],a[0]);}
+    }else if(p01<=DB&&p12<=DB){
+      stall++;
+      if(stN.length<3)stN.push(m.n);
+      stL.push({n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
+    }
   }
-  return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN};
+  return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN,
+          upL:upL,stL:stL,dnL:dnL,holdL:holdL};
 }
 /* 디로드 감지 — 진전이 멈췄는데 RIR까지 내려가면 회복 부족으로 봄 */
 function deloadSignal(){
@@ -4372,6 +4384,118 @@ function wkDaysByPart(){
   }
   var cnt={};for(k in out)cnt[k]=Object.keys(out[k]).length;
   return cnt;
+}
+/* 날짜 집합. 개수만 돌려주면 '이틀 연속 재자극' 을 셀 수가 없다.
+   반환 객체에 얹으면 freqThisWeek 로 AI 페이로드에 통째로 새어 나가므로
+   따로 뽑는다. */
+function wkPartDays(){
+  var nowd=new Date(),dw=(nowd.getDay()+6)%7;
+  var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
+  function is5(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},q,t;
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is5(t)]=1;}
+  var pid={},i,k,out={};
+  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
+  for(k in S.l){
+    var m=pid[k];if(!m||isCard(m.p))continue;
+    for(i=0;i<S.l[k].length;i++){
+      var e=S.l[k][i];
+      if(!days[e.d]||!e.s.length)continue;
+      (out[m.p]=out[m.p]||{})[e.d]=1;
+    }
+  }
+  return out;
+}
+/* 이번 주 실제로 훈련한 날 수. computed.elapsedTrainDays 는 계획(휴식 요일을
+   뺀 경과일)이라 뜻이 다르다 — 따로 센다. */
+function wkTrainDays(){
+  var d=wkPartDays(),seen={},p,k;
+  for(p in d)for(k in d[p])seen[k]=1;
+  return Object.keys(seen).length;
+}
+/* 같은 부위를 이틀 연속 건드렸는가. 로그에 시각이 없어 48시간이 아니라
+   '이틀 연속' 의 근사다 — 화면에도 그렇게 적는다. */
+function partGap48(){
+  var d=wkPartDays(),out=[],p;
+  for(p in d){
+    var ks=Object.keys(d[p]).sort(),i;
+    for(i=1;i<ks.length;i++){
+      if(Math.round((new Date(ks[i])-new Date(ks[i-1]))/86400000)===1){
+        out.push({p:p,a:ks[i-1],b:ks[i]});break;
+      }
+    }
+  }
+  return out;
+}
+/* 세션 안에서 반복이 급락한 곳. 다만 그 세트 휴식이 60초 미만이었다면
+   피로가 아니라 휴식 부족이다 — 라벨을 갈라 준다. */
+function fatigueDrop(){
+  var nowd=new Date(),dw=(nowd.getDay()+6)%7;
+  var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
+  function is3(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},q,t;
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is3(t)]=1;}
+  var out=[],i,j;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];if(isCard(m.p))continue;
+    var a=S.l[m.i]||[];
+    for(j=0;j<a.length;j++){
+      if(!days[a[j].d]||a[j].s.length<2)continue;
+      var ss=a[j].s,mx=0,q2;
+      for(q2=0;q2<ss.length;q2++)mx=Math.max(mx,+ss[q2][1]||0);
+      var last=+ss[ss.length-1][1]||0;
+      if(!(mx>0))continue;
+      var dropAbs=mx-last,dropPct=dropAbs/mx*100;
+      if(dropAbs<3&&dropPct<25)continue;
+      var rest=+ss[ss.length-1][3]||0;
+      out.push({n:m.n,d:a[j].d,from:mx,to:last,
+                why:(rest>0&&rest<60)?'휴식 '+rest+'초':'피로'});
+    }
+  }
+  return out;
+}
+/* 반복이 6~12 구간에 든 비율. 그 숫자는 지금 프롬프트 문자열에만 있고
+   세는 코드가 없었다 — 순수 카운터라 판단이 0이다. */
+function repZone(){
+  var nowd=new Date(),dw=(nowd.getDay()+6)%7;
+  var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
+  function is4(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},q,t;
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is4(t)]=1;}
+  var inZ=0,tot=0,off={},i,j,k;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];if(isCard(m.p))continue;
+    var a=S.l[m.i]||[];
+    for(j=0;j<a.length;j++){
+      if(!days[a[j].d])continue;
+      for(k=0;k<a[j].s.length;k++){
+        var r=+a[j].s[k][1]||0;
+        if(!(r>0))continue;
+        tot++;
+        if(r>=6&&r<=12)inZ++;else off[m.n]=(off[m.n]||0)+1;
+      }
+    }
+  }
+  var names=Object.keys(off).sort(function(x,y){return off[y]-off[x];}).slice(0,3);
+  return {inZ:inZ,tot:tot,pct:tot?Math.round(inZ*100/tot):0,off:names};
+}
+/* 제지방·골격근 추세. 인바디가 듬성듬성하므로 최근 두 지점이 7일 이상
+   벌어진 경우만 본다. 골격근이 둘 다 있으면 그쪽을 우선한다 —
+   제지방은 수분까지 포함해 더 흔들린다. */
+function lbmTrend(){
+  var a=bhLoad();
+  if(a.length<2)return null;
+  var b=a[a.length-1],p=null,i;
+  for(i=a.length-2;i>=0;i--){
+    if(Math.round((new Date(b.d)-new Date(a[i].d))/86400000)>=7){p=a[i];break;}
+  }
+  if(!p)return null;
+  var gap=Math.round((new Date(b.d)-new Date(p.d))/86400000);
+  if(b.m>0&&p.m>0)
+    return {k:'골격근',from:p.m,to:b.m,d:Math.round((b.m-p.m)*10)/10,gap:gap,a:p.d,b:b.d};
+  var l1=p.w*(1-p.f/100),l2=b.w*(1-b.f/100);
+  return {k:'제지방',from:Math.round(l1*10)/10,to:Math.round(l2*10)/10,
+          d:Math.round((l2-l1)*10)/10,gap:gap,a:p.d,b:b.d};
 }
 /* 분류 점검 — 이번 주 수행 종목의 부위·주동근 해석 결과를 그대로 보여줌 */
 function clsCheckHtml(){
@@ -4599,7 +4723,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 16:00';
+var BUILD='2026-09-06 18:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
