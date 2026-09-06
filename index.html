@@ -1167,6 +1167,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   background:var(--tx);opacity:.75;transform:translateX(-1px)}
 /* 막대가 뜻을 갖지 않는 줄 */
 .ai-row.nb .ai-bar{display:none}
+/* 지난 리포트를 볼 때만 붙는 그때 그림 — 맨 위 대시보드와 구별되게 */
+.vzold{margin-top:10px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.09);opacity:.85}
 .ai-load{margin:11px 1px 0;font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
 .ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
 @keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
@@ -2750,19 +2752,22 @@ function renderSheet(){
     h+='</div>';
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
     h+='<div id="aiOut" class="show">';
+    /* 숫자는 AI 와 무관하게 늘 그린다 — 키가 없어도, 20회를 다 써도,
+       호출이 실패해도 보여야 한다. 그것이 가르기의 요점이다. */
+    h+=anlViz(ANL);
     if(cur){
-      h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'WEEKLY REPORT')+'</span>'
+      h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'TRAINING PLAN')+'</span>'
         +'<span class="mt">'
         +'<button class="nav" data-act="aiprev"'+(AIVIEW+1<AIH.length?'':' disabled')+'>&#9664;</button>'
         +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+(aiDayTag(cur.d)?' <i class="stale">'+aiDayTag(cur.d)+'</i>':'')+'</span>'
         +'<button class="nav" data-act="ainext"'+(AIVIEW>0?'':' disabled')+'>&#9654;</button>'
         +'</span></div>';
-      /* 저장해 둔 그림이 있으면 그것을 쓴다 — 지금 값으로 다시 그리면
-         글과 그래프가 다른 주를 말한다. 옛 리포트에는 vz 가 없다. */
-      h+=(cur.vz!==undefined&&cur.vz!==null)?cur.vz:anlViz(cur.k||'wk');
+      /* 지난 리포트를 넘겨 볼 때만 그때 그림을 덧붙인다 — 맨 위 대시보드는
+         늘 지금 값이라, 옛 글과 나란히 두면 다른 주를 말하게 된다. */
+      if(AIVIEW>0&&cur.vz)h+='<div class="vzold">'+vzCap('그때 기록')+cur.vz+'</div>';
       h+=aiFmt(cur.o,cur.ck||[],cur.ph);
     }else if(!AIRUN){
-      h+='<div class="ai-empty">NO REPORT YET</div>';
+      h+='<div class="ai-empty">위 숫자는 앱이 직접 냄 · '+esc(ANLN[ANL]||'')+'은 아직 없음</div>';
     }
     h+='</div>';
   }
@@ -4081,40 +4086,23 @@ var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
 /* 요청을 보낼 때의 모드·시점. 도착 시점 전역값을 쓰면 기다리는 사이 바뀐다 */
 var AIREQ=null;
 /* ── 분석론 선택 ── */
-var ANL='wk',ANLOPEN=false;
-var ANLL={cut:'CUT & NEXT MEAL',mac:'NUTRIENT BALANCE',wk:'WEEKLY REPORT',acsm:'ACSM REVIEW',vol:'VOLUME LANDMARKS',prog:'PROGRESSION AUDIT',recov:'RECOVERY CHECK',bal:'BALANCE RATIO',vt:'V-TAPER FOCUS'};
-var ANLN={cut:'감량 칼로리 · 끼니 추천',mac:'영양성분 · 탄단지 균형',wk:'주간 리포트',acsm:'ACSM 가이드라인',vol:'볼륨 랜드마크 MEV·MRV',prog:'점증·정체 진단',recov:'회복·피로 관리',bal:'균형·비율 평가',vt:'옷맵시 V-테이퍼'};
+var ANL='plan',ANLOPEN=false;
+/* 아홉은 '앱이 계산해 둔 것을 무엇에 관해 받아적을까' 로 갈려 있었다.
+   받아적기가 없어지니 그 수가 뜻을 잃는다 — 결정 단위로 둘만 남긴다.
+   주제 아홉은 사라지지 않고 대시보드가 되어 즉시·무료로 늘 보인다. */
+var ANLL={plan:'TRAINING PLAN',meal:'NEXT MEAL'};
+var ANLN={plan:'훈련 처방',meal:'다음 끼니'};
 /* 용어만 두면 안 읽히고 용어를 빼면 없어 보인다 — 고르는 자리에서만 둘 다 보인다 */
 var ANLD={
- wk:'이번 주 훈련을 통째로 훑고 다음 주 방향을 잡음',
- vol:'부위별 주간 세트가 적정 구간에 있는지',
- vt:'어깨 측면과 광배 비중이 옷맵시에 맞는지',
- acsm:'미국스포츠의학회 권고 대비 빈도·강도·유산소량',
- recov:'휴식과 피로 신호로 디로드가 필요한지',
- prog:'종목별로 무게가 늘고 있는지 멈췄는지',
- bal:'부위 간 세트 배분이 한쪽으로 쏠렸는지',
- cut:'섭취와 목표를 맞대고 다음 끼니를 제안',
- mac:'단백질·탄수·지방 비율이 감량기 기준에 맞는지'
+ plan:'한 주를 읽고 다음 세션에 무엇을 밀고 뺄지 정함',
+ meal:'남은 몫으로 무엇을 먹을지 정함'
 };
-var ANLG=[
- {name:'종합',items:['wk']},
- {name:'볼륨',items:['vol','vt']},
- {name:'부하·회복',items:['acsm','recov']},
- {name:'진전·구조',items:['prog','bal']},
- /* 삼성헬스 섭취량이 들어오면서 생긴 갈래 */
- {name:'감량·영양',items:['cut','mac']}
-];
+var ANLG=[{name:'ANALYSIS',items:['plan','meal']}];
 var DIETGLOS='최우선 규칙: 아래 데이터에 있는 값만 쓰고, 없는 것은 추정하지 말 것. 앱이 이미 계산해 둔 값(kcalLeft, proteinLeft, completedDaysAvgIntake 등)은 그대로 인용하고 다시 계산하지 말 것.\n이 리포트는 식단만 다룬다. 어떤 종목을 했는지, 부위별 세트가 몇인지는 데이터에 없고 다룰 대상도 아니다. 훈련 이야기는 todayTrained(오늘 운동했는지)와 todayExerciseKcal(오늘 운동으로 쓴 열량)까지만 쓰고, 종목명이나 부위(가슴·등·어깨·하체 등)는 절대 언급하지 말 것.\n데이터 정의: 하루 목표 = 그날 TDEE − dailyDeficitTarget 이며, 그날 TDEE 에는 그날 운동으로 쓴 열량이 이미 더해져 있다. 그래서 운동한 날은 목표가 높고 쉰 날은 낮다. 목표를 고정된 숫자 하나로 보지 말 것. byDay 의 각 날은 tdee·target·diff·exerciseKcal 를 이미 갖고 있고, diff 가 양수면 그날 초과다. nutrition.completedDays* 는 오늘을 뺀 끝난 날들의 값이며 감량이 잘 되는지 진단할 때 쓴다. completedDaysAvgDiff 는 목표 대비 평균 차이(계획을 지켰는가), completedDaysAvgDeficit 는 소비 대비 평균 적자(근손실 위험이 있는가)로 서로 다른 값이니 섞지 말 것. nutrition.today 는 오늘 진행 중인 값이며 다음 끼니를 제안할 때만 쓴다. 둘을 섞지 말 것. 오늘 값으로 하루치를 판정하지 말 것 — 오늘은 아직 안 끝나서 낮에는 늘 모자라 보인다. completedDaysCount 가 0 이면 끝난 날 기록이 없다는 뜻이므로 섭취 진단을 건너뛰고 끼니 제안만 한다. nutrition 이 null 이면 기록이 없다는 뜻이지 0kcal 를 먹었다는 뜻이 아니다. nutrition.today.missingMeals 가 null 이면 끼니 구분을 알 수 없다는 뜻이므로 끼니 제안 섹션을 생략한다.\nbody 는 최근 체중 이력(MM-DD 체중kg/체지방%[/골격근kg]). 골격근이 함께 적힌 날들 사이에서 골격근이 줄고 있으면 근손실로 보고 지적한다. paceTargetKgPerWeek 는 주당 감량 목표 kg. restDays 는 계획 휴식 요일. nowTime 은 현재 시각.\n사용자 전제: 감량기(하루 목표 적자는 dailyDeficitTarget 이며 설정에 따라 바뀌므로 고정 숫자로 쓰지 말 것), 근손실 방지 최우선.\n용어: 단백질·탄수화물·지방을 묶어 부를 때는 「탄단지」라고만 쓰고 「매크로」는 쓰지 마라. tdee 값을 문장에 쓸 때는 「TDEE」가 아니라 「하루 소비」라고 적어라 — 화면이 그렇게 부른다. 영양학 용어를 그대로 던지지 말고 뜻이 통하는 우리말로 풀어 써라.\n문체: 앱이 각 줄을 카드로 그리므로 형식을 반드시 지킬 것. 섹션 제목은 대괄호로 감싼 줄 하나로 쓰고, 섹션 안의 각 줄은 하이픈과 빈칸으로 시작한다. 각 줄은 「- 대상 실제/목표 — 판정어와 핵심 숫자 하나」 형식이며 대상 라벨은 10자 이내로 짧게 쓴다. 판정어는 달성·순항·양호·적절·유지·보류·부족·미달·초과·이탈·미기록 중에서만 고른다. 데이터가 없어 판단할 수 없을 때는 부족·미달이 아니라 미기록을 쓴다 — 안 한 것과 기록이 없는 것은 다르다. 설명부는 25자 이내 한 문장, -함/-됨/-요망 종결. 마크다운 기호 금지, 인사말·서론·맺음말 금지.\n';
 var ANLGLOS='최우선 규칙: 앱이 값을 제공하는 지표는 어떤 경우에도 log나 exercises로 다시 계산하지 않음. 확정값 목록은 thisWeek, subThisWeek, freqThisWeek, subFreqThisWeek, computed, nutrition임.\nnutrition은 삼성헬스에 사용자가 직접 기록한 실측 섭취량임. nutrition에서 completedDays로 시작하는 값은 오늘을 뺀 「끝난 날들」의 평균이고, nutrition.today는 오늘 진행 중인 값임. 감량이 잘 되고 있는지 진단할 때는 completedDays 값만 쓰고, 오늘 값으로 하루치를 판정하지 말 것 — 오늘은 아직 안 끝나서 낮에는 늘 모자라 보임. nutrition.today는 다음 끼니를 제안할 때만 씀. completedDaysCount가 0이면 끝난 날 기록이 아직 없다는 뜻이므로 섭취 진단을 하지 말고 기록이 하루 더 쌓이면 볼 수 있다고만 적고 다음 끼니 제안으로 넘어갈 것. nutrition.today.eatenMeals/missingMeals가 아직 안 먹은 끼니를, nutrition.today.kcalLeft/proteinLeft가 남은 몫을 이미 계산해 둠. nowTime이 현재 시각임. missingMeals가 null이면 끼니 구분을 알 수 없다는 뜻이지 다 먹었다는 뜻도 안 먹었다는 뜻도 아니므로, 그 경우 끼니 제안 섹션을 생략함. nutrition이 null이면 기록이 없다는 뜻이지 0kcal를 먹었다는 뜻이 아니므로, 그 경우 섭취 관련 판단을 하지 말고 기록이 없다고만 적음. byDay에 없는 날짜도 마찬가지로 굶은 날이 아니라 기록이 빠진 날임. 아래 섹션 지시가 직접 세라는 표현을 쓰더라도 이 규칙이 우선하며, 확정값에 없는 항목만 log로 계산함.\n주중 판정: computed.weekPhase 가 마감·결산이 아니면 주간 목표는 아직 채울 시간이 남아 있으므로 실적을 목표와 그대로 맞대 미달이라 쓰지 말 것. computed.elapsedTrainDays 와 trainDaysPerWeek 의 비율로 기대치를 환산해 페이스로 판정함. lastWeek 대비 증감도 같은 이유로 주중에는 급감·급증이라 단정하지 말 것.\n데이터 정의: targets=부위별 주간 목표(CARDIO는 분). thisWeek/lastWeek=부위별 실적 유효 세트(CARDIO는 분). 유효 세트는 RIR 3 이하로 실패 근처까지 간 세트만 센 값이며 RIR 4 이상 세트는 빠져 있음. RIR 미입력 세트는 포함돼 있음. exercises="종목명|부위|이번주 유효세트수|주동근"(4번째 칸은 앱이 확정한 주동근). computed=앱이 확정한 파생 지표이며 아래 값은 반드시 그대로 인용하고 절대 다시 계산하지 말 것. weekPhase=주간 단계(결산/초반/중반/마감), trainDaysPerWeek=주간 훈련 가능일, elapsedTrainDays=경과 훈련일 E, remainTrainDays=잔여 훈련일 R, streakDays=오늘 포함 연속 훈련일, progressedCount/stalledCount/regressedCount=진전·정체·퇴행 종목 수, stalledNames/regressedNames=해당 종목명, deloadCandidates=디로드 후보 종목 수(2 이상이면 디로드 권고). subThisWeek=세부 근육별 이번 주 실적 세트(앱이 확정한 값). freqThisWeek=부위별 이번 주 수행 일수, subFreqThisWeek=세부 근육별 수행 일수이며 둘 다 앱 확정값임. 빈도는 반드시 이 값을 인용하고 log로 다시 세지 말 것이며, 여기 없는 항목은 0회임. log=최근 2주 전체 세션("날짜 부위/주동근 종목명 무게x반복@RIRr휴식초"). r 값은 직전 세트 이후 휴식 시간(초)이며 없으면 미측정임. 휴식이 60초 미만으로 짧아진 세트에서 반복이 떨어졌다면 정체가 아니라 휴식 부족으로 해석함. (, 유산소는 "n분v속도i경사"=지속분·속도(레벨)·경사%). tops=종목별 최근 세션 이력("MM-DD 톱세트무게x반복 e세션평균e1RM/세트수@세션평균RIR" 최신순). RIR=세트 종료 시 남은 반복 수이며 0이 실패 직전, 값이 클수록 여유가 많음. @가 없으면 미입력이므로 강도 판정을 생략함. 진전 판정은 톱세트가 아니라 e값(그날 한 전 세트의 평균 e1RM)으로 하며, 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교함. body="MM-DD 체중/체지방%[/골격근kg]" 이력. restDays=계획 휴식 요일. today=오늘 날짜·요일(주는 월요일 시작). 데이터에 없는 사실은 추정 금지, 기록 2회 이하 종목은 판단 보류.\n세부 귀속: 세부 근육별 실적은 subThisWeek가 앱 확정값이므로 그 숫자를 그대로 인용하고 절대 다시 세지 말 것. subThisWeek에 없는 세부는 0세트임. 개별 종목의 주동근은 exercises의 4번째 칸과 log의 "부위/주동근" 표기가 확정값이며 종목명으로 재판정 금지임. 확정값이 없을 때만 종목명으로 추정함. 래터럴·넥프레스=어깨측면, 리어·리버스펙덱·페이스풀=어깨후면, 숄더프레스·OHP=어깨전면, 랫풀·풀업·풀오버·하이로우=광배, 로우=등 상부, 인클라인=가슴 상부, 레그컬·RDL·스티프=햄스트링, 스쿼트·핵·레그프레스·익스텐션=대퇴사두, 힙쓰러스트·어브덕션=둔근, 컬=이두, 푸시다운·킥백·트라이셉=삼두, 셰러그·업라이트로우=승모(금기 감시).\n사용자 전제: 감량기(하루 적자 목표는 사용자 설정값을 따름), 근손실 방지 최우선, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 과자극 회피, 주 2일 휴식 기본.\n문체: 앱이 각 줄을 라벨·상태칩·진행바 카드로 렌더하므로 아래 형식을 반드시 지킴. 각 줄은 "- 대상 실제/목표 — 판정어와 핵심수치 하나" 형식이며 대상 라벨은 10자 이내로 짧게 씀. 주간 목표가 있는 항목은 실제/목표를 반드시 "5/18" 같은 n/m 숫자로 병기하고 목표가 없으면 대상 이름만 씀. 판정어는 달성·순항·양호·준수·적절·가능·확보·유지·보류·부족·미달·초과·이탈·정체·퇴행·시급·과중·위반 중에서만 고르고 설명부에 반드시 한 번 포함함. 설명부는 20자 이내 한 문장, -함/-됨/-요망 종결. 마크다운 기호 금지, 섹션 제목은 대괄호 그대로, 섹션 내 각 줄은 "- "로 시작. 인사말·서론·맺음말·중복 설명 금지. 주 중반이면 단정 대신 페이스로 판정함.\n\n';
 var ANLDEF={
-cut:'당신은 감량기 관리에 정통한 코치다. 아래 데이터로 다음 네 섹션을 순서대로 써라. 섹션 제목은 대괄호를 포함해 그대로 쓰고, 해당 데이터가 없으면 그 섹션을 통째로 생략한다.\n\n[체중] body 의 최근 흐름과 paceTargetKgPerWeek 를 맞대라. 실제 주당 변화량을 숫자로 내고 목표와 견줘 판정하라. 기록이 2건 미만이거나 가장 오래된 기록과 최신 기록이 7일 미만으로 붙어 있으면 이 섹션을 생략한다 — 체중은 하루 단위로 출렁이므로 짧은 간격을 주간 속도로 환산하면 안 된다.\n\n[열량] 초과·부족은 completedDaysAvgDiff 로만 판정하라. 이 값은 날마다 다른 목표(그날 TDEE − dailyDeficitTarget, TDEE 에는 그날 운동으로 쓴 열량이 이미 들어 있음)와 견준 차이이며 앱이 계산해 둔 것이다. 양수면 초과, 음수면 목표보다 덜 먹은 것이다. 고정된 숫자 하나를 기준으로 삼지 말고, 특히 today 의 값이나 목표를 이 섹션에 끌어오지 마라.\n줄은 둘로 고정한다.\n- 평균 섭취 completedDaysAvgIntake/completedDaysAvgTarget — 판정어와 completedDaysAvgDiff 를 든 한 문장\n- 지킨 날 daysOnTarget+daysUnderTarget/completedDaysCount — daysOverTarget 이 0 이면 초과라는 말을 쓰지 말고 전부 지켰다고 쓸 것\n실제 적자는 completedDaysAvgDeficit 이며, 이것이 dailyDeficitTarget 의 1.8배를 넘거나 1200 을 넘을 때만 근손실 위험을 짚어라. 계획대로 지킨 주에 경고가 뜨면 안 된다. 적자와 목표 대비 차이는 다른 값이니 섞지 마라.\n\n[영양] completedDaysProteinPerKg 를 proteinPerKgGoal 과 맞대고, 지방이 총열량의 20~30% 에서 벗어났는지 보라. 기준치를 임의로 다른 숫자로 바꿔 쓰지 마라.\n\n[다음 끼니] nutrition.today.missingMeals 에 아직 안 먹은 끼니가 있고 nowTime 이 그 끼니를 먹을 만한 시각이면(점심은 11시 이후, 저녁은 17시 이후) 그 끼니를 제안하라. 아니면 이 섹션을 생략한다 — 오전에 저녁을 권하지 마라. 줄은 셋으로 고정한다.\n- 남은 몫 nutrition.today.kcalLeft/nutrition.today.goalIntake — 단백질 nutrition.today.proteinLeft g 남음\n- 무엇을 먹을지 — 단백질 반찬 한 가지와 양(g), 밥이나 면 한 가지와 양, 채소. 한국에서 흔히 먹는 것으로\n- 왜 그렇게 — 남은 단백질이 많으면 단백질 위주, kcalLeft 가 적으면 부피 큰 저열량 위주, todayTrained 가 true 면 탄수를 앞에 두는 식으로 숫자를 들어 한 문장\nnutrition.today.kcalLeft 가 음수면 제안 대신 무엇을 줄였어야 했는지 한 줄만 쓴다.',
-mac:'당신은 스포츠 영양 전문가다. 아래 nutrition 데이터로 감량기 영양성분 배분을 평가한 한국어 보고서를 써라.\n용어: 단백질·탄수화물·지방을 묶어 부를 때는 \'탄단지\'라고만 쓰고 \'매크로\'나 \'매크로뉴트리언트\'는 쓰지 마라. 그 밖에도 영양학 용어를 그대로 던지지 말고 뜻이 통하는 우리말로 풀어 써라.\n기준: 감량기 단백질은 체중당 proteinPerKgGoal g(값은 데이터에 있음. 실제치는 completedDaysProteinPerKg), 지방은 총열량의 20~30%, 나머지는 탄수화물. 기준치를 임의로 다른 숫자로 바꿔 쓰지 말 것.\nbyDay로 날마다의 편차를 보라 — 평균만 맞고 날마다 출렁이면 그것도 문제다. 훈련일과 휴식일(restDays)에 탄수화물 배분이 다른지도 확인하라.\nnutrition이 null이거나 completedDaysCount가 3 미만이면 판단할 데이터가 부족하다고 밝히고, 며칠치가 더 필요한지만 적어라.',
-acsm:'당신은 ACSM 가이드라인에 정통한 운동처방 전문가다. 아래 훈련 데이터를 ACSM 저항성·유산소 운동 권고 기준으로 평가한 한국어 보고서를 써라.\n평가 기준: 주요 근군당 주 2회 이상 자극(빈도는 freqThisWeek 값을 그대로 인용하고 직접 세지 말 것), 근비대 반복역 6~12회 중심, 동일 근군 48시간 회복, 유산소 중강도 주 150분(또는 고강도 75분) 및 주 3회 분산, 주간 부하 증가는 전주 대비 20% 이내의 점진적 과부하.\n구성:\n[빈도]\n- freqThisWeek의 부위별 수행 일수를 그대로 인용해 주 2회 기준과 대조하고 부위별 한 줄씩 씀. 앱이 확정한 값이므로 log로 다시 세지 말 것이며 freqThisWeek에 없는 부위는 0회임. 표기는 부위 n/2회 형식임.\n[유산소]\n- thisWeek.CARDIO 분과 회수를 150분·주 3회 기준과 대조해 한 줄로 판정함.\n[강도]\n- log의 반복수 분포가 근비대역(6~12회)에 드는 비율을 평가하고 이탈 종목을 지적함.\n[회복]\n- 연속 훈련일은 computed.streakDays를 그대로 인용하고 3일 이상이면 경고함. 같은 부위의 48시간 미만 재자극만 log 날짜로 점검함.\n[과부하]\n- thisWeek를 lastWeek와 부위별로 대조해 20% 초과 급증 또는 급감을 지적함.\n[종합]\n- 충족 항목과 미충족 항목을 각각 한 줄로 요약하고 다음 주 권고를 1~2줄로 마감함.\n\n',
-vol:'당신은 볼륨 랜드마크(MEV·MAV·MRV) 이론에 정통한 보디빌딩 코치다. 아래 훈련 데이터의 부위·세부별 주간 세트를 랜드마크와 대조한 한국어 보고서를 써라.\n랜드마크 기준(MEV·MAV하한~MAV상한·MRV, 주당 직접 세트). 이름은 subThisWeek 의 키와 같다. 측면어깨 8·16~22·26, 후면어깨 6·16~22·26, 전면어깨 0·6~8·12(프레스 간접 감안), 광배 10·14~22·25, 중부·능형 6·10~16·20, 승모 상부 0·4~8·12(회피 대상), 상부가슴 4·6~12·14, 중하부가슴 6·10~16·18, 대퇴사두 8·12~18·20, 햄스트링 6·10~16·20, 둔근 0·4~12·16, 외전근 0·4~10·14, 내전근 0·4~8·12, 종아리 8·12~16·20, 이두 8·14~20·26, 삼두 6·10~14·18, 전완 0·4~8·12, 복근·코어 0·16~20·25. 가슴과 등을 하나로 묶어 판정하지 말 것 — 앱은 상부가슴과 중하부가슴, 광배와 중부·능형을 따로 세고 기준도 다르다.\n감량기 보정: 회복 저하로 MRV를 20% 낮춰 적용하고 이를 명시함.\n앱 위젯이 메인·세부 전체의 랜드마크 위치를 그래프로 표시하므로 세부별 나열은 쓰지 않음.\n구성:\n[초과 위험]\n- 보정 MRV를 넘은 세부는 초과로, 보정 MRV의 90~100%인 세부는 접근으로 구분해 수치와 함께 지적함. 앱 위젯은 보정 MRV를 넘을 때만 초과 표시를 하므로 90%대를 초과라 쓰지 말 것. 없으면 "MRV 접근 세부 없음"이라 씀.\n[증량 여지]\n- 옷맵시 우선 세부(측면·광배) 중 MAV까지 여유가 있는 곳과 추가 가능 세트 수를 씀.\n[처방]\n- 다음 주 세부별 세트 조정을 최대 3줄로 지시함. 조정 폭은 세부당 2~4세트 이내로 함.\n\n',
-prog:'당신은 점진적 과부하 진단 전문가다. 아래 훈련 데이터의 tops(종목별 톱세트 이력)를 근거로 종목별 진전 상태를 판정한 한국어 보고서를 써라.\n판정 정의: e1RM=무게×(1+반복/30)이며 tops의 e값은 그날 한 전 세트(보통 2~4세트)의 평균 e1RM임. 진전 판정은 톱세트 하나가 아니라 이 e값의 세션 간 변화율로 하고 성장률을 퍼센트로 제시함. 세트 수가 다른 두 세션은 적은 쪽 세트 수에 맞춰 비교하며 변화율 ±0.5퍼센트 이내는 무진전으로 봄. RIR 활용: 무진전인데 평균 RIR이 3 이상이면 정체가 아니라 강도 부족으로 보고 증량 또는 근접실패 관리를 지시함. 무진전이면서 평균 RIR이 1 이하면 실제 정체로 보고 재빌드나 디로드를 검토함. e값과 RIR이 함께 내려가면 피로 누적으로 판정함. RIR 미입력 세션은 강도 판정 없이 e값만으로 판단함. 디로드 판정: 3주 내 3세션 이상인 종목에서 e값 변화가 +0.5퍼센트 이하이면서 평균 RIR이 1회 이상 낮아진 종목이 2개 이상이면 정체가 아니라 회복 부족으로 보고 디로드 주간(볼륨 40~50퍼센트 감축)을 권고함. 연속 두 세션 무진전=정체, 연속 두 세션 하락=퇴행(근손실 위험 신호). 인접 세션 간격 14일 초과면 "간격 n일로 보류"로만 표기함. 이력 2회 이하 종목은 언급하지 않음.\n구성:\n[진전]\n- 최근 세션에서 무게 또는 반복이 오른 종목을 "Lat Pulldown 59→66kg, e1RM +8%" 식 수치와 함께 한 줄씩 씀. 없으면 "신규 진전 없음"이라 씀.\n[정체]\n- 정체 종목을 마지막 갱신 날짜·수치와 함께 한 줄씩 씀. 없으면 "정체 종목 없음"만 씀.\n[퇴행]\n- 퇴행 종목을 두 세션의 수치 흐름과 함께 씀. body의 제지방·골격근 추세가 함께 하락 중이면 근손실 경고를 덧붙임. 없으면 "퇴행 종목 없음"만 씀.\n[처방]\n- 정체·퇴행 종목별로 무게 유지, 5% 감량 재빌드(재빌드 무게 명시), 반복 목표 상향 중 하나를 택해 한 줄씩 지시함. 옷맵시 핵심 종목을 우선 다룸.\n\n',
-recov:'당신은 회복·피로 관리 전문 코치다. 아래 훈련 데이터로 감량기 회복 상태를 진단한 한국어 보고서를 써라. 감량기는 회복 자원이 평시보다 낮음을 전제로 보수적으로 판정함.\n구성:\n[연속·간격]\n- 연속 훈련일은 computed.streakDays를 그대로 인용하고 직접 세지 말 것이며 3일 이상이면 경고함. 같은 부위의 48시간 미만 재자극을 날짜와 함께 지적함.\n[휴식 준수]\n- 이번 주 무기록일 수를 restDays 계획과 대조해 판정함. 주 중반이면 현재까지의 사실만 씀.\n[세션 피로]\n- log에서 한 종목의 마지막 세트 반복이 그 종목 최고 반복보다 3회 이상 또는 25% 이상 낮은 세션을 피로 급락으로 찾아 종목·수치와 함께 지적함. 없으면 "세션 내 피로 급락 없음"이라 씀.\n[부하 변동]\n- thisWeek와 lastWeek를 부위별로 대조해 20% 초과 급증을 회복 부채로, 30% 초과 급감을 디로드 여부 확인 대상으로 지적함.\n[신체 신호]\n- body의 제지방 또는 골격근 추세가 하락이면 회복 부족·근손실 신호로 최우선 경고함. body가 비어 있으면 이 섹션은 생략함.\n[처방]\n- 휴식일 배치, 볼륨 감축 대상 부위, 유지 대상을 합쳐 2~3줄로 지시함.\n\n',
-bal:'당신은 근육 발달 균형 분석 전문가다. 아래 훈련 데이터의 세트 배분 비율을 평가한 한국어 보고서를 써라.\n기준 비율(주간 직접 세트): 당기기(등 전체+이두) 대 밀기(가슴+어깨전면+삼두)는 1:1이 표준이며 사용자의 옷맵시 목표상 당기기 우세 1.2:1까지 이상적임. 대퇴사두 대 햄스트링은 1:0.6~0.8을 권장함. 상체 대 하체는 목표가 상체 프레임 확장이므로 2:1까지 허용하되 하체가 주 8세트 미만이면 최소선 미달로 봄. 어깨 내부는 측면이 전면·후면 합보다 크거나 같아야 옷맵시 배분으로 봄.\n구성:\n[당기기·밀기]\n- exercises를 세부 귀속 규칙으로 분류해 실제 세트 비율을 계산하고 기준과 대조해 한 줄로 판정함.\n[사두·햄]\n- 두 세부의 세트 비율을 계산해 권장 구간과 대조함. 햄이 약점 보강 대상임을 감안함.\n[상체·하체]\n- 비율과 하체 최소선 충족 여부를 한 줄로 판정함.\n[어깨 내부]\n- 측면 대 전면+후면 비율을 계산해 옷맵시 배분 여부를 판정함.\n[처방]\n- 비율 이탈이 큰 순서로 최대 3줄, 옮길 세트 수를 명시해 지시함. 이탈 없으면 "배분 균형 양호로 유지 요망"만 씀.\n\n',
-vt:'당신은 상체 프레임 확장과 옷맵시(V테이퍼) 특화 코치다. 아래 훈련 데이터를 옷맵시 기준선과 대조한 한국어 보고서를 써라.\n기준선: 측면 어깨 주 18~21세트(주 3~5회 빈도), 광배 주 16~18세트, 가슴 상부 우선, 햄스트링 약점 보강, 승모 직접 자극 0세트(위반 시 최우선 지적). 어깨 너비와 광배 확장이 허리 시각비를 좌우함을 전제로 함.\n구성:\n[핵심 타겟]\n- 측면 어깨와 광배의 이번 주 세트·빈도를 기준선과 대조해 각 한 줄씩 판정함. 주 중반이면 잔여 훈련일로 도달 가능한지로 판정함.\n[보조 타겟]\n- 가슴 상부 대 중하부 배분과 햄스트링 세트를 점검해 각 한 줄로 씀.\n[금기]\n- exercises에 승모 계열(셰러그·업라이트로우·하이풀) 자극이 있으면 세트 수와 함께 위반으로 지적하고, 없으면 "승모 회피 준수"라 씀.\n[배분 판정]\n- 총 세트 중 옷맵시 핵심(측면+광배) 비중을 계산해 배분 집중도를 한 줄로 판정함.\n[처방]\n- 잔여 훈련일에 핵심 타겟을 몇 세트씩 배치할지와 다음 주 조정 방향을 2~3줄로 지시함.\n\n'
+ plan:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 이미 끝낸 값이다. 숫자와 판정은 화면이 그리고 있으므로 다시 나열하지 말고 결정만 내려라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[평가]\n- 목표 미달 부위 중 간접 기여 세트로 메워지는 곳은 부족이라 쓰지 말고 제외한 이유를 한 줄로 씀.\n- 계획 요일과 실제 수행 요일이 어긋난 부위가 있으면 한 줄. 없으면 생략함.\n- 잘한 점 한 줄. 개선 후보 중 이번 주에 가장 값진 것 하나만 고름.\n\n[처방]\n- 남은 세션에 넣거나 뺄 것을 (요일, 부위, ±세트) 형식으로 최대 3줄. 남은 세션이 없으면 다음 주 기준으로 씀.\n- 늘릴 곳을 정하면 줄일 곳도 함께 씀 — 감량기에는 총량을 늘리지 않음.\n- 정체·퇴행 종목은 무게 유지 / 5% 재빌드 / 반복 상향 중 하나를 골라 한 줄씩, 최대 2종목. 옷맵시 핵심 종목을 먼저 다룸.\n- 이미 수행한 볼륨을 줄이라고 쓰지 않음.\n\n[한 줄]\n- 이번 주 가장 먼저 손댈 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
+ meal:'당신은 감량기 식단 코치다. 남은 몫과 끼니 소계는 화면이 이미 그린다. 무엇을 먹을지만 정하라.\n전제: 감량기, 근손실 방지 최우선, 한국에서 흔히 구할 수 있는 음식.\n\n[다음 끼니]\n- 단백질 반찬 하나, 밥·면 하나, 채소 하나를 1인분 그램과 대략 열량으로 씀. 최대 3줄.\n- 남은 단백질이 많으면 단백질 위주, 남은 열량이 적으면 부피 큰 저열량 위주, 오늘 훈련했으면 탄수를 앞에 둠.\n- 안 먹은 끼니가 없거나 지금이 그 끼니를 먹을 때가 아니면 이 섹션을 통째로 생략함.\n\n[줄일 곳]\n- 오늘 목표를 넘겼을 때만 씀. 초과를 밀어올린 끼니를 짚고 무엇을 얼마나 덜었으면 됐는지 한 줄씩 최대 2줄. 넘기지 않았으면 이 섹션을 통째로 생략함.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 기록에 없는 것을 먹었다고 가정하지 않음. 훈련 부위·종목은 언급하지 않음. 한 줄 25자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n'
 };
 function hasTodayStrength(){
   var pid={},i,k,td=today();
@@ -4125,15 +4113,36 @@ function hasTodayStrength(){
   }
   return false;
 }
+/* 숫자를 화면이 그리므로 용어집이 통째로 필요 없어졌다 — 3,176자가 이만큼 남는다.
+   AI 는 판정 결과만 받으므로 '이 필드는 이런 뜻' 을 설명할 대상이 없다. */
+var GLOS='아래 값은 앱이 판정을 끝낸 결과다. 세트 원본과 종목 이력은 넘기지 않는다.\n'
+  +'vd 는 앱이 붙인 판정이고 화면에 이미 칩으로 떠 있다 — 옮겨 적지 말고 뒤집거나 순위를 매길 때만 인용함.\n';
 function anlPrompt(){
-  if(ANL==='wk')return (PR||DEFPR);
   var ph=hasTodayStrength()
-    ?'실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방·방향은 다음 세션 기준으로 씀.\n'
-    :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방·방향은 오늘 세션에서 바로 실행할 항목으로 씀.\n';
-  return (ANLDEF[ANL]||'')+(DIETMODES[ANL]?DIETGLOS:ANLGLOS)+ph;
+    ?'실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방은 다음 세션 기준으로 씀.\n'
+    :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방은 오늘 세션에서 바로 실행할 항목으로 씀.\n';
+  var base=(ANL==='plan'&&PR)?PR:(ANLDEF[ANL]||'');
+  /* 주 중반에는 [이행]·[감량] 을 프롬프트에서 물리적으로 잘라낸다.
+     문구로만 '생략하라' 고 하면 없는 자료로 지어낸다. */
+  if(ANL==='plan'){
+    var wp=(computedFacts()||{}).weekPhase||'';
+    if(wp==='마감'||wp==='결산'){
+      base=base.replace('[처방]',
+        '[이행]\n- 직전 처방마다 한 줄로 이행·미이행을 가르고 근거는 짝지어 온 실측 하나만 듦. 직전 처방이 없으면 이 섹션을 통째로 생략함.\n\n'
+        +'[감량]\n- 섭취 편차가 결과를 망칠 수준인지 한 줄. 페이스가 맞으면 편차만으로 문제라 쓰지 않음.\n'
+        +'- 골격근·제지방이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 측정 간격을 근거로 듦. 인바디가 없으면 이 줄을 생략함.\n\n[처방]');
+    }
+  }
+  return base+GLOS+ph;
 }
 function anlSave(){if(canLS){try{localStorage.setItem(KEY+'.anl',ANL);}catch(e){}}}
-(function(){if(!canLS)return;try{var a=localStorage.getItem(KEY+'.anl');if(a&&ANLL[a])ANL=a;}catch(e){}})();
+/* 옛 아홉 키가 저장돼 있으면 새 두 키로 옮긴다 — 안 하면 기본값으로 튄다 */
+var ANLMAP={wk:'plan',vol:'plan',prog:'plan',recov:'plan',acsm:'plan',bal:'plan',vt:'plan',cut:'meal',mac:'meal'};
+(function(){if(!canLS)return;try{
+  var a=localStorage.getItem(KEY+'.anl');
+  if(a&&ANLMAP[a]){ANL=ANLMAP[a];anlSave();return;}
+  if(a&&ANLL[a])ANL=a;
+}catch(e){}})();
 /* ── 로컬 신호 판정 (프롬프트 규칙 21 포팅: 퇴행 > 회복 부채 > 옷맵시 페이스 > 정상) ── */
 /* RIR 을 안 찍은 세트가 몇 개인지 — 유효 세트에 들어가 있지만 확인된 것은
    아니므로 숫자 옆에 같이 적는다 */
@@ -4539,8 +4548,170 @@ function clsCheckHtml(){
   }
   return h;
 }
+var PN_KO={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
+/* 부위별 유효 세트 변동 — recov 와 acsm 이 같은 그림을 쓰므로 함수로 뺀다.
+   예전에는 프롬프트가 '생값 대 생값' 을 시켜 그래프 +5% 와 본문 +28% 가
+   같은 카드에서 갈렸다. 식을 하나로 못박는다. */
+function vzDelta(){
+  var pl=paceLeft();
+  if(pl<20)return {h:'',rows:[]};
+  var cur=anlWkSets(0),last=anlWkSets(1),h='',rows=[],k;
+  for(k in PN_KO){
+    var lv=last[k]||0;
+    if(!lv)continue;
+    var exp=lv*pl/100,cv=cur[k]||0;
+    var dp=Math.round((cv-exp)/exp*100);
+    var w=Math.min(50,Math.abs(dp))/50*50;
+    rows.push({p:PN_KO[k],d:dp,t:dp>20?'과중':(dp<-30?'보류':'적절')});
+    h+='<div class="dvrow"><span class="bn">'+PN_KO[k]+'</span>'
+      +'<span class="dvg"><i class="c0"></i><b class="'+(dp<0?'neg':'')+'" style="'
+      +(dp<0?'right:50%;':'left:50%;')+'width:'+w+'%"></b></span>'
+      +'<span class="bv '+(dp>20?'ov2':(dp<-30?'un2':''))+'">'+(dp>0?'+':'')+dp+'%</span></div>';
+  }
+  return {h:h,rows:rows};
+}
+function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</div>';}
+
+/* ── 훈련 대시보드 ──
+   예전 아홉 모드가 나눠 그리던 것을 한 자리에 모은다. AI 없이 즉시 나온다. */
+function vzTrain(){
+  var h='',ws=wkSets(),sc=subCnt(),i,k;
+  /* 부위 */
+  h+=vzCap('부위 · 유효 세트');
+  var tot=0,tgt=0;
+  for(k in PN_KO){
+    var c=ws[k]||0,g=WTGT[k]||0;
+    tot+=c;tgt+=g;
+    h+=vzBar(PN_KO[k],c,g,'',vzVerdict(c,g),true);
+  }
+  var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
+  h+=vzBar('유산소',wc.z2,ctg,wc.days+'회'+(wc.neat>0?' · 걷기 '+wc.neat+'분 별도':''),
+           vzVerdict(wc.z2,ctg),false);
+  h+=vzTotal('TOTAL · 수행 '+wkTrainDays()+'일',tot,tgt);
+  /* 세부 랜드마크 */
+  var hs='';
+  for(i=0;i<SUBS.length;i++){
+    var sb=SUBS[i],L=LMK[sb.k];
+    if(!L)continue;
+    var cur=sc[sb.k]||0;
+    if(!cur&&!L[0]&&!(STG[sb.k]===0))continue;
+    hs+=lmRow(subLabel(sb),cur,L);
+  }
+  if(hs)h+='<div class="lmsec">'+vzCap('세부 근육 · MEV~MRV')+hs
+    +'<div class="lmlg" data-act="hgo" data-v="goal"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
+  var uk=unkWeek();
+  if(uk>0)h+='<div class="lmunk">이번 주 <b>'+uk+'세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨</div>';
+  /* 진전 */
+  var pr=heroProg();
+  h+=vzCap('진전 · 정체 · 퇴행');
+  h+='<div class="sttrow">'
+    +'<span class="stt up2"><b>'+pr.up+'</b><i>진전</i></span>'
+    +'<span class="stt"><b>'+pr.stall+'</b><i>정체</i></span>'
+    +'<span class="stt dn2"><b>'+pr.down+'</b><i>퇴행</i></span></div>';
+  function nmRow(list,cls,vd){
+    var o2='',j;
+    for(j=0;j<list.length;j++)
+      o2+=vzLine(list[j].n,list[j].t||'',(list[j].p!==undefined?((list[j].p>0?'+':'')+list[j].p+'%'):'')
+        +(list[j].r!==null&&list[j].r!==undefined?'  RIR '+list[j].r:'')
+        +(list[j].why?list[j].why:''),vd);
+    return o2;
+  }
+  h+=nmRow(pr.dnL,'dn',{t:'퇴행',c:'neg'});
+  h+=nmRow(pr.stL,'st',{t:'정체',c:'warn'});
+  h+=nmRow(pr.upL,'up',{t:'진전',c:'pos'});
+  if(pr.holdL.length)h+=nmRow(pr.holdL,'hd',{t:'보류',c:''});
+  if(!pr.dnL.length&&!pr.stL.length&&!pr.upL.length)
+    h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
+  /* 회복 */
+  h+=vzCap('회복');
+  var st=heroStreak(),bl='';
+  for(i=6;i>=0;i--)bl+='<i class="'+(i<st?'on':'')+'"></i>';
+  h+='<div class="gbrow"><span class="bn">연속일</span><span class="stk2">'+bl+'</span>'
+    +'<span class="bv">'+st+'일</span></div>';
+  var g48=partGap48();
+  if(g48.length)h+=vzLine('이틀 연속',g48.map(function(x){return PN_KO[x.p]||x.p;}).join(', '),
+    '기록에 시각이 없어 이틀 연속으로 봄',{t:'이탈',c:'warn'});
+  var dl=deloadSignal();
+  if(dl)h+=vzLine('디로드 후보',dl.n+'종목',dl.names.join(', '),{t:'과중',c:'neg'});
+  var fd=fatigueDrop();
+  if(fd.length)h+=vzLine('세션 내 급락',fd.length+'건',
+    fd.slice(0,2).map(function(x){return x.n+' '+x.from+'→'+x.to+'회('+x.why+')';}).join(', '),
+    {t:'과중',c:'neg'});
+  var dv=vzDelta();
+  if(dv.h)h+=vzCap('유효 세트 변동 · 페이스 대비')+dv.h;
+  /* 균형 */
+  function db(n,a,b2,tgt2){
+    var t2=a+b2;if(!t2)return '';
+    var pa=Math.round(a*100/t2);
+    return '<div class="dl2"><span>'+n+'</span><span>'+a+' : '+b2+'</span></div>'
+      +'<div class="db2"><b style="width:'+pa+'%"></b><i class="ct"></i><i class="tg" style="left:'+tgt2+'%"></i></div>';
+  }
+  var pull=(sc.lt||0)+(sc.tm||0)+(sc.ut||0)+(sc.bi||0),push=(sc.uc||0)+(sc.mc||0)+(sc.ad||0)+(sc.tri||0);
+  var upper=(ws['CHEST']||0)+(ws['BACK']||0)+(ws['SHOULDERS']||0)+(ws['ARMS·ETC']||0),lower=ws['LEGS']||0;
+  var bh=db('당기기 : 밀기',pull,push,55)+db('사두 : 햄',sc.qd||0,sc.hm||0,58)
+    +db('측면 : 전면+후면',sc.sd||0,(sc.ad||0)+(sc.pd||0),50)
+    +db('상체 : 하체',upper,lower,67);
+  if(bh)h+=vzCap('균형')+bh;
+  /* 빈도·강도 */
+  h+=vzCap('빈도 · 강도');
+  var fq=wkDaysByPart();
+  h+='<div class="fqrow">';
+  for(k in PN_KO){var dc=fq[k]||0;h+='<span class="fq'+(dc>=2?' ok':'')+'">'+PN_KO[k]+' '+dc+'회</span>';}
+  h+='</div>';
+  var rz=repZone();
+  if(rz.tot)h+=vzLine('반복 6~12',rz.pct+'%',rz.inZ+'/'+rz.tot+'세트'+(rz.off.length?' · 벗어남 '+rz.off.join(', '):''),
+    rz.pct>=70?{t:'적절',c:'pos'}:{t:'이탈',c:'warn'});
+  /* 몸 */
+  var pc=paceCalc(BW,BF,GF);
+  if(pc.ok)h+=vzCap('몸')+vzLine('주당 감량',(pc.rate>0?'+':'')+pc.rate+'kg','목표 -'+WR+'kg/주',
+    {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
+  var lt=lbmTrend();
+  if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',lt.from+'→'+lt.to+' · '+lt.gap+'일',
+    lt.d<=-0.5?{t:'시급',c:'neg'}:{t:'유지',c:''});
+  return '<div class="anlviz">'+h+'</div>';
+}
+
+/* ── 식단 대시보드 ── */
+function vzDiet(){
+  var nf=nutriFacts();
+  if(!nf)return '<div class="anlviz"><div class="lmunk">섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴</div></div>';
+  var h='',t=nf.today;
+  if(t){
+    h+=vzCap('오늘 · 남은 몫');
+    var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
+    /* 남은 몫은 '적을수록 좋음' 이 아니다 — 목표 대비 얼마나 먹었나로 그린다.
+       vzVerdict 는 주간 페이스용이라 여기서는 안 쓴다(하루는 페이스가 없다). */
+    h+=vzBar('열량',ate,goal,
+      (t.kcalLeft>=0?'남음 '+Math.round(t.kcalLeft):'초과 '+Math.abs(Math.round(t.kcalLeft)))+' kcal',
+      (goal>0&&ate>goal)?{t:'초과',c:'warn'}:{t:'',c:''},false);
+    var pr2=Math.round(t.proteinSoFar||0),pg=Math.round(t.proteinGoal||0);
+    h+=vzBar('단백질',pr2,pg,
+      (t.proteinLeft>0?'남음 '+Math.round(t.proteinLeft)+'g':'채움'),
+      (pg>0&&pr2>=pg)?{t:'달성',c:'pos'}:{t:'',c:''},false);
+    if(t.missingMeals&&t.missingMeals.length)
+      h+=vzLine('안 먹은 끼니',t.missingMeals.join(', '),'',{t:'보류',c:''});
+    else if(t.eatenMeals&&t.eatenMeals.length)
+      h+=vzLine('먹은 끼니',t.eatenMeals.join(', '),'',{t:'기록됨',c:'pos'});
+  }
+  if(nf.completedDaysCount>0){
+    h+=vzCap('끝난 날 '+nf.completedDaysCount+'일 평균');
+    h+=vzLine('섭취',Math.round(nf.completedDaysAvgIntake)+' kcal',
+      '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(nf.completedDaysAvgDiff>0?'+':'')+Math.round(nf.completedDaysAvgDiff),
+      nf.completedDaysAvgDiff>0?{t:'초과',c:'warn'}:{t:'준수',c:'pos'});
+    h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
+      '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)+'일','');
+  }
+  h+=vzCap('기준')+vzLine('하루 적자 목표',Math.round(nf.dailyDeficitTarget)+' kcal',
+    '주당 -'+WR+'kg 에서 나옴','');
+  return '<div class="anlviz">'+h+'</div>';
+}
+
 function anlViz(k){
+  /* 새 두 모드. 옛 리포트가 갖고 있는 아홉 키는 여기로 흘려 보낸다 */
+  if(k==='meal'||k==='cut'||k==='mac')return vzDiet();
   if(!hasLogs())return '';
+  if(k==='plan'||k==='wk'||k==='vol'||k==='prog'||k==='recov'||k==='acsm'||k==='bal'||k==='vt')
+    return vzTrain();
   var sc=subCnt(),h='',i;
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   if(k==='wk'||k==='vt'){
@@ -4730,7 +4901,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 18:00';
+var BUILD='2026-09-06 21:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5317,7 +5488,7 @@ function autoBackup(){
 
 /* 감량·영양 모드는 훈련 데이터를 안 본다. 종목·로그·톱세트를 주면
    리포트에 '등 운동' 이야기가 섞인다 — 주지 않으면 말할 수 없다. */
-var DIETMODES={cut:1,mac:1};
+var DIETMODES={meal:1};
 
 function dietPayload(){
   var now=new Date();
@@ -5339,6 +5510,79 @@ function dietPayload(){
   };
 }
 
+/* 판정값만. 세트 원본·tops·로그는 넘기지 않는다 — 넘기면 AI 가 그것을
+   자기 말로 다시 요약해 화면과 겹치는 문단이 생긴다. */
+function planPayload(){
+  var ws=wkSets(),sc=subCnt(),cf=computedFacts()||{},i,k;
+  var parts=[];
+  for(k in PN_KO){
+    var c=ws[k]||0,g=WTGT[k]||0;
+    parts.push({부위:PN_KO[k],실적:c,목표:g,vd:vzVerdict(c,g).t});
+  }
+  var wc=wkCardio();
+  parts.push({부위:'유산소(분)',실적:wc.z2,목표:WTGT['CARDIO']||90,vd:vzVerdict(wc.z2,WTGT['CARDIO']||90).t});
+  /* 적절한 것은 결정거리가 아니다 — 손댈 곳만 보낸다 */
+  var subs=[];
+  for(i=0;i<SUBS.length;i++){
+    var sb=SUBS[i],L=LMK[sb.k];
+    if(!L)continue;
+    var cur=sc[sb.k]||0,v=vzZone(cur,L);
+    if(v.t==='적절'||v.t==='유지')continue;
+    subs.push({세부:subLabel(sb),실적:cur,보정MRV:Math.round(L[3]*0.8),여지:Math.max(0,Math.min(L[2],Math.round(L[3]*0.8))-cur),vd:v.t});
+  }
+  var pr=heroProg();
+  function nm(a){return a.map(function(x){return {종목:x.n,수치:x.t||'',변화:(x.p!==undefined?x.p+'%':''),RIR:x.r,사유:x.why||''};});}
+  var dl=deloadSignal(),lt=lbmTrend(),pc=paceCalc(BW,BF,GF),rz=repZone();
+  /* 간접 자극 — 팔의 부족을 등·가슴 볼륨으로 깎을지는 판단이라 AI 몫이다.
+     감산 비율은 안 넘기고 기여 세트 수만 준다. */
+  var indirect=[{대상:'팔',기여:'등+가슴',기여세트:(ws['BACK']||0)+(ws['CHEST']||0)},
+                {대상:'어깨후면',기여:'등',기여세트:ws['BACK']||0}];
+  var prev='';
+  try{if(AIH.length&&AIH[0].o){
+    var mm=String(AIH[0].o).split('\n').filter(function(x){return /^-\s/.test(x);});
+    prev=mm.slice(-4).join(' / ');
+  }}catch(e){}
+  return {
+    주단계:cf.weekPhase,경과훈련일:cf.elapsedTrainDays,잔여훈련일:cf.remainTrainDays,
+    휴식요일:RD,실제훈련일:wkTrainDays(),
+    부위:parts,손댈세부:subs,
+    진전:nm(pr.upL),정체:nm(pr.stL),퇴행:nm(pr.dnL),보류:nm(pr.holdL),
+    빈도:wkDaysByPart(),
+    회복:{연속일:heroStreak(),이틀연속:partGap48().map(function(x){return PN_KO[x.p]||x.p;}),
+          디로드후보:dl?dl.n:0,디로드종목:dl?dl.names:[],
+          세션내급락:fatigueDrop().map(function(x){return {종목:x.n,사유:x.why};}),
+          변동:vzDelta().rows,RIR미입력세트:unkWeek()},
+    균형:{당기기:(sc.lt||0)+(sc.tm||0)+(sc.ut||0)+(sc.bi||0),
+          밀기:(sc.uc||0)+(sc.mc||0)+(sc.ad||0)+(sc.tri||0),
+          사두:sc.qd||0,햄:sc.hm||0,측면:sc.sd||0,전면후면:(sc.ad||0)+(sc.pd||0),
+          상체:(ws['CHEST']||0)+(ws['BACK']||0)+(ws['SHOULDERS']||0)+(ws['ARMS·ETC']||0),하체:ws['LEGS']||0},
+    반복구간:{'6~12비율':rz.pct,벗어난종목:rz.off},
+    간접기여:indirect,
+    몸:pc.ok?{주당감량:pc.rate,목표:-WR,판정:pc.tag}:null,
+    체성분:lt?{지표:lt.k,변화:lt.d,간격일:lt.gap}:null,
+    회피세부:(function(){var a=[],q;for(q=0;q<SUBS.length;q++)if(STG[SUBS[q].k]===0&&(sc[SUBS[q].k]||0)>0)a.push(subLabel(SUBS[q]));return a;})(),
+    직전처방:prev,
+    오늘:todayISO()
+  };
+}
+function mealPayload(){
+  var nf=nutriFacts();
+  if(!nf)return {섭취기록:'없음'};
+  var t=nf.today||{};
+  var now=new Date();
+  return {
+    지금:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
+    오늘:{먹은열량:Math.round(t.intakeSoFar||0),목표:Math.round(t.goalIntake||0),
+          남은열량:Math.round(t.kcalLeft||0),
+          단백질:Math.round(t.proteinSoFar||0),단백질목표:Math.round(t.proteinGoal||0),
+          남은단백질:Math.round(t.proteinLeft||0),
+          안먹은끼니:t.missingMeals,먹은끼니:t.eatenMeals,끼니별:t.byMeal},
+    오늘운동:dayExKcal(todayISO())>0,
+    페이스:(function(){var p=paceCalc(BW,BF,GF);return p.ok?p.tag:'';})(),
+    끝난날평균:nf.completedDaysCount>0?{일수:nf.completedDaysCount,
+      섭취:Math.round(nf.completedDaysAvgIntake),목표:Math.round(nf.completedDaysAvgTarget)}:null
+  };
+}
 function aiPayload(){
   var pid={},i;
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
@@ -5796,7 +6040,7 @@ function aiCount(){
   if(canLS){try{localStorage.setItem(KEY+'.aic',JSON.stringify(AIC));}catch(e){}}
 }
 function buildAiReq(){
-  var prompt=anlPrompt()+JSON.stringify(DIETMODES[ANL]?dietPayload():aiPayload());
+  var prompt=anlPrompt()+JSON.stringify(DIETMODES[ANL]?mealPayload():planPayload());
   if(LM==='oai')return {eng:'oai',label:'GPT',
     url:'https://api.openai.com/v1/chat/completions',
     headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
@@ -5964,7 +6208,7 @@ function runAI(){
   aiCount();
   UI.sheet='ai';
   render();
-        var prompt=anlPrompt()+JSON.stringify(DIETMODES[ANL]?dietPayload():aiPayload());
+        var prompt=anlPrompt()+JSON.stringify(DIETMODES[ANL]?mealPayload():planPayload());
         /* 3.x 계열은 thinkingLevel, 2.5 계열은 thinkingBudget — 모델명으로 분기 */
         var GCHAIN=[GM];
         var gmAll;
@@ -6623,7 +6867,7 @@ document.addEventListener('click',function(e){
     case 'anlopen':
       ANLOPEN=!ANLOPEN;if(ANLOPEN)GMOPEN=false;renderSheet();break;
     case 'anlpick':
-      ANL=(ANLL[v]?v:'wk');ANLOPEN=false;anlSave();renderSheet();break;
+      ANL=(ANLL[v]?v:'plan');ANLOPEN=false;anlSave();renderSheet();break;
     case 'ckp':
       (function(){
         var cur2=AIH[AIVIEW];if(!cur2)return;
