@@ -5308,15 +5308,15 @@ function vzBody(tab){
       {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
     var lt=lbmTrend();
     if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',lt.from+'→'+lt.to+' · '+lt.gap+'일',
-      lt.d<=-0.5?{t:'시급',c:'neg'}:{t:'유지',c:''});
+      lt.d<=-0.5?{t:'근손실 우려',c:'neg'}:{t:'유지 중',c:''});
     if(pc.ok&&!pc.done&&pc.eta)
       h+=vzLine('목표 도달',pc.eta,'체지방 '+GF+'% 까지 약 '+pc.weeks+'주 · D-'+pc.days,
         {t:'예상',c:''});
-    if(!pc.ok&&!lt)h+=vzLine('인바디','기록 부족','2건 이상이고 이레 넘게 벌어지면 페이스가 나옴',{t:'미기록',c:''});
+    if(!pc.ok&&!lt)h+=vzLine('인바디','기록 부족','2건 이상이고 이레 넘게 벌어지면 페이스가 나옴',{t:'기록 없음',c:''});
   }
   if(tab==='burn'){
     var kh=kcalHtml();
-    h+=kh||vzLine('운동 소비','기록 없음','근력이나 유산소를 기록하면 여기에 나옴',{t:'미기록',c:''});
+    h+=kh||vzLine('운동 소비','기록 없음','근력이나 유산소를 기록하면 여기에 나옴',{t:'기록 없음',c:''});
     var bs=bmr(BW,BF);
     /* 기초대사는 제지방에서 바로 나온다(370+21.6×LBM) — 변화 갈래의 골격근이
        여기 소비로 이어진다. 그 고리가 이 카테고리가 하나인 이유다. */
@@ -5460,12 +5460,12 @@ function vzTrain(tab){
   if(pgK.length)
     h+=vzLine('감량 중 유지',pgK.length+'종목',
       pgK.slice(0,3).map(function(z){return z.n;}).join(', ')+(pgK.length>3?' 외':'')
-      +' — 적자에서 e1RM 유지는 정상',{t:'순항',c:'pos'});
+      +' — 적자에서 e1RM 유지는 정상',{t:'유지 정상',c:'pos'});
   /* '진전 중 11종목' 과 '판정 보류 12종목' 은 타일이 이미 세고 있는 것을
      한 번 더 적는 줄이었다. 눌러서 이름까지 볼 수 있게 된 뒤로는 셈도
      이름도 겹치므로 뺀다. 보류는 넷째 타일이 받는다. */
   if(!pgA.length&&!pgK.length&&!B.nUp&&!B.nHold)
-    h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
+    h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'기록 없음',c:''});
   }
   if(tab==='recov'){
   h+=vzCap('회복');
@@ -5475,13 +5475,13 @@ function vzTrain(tab){
     +'<span class="bv">'+st+'일</span></div>';
   var g48=partGap48();
   if(g48.length)h+=vzLine('이틀 연속',g48.map(function(x){return PN_KO[x.p]||x.p;}).join(', '),
-    '기록에 시각이 없어 이틀 연속으로 봄',{t:'이탈',c:'warn'});
+    '기록에 시각이 없어 이틀 연속으로 봄',{t:'간격 부족',c:'warn'});
   var dl=deloadSignal();
-  if(dl)h+=vzLine('디로드 후보',dl.n+'종목',dl.names.join(', '),{t:'과중',c:'neg'});
+  if(dl)h+=vzLine('디로드 후보',dl.n+'종목',dl.names.join(', '),{t:'피로 누적',c:'neg'});
   var fd=fatigueDrop();
   if(fd.length)h+=vzLine('세션 내 급락',fd.length+'건',
     fd.slice(0,2).map(function(x){return x.n+' '+x.from+'→'+x.to+'회('+x.why+')';}).join(', '),
-    {t:'과중',c:'neg'});
+    {t:'세션 피로',c:'neg'});
   var dv=vzDelta();
   if(dv.h)h+=vzCap('유효 세트 변동 · 페이스 대비')+dv.h;
   }
@@ -5506,7 +5506,7 @@ function vzTrain(tab){
   h+='</div>';
   var rz=repZone();
   if(rz.tot)h+=vzLine('반복 6~12',rz.pct+'%',rz.inZ+'/'+rz.tot+'세트'+(rz.off.length?' · 벗어남 '+rz.off.join(', '):''),
-    rz.pct>=70?{t:'적절',c:'pos'}:{t:'이탈',c:'warn'});
+    rz.pct>=70?{t:'구간 안',c:'pos'}:{t:'구간 밖',c:'warn'});
   }
   return '<div class="anlviz">'+h+'</div>';
 }
@@ -5528,7 +5528,7 @@ function vzDiet(tab){
     var pr2=Math.round(t.proteinSoFar||0),pg=Math.round(t.proteinGoal||0);
     h+=vzBar('단백질',pr2,pg,
       (t.proteinLeft>0?'남음 '+Math.round(t.proteinLeft)+'g':'채움'),
-      (pg>0&&pr2>=pg)?{t:'달성',c:'pos'}:{t:'',c:''},false);
+      (pg>0&&pr2>=pg)?{t:'목표 달성',c:'pos'}:{t:'',c:''},false);
     if(t.missingMeals&&t.missingMeals.length)
       h+=vzLine('안 먹은 끼니',t.missingMeals.join(', '),'',{t:'보류',c:''});
     else if(t.eatenMeals&&t.eatenMeals.length)
@@ -5546,12 +5546,12 @@ function vzDiet(tab){
     h+=vzLine('섭취',Math.round(nf.completedDaysAvgIntake)+' kcal',
       '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(avD>0?'+':'')+Math.round(avD)
         +' · 하루 판정과 같은 ±100 기준',
-      avD>100?{t:'초과',c:'warn'}:(avD<-100?{t:'부족',c:'warn'}:{t:'준수',c:'pos'}));
+      avD>100?{t:'목표 초과',c:'warn'}:(avD<-100?{t:'목표 미달',c:'warn'}:{t:'목표 안',c:'pos'}));
     h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
       '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)+'일','');
   }
   if(tab==='avg'&&!(nf.completedDaysCount>0))
-    h+=vzLine('끝난 날','기록 없음','하루가 더 쌓이면 평균이 나옴',{t:'미기록',c:''});
+    h+=vzLine('끝난 날','기록 없음','하루가 더 쌓이면 평균이 나옴',{t:'기록 없음',c:''});
   h+=vzCap('기준')+vzLine('하루 적자 목표',Math.round(nf.dailyDeficitTarget)+' kcal',
     '주당 -'+WR+'kg 에서 나옴','');
   return '<div class="anlviz">'+h+'</div>';
@@ -5658,7 +5658,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 06:00';
+var BUILD='2026-09-08 07:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6266,7 +6266,7 @@ function planPayload(){
     var sb=SUBS[i],L=LMK[sb.k];
     if(!L)continue;
     var cur=sc[sb.k]||0,v=vzZone(cur,L);
-    if(v.t==='적절'||v.t==='유지')continue;
+    if(v.ok)continue;   /* 표시용 글자로 견주면 이름을 바꿀 때 조용히 깨진다 */
     subs.push({세부:subLabel(sb),실적:cur,보정MRV:Math.round(L[3]*0.8),여지:Math.max(0,Math.min(L[2],Math.round(L[3]*0.8))-cur),vd:v.t});
   }
   var B=progBuckets(),pr=B.pr;
@@ -6559,32 +6559,40 @@ function bhHead(body){
    페이스 환산, 디로드 2종목, 연속 3일 — 새 숫자를 지어내지 않는다. */
 function vzVerdict(cur,goal){
   cur=+cur||0;goal=+goal||0;
-  if(!(goal>0))return {t:'미기록',c:''};
+  /* 기록이 없는 것이 아니라 그 부위에 주간 목표를 안 정한 것이다.
+     '미기록' 이라 쓰면 세트를 다 채운 사람에게도 그렇게 뜬다. */
+  if(!(goal>0))return {t:'목표 없음',c:''};
   var ph=(computedFacts()||{}).weekPhase||'';
   var late=(ph==='마감'||ph==='결산');
   if(!late){
-    /* 주 중반에 목표와 그대로 맞대면 늘 미달로 보인다 — 경과분으로 환산한다 */
+    /* 주 중반에 목표와 그대로 맞대면 늘 미달로 보인다 — 경과분으로 환산한다.
+       그러므로 이 판정은 '주 목표에 못 미쳤다' 가 아니라 '여기까지 왔어야 할
+       몫에 못 미쳤다' 다. 아래 마감 판정과 다른 말이라 다르게 적는다. */
     var pl=paceLeft();
     if(pl>=20){
       var exp=Math.round(goal*pl/100);
-      return cur>=exp?{t:'순항',c:'pos'}:{t:'부족',c:'neg'};
+      return cur>=exp?{t:'페이스 맞음',c:'pos'}:{t:'페이스 밀림',c:'neg'};
     }
-    return {t:'보류',c:''};
+    return {t:'주 초반',c:''};
   }
-  if(cur>=goal+3)return {t:'초과',c:'warn'};   /* heroSignal 의 목표+3 문턱 */
-  if(cur>=goal)return {t:'달성',c:'pos'};
-  return {t:'미달',c:'neg'};
+  if(cur>=goal+3)return {t:'목표 초과',c:'warn'};   /* 목표+3 문턱 */
+  if(cur>=goal)return {t:'목표 달성',c:'pos'};
+  return {t:'목표 미달',c:'neg'};
 }
 /* 랜드마크는 목표 대비가 아니라 구간 안에 있는지로 본다 */
 function vzZone(cur,L){
   cur=+cur||0;
   var mrv=Math.round(L[3]*0.8);                 /* 감량기 보정 — lmRow 와 같은 식 */
   var z1=Math.min(L[1],mrv),z2=Math.min(L[2],mrv);
-  if(cur>mrv)return {t:'초과',c:'neg'};
-  if(cur>=Math.round(mrv*0.9))return {t:'접근',c:'warn'};
-  if(cur<L[0])return {t:'미달',c:'neg'};
-  if(cur>=z1&&cur<=z2)return {t:'적절',c:'pos'};
-  return {t:'유지',c:''};
+  /* 어느 랜드마크를 넘고 못 미치는지를 낱말이 말해야 한다 — '초과' 만으로는
+     MEV 를 넘었다는 말인지 MRV 를 넘었다는 말인지 알 수 없다.
+     ok 는 '손댈 것이 아님' 표시다. 이것을 글자로 견주면 이름을 바꾸는 순간
+     조용히 깨진다(planPayload 이 그렇게 걸러 내고 있었다). */
+  if(cur>mrv)return {t:'MRV 초과',c:'neg'};
+  if(cur>=Math.round(mrv*0.9))return {t:'MRV 근접',c:'warn'};
+  if(cur<L[0])return {t:'MEV 미만',c:'neg'};
+  if(cur>=z1&&cur<=z2)return {t:'MAV 안',c:'pos',ok:1};
+  return {t:'유지 구간',c:'',ok:1};
 }
 
 /* ── 앱이 직접 그리는 조각 ──
