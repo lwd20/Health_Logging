@@ -4595,7 +4595,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 12:00';
+var BUILD='2026-09-06 14:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5670,6 +5670,66 @@ function aiSave(txt){
   }catch(e){}}
   renderSheet();
 }
+/* 오는 대로 그린다. 마지막 줄은 아직 오는 중이라 잘려 있으므로 완성된 줄까지만 —
+   반쯤 온 문장이 카드로 그려지면 글자가 튀어 오히려 어수선하다. */
+var AIPT=0;
+function aiPaint(t){
+  var el=document.getElementById('aiOut');
+  if(!el)return;
+  var now=+new Date();
+  if(now-AIPT<140)return;          /* 청크마다 그리면 그리는 데 시간을 다 쓴다 */
+  AIPT=now;
+  var i=t.lastIndexOf('\n');
+  var body=i>0?t.slice(0,i):'';
+  try{el.innerHTML=(body?aiFmt(body,[],null):'')+'<div class="ai-load">COMPILING REPORT</div>';}catch(e){}
+}
+/* 전체 시한이 아니라 '조용한 시간' 으로 끊는다 — 긴 리포트는 오래 걸리는 것이
+   정상이고, 진짜 문제는 아무것도 안 오는 것이다. */
+function sseFetch(url,opt,idleMs,onText){
+  idleMs=idleMs||25000;
+  var ac=(typeof AbortController!=='undefined')?new AbortController():null;
+  if(ac)opt.signal=ac.signal;
+  var t=null,bust=null;
+  /* abort() 가 읽기까지 닿는지에 기대지 않는다 — 안 닿으면 읽기가 영영 안
+     끝나 화면이 Analyzing 에 갇힌다. 시한을 따로 걸어 반드시 끝나게 한다. */
+  var dead=new Promise(function(_,rej){bust=rej;});
+  function poke(){
+    if(t)clearTimeout(t);
+    t=setTimeout(function(){
+      try{ac&&ac.abort();}catch(e){}
+      bust(new Error('idle'));
+    },idleMs);
+  }
+  poke();
+  return Promise.race([dead,fetch(url,opt).then(function(r){
+    if(!r.ok||!r.body)throw new Error('nostream:'+r.status);
+    var rd=r.body.getReader(),dec=new TextDecoder(),buf='',txt='';
+    function pump(){
+      return rd.read().then(function(res){
+        poke();
+        if(res.done){if(t)clearTimeout(t);return txt;}
+        buf+=dec.decode(res.value,{stream:true});
+        var lines=buf.split('\n');
+        buf=lines.pop();
+        for(var i=0;i<lines.length;i++){
+          var ln=lines[i].trim();
+          if(ln.indexOf('data:')!==0)continue;
+          var js=ln.slice(5).trim();
+          if(!js||js==='[DONE]')continue;
+          try{
+            var d=JSON.parse(js);
+            var ps=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts;
+            if(ps)for(var q=0;q<ps.length;q++)txt+=(ps[q].text||'');
+            if(onText)onText(txt);
+          }catch(e2){}
+        }
+        return pump();
+      });
+    }
+    return pump();
+  })]).then(function(v){if(t)clearTimeout(t);return v;},
+            function(e){if(t)clearTimeout(t);throw e;});
+}
 function runAI(){
   if(AIRUN)return;
   AIRUN=true;
@@ -5683,18 +5743,49 @@ function runAI(){
         for(gmAll in GMN){if(gmAll!==GM)GCHAIN.push(gmAll);}
         if(GVM&&GCHAIN.indexOf(GVM)<0)GCHAIN.splice(1,0,GVM);
         function gcfg(model){
-          var g={maxOutputTokens:8192};
-          if(/gemini-[3-9]|flash-latest/.test(model))g.thinkingConfig={thinkingLevel:'LOW'};
+          /* 8192 는 리포트 길이(보통 700 토큰 남짓)에 견줘 지나치다 */
+          var g={maxOutputTokens:3072};
+          /* 감량·영양은 한 화면 요약이라 생각할 것이 거의 없다. 훈련 분석은
+             정체·퇴행 판정이 걸려 있어 LOW 를 유지한다. */
+          var light=!!DIETMODES[ANL];
+          if(/gemini-[3-9]|flash-latest/.test(model))
+            g.thinkingConfig={thinkingLevel:light?'MINIMAL':'LOW'};
           else g.thinkingConfig={thinkingBudget:0};
           return g;
+        }
+        var BASE='https://generativelanguage.googleapis.com/v1beta/models/';
+        function gbody(model){
+          return JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gcfg(model)});
+        }
+        /* 오는 대로 그린다. 막히면 예전 방식으로 되돌아간다 —
+           스트리밍이 안 되는 망에서도 리포트는 나와야 한다. */
+        function gstream(idx){
+          var model=GCHAIN[idx];
+          return sseFetch(BASE+model+':streamGenerateContent?alt=sse',{
+            method:'POST',
+            headers:{'content-type':'application/json','x-goog-api-key':KS.gem},
+            body:gbody(model)
+          },25000,aiPaint);
         }
         function gcall(idx,rt){
           rt=rt||0;
           var model=GCHAIN[idx];
-          tFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+          if(!rt){
+            gstream(idx).then(function(t){
+              if(t&&t.trim()){aiSave(t.trim());return;}
+              gplain(idx,rt);
+            }).catch(function(){gplain(idx,rt);});
+            return;
+          }
+          gplain(idx,rt);
+        }
+        function gplain(idx,rt){
+          rt=rt||0;
+          var model=GCHAIN[idx];
+          tFetch(BASE+model+':generateContent',{
             method:'POST',
             headers:{'content-type':'application/json','x-goog-api-key':KS.gem},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gcfg(model)})
+            body:gbody(model)
           }).then(function(r){return r.json();}).then(function(d){
             var t='';
             try{
@@ -5704,7 +5795,7 @@ function runAI(){
             if(!t){
               var em=(d&&d.error&&d.error.message)?d.error.message:'';
               if(gemTransient(em)&&rt<2){
-                setTimeout(function(){gcall(idx,rt+1);},1500*(rt+1));
+                setTimeout(function(){gplain(idx,rt+1);},1500*(rt+1));
                 return;
               }
               var swap=/not found|not supported|does not exist|invalid|unsupported|no longer available|not available|deprecated/i.test(em)||gemTransient(em);
