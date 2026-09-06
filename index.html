@@ -451,10 +451,6 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 오버레이 .ov 와 이름이 겹치면 position:fixed 와 검은 배경까지 딸려온다.
    세션 초반에 같은 충돌로 MRV 표식이 사라졌던 적이 있다 — 이름을 갈라 둔다 */
 .hsc.eat b.exc{color:var(--sig)}
-/* 운동 몫은 총계의 일부라 총계보다 작게 — 같은 크기로 두면 둘이 서로
-   견주는 값처럼 보인다. 색은 안 쓴다: 강조색은 '섭취 여유' 가 갖고 있고
-   한 화면에 강조가 둘이면 어느 것도 강조가 아니다. */
-.hsc b.exk{font-size:17px}
 .hsc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);text-align:right;white-space:nowrap}
 .hsc i u{text-decoration:none;font-weight:700;color:var(--mut)}
 .hnrg{flex:0 0 100%;display:grid;grid-template-columns:auto auto auto auto;justify-content:start;column-gap:8px;row-gap:3px;align-items:baseline;margin-top:6px;cursor:pointer}
@@ -2087,6 +2083,10 @@ function machStep(id){if(isCardId(id))return 5;var m=machById(id);return (m&&m.s
 function anyDirty(){for(var k in UI.dirty)if(UI.dirty[k])return true;return false;}
 function nmWalk(n){n=String(n||'').toLowerCase();return n.indexOf('walk')>=0||n.indexOf('걷기')>=0||n.indexOf('산책')>=0||n.indexOf('워킹')>=0;}
 function isWalkName(x){return cKind(x)==='walk';}
+/* 걷기는 NEAT 다 — wkCardio 가 이미 걷기 분을 nt 로 갈라 담고 화면에도
+   '걷기 N분 별도' 라 적는다. 훈련으로 세는 자리에서는 빼야 셈이 한 가지로
+   된다. 종목 id 로 묻는 자리가 여럿이라 여기 하나로 둔다. */
+function isWalkId(id){var m=machById(id);return !!(m&&isCard(m.p)&&isWalkName(m));}
 function ensureCardio(){
   var i,has=false,hasWalk=false;
   for(i=0;i<S.m.length;i++){
@@ -2197,6 +2197,8 @@ function render(){
   var isT=UI.wd===today();
   var tc=0,sc=0,k,se;
   for(k in S.l){
+    /* 산책 한 번 적었다고 '1 ex · 1 set' 이 뜨면 훈련한 날처럼 보인다 */
+    if(isWalkId(k))continue;
     se=sessOn(k,UI.wd);
     if(se&&se.s.length){tc++;sc+=se.s.length;}
   }
@@ -2241,13 +2243,21 @@ function render(){
              운동 소비' 로 짝을 맞추면 뒤엣것이 앞엣것의 일부라는 것이
              생김새로 읽힌다 — 글자로 못박을 필요가 없다.
              안 한 날은 줄을 안 그린다: 0 을 적으면 눈이 걸릴 자리만 는다. */
-          +(ex>0?'<div class="hsc"><i>운동 소비</i><b class="exk">'+ex.toLocaleString()+'<u>kcal</u></b></div>':'')
+
           /* 감량기에는 열량보다 단백질이 먼저 무너진다. 적자는 맞췄는데
              단백질이 모자라 근육을 잃는 것을 열량만 봐서는 못 잡는다.
              기록이 없으면 줄을 안 그린다 — 모르는 것을 0g 이라 적으면 안 된다. */
           /* 라벨 칸과 값 칸이 따로 오른쪽 정렬이라 값이 짧은 이 줄만
              '단백질' 과 숫자 사이가 벌어져 떨어져 보였다. 한 덩어리로 묶어
              통째로 오른쪽에 붙인다. */
+          /* 하루 소비가 이미 운동 몫을 품고 있는데 얼마인지는 안 보였다 —
+             기초대사는 날마다 같으니 그 날의 숫자를 움직인 것은 운동뿐이다.
+             큰 글씨로 두면 섭취 여유·하루 소비와 같은 급으로 보이는데, 이
+             값은 그 둘을 설명하는 부속이라 단백질과 같은 급이 맞다.
+             안 한 날은 줄을 안 그린다: 0 을 적으면 눈이 걸릴 자리만 는다. */
+          +(ex>0
+            ? '<div class="pro"><i>운동 소비</i> '+ex.toLocaleString()+'<u>kcal</u></div>'
+            : '')
           +(hd&&BW>0
             ? '<div class="pro"><i>단백질</i> '+Math.round(hd.p).toLocaleString()
               +'<u>/'+Math.round(BW*PRO_PER_KG)+' g</u></div>'
@@ -3726,7 +3736,12 @@ function offSave(){
    둘이 어긋나는데, 지우러 다니는 대신 읽을 때 기록을 우선한다. */
 function dayLogged(ds){
   var k,se;
-  for(k in S.l){se=sessOn(k,ds);if(se&&se.s&&se.s.length)return true;}
+  /* 걷기만 한 날은 쉬는 날로 표시할 수 있어야 한다 — 쉬는 날에 산책하는
+     것이 NEAT 의 뜻 그대로다. 지금은 걷기 기록 하나에 단추가 안 나왔다. */
+  for(k in S.l){
+    if(isWalkId(k))continue;
+    se=sessOn(k,ds);if(se&&se.s&&se.s.length)return true;
+  }
   return false;
 }
 function isOff(ds){return !!(OFF[ds]&&!dayLogged(ds));}
@@ -5536,7 +5551,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 10:30';
+var BUILD='2026-09-08 11:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
