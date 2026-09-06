@@ -3785,7 +3785,7 @@ function cutHtml(){
   var r=paceCalc(BW,BF,GF);
   /* 체중이 늘고 있으면 paceCalc 가 도달일을 아예 안 채운다(days=0, eta='').
      그걸 그대로 그리면 'D-0' 이 되어 '오늘 도달' 로 읽힌다 — 뜻이 정반대다.
-     같은 값을 쓰는 paceInfo·위젯은 이미 막고 있었고 여기만 뚫려 있었다. */
+     같은 값을 쓰는 위젯은 이미 막고 있었고 여기만 뚫려 있었다. */
   if(r.ok&&!r.done&&r.eta)
     h+='<div class="dfoot"><em>D-'+r.days+'</em>'+r.eta+' · '+fmtW(GF)+'%'
       +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
@@ -3888,24 +3888,66 @@ function bhCommit(dd,w2,f2,m2){
   bhSync();
   return dd;
 }
+/* 체중 한 줄기. 체중계와 인바디를 같은 자로 세운다 — 같은 날 둘 다
+   있으면 체중계를 쓴다. 아침 공복이라 조건이 일정하기 때문이다. */
+function wSeries(days){
+  var m={},a=[],i,k,sc=0;
+  var lim=new Date();lim.setDate(lim.getDate()-days);
+  var li=lim.getFullYear()+'-'+('0'+(lim.getMonth()+1)).slice(-2)+'-'+('0'+lim.getDate()).slice(-2);
+  var bh=bhLoad();
+  for(i=0;i<bh.length;i++)if(bh[i].d>=li&&bh[i].w>0)m[bh[i].d]=bh[i].w;
+  var w=HC.w||{};
+  for(k in w){if(k>=li){var v=swDay(k);if(v>0){m[k]=v;sc++;}}}
+  for(k in m)a.push([k,m[k]]);
+  a.sort(function(x,y){return x[0]<y[0]?-1:(x[0]>y[0]?1:0);});
+  return {a:a,sc:sc};
+}
+/* 최소제곱 기울기 kg/일. 두 점 뺄셈은 그 두 점이 어느 날 찍혔느냐로
+   값이 통째로 흔들린다 — 하루 ±0.5kg 은 예사다. 점이 많을수록 안정된다. */
+function wSlope(a){
+  var n=a.length,i,sx=0,sy=0,sxx=0,sxy=0;
+  if(n<2)return null;
+  var t0=new Date(a[0][0]).getTime();
+  for(i=0;i<n;i++){
+    var x=(new Date(a[i][0]).getTime()-t0)/86400000,y=a[i][1];
+    sx+=x;sy+=y;sxx+=x*x;sxy+=x*y;
+  }
+  var d=n*sxx-sx*sx;
+  return d?(n*sxy-sx*sy)/d:null;
+}
+/* 창이 비면 기준을 되돌리지 말고 창을 넓힌다. 인바디만 쓰면 6주에 한 번
+   재기도 한다 — 다만 얼마나 넓혔는지는 밝힌다. */
+function wTrend(){
+  var wins=[28,56,120],i;
+  for(i=0;i<wins.length;i++){
+    var r=wSeries(wins[i]),a=r.a;
+    if(a.length<2)continue;
+    var span=Math.round((new Date(a[a.length-1][0])-new Date(a[0][0]))/86400000);
+    if(span<7)continue;
+    var sl=wSlope(a);
+    if(sl===null)continue;
+    return {rate:Math.round(sl*7*100)/100,n:a.length,span:span,win:wins[i],
+            sc:r.sc,first:a[0][0],last:a[a.length-1][0]};
+  }
+  return null;
+}
 function paceCalc(bw,bf,gf){
   var lbm=bw*(1-bf/100);
   var tw=gf<bf?Math.round(lbm/(1-gf/100)*10)/10:bw;
   var remain=Math.round(Math.max(0,bw-tw)*10)/10;
   var r={tw:tw,remain:remain,ok:false,done:remain<=0,rate:0,days:0,eta:'',weeks:0,tag:''};
-  var a=bhLoad();
-  if(a.length<2)return r;
-  var last=a[a.length-1];
-  var base=a[0],i;
-  var lim=new Date();lim.setDate(lim.getDate()-35);
-  var limIso=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
-  for(i=0;i<a.length-1;i++){if(a[i].d>=limIso){base=a[i];break;}}
-  var dd=Math.max(1,Math.round((new Date(last.d)-new Date(base.d))/86400000));
-  /* 이틀 사이 0.4kg 이 빠졌다고 주 2.8kg 으로 환산하면 D-12 가 나온다.
-     체중은 하루 단위로 출렁이므로 일주일은 벌어져야 추세로 볼 수 있다 */
-  if(dd<7)return r;
+  /* 옛 방식은 35일 창에 드는 기록이 없으면 기준을 '가장 오래된 기록' 으로
+     되돌렸다 — 최근 것만 쓰겠다면서 정반대로 제일 낡은 것을 집었다.
+     여름에 찐 1kg 이 9월의 추세로 둔갑하던 자리다. 창이 비면 되돌리는 대신
+     넓히고, 두 점 뺄셈 대신 회귀로 낸다. */
+  var t=wTrend();
+  if(!t)return r;
   r.ok=true;
-  r.rate=Math.round((last.w-base.w)/dd*7*100)/100;
+  r.rate=t.rate;
+  r.n=t.n;r.span=t.span;r.win=t.win;r.sc=t.sc;r.first=t.first;r.last=t.last;
+  /* 무엇을 얼마나 보고 낸 값인지 — 84일치 기울기를 '지금' 으로 읽으면 안 된다 */
+  r.how=(t.sc>0?'체중계':'인바디')+' '+t.n+'점 · 최근 '+t.span+'일';
+  r.stale=t.win>28;
   if(r.done)return r;
   /* 0 은 늘어난 것이 아니라 제자리다 — 둘을 같은 말로 부르면 오해한다 */
   if(r.rate>0)r.tag='증량 추세';
@@ -3921,14 +3963,8 @@ function paceCalc(bw,bf,gf){
   }
   return r;
 }
-function paceInfo(bw,bf,gf){
-  var r=paceCalc(bw,bf,gf);
-  if(!r.ok)return '페이스 목표 주 <b>-'+WR+'</b>kg (인바디 2건 이상이면 실측·도달일 계산)';
-  var out='실측 주 <b>'+(r.rate>0?'+':'')+r.rate+'</b>kg · 목표 <b>-'+WR+'</b>';
-  if(r.done)return out+' · 목표 체지방 도달 — 유지 구간';
-  if(r.eta)out+=' · '+gf+'% 도달 예상 <b>'+r.eta+'</b> (약 '+r.weeks+'주)';
-  return out+' · '+r.tag;
-}
+/* paceInfo() 는 정의만 있고 부르는 데가 없어 뺐다 — 같은 값은
+   식단 카드의 .dfoot 과 몸 갈래가 각자 그린다 */
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
@@ -4748,7 +4784,10 @@ function vzTrain(tab){
   if(tab==='body'){
   h+=kcalHtml();
   var pc=paceCalc(BW,BF,GF);
-  if(pc.ok)h+=vzCap('몸')+vzLine('주당 감량',(pc.rate>0?'+':'')+pc.rate+'kg','목표 -'+WR+'kg/주',
+  /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
+     이름이 방향을 못박고 있었다. 무엇을 보고 낸 값인지도 같이 적는다. */
+  if(pc.ok)h+=vzCap('몸')+vzLine('주당 변화',(pc.rate>0?'+':'')+pc.rate+'kg',
+    '목표 -'+WR+'kg/주 · '+pc.how+(pc.stale?' — 최근 자료가 없어 창을 넓힘':''),
     {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
   var lt=lbmTrend();
   if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',lt.from+'→'+lt.to+' · '+lt.gap+'일',
@@ -4991,7 +5030,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 15:00';
+var BUILD='2026-09-07 16:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5631,7 +5670,7 @@ function planPayload(){
           상체:(ws['CHEST']||0)+(ws['BACK']||0)+(ws['SHOULDERS']||0)+(ws['ARMS·ETC']||0),하체:ws['LEGS']||0},
     반복구간:{'6~12비율':rz.pct,벗어난종목:rz.off},
     간접기여:indirect,
-    몸:pc.ok?{주당감량:pc.rate,목표:-WR,판정:pc.tag}:null,
+    몸:pc.ok?{주당변화:pc.rate,목표:-WR,판정:pc.tag,근거:pc.how}:null,
     체성분:lt?{지표:lt.k,변화:lt.d,간격일:lt.gap}:null,
     회피세부:(function(){var a=[],q;for(q=0;q<SUBS.length;q++)if(STG[SUBS[q].k]===0&&(sc[SUBS[q].k]||0)>0)a.push(subLabel(SUBS[q]));return a;})(),
     직전처방:prev,
