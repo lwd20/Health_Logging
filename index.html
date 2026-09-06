@@ -4700,15 +4700,15 @@ function pgWhy(m,a,cx,sc){
   /* Epley 는 반복 수에 선형이라 5회 세션과 12회 세션의 e1RM 은 서로 다른
      자를 댄 값이다. 잣대가 바뀌었으면 진단하지 않는다. */
   if(r0>0&&rb>0&&Math.abs(r0-rb)>=3)
-    return {c:'잣대',w:'반복 '+rb+'\u2192'+r0+'회 · 다른 반복대의 값',drop:true};
+    return {c:'반복 바뀜',w:'반복 '+rb+'\u2192'+r0+'회 · 다른 반복대의 값',drop:true};
 
   /* 회피 목표 근육에 자극이 쌓였다 — 앱 어디서도 아직 안 잡던 신호다 */
   if(cx.wk>=40&&sk&&STG[sk]===0&&sv>0)
-    return {c:'회피',w:subName(sk)+' 회피 목표 · 이번 주 '+sv+'세트',drop:false};
+    return {c:'회피 근육',w:subName(sk)+' 회피 목표 · 이번 주 '+sv+'세트',drop:false};
 
   /* 안 한 것이 과하게 한 것을 이긴다 */
   var ago=daysAgo(a[0].d);
-  if(ago>=21)return {c:'공백',w:'마지막 기록 '+ago+'일 전 · 디트레이닝 구간',drop:false};
+  if(ago>=21)return {c:'자극 공백',w:'마지막 기록 '+ago+'일 전 · 디트레이닝 구간',drop:false};
   if(a.length>1){
     var g01=pgGapD(a[0],a[1]);
     /* '자극 공백' 은 프로그래밍이 비었다는 주장이라 달력이 아니라 훈련할
@@ -4717,38 +4717,38 @@ function pgWhy(m,a,cx,sc){
        그대로다: 근육은 왜 쉬었는지 모른다. */
     var gv=g01,gb=daysAgo(a[0].d),gi;
     for(gi=1;gi<g01;gi++)if(isOff(dsAgo(gb+gi)))gv--;
-    if(gv>=10)return {c:'공백',w:'훈련 가능 '+gv+'일 비어 있음'
+    if(gv>=10)return {c:'자극 공백',w:'훈련 가능 '+gv+'일 비어 있음'
       +(gv<g01?' (달력 '+g01+'일)':''),drop:false};
   }
   var w28=0;
   for(i=0;i<a.length;i++)if(daysAgo(a[i].d)<28)w28++;
   if(w28>0&&w28<=2&&a.length>w28)
-    return {c:'빈도',w:'4주 '+w28+'회 · 자극 간격 과다',drop:false};
+    return {c:'빈도 부족',w:'4주 '+w28+'회 · 자극 간격 과다',drop:false};
 
   /* 근육 총량보다 종목 단위 삭감이 인과가 직접적이다 */
   var h0=pgHard(a,0,1),hb=pgHard(a,1,4);
   if(hb>0&&h0<=hb*0.7)
-    return {c:'삭감',w:'유효 세트 '+hb+'\u2192'+h0+' · 기준선 70% 밑',drop:false};
+    return {c:'세트 감소',w:'유효 세트 '+hb+'\u2192'+h0+' · 기준선 70% 밑',drop:false};
 
   /* 세부 갈래가 눈금으로 자리를 보여 주므로 여기서는 한 줄만 인용한다.
      이번 주가 아니라 4주 평균이다 — 판정이 보는 창과 같은 자여야 한다. */
   if(L&&L[0]>0&&av<L[0])
-    return {c:'볼륨',w:subName(sk)+' 주 '+av+'세트 · MEV '+L[0]+' 미만',drop:false};
+    return {c:'볼륨 부족',w:subName(sk)+' 주 '+av+'세트 · MEV '+L[0]+' 미만',drop:false};
 
   /* 진전이 없는데 실패에 더 가까워졌다. 혼자가 아니면 전신 피로다 */
   var fw=[];
   if(v0!==null&&v2!==null&&v2-v0>=1)fw.push('RIR '+v2+'\u2192'+v0);
   if(cx.streak>=4)fw.push('연속 '+cx.streak+'일');
   if(cx.dn>=3)fw.push('퇴행 '+cx.dn+'종목 동반');
-  if(fw.length>=2)return {c:'회복',w:fw.slice(0,2).join(' · '),drop:false};
+  if(fw.length>=2)return {c:'회복 부족',w:fw.slice(0,2).join(' · '),drop:false};
 
   /* 세트 수만으로 과다를 선언하지 않는다 — RIR 상승을 AND 로 건다 */
   if(L&&mrv>0&&av>mrv&&v0!==null&&v2!==null&&v2-v0>=1)
-    return {c:'과부하',w:subName(sk)+' 주 '+av+'세트 · 보정 MRV '+mrv+' 초과',drop:false};
+    return {c:'볼륨 과다',w:subName(sk)+' 주 '+av+'세트 · 보정 MRV '+mrv+' 초과',drop:false};
 
   /* 실패까지 가면 비례하는 이득 없이 피로만 크게 는다 */
   if(v0!==null&&v1!==null&&v0<=0.5&&v1<=0.5)
-    return {c:'실패권',w:'RIR '+v1+'\u2192'+v0+' · 2세션 연속 실패 근처',drop:false};
+    return {c:'실패 근처',w:'RIR '+v1+'\u2192'+v0+' · 2세션 연속 실패 근처',drop:false};
 
   /* Epley 상 무게 +2.5% 는 반복 1회(3.3%)보다 작다. 2회를 잃으면 산수로
      순손실이 확정된다. 어시스트는 숫자가 클수록 약하므로 effOf 를 거친다 */
@@ -4756,19 +4756,19 @@ function pgWhy(m,a,cx,sc){
     var w0=effOf(m,topOfM(m,a[0].s),a[0].d),w1=effOf(m,topOfM(m,a[1].s),a[1].d);
     var r1=pgReps(a,1,2);
     if(w1>0&&w0>=w1*1.02&&r1>0&&r0>0&&r1-r0>=2)
-      return {c:'욕심',w:'무게 +'+fmtW(w0-w1)+'kg · 반복 -'+Math.round(r1-r0)+'회',drop:false};
+      return {c:'무게 과욕',w:'무게 +'+fmtW(w0-w1)+'kg · 반복 -'+Math.round(r1-r0)+'회',drop:false};
   }
 
   /* Epley 유효 범위 밖에서는 진단 자체가 신뢰를 잃는다 */
   if(r0>0&&(r0<6||r0>12))
-    return {c:'반복',w:'반복 '+r0+'회 · 6~12 밖',drop:false};
+    return {c:'반복 이탈',w:'반복 '+r0+'회 · 6~12 밖',drop:false};
 
   /* 신기록 직후의 정체는 고칠 결함이 아니라 자극 갱신 시점이다.
      'best 의 98% 이상' 으로 잡으면 평평하기만 해도 걸려서 원인 판별이 거기서
      멈춘다 — 직전 세션이 실제로 기록을 갈아치웠을 때만 고원이라 부른다. */
   var pp=prOf(m,a[0].d);
   if(pp&&pp.isPR)
-    return {c:'고원',w:'직전 세션이 역대 최고 · 갱신 뒤 고원',drop:false};
+    return {c:'신기록 뒤',w:'직전 세션이 역대 최고 · 갱신 뒤 고원',drop:false};
 
   /* 무게도 반복도 그대로면 자극이 같은 자리에 머문 것이다. 데이터가 말할 수
      있는 마지막 사실이고, 정체의 가장 흔한 까닭이기도 하다 — 아무 규칙도
@@ -4777,21 +4777,21 @@ function pgWhy(m,a,cx,sc){
     var pw=topOfM(m,a[0].s),pk=1,pj;
     for(pj=1;pj<Math.min(a.length,3);pj++){if(topOfM(m,a[pj].s)!==pw)break;pk++;}
     if(pk>=3&&r0>0&&rb>0&&r0===rb)
-      return {c:'고정',w:fmtW(effOf(m,pw,a[0].d))+'kg '+r0+'회 · '+pk+'세션 그대로',drop:false};
+      return {c:'변화 없음',w:fmtW(effOf(m,pw,a[0].d))+'kg '+r0+'회 · '+pk+'세션 그대로',drop:false};
   }
 
   /* 수면·스트레스는 데이터에 없다. 없는 것을 있는 척하지 않는다 */
   var hu=hardOf(a[0].s);
   if(hu.unk>0)
-    return {c:'미확정',w:'RIR 미입력 '+hu.unk+'세트 · 회복 판정 불가',drop:false};
-  return {c:'미확정',w:'훈련 기록만으로는 특정 불가 · 기록 밖 요인',drop:false};
+    return {c:'원인 불명',w:'RIR 미입력 '+hu.unk+'세트 · 회복 판정 불가',drop:false};
+  return {c:'원인 불명',w:'훈련 기록만으로는 특정 불가 · 기록 밖 요인',drop:false};
 }
 
 /* heroProg 이 지목한 한 종목을 다시 본다.
    k: 'act' 손댈 것 / 'keep' 감량 중 유지 / 'obs' 판정 보류 */
 function pgDiag(x,kind,cx,sc){
   var m=x.i?machById(x.i):null;
-  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1,ns:0,p:''};
+  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'기록 부족',w:'',sub:'',pct:x.p||0,wk:1,ns:0,p:''};
   if(!m)return d;
   d.p=m.p;
   var ss=pgSess(m),a=ss.a,q=ss.q;
@@ -4815,7 +4815,7 @@ function pgDiag(x,kind,cx,sc){
      감량 중에 볼륨을 올리라는 진단은 해롭다. 퇴행은 감량 중이어도 남긴다. */
   /* 원인 칩이 '표본' 인 채로 목록에 나오면 뜻이 어긋난다 — 표본이 모자란
      것이 아니라 감량 중이라 유지가 정상인 것이다 */
-  if(cx.cut&&kind==='st'&&Math.abs(bl.pct)<=2){d.k='keep';d.c='감량중';return d;}
+  if(cx.cut&&kind==='st'&&Math.abs(bl.pct)<=2){d.k='keep';d.c='유지 정상';return d;}
   /* 어시스트 유효부하는 '그날 체중 − 보조무게' 다. 체중이 내려가면 같은
      보조무게로도 유효부하가 내려간다 — 78→73kg 이면 보조 30kg 을 그대로
      써도 48→43kg, -10.4% 다. 아무것도 안 했는데 확정 퇴행이 되고 거기에
@@ -4825,13 +4825,13 @@ function pgDiag(x,kind,cx,sc){
     var pb0=bwOn(a[0].d),pb1=bwOn(a[a.length-1].d);
     if(pb0>0&&pb1>0&&pb0<pb1&&bl.prev>0){
       var pbw=(pb0-pb1)/bl.prev*100;               /* 체중이 설명하는 몫, 음수 */
-      if(pbw<=bl.pct*0.6){d.k='keep';d.c='체중';return d;}
+      if(pbw<=bl.pct*0.6){d.k='keep';d.c='체중 영향';return d;}
     }
   }
   if(bl.pct<=-thr){
     /* 확정 퇴행 */
   }else if(bl.pct>=thr){
-    d.c='반등';return d;
+    d.c='오르는 중';return d;
   }else if(kind==='st'&&q.length>=4&&span>=21){
     /* 확정 정체. 정체의 주장은 '이만큼 오래 안 움직였다' 이므로 세션 수보다
        기간을 문턱으로 삼는다 — 주 1회 도는 종목에 6세션을 요구하면 확정까지
@@ -4841,7 +4841,7 @@ function pgDiag(x,kind,cx,sc){
        사라졌다. 정말 신기록을 막 세웠다면 묶음 비교가 상승으로 나와 위의
        반등 가지에서 이미 빠져나간다. 여기 남는 것은 평평한 것뿐이다. */
   }else{
-    d.c='변동 안';return d;
+    d.c='차이 미미';return d;
   }
   var g=pgWhy(m,a,cx,sc);
   d.c=g.c;d.w=g.w;d.k=g.drop?'obs':'act';
@@ -4881,14 +4881,11 @@ function pgList(items,empty){
      세부 갈래의 lmlg 범례가 이미 같은 일을 한다. */
   var seen={},li;
   for(li=0;li<items.length;li++)if(items[li].c)seen[items[li].c]=1;
+  /* 칩이 스스로 말하게 됐으므로 범례는 낱말만으로 알 수 없는 둘만 남긴다 —
+     무엇에 견준 미미인지, 몇 개가 있어야 하는지는 칩에 안 담긴다. */
   var lg=[];
-  if(seen['변동 안'])lg.push('<b>변동 안</b> 그 종목이 실제로 보인 흔들림 폭 안이라 움직였다고 못 함');
-  if(seen['반등'])lg.push('<b>반등</b> 묶음 비교는 오히려 오름 — 타일은 직전 세션만 봄');
-  if(seen['표본'])lg.push('<b>표본</b> 4세션부터 묶음 비교가 섬');
-  if(seen['기록'])lg.push('<b>기록</b> 세션이 둘뿐이거나 간격이 보름을 넘어 애초에 판정 대상이 아님');
-  if(seen['잣대'])lg.push('<b>잣대</b> 반복대가 바뀌어 e1RM 을 같은 자로 못 댐');
-  if(seen['감량중'])lg.push('<b>감량중</b> 적자에서 e1RM 유지는 정상');
-  if(seen['체중'])lg.push('<b>체중</b> 어시스트 유효부하가 체중을 따라 내린 것');
+  if(seen['차이 미미'])lg.push('<b>차이 미미</b> 그 종목이 실제로 보인 흔들림 폭 안이라 움직였다고 못 함');
+  if(seen['기록 부족'])lg.push('<b>기록 부족</b> 앞뒤 묶음을 견주려면 4세션이 필요함');
   return '<div class="pgl">'+h+'</div>'
     +(lg.length?'<div class="pglg">'+lg.join('<i>·</i>')+'</div>':'');
 }
@@ -4907,7 +4904,7 @@ function progBuckets(){
   function put(x,kind){
     d=pgDiag(x,kind,cx,sc);
     /* 묶음 비교가 오름이면 정체·퇴행이 아니라 진전이다 */
-    if(d.c==='반등'){up.push(d);return;}
+    if(d.c==='오르는 중'){up.push(d);return;}
     /* 판정이 안 선 것(변동 안·표본·잣대)은 정체가 아니라 보류다 —
        '정체 9' 안에 못 가른 넷이 섞여 있으면 그 9 가 거짓이 된다 */
     if(d.k==='obs'){hold.push(d);return;}
@@ -5404,8 +5401,8 @@ function vzTrain(tab){
      적는다 — 표본이면 몇 세션이 더 있어야 하는지, 변동 안이면 그 변화율이
      얼마인지(그 수가 흔들림 폭 안이라 판정이 안 섰다는 뜻이다). */
   function pgVal(x){
-    if(x.c==='표본')return x.ns?x.ns+'/4세션':'기록 부족';
-    if(x.kind==='dn'||x.k==='obs'||x.c==='반등')return (x.pct>0?'+':'')+x.pct+'%';
+    if(x.c==='기록 부족'&&x.ns)return x.ns+'/4회';
+    if(x.kind==='dn'||x.k==='obs'||x.c==='오르는 중')return (x.pct>0?'+':'')+x.pct+'%';
     return x.wk+'주째';
   }
   function pgMap(a){return a.map(function(x){
@@ -5418,11 +5415,11 @@ function vzTrain(tab){
       .concat(pgMap(B.up.slice().sort(function(u,v){return v.pct-u.pct;}))),
       '진전 중인 종목 없음');
   }else if(UI.pgt==='hd'){
-    var PGH={'표본':0,'변동 안':1,'잣대':2};
+    var PGH={'기록 부족':0,'차이 미미':1,'반복 바뀜':2};
     h+=pgList(pgMap(B.hold.slice().sort(function(u,v){
         return (PGH[u.c]===undefined?9:PGH[u.c])-(PGH[v.c]===undefined?9:PGH[v.c]);}))
       .concat(pr.holdL.map(function(x){
-        return {n:x.n,c:'기록',p:pgPart(x.i),v:x.why||''};})),'보류된 종목 없음');
+        return {n:x.n,c:'기록 부족',p:pgPart(x.i),v:x.why||''};})),'보류된 종목 없음');
   }else if(UI.pgt==='st'||UI.pgt==='dn'){
     var pgKd=UI.pgt,src=(pgKd==='dn'?B.dn:B.st).slice();
     src.sort(function(u,v){
@@ -5661,7 +5658,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 05:00';
+var BUILD='2026-09-08 06:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
