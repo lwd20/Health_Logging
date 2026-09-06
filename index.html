@@ -1175,6 +1175,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   background:var(--tx);opacity:.75;transform:translateX(-1px)}
 /* 막대가 뜻을 갖지 않는 줄 */
 .ai-row.nb .ai-bar{display:none}
+/* 어디까지가 '지금 바로 보이는 것' 이고 어디부터가 '눌러야 나오는 것' 인지
+   화면에서 갈린다 */
+.vzhd{display:flex;align-items:baseline;gap:7px;margin:14px 2px 8px;
+  padding-bottom:6px;border-bottom:1px solid rgba(var(--tx-rgb),.1)}
+.vzhd span{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--tx)}
+.vzhd i{font-style:normal;margin-left:auto;font-size:9px;color:var(--dim)}
+.vzhd.ai span{color:var(--acc-br)}
+.vzts{display:flex;gap:3px;margin-bottom:4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.vzt{flex:1 1 0;min-width:44px;height:32px;border:var(--bw) solid rgba(var(--tx-rgb),.09);
+  border-radius:var(--rad-m);background:none;color:var(--dim);
+  font-size:10.5px;font-weight:700;white-space:nowrap}
+.vzt.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
+.vzt:active{opacity:.6}
 /* 지난 리포트를 볼 때만 붙는 그때 그림 — 맨 위 대시보드와 구별되게 */
 .vzold{margin-top:10px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.09);opacity:.85}
 .ai-load{margin:11px 1px 0;font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
@@ -1707,7 +1720,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2707,9 +2720,9 @@ function renderSheet(){
   }
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
-    h+=heroHtml();
-    h+=kcalHtml();
-    h+=cutHtml();
+    /* heroHtml·cutHtml 은 메인 화면 카드다. 대시보드가 같은 것을 판정 칩까지
+       붙여 더 낫게 그리므로 여기서 또 그리면 랜드마크가 위아래로 두 번 나온다.
+       주간 소비(kcalHtml)만 대시보드에 자리가 없어 '몸' 갈래로 옮겼다. */
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     h+='<div class="console">';
     h+='<div class="gmwrap">';
@@ -2761,8 +2774,14 @@ function renderSheet(){
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
     h+='<div id="aiOut" class="show">';
     /* 숫자는 AI 와 무관하게 늘 그린다 — 키가 없어도, 20회를 다 써도,
-       호출이 실패해도 보여야 한다. 그것이 가르기의 요점이다. */
-    h+=anlViz(ANL);
+       호출이 실패해도 보여야 한다. 그것이 가르기의 요점이다.
+       다만 전부 펼치면 한 두루마리가 되므로 갈래로 나눈다. */
+    var isD=!!DIETMODES[ANL];
+    var vlist=isD?VZD:VZT,vcur=(isD?UI.vzd:UI.vzt)||vlist[0][0];
+    h+='<div class="vzhd"><span>지금 바로</span><i>앱이 냄 · 기다림 없음</i></div>';
+    h+=vzTabs(vlist,vcur,isD?'vzd':'vzt');
+    h+=anlViz(ANL,vcur);
+    h+='<div class="vzhd ai"><span>AI 분석</span><i>눌러야 나옴 · 하루 20회</i></div>';
     if(cur){
       h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'TRAINING PLAN')+'</span>'
         +'<span class="mt">'
@@ -4580,10 +4599,22 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
 
 /* ── 훈련 대시보드 ──
    예전 아홉 모드가 나눠 그리던 것을 한 자리에 모은다. AI 없이 즉시 나온다. */
-function vzTrain(){
+var VZT=[['set','부위'],['sub','세부'],['prog','진전'],['recov','회복'],['bal','균형'],['body','몸']];
+var VZD=[['today','오늘'],['avg','추이']];
+/* 갈래 고르는 줄. 예전 아홉 모드가 관심사별 창구였던 것을 여기서 되살린다 —
+   다만 AI 호출이 아니라 보기 전환이라 기다림도 한도도 없다. */
+function vzTabs(list,cur,act){
+  var t='',i;
+  for(i=0;i<list.length;i++)
+    t+='<button class="vzt'+(cur===list[i][0]?' on':'')+'" data-act="'+act+'" data-v="'+list[i][0]+'">'
+      +list[i][1]+'</button>';
+  return '<div class="vzts">'+t+'</div>';
+}
+function vzTrain(tab){
+  tab=tab||'set';
   var h='',ws=wkSets(),sc=subCnt(),i,k;
+  if(tab==='set'){
   /* 부위 */
-  h+=vzCap('부위 · 유효 세트');
   var tot=0,tgt=0;
   for(k in PN_KO){
     var c=ws[k]||0,g=WTGT[k]||0;
@@ -4594,6 +4625,8 @@ function vzTrain(){
   h+=vzBar('유산소',wc.z2,ctg,wc.days+'회'+(wc.neat>0?' · 걷기 '+wc.neat+'분 별도':''),
            vzVerdict(wc.z2,ctg),false);
   h+=vzTotal('TOTAL · 수행 '+wkTrainDays()+'일',tot,tgt);
+  }
+  if(tab==='sub'){
   /* 세부 랜드마크 */
   var hs='';
   for(i=0;i<SUBS.length;i++){
@@ -4607,7 +4640,8 @@ function vzTrain(){
     +'<div class="lmlg" data-act="hgo" data-v="goal"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV</div></div>';
   var uk=unkWeek();
   if(uk>0)h+='<div class="lmunk">이번 주 <b>'+uk+'세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨</div>';
-  /* 진전 */
+  }
+  if(tab==='prog'){
   var pr=heroProg();
   h+=vzCap('진전 · 정체 · 퇴행');
   h+='<div class="sttrow">'
@@ -4628,7 +4662,8 @@ function vzTrain(){
   if(pr.holdL.length)h+=nmRow(pr.holdL,'hd',{t:'보류',c:''});
   if(!pr.dnL.length&&!pr.stL.length&&!pr.upL.length)
     h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
-  /* 회복 */
+  }
+  if(tab==='recov'){
   h+=vzCap('회복');
   var st=heroStreak(),bl='';
   for(i=6;i>=0;i--)bl+='<i class="'+(i<st?'on':'')+'"></i>';
@@ -4645,7 +4680,8 @@ function vzTrain(){
     {t:'과중',c:'neg'});
   var dv=vzDelta();
   if(dv.h)h+=vzCap('유효 세트 변동 · 페이스 대비')+dv.h;
-  /* 균형 */
+  }
+  if(tab==='bal'){
   function db(n,a,b2,tgt2){
     var t2=a+b2;if(!t2)return '';
     var pa=Math.round(a*100/t2);
@@ -4667,22 +4703,27 @@ function vzTrain(){
   var rz=repZone();
   if(rz.tot)h+=vzLine('반복 6~12',rz.pct+'%',rz.inZ+'/'+rz.tot+'세트'+(rz.off.length?' · 벗어남 '+rz.off.join(', '):''),
     rz.pct>=70?{t:'적절',c:'pos'}:{t:'이탈',c:'warn'});
-  /* 몸 */
+  }
+  if(tab==='body'){
+  h+=kcalHtml();
   var pc=paceCalc(BW,BF,GF);
   if(pc.ok)h+=vzCap('몸')+vzLine('주당 감량',(pc.rate>0?'+':'')+pc.rate+'kg','목표 -'+WR+'kg/주',
     {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
   var lt=lbmTrend();
   if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',lt.from+'→'+lt.to+' · '+lt.gap+'일',
     lt.d<=-0.5?{t:'시급',c:'neg'}:{t:'유지',c:''});
+  if(!pc.ok&&!lt)h+=vzCap('몸')+vzLine('인바디','기록 부족','2건 이상이면 페이스가 나옴',{t:'미기록',c:''});
+  }
   return '<div class="anlviz">'+h+'</div>';
 }
 
 /* ── 식단 대시보드 ── */
-function vzDiet(){
+function vzDiet(tab){
+  tab=tab||'today';
   var nf=nutriFacts();
   if(!nf)return '<div class="anlviz"><div class="lmunk">섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴</div></div>';
   var h='',t=nf.today;
-  if(t){
+  if(tab==='today'&&t){
     h+=vzCap('오늘 · 남은 몫');
     var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
     /* 남은 몫은 '적을수록 좋음' 이 아니다 — 목표 대비 얼마나 먹었나로 그린다.
@@ -4699,7 +4740,7 @@ function vzDiet(){
     else if(t.eatenMeals&&t.eatenMeals.length)
       h+=vzLine('먹은 끼니',t.eatenMeals.join(', '),'',{t:'기록됨',c:'pos'});
   }
-  if(nf.completedDaysCount>0){
+  if(tab==='avg'&&nf.completedDaysCount>0){
     h+=vzCap('끝난 날 '+nf.completedDaysCount+'일 평균');
     h+=vzLine('섭취',Math.round(nf.completedDaysAvgIntake)+' kcal',
       '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(nf.completedDaysAvgDiff>0?'+':'')+Math.round(nf.completedDaysAvgDiff),
@@ -4707,17 +4748,19 @@ function vzDiet(){
     h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
       '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)+'일','');
   }
+  if(tab==='avg'&&!(nf.completedDaysCount>0))
+    h+=vzLine('끝난 날','기록 없음','하루가 더 쌓이면 평균이 나옴',{t:'미기록',c:''});
   h+=vzCap('기준')+vzLine('하루 적자 목표',Math.round(nf.dailyDeficitTarget)+' kcal',
     '주당 -'+WR+'kg 에서 나옴','');
   return '<div class="anlviz">'+h+'</div>';
 }
 
-function anlViz(k){
+function anlViz(k,tab){
   /* 새 두 모드. 옛 리포트가 갖고 있는 아홉 키는 여기로 흘려 보낸다 */
-  if(k==='meal'||k==='cut'||k==='mac')return vzDiet();
+  if(k==='meal'||k==='cut'||k==='mac')return vzDiet(tab);
   if(!hasLogs())return '';
   if(k==='plan'||k==='wk'||k==='vol'||k==='prog'||k==='recov'||k==='acsm'||k==='bal'||k==='vt')
-    return vzTrain();
+    return vzTrain(tab);
   var sc=subCnt(),h='',i;
   var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
   if(k==='wk'||k==='vt'){
@@ -4907,7 +4950,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 09:00';
+var BUILD='2026-09-07 11:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6678,6 +6721,8 @@ document.addEventListener('click',function(e){
         applyTheme();render();
       }
       break;
+    case 'vzt':UI.vzt=v;renderSheet();break;
+    case 'vzd':UI.vzd=v;renderSheet();break;
     case 'dsub':
       UI.dsub=v;render();
       /* 이름줄을 없앤 대신 지금 고른 것을 보이는 자리로 데려온다 — 40개 목록
