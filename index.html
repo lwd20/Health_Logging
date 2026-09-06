@@ -1001,6 +1001,14 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ai-row{margin:11px 0}
 .ai-row .t{display:flex;align-items:baseline}
 .ai-row .nm{font-weight:800;font-size:13px}
+/* 판정 칩. 여백이 없어 '등' + '초과' 가 '등초과' 한 단어로 읽혔다.
+   배경을 깔면 --sig 가 밀려 올라가 어두운 팔레트에서 대비가 무너지므로
+   (경고 배지에서 이미 겪었다) 색만 쓴다. */
+.ai-row .st{margin-left:8px;font-size:9px;font-weight:800;letter-spacing:.08em;
+  white-space:nowrap;color:var(--dim)}
+.ai-row .st.pos{color:var(--pos)}
+.ai-row .st.neg{color:var(--sig)}
+.ai-row .st.warn{color:var(--acc-br)}
 .ai-row .num{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--acc-br);font-weight:700}
 .ai-row .num em{font-style:normal;color:var(--dim);font-weight:400}
 .ai-bar{position:relative;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.1);margin-top:7px}
@@ -4899,7 +4907,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-06 22:30';
+var BUILD='2026-09-07 09:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
