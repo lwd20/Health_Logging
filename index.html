@@ -1207,6 +1207,55 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
 .zrow.warn .num,.zrow.warn .st{color:var(--acc-br)}
+/* ── 손댈 것 · 진단 줄 ──
+   이름/원인칩/숫자 + 근거 두 줄이 한 덩어리로 읽혀야 하는데 .zrow 의 윗선만
+   으로는 서로 다른 줄처럼 갈린다. 왼쪽 레일이 그것을 묶고 판정을 글자 없이
+   알린다 — 위 타일이 이미 센 '퇴행/정체' 를 네 번째로 적지 않기 위해서다.
+   배경은 깔지 않는다: 틴트가 밀려 올라가 어두운 팔레트에서 대비가 무너진다
+   (경고 배지에서 이미 세 번 겪었다). */
+.zrow.pgr{padding-left:9px;border-left:2px solid rgba(var(--tx-rgb),.14)}
+.zrow.pgr.neg{border-left-color:var(--sig)}
+/* 정체 레일에 금색(--acc-br)을 쓰면 다섯 팔레트(ember wine ruby crimson
+   rust)에서 --sig 와 뜻이 정반대로 그려지고, mint·patina 에서는 바로 아래
+   '순항' 과 바이트까지 같은 색이 된다. 색 가진 레일 하나와 안 가진 레일
+   하나면 팔레트와 무관하게 갈린다 — 판정은 숫자 칸의 단위가 이미 나른다. */
+.zrow.pgr.warn{border-left-color:rgba(var(--tx-rgb),.34)}
+/* 긴 이름이 줄을 늘리지 않게. 라인명까지 붙으면 예산을 쉽게 넘긴다 */
+.zrow.pgr .nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 칩이 두 글자 판정어 대신 열여섯 가지 원인어를 나르게 됐다. 정보량이 는
+   만큼 활자가 커져야 하고, 대문자 라틴용 자간은 한글 낱자를 흩는다. */
+.zrow.pgr .st{font-size:10.5px;letter-spacing:0;color:var(--tx)}
+/* --bw 가 0 인 테크가 열일곱이라 라이트 팔레트에서 카드가 4.3% 회색 한 겹만
+   남는다. 여기서는 리터럴 1px 로 일부러 무시한다. --rad-m 이 999px 인
+   테크에서는 카드가 스타디움이 되어 레일이 배경 밖으로 나가므로 상한을 건다.
+   왼쪽 패딩은 0 — 그래야 편 줄의 레일과 접힌 줄의 레일이 한 기둥으로 선다. */
+.lmsec.pgd{padding:9px 12px 4px 0;border-width:1px;border-radius:min(var(--rad-m),14px);
+  border-color:rgba(var(--tx-rgb),.16)}
+/* --acc-br 은 밝은 팔레트 다섯에서 4.41~4.46 으로 AA 를 못 넘고, 무엇보다
+   레일에서 금색을 버렸으니 숫자만 금색으로 남을 이유가 없다. 정체는 색을
+   안 쓴다 — 색은 퇴행 몫이다. 근거줄도 --dim 은 sage 에서 4.47 이라
+   한 단계 올린다. 크기(10 대 11px)가 여전히 둘을 가른다. */
+.zrow.pgr.warn .num,.zrow.pgr.warn .st{color:var(--tx)}
+.zrow.pgr .sub{color:var(--mut)}
+/* .sub 는 판정이 선 계산, .why 는 그 계산이 그렇게 나온 까닭 — 둘을 같은
+   10px --dim 으로 두면 붙어 버려 두 줄 다 안 읽힌다. 한 단계만 올린다.
+   margin-top 은 안 준다: .zrow 의 gap:7px 이 row-gap 이기도 해서 이미
+   7px 이 들어가 있고, 거기에 5를 더하면 근거 두 줄 사이가 제목과 부제
+   사이보다 더 벌어진다. */
+.zrow .why{flex:1 0 100%;font-size:11px;line-height:1.45;color:var(--mut)}
+/* 접힌 줄 — 누를 수 있으면 눌린다(.vzt·.lmlg 와 같은 관례).
+   화살표는 ::after 로 붙여 요소를 하나도 안 늘린다 */
+.zrow.pgt{cursor:pointer}
+.zrow.pgt:active{opacity:.6}
+.zrow.pgt .num::after{content:'\203A';margin-left:8px;font-weight:400;color:var(--dim)}
+/* 칩이 주 상호작용 경로가 됐는데 높이가 19.5px 이었다. 이 앱은 다른 데서
+   44px 을 명시적으로 지킨다 — 세로 여백으로 눌리는 자리를 넓히고 줄 간격은
+   음수 마진으로 되돌린다. iOS 는 cursor 도 핸들러도 없는 span 에 :active 를
+   안 먹인다. */
+.pgc[data-act]{cursor:pointer;display:inline-flex;align-items:center;
+  height:44px;padding:0 11px;font-size:10px;margin:-9px 0}
+.pgc[data-act]:active{opacity:.6}
+.pgcs{margin-top:12px}
 .ztot{display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:9px;
   border-top:1px solid rgba(var(--tx-rgb),.16);font-size:10px;font-weight:800;
   letter-spacing:.12em;color:var(--dim)}
@@ -1745,7 +1794,7 @@ function migrateLines(st){
   return st;
 }
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'body',vzd:'today',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'body',vzd:'today',pgo:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -4303,23 +4352,306 @@ function heroProg(onDate){
     /* 예전에는 조용히 버려서 카운터 합과 실제 종목 수가 안 맞았다 */
     if(gapD(a[0],a[1])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[0],a[1])+'일'});continue;}
     var p01=gp(m,a[0],a[1]);
-    if(p01>DB){up++;upL.push({n:m.n,p:p01,t:txt(m,a[1],a[0]),r:rirAvg(a[0].s)});continue;}
+    if(p01>DB){up++;upL.push({i:m.i,n:m.n,p:p01,t:txt(m,a[1],a[0]),r:rirAvg(a[0].s)});continue;}
     if(a.length<3){holdL.push({n:m.n,why:'기록 2회'});continue;}
     if(gapD(a[1],a[2])>14){holdL.push({n:m.n,why:'간격 '+gapD(a[1],a[2])+'일'});continue;}
     var p12=gp(m,a[1],a[2]);
     if(p01<-DB&&p12<-DB){
       down++;
       if(dnN.length<3)dnN.push(m.n);
-      dnL.push({n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
+      dnL.push({i:m.i,n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
       if(!regName){regName=m.n;regTxt=txt(m,a[2],a[0]);}
-    }else if(p01<=DB&&p12<=DB){
+    }else{
+      /* 예전에는 여기가 else if(p01<=DB&&p12<=DB) 였다. 세 조건의 여집합이
+         비어 있지 않아서 — p01<=DB 이고 p12>DB, 곧 '지난번엔 올랐는데
+         이번엔 안 오른' 종목이 넷 중 어디에도 안 들어가 화면에서 통째로
+         사라졌다. 격자로 훑으면 625칸 중 154칸(24.6%)이고 p01=-6 p12=+1
+         같은 6% 급락도 그 안에 있었다. 진전이 아니면 정체다 — 셈을 닫는다. */
       stall++;
       if(stN.length<3)stN.push(m.n);
-      stL.push({n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
+      stL.push({i:m.i,n:m.n,p:p01,t:txt(m,a[2],a[0]),r:rirAvg(a[0].s)});
     }
   }
   return {up:up,down:down,stall:stall,regName:regName,regTxt:regTxt,dnN:dnN,stN:stN,
           upL:upL,stL:stL,dnL:dnL,holdL:holdL};
+}
+/* ── 손댈 것 · 원인 판별 ──
+   heroProg 이 이미 고른 종목만 받는다. 여기서 새로 내는 것은 '왜' 하나뿐이다.
+   조치(무게·세트·반복·요일)는 내지 않는다 — ANLDEF.plan 이 그것을 AI 몫으로
+   잡아 뒀고, 앱이 같이 쓰면 한 화면에 처방이 둘이 된다. 반대로 AI 는 '숫자와
+   판정은 화면이 그리고 있으니 다시 나열하지 말라' 는 지시를 받아 근거를 못
+   쓴다 — 그 칸은 원래 비어 있고 앱만 채울 수 있다.
+   쓰는 값은 전부 그 종목 자신의 로그다. deloadSignal(회복 갈래)·fatigueDrop
+   ·repZone(균형 갈래)·lmRow(부위 갈래)는 한 번도 부르지 않는다. */
+var PG_SIG=3.5;   /* 세션 e1RM 한 점의 기본 변동폭 % — 표본이 모자랄 때만 씀 */
+var PG_Z=1.3;     /* 변동폭의 몇 배부터 신호로 보나 */
+var PG_FOLD=3;    /* 펼친 하나 뒤에 줄로 남기는 수, 그 뒤는 칩 */
+var PG_N=6;       /* 몇 세션까지 거슬러 보나 */
+
+function pgGapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
+/* 세션과 e1RM 수열을 한자리에서 만든다. 따로 돌면 종목마다 e1rmAvg 를 두 번
+   세게 되고, 갈래를 누를 때마다 종목 수만큼 그것이 반복된다.
+   e1RM 이 0 인 세션(무게 0·반복 0)은 뺀다 — 넣으면 묶음 평균이 바닥을 친다.
+   effSets 의 셋째 인자는 반드시 그 세션의 날짜다 — 오늘 날짜를 넣으면
+   어시스트 옛 기록이 통째로 퇴행으로 찍힌다. */
+function pgSess(m){
+  var src=S.l[m.i]||[],a=[],q=[],i,skip=0;
+  /* 세션 거르는 조건을 heroProg 와 같게 둔다. 여기서만 e1RM 0 인 세션을 빼면
+     타일이 센 것과 아래가 센 것이 서로 다른 세션을 보게 되고, 셈이 닫힌다는
+     말이 도리어 모순으로 읽힌다. 수열에서만 빼고 그 사실을 적는다.
+     16개까지만 훑는다 — 6세션 창과 4주 셈에 넉넉하고, 3년치 어시스트 종목
+     하나가 세트마다 bwOn 을 부르는 것을 막는다. */
+  for(i=0;i<src.length&&i<16&&a.length<PG_N;i++){
+    var x=src[i];
+    if(!(x&&x.s&&x.s.length))continue;
+    var v=e1rmAvg(effSets(m,x.s,x.d));
+    if(!(v>0)){skip++;continue;}
+    a.push(x);q.push(v);
+  }
+  q.reverse();                       /* a 는 최신이 앞, q 는 오래된 것이 앞 */
+  return {a:a,q:q,skip:skip};
+}
+/* 세션 간 변화율의 SD 에서 한 점의 변동폭을 낸다 — 차의 SD 는 sigma 곱하기
+   루트2 다. 진짜 추세가 섞여 과대추정되지만 그쪽이 헛경보를 줄이는 방향이다. */
+function pgSigma(q){
+  var d=[],i,t=0,v=0;
+  for(i=1;i<q.length;i++)if(q[i-1]>0)d.push((q[i]-q[i-1])/q[i-1]*100);
+  if(d.length<3)return PG_SIG;
+  for(i=0;i<d.length;i++)t+=d[i];
+  t/=d.length;
+  for(i=0;i<d.length;i++)v+=(d[i]-t)*(d[i]-t);
+  return Math.max(2,Math.min(8,Math.round(Math.sqrt(v/(d.length-1))/Math.SQRT2*10)/10));
+}
+/* 앞뒤 묶음 평균 — 6세션이면 3+3, 4~5세션이면 2+2, 그 아래는 판정 안 함.
+   묶음으로 견주면 잡음이 루트k 배 줄어든다 */
+function pgBlock(q){
+  var n=q.length,k=n>=6?3:(n>=4?2:0),i,a=0,b=0;
+  if(!k)return null;
+  for(i=n-k;i<n;i++)a+=q[i];
+  for(i=n-2*k;i<n-k;i++)b+=q[i];
+  a/=k;b/=k;
+  if(!(b>0))return null;
+  return {k:k,now:Math.round(a*10)/10,prev:Math.round(b*10)/10,
+          pct:Math.round((a-b)/b*1000)/10};
+}
+/* 평균은 드롭세트 하나에 통째로 끌려간다 — 중앙값을 쓴다 */
+function pgMed(v){
+  if(!v.length)return 0;
+  v=v.slice().sort(function(x,y){return x-y;});
+  var hf=v.length>>1;
+  return v.length%2?v[hf]:Math.round((v[hf-1]+v[hf])/2*10)/10;
+}
+function pgReps(a,i0,i1){
+  var r=[],i,j;
+  for(i=i0;i<Math.min(i1,a.length);i++)
+    for(j=0;j<a[i].s.length;j++){var x=+a[i].s[j][1]||0;if(x>0)r.push(x);}
+  return pgMed(r);
+}
+function pgHard(a,i0,i1){
+  var t=0,n=0,i;
+  for(i=i0;i<Math.min(i1,a.length);i++){t+=hardOf(a[i].s).n;n++;}
+  return n?Math.round(t/n*10)/10:0;
+}
+/* 정체 판정은 3~5주를 보는데 근거를 한 주로 대면 창이 안 맞는다. subCnt 은
+   이번 주 누적뿐이라 화요일 아침이면 거의 모든 근육이 MEV 미만으로 나오고,
+   무엇보다 다섯 주짜리 정체가 '이번 주 아직 안 했다' 로 설명된다.
+   최근 4주의 주당 평균을 따로 센다 — 그러면 주 경과와 무관해진다.
+   cx 에 붙여 두고 갈래 한 번 그리는 동안 종목마다 다시 안 세게 한다. */
+function pgSubAvg(sk,cx){
+  if(!sk)return 0;
+  if(cx.sa[sk]!==undefined)return cx.sa[sk];
+  var wk=4,lim=new Date();lim.setDate(lim.getDate()-wk*7);
+  var li=lim.getFullYear()+'-'+('0'+(lim.getMonth()+1)).slice(-2)+'-'+('0'+lim.getDate()).slice(-2);
+  var t=0,i,j;
+  for(i=0;i<S.m.length;i++){
+    var m2=S.m[i];
+    if(isCard(m2.p)||subOf(m2)!==sk)continue;
+    var a2=S.l[m2.i]||[];
+    for(j=0;j<a2.length;j++)
+      if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n;
+  }
+  cx.sa[sk]=Math.round(t/wk*10)/10;
+  return cx.sa[sk];
+}
+/* 같은 이름이 둘이면 어느 쪽인지 알 수 없다 — Standing Lateral Raise 가
+   두 줄 나란히 뜨던 자리다. 목록 화면이 이미 쓰는 라인명으로 가른다. */
+function pgName(m){
+  var c=0,i;
+  for(i=0;i<S.m.length;i++)if(S.m[i].n===m.n)c++;
+  if(c<2)return m.n;
+  var ln=cleanLine(m.ln)||String(m.b||'').toUpperCase();
+  return ln?m.n+' '+ln:m.n;
+}
+
+/* 원인은 하나만 낸다 — 다섯을 동시에 던지면 무엇이 들었는지 알 수 없다.
+   순서: 지표를 못 믿으면 진단하지 않는다 → 맥락이 목표를 바꾸면 결함이
+   아니다 → 안 한 것이 과하게 한 것을 이긴다.
+   회복 갈래(deloadSignal)는 RIR '하락' 을 보고 여기는 '상승' 을 본다. */
+function pgWhy(m,a,cx,sc){
+  var i,r0=pgReps(a,0,2),rb=pgReps(a,2,6);
+  var v0=rirAvg(a[0].s),v1=a.length>1?rirAvg(a[1].s):null,v2=a.length>2?rirAvg(a[2].s):null;
+  var sk=subOf(m),L=sk?LMK[sk]:null,sv=sk?(sc[sk]||0):0;
+  var mrv=L?Math.round(L[3]*0.8):0;
+  var av=pgSubAvg(sk,cx);   /* 최근 4주 주당 평균 — 판정 창과 같은 자로 잰다 */
+
+  /* Epley 는 반복 수에 선형이라 5회 세션과 12회 세션의 e1RM 은 서로 다른
+     자를 댄 값이다. 잣대가 바뀌었으면 진단하지 않는다. */
+  if(r0>0&&rb>0&&Math.abs(r0-rb)>=3)
+    return {c:'잣대',w:'반복 '+rb+'\u2192'+r0+'회 · 다른 반복대의 값',drop:true};
+
+  /* 회피 목표 근육에 자극이 쌓였다 — 앱 어디서도 아직 안 잡던 신호다 */
+  if(cx.wk>=40&&sk&&STG[sk]===0&&sv>0)
+    return {c:'회피',w:subName(sk)+' 회피 목표 · 이번 주 '+sv+'세트',drop:false};
+
+  /* 안 한 것이 과하게 한 것을 이긴다 */
+  var ago=daysAgo(a[0].d);
+  if(ago>=21)return {c:'공백',w:'마지막 기록 '+ago+'일 전 · 디트레이닝 구간',drop:false};
+  if(a.length>1){
+    var g01=pgGapD(a[0],a[1]);
+    if(g01>=10)return {c:'공백',w:'간격 '+g01+'일 · 자극 공백',drop:false};
+  }
+  var w28=0;
+  for(i=0;i<a.length;i++)if(daysAgo(a[i].d)<28)w28++;
+  if(w28>0&&w28<=2&&a.length>w28)
+    return {c:'빈도',w:'4주 '+w28+'회 · 자극 간격 과다',drop:false};
+
+  /* 근육 총량보다 종목 단위 삭감이 인과가 직접적이다 */
+  var h0=pgHard(a,0,1),hb=pgHard(a,1,4);
+  if(hb>0&&h0<=hb*0.7)
+    return {c:'삭감',w:'유효 세트 '+hb+'\u2192'+h0+' · 기준선 70% 밑',drop:false};
+
+  /* 세부 갈래가 눈금으로 자리를 보여 주므로 여기서는 한 줄만 인용한다.
+     이번 주가 아니라 4주 평균이다 — 판정이 보는 창과 같은 자여야 한다. */
+  if(L&&L[0]>0&&av<L[0])
+    return {c:'볼륨',w:subName(sk)+' 주 '+av+'세트 · MEV '+L[0]+' 미만',drop:false};
+
+  /* 진전이 없는데 실패에 더 가까워졌다. 혼자가 아니면 전신 피로다 */
+  var fw=[];
+  if(v0!==null&&v2!==null&&v2-v0>=1)fw.push('RIR '+v2+'\u2192'+v0);
+  if(cx.streak>=4)fw.push('연속 '+cx.streak+'일');
+  if(cx.dn>=3)fw.push('퇴행 '+cx.dn+'종목 동반');
+  if(fw.length>=2)return {c:'회복',w:fw.slice(0,2).join(' · '),drop:false};
+
+  /* 세트 수만으로 과다를 선언하지 않는다 — RIR 상승을 AND 로 건다 */
+  if(L&&mrv>0&&av>mrv&&v0!==null&&v2!==null&&v2-v0>=1)
+    return {c:'과부하',w:subName(sk)+' 주 '+av+'세트 · 보정 MRV '+mrv+' 초과',drop:false};
+
+  /* 실패까지 가면 비례하는 이득 없이 피로만 크게 는다 */
+  if(v0!==null&&v1!==null&&v0<=0.5&&v1<=0.5)
+    return {c:'실패권',w:'RIR '+v1+'\u2192'+v0+' · 2세션 연속 실패 근처',drop:false};
+
+  /* Epley 상 무게 +2.5% 는 반복 1회(3.3%)보다 작다. 2회를 잃으면 산수로
+     순손실이 확정된다. 어시스트는 숫자가 클수록 약하므로 effOf 를 거친다 */
+  if(a.length>1){
+    var w0=effOf(m,topOfM(m,a[0].s),a[0].d),w1=effOf(m,topOfM(m,a[1].s),a[1].d);
+    var r1=pgReps(a,1,2);
+    if(w1>0&&w0>=w1*1.02&&r1>0&&r0>0&&r1-r0>=2)
+      return {c:'욕심',w:'무게 +'+fmtW(w0-w1)+'kg · 반복 -'+Math.round(r1-r0)+'회',drop:false};
+  }
+
+  /* Epley 유효 범위 밖에서는 진단 자체가 신뢰를 잃는다 */
+  if(r0>0&&(r0<6||r0>12))
+    return {c:'반복',w:'반복 '+r0+'회 · 6~12 밖',drop:false};
+
+  /* 신기록 직후의 정체는 고칠 결함이 아니라 자극 갱신 시점이다.
+     'best 의 98% 이상' 으로 잡으면 평평하기만 해도 걸려서 원인 판별이 거기서
+     멈춘다 — 직전 세션이 실제로 기록을 갈아치웠을 때만 고원이라 부른다. */
+  var pp=prOf(m,a[0].d);
+  if(pp&&pp.isPR)
+    return {c:'고원',w:'직전 세션이 역대 최고 · 갱신 뒤 고원',drop:false};
+
+  /* 무게도 반복도 그대로면 자극이 같은 자리에 머문 것이다. 데이터가 말할 수
+     있는 마지막 사실이고, 정체의 가장 흔한 까닭이기도 하다 — 아무 규칙도
+     안 걸렸다며 '특정 불가' 로 넘기면 화면이 다시 아무 말도 안 하게 된다. */
+  if(a.length>=3){
+    var pw=topOfM(m,a[0].s),pk=1,pj;
+    for(pj=1;pj<Math.min(a.length,3);pj++){if(topOfM(m,a[pj].s)!==pw)break;pk++;}
+    if(pk>=3&&r0>0&&rb>0&&r0===rb)
+      return {c:'고정',w:fmtW(effOf(m,pw,a[0].d))+'kg '+r0+'회 · '+pk+'세션 그대로',drop:false};
+  }
+
+  /* 수면·스트레스는 데이터에 없다. 없는 것을 있는 척하지 않는다 */
+  var hu=hardOf(a[0].s);
+  if(hu.unk>0)
+    return {c:'미확정',w:'RIR 미입력 '+hu.unk+'세트 · 회복 판정 불가',drop:false};
+  return {c:'미확정',w:'훈련 기록만으로는 특정 불가 · 기록 밖 요인',drop:false};
+}
+
+/* heroProg 이 지목한 한 종목을 다시 본다.
+   k: 'act' 손댈 것 / 'keep' 감량 중 유지 / 'obs' 판정 보류 */
+function pgDiag(x,kind,cx,sc){
+  var m=x.i?machById(x.i):null;
+  var d={id:x.i||'',n:x.n,kind:kind,k:'obs',c:'표본',w:'',sub:'',pct:x.p||0,wk:1};
+  if(!m)return d;
+  var ss=pgSess(m),a=ss.a,q=ss.q;
+  if(a.length<2)return d;
+  var pskip=ss.skip?' · e1RM 미산출 '+ss.skip+'세션 제외':'';
+  var sig=pgSigma(q),bl=pgBlock(q);
+  var span=pgGapD(a[0],a[a.length-1]);
+  d.n=pgName(m);
+  d.wk=Math.max(1,Math.round(span/7));
+  d.sub=q.length+'세션 '+d.wk+'주';
+  /* 세션 두 개 뺄셈은 표본이 2다. 반복 한 회가 Epley 로 2.4~2.9% 인데 그
+     위의 ±0.5% 문턱은 잡음의 5분의 1이라 퇴행은 우연으로도 켜지고 정체는
+     반대로 거의 안 켜진다. 그래서 묶음끼리 견주고 문턱을 그 종목이 실제로
+     보인 변동폭의 배수로 잡아 한 번 더 거른다. */
+  if(!bl){d.sub+=' · 원인 판정은 4회부터'+pskip;return d;}
+  var thr=Math.round(sig/Math.sqrt(bl.k)*Math.SQRT2*PG_Z*10)/10;
+  d.pct=bl.pct;
+  d.sub=q.length+'세션 · 변동폭 ±'+thr+'%'+pskip;
+  /* 적자에서 e1RM 유지는 결함이 아니라 목표 달성이다 — 목록에서 빼낸다.
+     감량 중에 볼륨을 올리라는 진단은 해롭다. 퇴행은 감량 중이어도 남긴다. */
+  if(cx.cut&&kind==='st'&&Math.abs(bl.pct)<=2){d.k='keep';return d;}
+  /* 어시스트 유효부하는 '그날 체중 − 보조무게' 다. 체중이 내려가면 같은
+     보조무게로도 유효부하가 내려간다 — 78→73kg 이면 보조 30kg 을 그대로
+     써도 48→43kg, -10.4% 다. 아무것도 안 했는데 확정 퇴행이 되고 거기에
+     그럴듯한 원인까지 붙는다. 하락분을 체중이 대부분 설명하면 근력이
+     빠진 것이 아니므로 목록에서 빼낸다. */
+  if(isAssist(m)&&bl.pct<0){
+    var pb0=bwOn(a[0].d),pb1=bwOn(a[a.length-1].d);
+    if(pb0>0&&pb1>0&&pb0<pb1&&bl.prev>0){
+      var pbw=(pb0-pb1)/bl.prev*100;               /* 체중이 설명하는 몫, 음수 */
+      if(pbw<=bl.pct*0.6){d.k='keep';d.c='체중';return d;}
+    }
+  }
+  if(bl.pct<=-thr){
+    /* 확정 퇴행 */
+  }else if(bl.pct>=thr){
+    d.c='반등';return d;
+  }else if(kind==='st'&&q.length>=4&&span>=21){
+    /* 확정 정체. 정체의 주장은 '이만큼 오래 안 움직였다' 이므로 세션 수보다
+       기간을 문턱으로 삼는다 — 주 1회 도는 종목에 6세션을 요구하면 확정까지
+       여섯 주가 걸려 구획이 몇 주간 통째로 빈다.
+       신기록 가드는 두지 않는다. 완전히 평평한 수열은 자기가 곧 최고라
+       언제나 신기록으로 잡혀 정체를 통째로 삼켰다 — 실측으로 넷이 전부
+       사라졌다. 정말 신기록을 막 세웠다면 묶음 비교가 상승으로 나와 위의
+       반등 가지에서 이미 빠져나간다. 여기 남는 것은 평평한 것뿐이다. */
+  }else{
+    d.c='잡음';return d;
+  }
+  var g=pgWhy(m,a,cx,sc);
+  d.c=g.c;d.w=g.w;d.k=g.drop?'obs':'act';
+  return d;
+}
+
+/* .zrow 의 네 슬롯(이름·칩·숫자·근거)을 그대로 쓰고 '왜' 한 줄만 더한다.
+   칩 자리에는 판정이 아니라 원인을 넣는다 — 판정은 바로 위 타일과 줄 색과
+   숫자 부호로 이미 세 번 나오므로 네 번째로 적을 이유가 없고, 비운 그 자리를
+   원인이 차지하면 밀도는 그대로인데 정보량만 는다.
+   숫자 칸은 퇴행이면 변화율, 정체면 묶인 기간이다 — 정체에 0.0% 를 적으면
+   63→63kg 과 똑같은 병이 된다. 판정이 정체면 그 값은 정의상 0이라 모든
+   정체 줄이 같은 숫자를 달고, 정작 다른 것은 얼마나 오래 묶였는가다.
+   접힌 줄은 근거를 안 그린다 — 똑같은 모양의 흐린 글씨가 여섯 줄 늘어서면
+   눈이 그냥 미끄러진다. 하나만 펴야 그 하나를 읽는다. */
+function pgRow(d,open,tap){
+  return '<div class="zrow pgr '+(d.kind==='dn'?'neg':'warn')+(open?'':' pgt')+'"'
+    +(tap?' data-act="pgo" data-v="'+esc(tap)+'"':'')+'>'
+    +'<span class="nm">'+esc(d.n)+'</span>'
+    +'<span class="st">'+esc(d.c)+'</span>'
+    +'<span class="num">'+(d.kind==='dn'?((d.pct>0?'+':'')+d.pct+'%'):(d.wk+'주째'))+'</span>'
+    +(open?'<span class="sub">'+esc(d.sub)+'</span>'
+          +(d.w?'<span class="why">'+esc(d.w)+'</span>':''):'')
+    +'</div>';
 }
 /* 디로드 감지 — 진전이 멈췄는데 RIR까지 내려가면 회복 부족으로 봄 */
 function deloadSignal(){
@@ -4716,28 +5048,75 @@ function vzTrain(tab){
   if(tab==='prog'){
   var pr=heroProg();
   h+=vzCap('진전 · 정체 · 퇴행');
+  /* 타일은 heroProg 의 원 판정 그대로 둔다 — 홈의 heroSignal 과 같은 셈이라
+     여기서만 바꾸면 화면 둘이 다른 수를 말한다. 아래에서 걸러진 몫은
+     '판정 보류' 줄이 받아 셈이 닫힌다. */
   h+='<div class="sttrow">'
     +'<span class="stt up2"><b>'+pr.up+'</b><i>진전</i></span>'
     +'<span class="stt"><b>'+pr.stall+'</b><i>정체</i></span>'
     +'<span class="stt dn2"><b>'+pr.down+'</b><i>퇴행</i></span></div>';
-  /* 한꺼번에 다 펼치면 읽을 수가 없다. 손댈 것(퇴행·정체)만 줄로 펴고
-     잘 되는 것과 보류는 한 줄로 접는다 — 진전은 세어만 두면 된다. */
-  function act(list,vd){
-    var o2='',j;
-    for(j=0;j<list.length;j++)
-      o2+=vzLine(list[j].n,list[j].t||'',
-        (list[j].r!==null&&list[j].r!==undefined?'RIR '+list[j].r:''),vd);
-    return o2;
+  var pgCx=(function(){
+    var t=wTrend();
+    var pl=paceLeft();
+    return {cut:!!(t&&t.rate<0&&-t.rate>=BW*0.003),dn:pr.dnL.length,streak:heroStreak(),
+            wk:(pl<0?100:pl),sa:{}};
+  })();
+  var pgA=[],pgK=[],pgO=[],pgi,pgd,pgL;
+  for(pgi=0;pgi<pr.dnL.length;pgi++){
+    pgd=pgDiag(pr.dnL[pgi],'dn',pgCx,sc);
+    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);
   }
-  if(pr.dnL.length)h+=vzCap('손댈 것')+act(pr.dnL,{t:'퇴행',c:'neg'})+act(pr.stL,{t:'정체',c:'warn'});
-  else if(pr.stL.length)h+=vzCap('손댈 것')+act(pr.stL,{t:'정체',c:'warn'});
+  for(pgi=0;pgi<pr.stL.length;pgi++){
+    pgd=pgDiag(pr.stL[pgi],'st',pgCx,sc);
+    pgL=(pgd.k==='act'?pgA:(pgd.k==='keep'?pgK:pgO));pgL.push(pgd);
+  }
+  /* 퇴행 먼저, 그 안에서 많이 내려간 것부터. 정렬은 표현이지 처방이 아니다 —
+     '1순위' 같은 라벨은 안 붙인다. 그건 AI 의 [한 줄] 이고 홈의 heroSignal
+     까지 치면 한 앱에 최우선이 셋이 된다. 자리로만 말한다. */
+  pgA.sort(function(u,v){return u.kind!==v.kind?(u.kind==='dn'?-1:1):u.pct-v.pct;});
+  if(pgA.length){
+    /* 손댈 것이 다섯이면 다섯 다 손댈 수는 없다. 항상 정확히 하나만 펴서
+       '왜' 까지 보이고 나머지는 눌러야 열린다. 열어 둔 것이 목록에서
+       사라졌으면 조용히 맨 위로 되돌린다. */
+    var pgOi=0;
+    for(pgi=0;pgi<pgA.length;pgi++)if(pgA[pgi].id&&pgA[pgi].id===UI.pgo)pgOi=pgi;
+    /* 편 것을 맨 위로 끌어올리지 않는다. 차례가 곧 심각도라서 끌어올리면 그
+       신호가 깨지고, 무엇보다 방금 누른 줄이 눈이 있던 자리에서 사라진다.
+       있던 자리에서 펴진다. 줄로 보이는 범위 밖을 눌렀으면 거기까지 넓힌다. */
+    var pgLim=Math.max(Math.min(pgA.length,PG_FOLD+1),pgOi+1);
+    h+=vzCap('손댈 것');
+    for(pgi=0;pgi<pgLim;pgi++)
+      h+=(pgi===pgOi?'<div class="lmsec pgd">'+pgRow(pgA[pgi],true,'')+'</div>'
+                    :pgRow(pgA[pgi],false,pgA[pgi].id));
+    /* 넘치는 것은 이름과 원인 한 단어만 칩으로 — 줄로 펴면 그만큼 스크롤이다.
+       dnN·stN 의 3개 컷이 이미 앱 안에 있는 전례다. 칩도 눌리면 열린다. */
+    if(pgA.length>pgLim){
+      var pgC='';
+      for(pgi=pgLim;pgi<pgA.length;pgi++)
+        pgC+='<span class="pgc'+(pgA[pgi].kind==='dn'?' dn3':'')
+          +'" data-act="pgo" data-v="'+esc(pgA[pgi].id)+'">'
+          +esc(pgA[pgi].n)+' '+esc(pgA[pgi].c)+' '
+          +(pgA[pgi].kind==='dn'?pgA[pgi].pct+'%':pgA[pgi].wk+'주째')+'</span>';
+      h+='<div class="pgcs">'+pgC+'</div>';
+    }
+  }
+  if(pgK.length)
+    h+=vzLine('감량 중 유지',pgK.length+'종목',
+      pgK.slice(0,3).map(function(z){return z.n;}).join(', ')+(pgK.length>3?' 외':'')
+      +' — 적자에서 e1RM 유지는 정상',{t:'순항',c:'pos'});
   if(pr.upL.length)
     h+=vzLine('진전 중',pr.upL.length+'종목',
-      pr.upL.slice(0,3).map(function(x){return x.n;}).join(', ')+(pr.upL.length>3?' 외':''),{t:'순항',c:'pos'});
-  if(pr.holdL.length)
-    h+=vzLine('판정 보류',pr.holdL.length+'종목',
-      pr.holdL.slice(0,2).map(function(x){return x.n+' '+x.why;}).join(', '),{t:'보류',c:''});
-  if(!pr.dnL.length&&!pr.stL.length&&!pr.upL.length)
+      pr.upL.slice(0,3).map(function(z){return z.n;}).join(', ')+(pr.upL.length>3?' 외':''),
+      {t:'순항',c:'pos'});
+  /* 근거 미달과 기록 부족은 둘 다 '판정 안 함' 이라 한 줄로 합친다.
+     위 타일이 센 수와 여기 수를 더하면 셈이 닫힌다 — 손댈 것이 비어도
+     '없음' 줄을 따로 그리지 않는 이유가 이것이다. */
+  if(pgO.length||pr.holdL.length)
+    h+=vzLine('판정 보류',(pgO.length+pr.holdL.length)+'종목',
+      (pgO.length?'근거 미달 '+pgO.length+'종목':'')
+      +(pgO.length&&pr.holdL.length?' · ':'')
+      +(pr.holdL.length?'기록 부족 '+pr.holdL.length+'종목':''),{t:'보류',c:''});
+  if(!pgA.length&&!pgK.length&&!pr.upL.length&&!pgO.length&&!pr.holdL.length)
     h+=vzLine('판정 대상','없음','기록 2회 이하 종목만 있음',{t:'미기록',c:''});
   }
   if(tab==='recov'){
@@ -5030,7 +5409,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 16:20';
+var BUILD='2026-09-07 19:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6807,6 +7186,22 @@ document.addEventListener('click',function(e){
       break;
     case 'vzt':UI.vzt=v;renderSheet();break;
     case 'vzd':UI.vzd=v;renderSheet();break;
+    case 'pgo':
+      /* renderSheet 은 sh.innerHTML=h 로 자식을 전멸시키므로 scrollTop 이
+         0 으로 클램프된다 — 그냥 두면 줄을 누를 때마다 시트가 맨 위로 튀어
+         방금 편 카드가 화면 밖으로 나간다. 같은 파일의 case 'dsub' 가 이미
+         이 동작을 알고 복원 코드를 달고 있었다. 높이가 바뀌므로 자리를
+         되돌린 뒤 편 카드가 화면 밖이면 그것을 끌어온다. */
+      (function(){
+        var se=document.getElementById('sheet'),sy=se?se.scrollTop:0;
+        UI.pgo=v;renderSheet();
+        se=document.getElementById('sheet');if(!se)return;
+        se.scrollTop=sy;
+        var op=se.querySelector('.lmsec.pgd');if(!op)return;
+        var off=op.getBoundingClientRect().top-se.getBoundingClientRect().top;
+        if(off<0||off>se.clientHeight-60)se.scrollTop=sy+off-90;
+      })();
+      break;
     case 'dsub':
       UI.dsub=v;render();
       /* 이름줄을 없앤 대신 지금 고른 것을 보이는 자리로 데려온다 — 40개 목록
