@@ -1046,6 +1046,18 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmg .cd.out{width:0;height:0;border-radius:0;background:none;box-shadow:none;
   border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--sig)}
 .lmrow .bv.over{color:var(--sig)}
+/* 손댈 랜드마크에만 붙는 판정. 눈금이 자리로 보여 주므로 여기는 말로만 —
+   괜찮은 줄에는 아무것도 안 붙어 눈이 걸릴 곳이 줄어든다. */
+/* 색을 안 쓴다. 낱말이 이미 'MEV 미만' 인지 'MRV 초과' 인지 방향을 말하고,
+   눈금 위 점과 오른쪽 숫자가 --sig 로 이미 심각도를 칠한다. --sig 는 밝은
+   팔레트 다섯에서 4.41 이라 이 크기(8.5px)로는 AA 를 못 넘기기도 한다. */
+.lmrow .lmvd{flex:0 0 auto;font-style:normal;font-size:8.5px;font-weight:800;
+  letter-spacing:.04em;color:var(--mut);white-space:nowrap}
+/* 균형 판정 — 이름 옆에 붙어 그 줄이 무엇을 말하는지 끝맺는다 */
+.bvd{font-style:normal;margin-left:6px;font-size:9px;font-weight:800;
+  letter-spacing:.04em;color:var(--mut)}
+.bvd.neg{color:var(--sig)}
+.bvd.pos{color:var(--pos)}
 /* 어제 먹은 것 한 장 — 큰 숫자 하나, 비율 막대 하나, 그램 세 개.
    더 얹으면 매일 훑을 수 없다. */
 .dietcard{background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);
@@ -1130,7 +1142,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .db2{height:9px;border-radius:2px;overflow:visible;position:relative;background:rgba(var(--acc-rgb),.17);border:1px solid var(--line)}
 .db2 b{display:block;height:100%;background:var(--acc-dk);border-radius:1px}
 .db2 .ct{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(var(--tx-rgb),.4)}
-.db2 .tg{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--acc-br);box-shadow:0 0 4px rgba(227,185,90,.5)}
+/* box-shadow 가 브론즈 강조색 리터럴이었다 — 나머지 스물일곱 팔레트에서
+   엉뚱한 색이 번진다 */
+.db2 .tg{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--acc-br);box-shadow:0 0 4px rgba(var(--acc-rgb),.5)}
 .ai-ck{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;padding:7px 2px;font-size:13px;line-height:1.5;color:var(--tx)}
 .ai-ck i{flex:0 0 16px;height:16px;margin-top:1px;border:1px solid rgba(var(--acc-rgb),.5);border-radius:3px;background:var(--inset);font-style:normal;font-size:11px;line-height:15px;text-align:center;color:var(--on-acc)}
 .ai-ck.done i{background:var(--acc-sf);border-color:transparent}
@@ -2885,9 +2899,8 @@ function renderSheet(){
   }
   if(UI.sheet==='ai'){
     h+='<div class="sh-t">Analyze</div>';
-    /* heroHtml·cutHtml 은 메인 화면 카드다. 대시보드가 같은 것을 판정 칩까지
-       붙여 더 낫게 그리므로 여기서 또 그리면 랜드마크가 위아래로 두 번 나온다.
-       주간 소비(kcalHtml)만 대시보드에 자리가 없어 '몸' 갈래로 옮겼다. */
+    /* 메인 화면 카드(heroHtml·cutHtml)는 대시보드가 같은 것을 판정까지 붙여
+       더 낫게 그리게 되면서 부르는 데가 없어졌고, 이번에 통째로 뺐다. */
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     /* 큰 카테고리. 셋뿐인데 접어 두면 무엇을 고를 수 있는지가 안 보이고,
        이 칸이 아래 두 상자를 다 바꾸므로 늘 떠 있어야 한다. */
@@ -3925,81 +3938,6 @@ function gapTxt(left,isToday){
   if(isToday)return '남은 '+n;
   return left===0?'목표 달성':'덜 먹음 '+n;
 }
-function cutHtml(){
-  /* 메인 화면에서 고른 날짜를 따라간다. today() 로 못 박아 두면 날짜
-     화살표를 눌러도 여기만 오늘에 머문다. */
-  var ds=UI.wd||today(),isToday=(ds===today());
-  var dLbl=isToday?'오늘':(daysAgo(ds)===1?'어제':md(ds));
-  var d=hcDay(ds),st=hcState();
-  if(!d){
-    if(st==='perm')
-      return '<div class="lmsec"><div class="lmcap">DIET</div>'
-        +'<button class="dietask" data-act="hcask">삼성헬스 섭취량 불러오기<i>연결</i></button></div>';
-    if(st==='ok')
-      return '<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>'
-        +'<div class="dietnone">'+dLbl+' 섭취 기록 없음</div></div>';
-    return '';   /* 웹으로 열었거나 못 쓰는 기기 — 없는 셈 친다 */
-  }
-  /* dayTDEE 는 그날 운동으로 쓴 몫까지 더해서 낸다 — 오늘 운동을 하면
-     그만큼 오늘 TDEE 가 오르고 먹을 수 있는 양도 같이 는다. */
-  var td=dayTDEE(ds);
-  var want=Math.round(WR*7700/7);          /* 하루 감량분 — PACE 설정에서 나온다 */
-  var goal=Math.max(0,td-want);            /* 그날 먹을 목표 */
-  var left=goal-d.kcal;                    /* 목표까지 남은 여유. 음수면 초과 */
-  /* 비율은 그램이 아니라 열량 기여로 센다. 지방은 9kcal/g 이라
-     그램으로 세면 실제보다 적게 먹은 것처럼 보인다. */
-  var pk=d.p*4,ck=d.c*4,fk=d.f*9,tot=pk+ck+fk;
-  var pp,cp,fp;
-  if(tot>0){pp=Math.round(pk/tot*100);cp=Math.round(ck/tot*100);fp=Math.max(0,100-pp-cp);}
-  else{pp=cp=fp=0;}
-  /* 감량분은 이미 목표에 반영돼 있으므로 넘겼는지만 보면 된다.
-     아침부터 초록을 켜 두면 신호가 아니라 배경이 된다. */
-  var tone=left<0?'over':'';
-  var M=[{k:'단백',g:d.p,p:pp,c:'p'},{k:'탄수',g:d.c,p:cp,c:'c'},{k:'지방',g:d.f,p:fp,c:'f'}],i;
-  var h='<div class="lmsec"><div class="lmcap">DIET · '+dLbl+'</div>';
-  h+='<div class="dietcard">';
-  /* 오늘은 '앞으로 얼마나 먹어도 되나' 가 지금 정할 일이라 그것을 크게 쓴다.
-     지난 날은 하루가 끝나 남은 것이 없으므로 그날 먹은 양이 결론이다. */
-  if(isToday){
-    h+='<div class="dkc">'
-      +'<em class="dlab'+(tone?' '+tone:'')+'">'+(left<0?'초과':'남은')+'</em>'
-      +'<b'+(tone?' class="'+tone+'"':'')+'>'+Math.abs(left).toLocaleString()+'</b><u>kcal</u>'
-      +'<span class="dgoal">먹은 '+d.kcal.toLocaleString()+' · 목표 '+goal.toLocaleString()+'</span></div>';
-  }else{
-    h+='<div class="dkc"><b>'+d.kcal.toLocaleString()+'</b><u>kcal</u>'
-      +'<span class="dgoal">목표 '+goal.toLocaleString()
-      +' <i class="'+tone+'">'+gapTxt(left,false)+'</i></span></div>';
-  }
-  /* 목표가 어디서 나온 값인지 보이지 않으면 PACE 를 바꿔도 반영된 줄 모른다 */
-  h+='<div class="dsub">하루 소비 '+td.toLocaleString()+' \u2212 감량 '+want.toLocaleString()+'</div>';
-  if(tot>0){
-    h+='<div class="dbar">';
-    for(i=0;i<M.length;i++)if(M[i].p>0)h+='<i class="d'+M[i].c+'" style="width:'+M[i].p+'%"></i>';
-    h+='</div>';
-  }
-  h+='<div class="dmac">';
-  for(i=0;i<M.length;i++)
-    h+='<div class="dm"><s class="d'+M[i].c+'"></s><em>'+M[i].k+'</em>'
-      +'<b>'+M[i].p+'<u>%</u></b><span>'+M[i].g+'g</span></div>';
-  h+='</div></div>';   /* .dmac, .dietcard */
-  /* 감량 진행은 매일 볼 값이 아니라 한 줄로 줄인다. 체중 그래프와 큰 D-day
-     카드는 뺐다 — 자세한 진단은 ANALYSIS 의 감량 진단이 맡는다. */
-  var r=paceCalc(BW,BF,GF);
-  /* 체중이 늘고 있으면 paceCalc 가 도달일을 아예 안 채운다(days=0, eta='').
-     그걸 그대로 그리면 'D-0' 이 되어 '오늘 도달' 로 읽힌다 — 뜻이 정반대다.
-     같은 값을 쓰는 위젯은 이미 막고 있었고 여기만 뚫려 있었다. */
-  if(r.ok&&!r.done&&r.eta)
-    h+='<div class="dfoot"><em>D-'+r.days+'</em>'+r.eta+' · '+fmtW(GF)+'%'
-      +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
-  else if(r.ok&&!r.done)
-    /* 계산해 두고도 안 쓰던 r.tag — 왜 도달일이 없는지 이 자리에서 말해 준다 */
-    h+='<div class="dfoot"><em class="warn">'+r.tag+'</em>'+fmtW(GF)+'% 도달일 미정'
-      +'<span>실측 '+(r.rate>0?'+':'')+r.rate+' · 목표 -'+WR+' kg/주</span></div>';
-  else if(r.done)
-    h+='<div class="dfoot"><em>DONE</em>목표 체지방 도달 · 유지 구간</div>';
-  h+='</div>';   /* .lmsec */
-  return h;
-}
 
 function kcalHtml(){
   var w=kcalWeek(0);
@@ -4402,7 +4340,7 @@ function catCtx(c){
   try{
     if(c==='train'){
       var cf=computedFacts()||{};
-      return (cf.weekPhase||'')+' · 수행 '+wkTrainDays()+'/'+(cf.trainDaysPerWeek||0)+'일';
+      return (cf.weekPhase||'')+' · 훈련 '+wkTrainDays()+'/'+(cf.trainDaysPerWeek||0)+'일';
     }
     if(c==='diet')return md(todayISO())+' 오늘';
     var sc2=bwSrc();
@@ -4435,7 +4373,7 @@ var ANLD={
 };
 var ANLDEF={
  plan:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 이미 끝낸 값이다. 숫자와 판정은 화면이 그리고 있으므로 다시 나열하지 말고 결정만 내려라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[평가]\n- 목표 미달 부위 중 간접 기여 세트로 메워지는 곳은 부족이라 쓰지 말고 제외한 이유를 한 줄로 씀.\n- 계획 요일과 실제 수행 요일이 어긋난 부위가 있으면 한 줄. 없으면 생략함.\n- 이번주쉰날은 본인이 쉬기로 정한 날이라 잔여훈련일에서 이미 빠져 있음. 빠진 훈련으로 세지 않음.\n- 잘한 점 한 줄. 개선 후보 중 이번 주에 가장 값진 것 하나만 고름.\n\n[처방]\n- 남은 세션에 넣거나 뺄 것을 (요일, 부위, ±세트) 형식으로 최대 3줄. 남은 세션이 없으면 다음 주 기준으로 씀.\n- 늘릴 곳을 정하면 줄일 곳도 함께 씀 — 감량기에는 총량을 늘리지 않음.\n- 정체·퇴행 종목은 무게 유지 / 5% 재빌드 / 반복 상향 중 하나를 골라 한 줄씩, 최대 2종목. 옷맵시 핵심 종목을 먼저 다룸.\n- 이미 수행한 볼륨을 줄이라고 쓰지 않음.\n\n[한 줄]\n- 이번 주 가장 먼저 손댈 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- wkclose:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 끝낸 값이다. 이번 주를 닫고 다음 주를 연다.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[이행]\n- 직전처방의 각 줄을 이행·미이행으로 가르고 근거는 짝지어 온 실측 하나만 듦. 직전처방이 비었으면 이 섹션을 통째로 생략함.\n\n[결산]\n- 목표 대비 남거나 넘친 부위를 최대 2줄. 간접 기여로 메워지는 곳은 부족이라 쓰지 않고 제외한 이유를 함께 씀.\n- 체성분이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 간격일을 근거로 듦. 체성분이 null 이면 이 줄을 생략함.\n- 주단계가 마감·결산이 아니면 아직 닫을 주가 아니므로 이 섹션 대신 남은 훈련일로 무엇을 채울지 한 줄만 씀.\n\n[다음 주]\n- 요일별 배치를 (요일, 부위, 세트) 형식으로 최대 4줄. 총량은 이번 주와 같게 두고 자리만 옮김.\n- 넘친 부위에서 빼서 모자란 부위로 넣음. 휴식요일에는 아무것도 배치하지 않음.\n\n[한 줄]\n- 다음 주에 한 가지만 바꾼다면 무엇인가.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
+ wkclose:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 끝낸 값이다. 이번 주를 닫고 다음 주를 연다.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[이행]\n- 직전처방의 각 줄을 이행·미이행으로 가르고 근거는 짝지어 온 실측 하나만 듦. 직전처방이 비었으면 이 섹션을 통째로 생략함.\n\n[결산]\n- 목표 대비 남거나 넘친 부위를 최대 2줄. 간접 기여로 메워지는 곳은 부족이라 쓰지 않고 제외한 이유를 함께 씀.\n- 체성분이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 간격일을 근거로 듦. 체성분이 null 이면 이 줄을 생략함.\n- 주단계가 막바지·마지막날이 아니면 아직 닫을 주가 아니므로 이 섹션 대신 남은 훈련일로 무엇을 채울지 한 줄만 씀.\n\n[다음 주]\n- 요일별 배치를 (요일, 부위, 세트) 형식으로 최대 4줄. 총량은 이번 주와 같게 두고 자리만 옮김.\n- 넘친 부위에서 빼서 모자란 부위로 넣음. 휴식요일에는 아무것도 배치하지 않음.\n\n[한 줄]\n- 다음 주에 한 가지만 바꾼다면 무엇인가.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
  swap:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 끝낸 값이다. 세트 수가 아니라 종목 자체를 바꿀 것만 정하라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[바꿀 것]\n- 정체·퇴행에 든 종목 중 교체가 답인 것만 최대 3줄. (지금 종목 → 대신할 종목 · 까닭 한 마디) 형식.\n- 무게나 반복 조정으로 풀리는 것은 여기 쓰지 않음 — 그것은 처방 몫임.\n- 대신할 종목은 같은 세부 근육을 치되 관절 각도나 저항 곡선이 다른 것으로 고름.\n- 회피세부를 건드리는 종목으로는 바꾸지 않음.\n\n[그대로 둘 것]\n- 정체·퇴행이어도 종목을 바꾸면 안 되는 것을 최대 2줄과 까닭 한 마디. 없으면 이 섹션을 통째로 생략함.\n\n[한 줄]\n- 이번에 딱 하나만 바꾼다면 무엇인가.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
  pace:'당신은 감량기 코치다. 체중·체성분 수치와 판정은 화면이 이미 그린다. 감량이 제대로 가고 있는지만 가르고 조정할 것을 정하라.\n전제: 목표 주당 -0.5kg, 근손실 방지 최우선, 훈련량은 건드리지 않음.\n\n[판정]\n- 지금 페이스가 목표에 맞는지 한 줄. 근거는 주당변화와 그것을 낸 창(근거 필드)임.\n- 창을넓힘이 참이면 최근 자료가 모자란 값이므로 단정하지 말고 그렇게 씀.\n- 체성분이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 간격일을 근거로 듦.\n\n[조정]\n- 적자를 늘릴지 줄일지 유지할지 한 줄과 그 폭을 kcal 로 씀. 맞으면 유지라고 씀.\n- 섭취로만 조정함. 감량기에 훈련 볼륨을 깎으면 근손실이 먼저 온다.\n- 인바디건수가 2 미만이면 조정하지 말고 무엇을 더 재야 하는지 한 줄만 씀.\n\n[한 줄]\n- 다음 인바디까지 지킬 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
  dayplan:'당신은 감량기 식단 코치다. 남은 몫과 끼니 소계는 화면이 이미 그린다. 오늘 남은 끼니에 그 몫을 어떻게 나눌지만 정하라.\n전제: 감량기, 근손실 방지 최우선, 한국에서 흔히 구할 수 있는 음식.\n\n[배분]\n- 안먹은끼니마다 한 줄로 (끼니, 열량, 단백질g) 를 정함. 합이 남은열량과 남은단백질을 넘지 않게 함.\n- 오늘운동이 참이면 훈련 앞뒤 끼니에 탄수를 몰아 줌.\n- 안먹은끼니가 비었으면 이 섹션 대신 내일 아침 기준으로 한 줄만 씀.\n\n[끼니별]\n- 배분한 끼니마다 무엇을 먹을지 한 줄씩. 1인분 그램과 대략 열량을 씀.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 기록에 없는 것을 먹었다고 가정하지 않음. 훈련 부위·종목은 언급하지 않음. 한 줄 25자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
@@ -4969,72 +4907,6 @@ function todaySum(){
   }
   return {ex:ex,sets:sets,parts:parts};
 }
-function heroSignal(){
-  var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
-  var PS={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔'};
-  var td=today(),hasT=hasTodayStrength();
-  /* 기록이 하나도 없으면 볼륨 경고가 아니라 시작 안내가 맞다 —
-     첫 사용자에게 '측면 뒤처짐' 같은 판정은 근거가 없다 */
-  if(!hasLogs())return {lv:'ok',tag:'시작',line:'종목을 눌러 첫 세트를 기록해 보세요',rec:'wk'};
-  var st=heroStreak(),ws=wkSets(),sc=subCnt(),pl=paceLeft();
-  var sdT=(STG.sd>0?STG.sd:18),ltT=(STG.lt>0?STG.lt:16);
-  var ts=hasT?todaySum():null;
-  var seg=[],k;
-
-  /* 1) 오늘 무엇을 했는가 — 총 볼륨(t)은 종목 구성이 바뀌면 널뛰어 뺐고,
-     대신 소비 칼로리를 붙인다. */
-  if(ts&&ts.sets){
-    var pp=[];
-    for(k in ts.parts)pp.push((PS[k]||k)+' '+ts.parts[k]);
-    /* 칼로리는 바로 아래 TDEE 에 이미 있다 — 같은 숫자를 두 번 적지 않는다 */
-    seg.push('오늘 '+pp.join('·')+'세트');
-  }else{
-    /* 미기록은 '안 적었다' 는 말이고 쉬는 날은 '적을 것이 없다' 는 말이다 */
-    seg.push(isOff(td)?'오늘 휴식':'오늘 미기록');
-  }
-
-  /* 2) 가장 시급한 신호 하나 */
-  var lv='ok',tag='정상',rec='wk';
-  var tp=hasT?heroProg(td):null,dl=deloadSignal(),over='';
-  for(k in ws)if(WTGT[k]&&ws[k]>=WTGT[k]+3){over=k;break;}
-  var needS=pl>=20?Math.round(sdT*pl/100):0, needL=pl>=20?Math.round(ltT*pl/100):0;
-
-  if(tp&&tp.down>0){
-    lv='bad';tag='퇴행';rec='prog';
-    seg.push(tp.regName+' '+tp.regTxt+' 하락');
-  }else if(dl){
-    lv='bad';tag='디로드';rec='recov';
-    seg.push(dl.n+'종목 RIR 하락');
-  }else if(st>=3){
-    lv='bad';tag='회복 부채';rec='recov';
-    seg.push('연속 '+st+'일');
-  }else if(over){
-    lv='bad';tag='목표 초과';rec='recov';
-    seg.push((PS[over]||over)+' '+ws[over]+'/'+WTGT[over]+'세트');
-  }else if(needS&&(sc.sd||0)<needS){
-    lv='warn';tag='측면 뒤처짐';rec='vt';
-    seg.push('측면 '+(sc.sd||0)+'/'+sdT+' 페이스 '+needS+'세트');
-  }else if(needL&&(sc.lt||0)<needL){
-    lv='warn';tag='광배 뒤처짐';rec='vt';
-    seg.push('광배 '+(sc.lt||0)+'/'+ltT+' 페이스 '+needL+'세트');
-  }else if(tp&&tp.stall>=2){
-    lv='warn';tag='정체';rec='prog';
-    seg.push('오늘 '+tp.stall+'종목 무진전');
-  }else if(!hasT){
-    var g1=sdT-(sc.sd||0), g2=ltT-(sc.lt||0);
-    if(g1>0||g2>0){
-      tag='잔여 목표';
-      seg.push((g1>0?'측면 '+g1:'')+(g1>0&&g2>0?'·':'')+(g2>0?'광배 '+g2:'')+'세트 남음');
-    }else{tag='목표 달성';}
-  }
-
-  /* 3) 신호가 없을 때만 옷맵시 현황을 덧붙이고, 연속일은 항상 끝에 */
-  if(lv==='ok'&&tag!=='잔여 목표')
-    seg.push('측면 '+(sc.sd||0)+'/'+sdT+'·광배 '+(sc.lt||0)+'/'+ltT);
-  if(st>0&&tag!=='회복 부채')seg.push('연속 '+st+'일');
-
-  return {lv:lv,tag:tag,line:seg.join(' · '),rec:rec};
-}
 /* ── 분석론 위젯: 리포트 상단 로컬 시각화 ── */
 var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10,16,20],uc:[4,6,12,14],mc:[6,10,16,18],qd:[8,12,18,20],hm:[6,10,16,20],gl:[0,4,12,16],abd:[0,4,10,14],adc:[0,4,8,12],cf:[8,12,16,20],bi:[8,14,20,26],tri:[6,10,14,18],fa:[0,4,8,12],ut:[0,4,8,12],ab:[0,16,20,25]};
 var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'LEGS':[10,14,22,26],'ARMS·ETC':[8,12,18,22]};
@@ -5051,7 +4923,12 @@ function lmRow(nm,cur,L){
   var cp=Math.max(2.5,Math.min(97.5,cur*100/mx));
   /* 축을 벗어난 값은 자리로 구분되지 않으므로(23 이든 40 이든 끝) 화살표로 바꾼다 */
   var out=cur>mx;
+  /* 판정을 vzZone 이 이미 내고 있는데 화면에는 눈금만 있었다 — 뜻이 아래
+     범례에만 있으니 한눈에 읽힐 리가 없다. 다만 열여덟 줄에 다 달면 글자로
+     덮이므로 손댈 것에만 단다: 아무 말이 없으면 괜찮다는 뜻이다. */
+  var vz=vzZone(cur,L);
   return '<div class="lmrow"><span class="bn">'+nm+'</span>'
+    +(vz.ok?'':'<em class="lmvd">'+vz.t+'</em>')
     +'<span class="lmg">'
     +'<i class="zn" style="left:'+px(L[0])+'%;width:'+Math.max(0,px(z1)-px(L[0]))+'%"></i>'
     +'<i class="zn hi" style="left:'+px(z1)+'%;width:'+Math.max(0,px(z2)-px(z1))+'%"></i>'
@@ -5279,7 +5156,9 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
 
 /* ── 훈련 대시보드 ──
    예전 아홉 모드가 나눠 그리던 것을 한 자리에 모은다. AI 없이 즉시 나온다. */
-var VZT=[['set','부위'],['sub','세부'],['prog','진전'],['recov','회복'],['bal','균형']];
+/* '진전' 은 이 탭이 담는 넷(진전·정체·퇴행·보류) 중 하나의 이름이라
+   '정체' 를 보러 '진전' 을 눌러야 했다. 다른 탭이 관점 이름이므로 여기도 그렇게. */
+var VZT=[['set','부위'],['sub','세부'],['prog','종목'],['recov','회복'],['bal','균형']];
 var VZD=[['today','오늘'],['avg','추이']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -5353,7 +5232,7 @@ function vzTrain(tab){
            vzVerdict(wc.z2,ctg),false);
   /* '수행 3일' 만 적으면 계획이 5일인데 셋만 한 것인지, 이틀을 쉬기로 해서
      셋이 계획이자 실적인지가 안 보인다 */
-  h+=vzTotal('TOTAL · 수행 '+wkTrainDays()+'/'+((computedFacts()||{}).trainDaysPerWeek||0)+'일',tot,tgt);
+  h+=vzTotal('TOTAL · 훈련 '+wkTrainDays()+'/'+((computedFacts()||{}).trainDaysPerWeek||0)+'일',tot,tgt);
   }
   if(tab==='sub'){
   /* 세부 랜드마크 */
@@ -5428,8 +5307,8 @@ function vzTrain(tab){
     h+=pgList(pgMap(src),(pgKd==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'));
   }
   /* 퇴행 먼저, 그 안에서 많이 내려간 것부터. 정렬은 표현이지 처방이 아니다 —
-     '1순위' 같은 라벨은 안 붙인다. 그건 AI 의 [한 줄] 이고 홈의 heroSignal
-     까지 치면 한 앱에 최우선이 셋이 된다. 자리로만 말한다. */
+     '1순위' 같은 라벨은 안 붙인다. 그건 AI 의 [한 줄] 몫이다 — 한 앱에
+     최우선이 둘이면 어느 쪽도 최우선이 아니다. 자리로만 말한다. */
   pgA.sort(function(u,v){return u.kind!==v.kind?(u.kind==='dn'?-1:1):u.pct-v.pct;});
   if(pgA.length){
     /* 손댈 것이 다섯이면 다섯 다 손댈 수는 없다. 항상 정확히 하나만 펴서
@@ -5471,25 +5350,32 @@ function vzTrain(tab){
   h+=vzCap('회복');
   var st=heroStreak(),bl='';
   for(i=6;i>=0;i--)bl+='<i class="'+(i<st?'on':'')+'"></i>';
-  h+='<div class="gbrow"><span class="bn">연속일</span><span class="stk2">'+bl+'</span>'
+  h+='<div class="gbrow"><span class="bn">연속 훈련</span><span class="stk2">'+bl+'</span>'
     +'<span class="bv">'+st+'일</span></div>';
   var g48=partGap48();
-  if(g48.length)h+=vzLine('이틀 연속',g48.map(function(x){return PN_KO[x.p]||x.p;}).join(', '),
+  if(g48.length)h+=vzLine('같은 부위 이틀',g48.map(function(x){return PN_KO[x.p]||x.p;}).join(', '),
     '기록에 시각이 없어 이틀 연속으로 봄',{t:'간격 부족',c:'warn'});
   var dl=deloadSignal();
   if(dl)h+=vzLine('디로드 후보',dl.n+'종목',dl.names.join(', '),{t:'피로 누적',c:'neg'});
   var fd=fatigueDrop();
-  if(fd.length)h+=vzLine('세션 내 급락',fd.length+'건',
+  if(fd.length)h+=vzLine('반복 급락',fd.length+'건',
     fd.slice(0,2).map(function(x){return x.n+' '+x.from+'→'+x.to+'회('+x.why+')';}).join(', '),
     {t:'세션 피로',c:'neg'});
   var dv=vzDelta();
   if(dv.h)h+=vzCap('유효 세트 변동 · 페이스 대비')+dv.h;
   }
   if(tab==='bal'){
+  /* 눈금만 그려 놓고 맞았는지 틀렸는지는 앱이 아무 말도 안 했다. 55%가
+     목표라는 사실조차 화면에 글자로 없었다 — 눈금 하나가 서 있을 뿐이라
+     그것이 무슨 선인지 알 수 없다. 목표를 적고 어느 쪽이 모자란지 말한다. */
   function db(n,a,b2,tgt2){
     var t2=a+b2;if(!t2)return '';
-    var pa=Math.round(a*100/t2);
-    return '<div class="dl2"><span>'+n+'</span><span>'+a+' : '+b2+'</span></div>'
+    var pa=Math.round(a*100/t2),sp=n.split(' : '),vd;
+    if(pa<tgt2-8)vd='<em class="bvd neg">'+sp[0]+' 부족</em>';
+    else if(pa>tgt2+8)vd='<em class="bvd neg">'+sp[1]+' 부족</em>';
+    else vd='<em class="bvd pos">균형</em>';
+    return '<div class="dl2"><span>'+n+vd+'</span>'
+      +'<span>'+a+' : '+b2+' · 목표 '+tgt2+'%</span></div>'
       +'<div class="db2"><b style="width:'+pa+'%"></b><i class="ct"></i><i class="tg" style="left:'+tgt2+'%"></i></div>';
   }
   var pull=(sc.lt||0)+(sc.tm||0)+(sc.ut||0)+(sc.bi||0),push=(sc.uc||0)+(sc.mc||0)+(sc.ad||0)+(sc.tri||0);
@@ -5603,48 +5489,6 @@ function weekVolCardio(){
   }
   return Math.round(min);
 }
-function heroHtml(){
-  if(!hasLogs())return '';
-  var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
-  var PO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
-  var ws=wkSets(),pl=paceLeft(),sg=heroSignal();
-  var tot=0,tg=0,k;
-  for(k in WTGT){if(k==='CARDIO')continue;tg+=WTGT[k];tot+=(ws[k]||0);}
-  var pct=tg>0?Math.min(100,Math.round(tot*100/tg)):0;
-  var C=169.6,off=Math.round(C*(1-pct/100)*10)/10;
-  /* 링의 색은 달성률만 나타낸다. 경고는 옆의 태그가 이미 말하고 있는데
-     같은 도형에 겹쳐 두면 '99% 인데 빨간 링'처럼 서로 부딪힌다. */
-  var rc=pct>=100?'var(--pos)':'var(--acc-sf)';
-  /* 요일 보정이 없으니 월요일엔 늘 낮게 나온다. 지금이 주의 어디쯤인지
-     눈금으로 같이 보여야 '뒤처진 것'과 '아직 이른 것'이 구분된다. */
-  var pf=(((new Date().getDay()+6)%7)+1)/7;
-  var pa=pf*2*Math.PI;
-  var tk=[32+23*Math.cos(pa),32+23*Math.sin(pa),32+31*Math.cos(pa),32+31*Math.sin(pa)];
-  /* 일요일은 경과 100% 라 눈금이 12시로 돌아와 0% 자리와 겹친다.
-     그날은 링 한 바퀴가 곧 기준이므로 눈금을 그리지 않는다. */
-  var tkOn=pf<0.99;
-  var h='<div class="aihero">'
-    +'<div class="aircol"><div class="airing"><svg width="64" height="64" viewBox="0 0 64 64">'
-    +'<circle cx="32" cy="32" r="27" fill="none" stroke="rgba(var(--tx-rgb),.13)" stroke-width="6"/>'
-    +'<circle cx="32" cy="32" r="27" fill="none" stroke="'+rc+'" stroke-width="6" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/>'
-    +(tkOn?'<line x1="'+tk[0].toFixed(1)+'" y1="'+tk[1].toFixed(1)+'" x2="'+tk[2].toFixed(1)+'" y2="'+tk[3].toFixed(1)+'" stroke="rgba(var(--tx-rgb),.45)" stroke-width="1.5"/>':'')
-    +'</svg><div class="pc'+(pct>=100?' done':'')+'"><b>'+pct+'%</b><i>WEEK</i></div></div>'
-    +'<div class="rcap">'+tot+'/'+tg+' 세트</div></div>'
-    +'<div class="sigline">'
-    +'<span class="sigtag'+(sg.lv==='ok'?' ok':(sg.lv==='warn'?' warn2':''))+'">'+sg.tag+'</span>'
-    +'<div class="sigtxt">'+sg.line+'</div>'
-    +(sg.rec!==ANL?'<button class="sigrec" data-act="anlpick" data-v="'+sg.rec+'">→ '+ANLN[sg.rec]+' 추천</button>':'')
-    +'</div></div>';
-  var gb='';
-  for(var gi=0;gi<PO.length;gi++){
-    k=PO[gi];
-    if(!LMKP[k])continue;
-    gb+=lmRow(PN[k],ws[k]||0,LMKP[k]);
-  }
-  if(gb)gb='<div class="lmsec"><div class="lmcap">MAIN · 부위</div>'+gb
-    +'<div class="lmlg" data-act="hgo" data-v="goal"><i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV<em class="lmq">?</em></div></div>';
-  return h+gb+'<div style="height:6px"></div>';
-}
 /* ── Insights: 전체 이력 기반 로컬 시각화 ── */
 function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function aiDayTag(d){
@@ -5658,7 +5502,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 07:00';
+var BUILD='2026-09-08 08:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6467,7 +6311,9 @@ function computedFacts(){
   var pr=heroProg(),dl=deloadSignal();
   return {
     /* dow 는 월=0 인데 배열은 일요일부터 적혀 있었다 */
-    weekPhase:['초반','초반','중반','중반','중반','마감','결산'][dow],
+    /* '마감' 과 '결산' 은 토요일·일요일이라는 뜻인데 둘이 같은 말로 읽힌다.
+       기능도 똑같다 — 둘 다 vzVerdict 의 late 를 켠다. 갈라 적는다. */
+    weekPhase:['초반','초반','중반','중반','중반','막바지','마지막날'][dow],
     trainDaysPerWeek:n,
     elapsedTrainDays:E,
     remainTrainDays:Math.max(0,n-E),
@@ -6487,9 +6333,8 @@ function paceLeft(){
     var TR={},td3,WD=wkDates();
     for(td3=0;td3<7;td3++){
       var gd=(td3+1)%7; /* 월0→getDay1 */
-      /* 쉬기로 표시한 날은 분모에서 뺀다. 이 값을 heroSignal 의 뒤처짐
-         판정과 pgWhy 의 볼륨 문턱이 같이 쓰므로, 여기 하나를 안 고치면
-         네 군데가 같이 틀린다. */
+      /* 쉬기로 표시한 날은 분모에서 뺀다. 이 값을 vzVerdict 의 페이스 판정과
+         pgWhy 의 회피 규칙이 같이 쓰므로, 여기 하나를 안 고치면 함께 틀린다. */
       if(RD.indexOf(gd)<0&&!isOff(WD[td3]))TR[td3]=1;
     }
     var hasToday=hasTodayStrength();
@@ -6555,7 +6400,7 @@ function bhHead(body){
   return '<b class="bh">'+body.slice(0,ix)+'</b><em class="bd2">—</em>'+body.slice(ix+3);
 }
 /* ── 판정 ──
-   문턱은 전부 이미 코드에 있던 것을 그대로 쓴다. heroSignal 의 목표+3 초과,
+   문턱은 전부 이미 코드에 있던 것을 그대로 쓴다. 목표+3 초과,
    페이스 환산, 디로드 2종목, 연속 3일 — 새 숫자를 지어내지 않는다. */
 function vzVerdict(cur,goal){
   cur=+cur||0;goal=+goal||0;
@@ -6563,7 +6408,7 @@ function vzVerdict(cur,goal){
      '미기록' 이라 쓰면 세트를 다 채운 사람에게도 그렇게 뜬다. */
   if(!(goal>0))return {t:'목표 없음',c:''};
   var ph=(computedFacts()||{}).weekPhase||'';
-  var late=(ph==='마감'||ph==='결산');
+  var late=(ph==='막바지'||ph==='마지막날');
   if(!late){
     /* 주 중반에 목표와 그대로 맞대면 늘 미달로 보인다 — 경과분으로 환산한다.
        그러므로 이 판정은 '주 목표에 못 미쳤다' 가 아니라 '여기까지 왔어야 할
@@ -6637,10 +6482,6 @@ function vzLine(name,val,sub,vd){
 /* 판정 칩. AI 글에서는 aiStat 이 문자열을 되짚어 붙이느라
    '신규 진전 없음' 이 ['없음','정상'] 에 선매돼 초록이 됐다.
    앱이 그릴 때는 되짚을 이유가 없으므로 판정을 그대로 받는다. */
-function vzChip(vd){
-  if(!vd||!vd.t)return '';
-  return '<span class="st '+(vd.c||'')+'">'+esc(vd.t)+'</span>';
-}
 
 function aiFmt(txt,ck,ph){
   ck=ck||[];
@@ -7574,7 +7415,7 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'anlpick':
-      /* 옛 열쇠(heroSignal 의 rec 등)도 여기로 들어온다 — ANLMAP 으로 옮긴 뒤
+      /* 옛 열쇠도 여기로 들어온다 — ANLMAP 으로 옮긴 뒤
          그 모드가 속한 카테고리까지 같이 맞춘다. 안 맞추면 고른 모드와 위
          카테고리가 서로 다른 것을 가리킨다. */
       var nk=ANLMAP[v]||v;
