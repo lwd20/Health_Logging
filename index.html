@@ -1175,19 +1175,44 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   background:var(--tx);opacity:.75;transform:translateX(-1px)}
 /* 막대가 뜻을 갖지 않는 줄 */
 .ai-row.nb .ai-bar{display:none}
-/* 어디까지가 '지금 바로 보이는 것' 이고 어디부터가 '눌러야 나오는 것' 인지
-   화면에서 갈린다 */
-.vzhd{display:flex;align-items:baseline;gap:7px;margin:14px 2px 8px;
-  padding-bottom:6px;border-bottom:1px solid rgba(var(--tx-rgb),.1)}
-.vzhd span{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--tx)}
-.vzhd i{font-style:normal;margin-left:auto;font-size:9px;color:var(--dim)}
-.vzhd.ai span{color:var(--acc-br)}
-.vzts{display:flex;gap:3px;margin-bottom:4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.vzt{flex:1 1 0;min-width:44px;height:32px;border:var(--bw) solid rgba(var(--tx-rgb),.09);
-  border-radius:var(--rad-m);background:none;color:var(--dim);
-  font-size:10.5px;font-weight:700;white-space:nowrap}
-.vzt.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
+/* 두 덩어리. 평평하게 늘어놓으면 어디까지가 '지금 바로' 이고 어디부터가
+   'AI' 인지 알 수 없다 — 눈이 먼저 덩어리를 보고 그 다음 안을 본다. */
+.zsec{margin-top:12px;padding:12px 13px 13px;border-radius:var(--rad-card);
+  border:var(--bw) solid rgba(var(--tx-rgb),.1)}
+.zsec.ai{border-color:rgba(var(--acc-rgb),.34);background:rgba(var(--acc-rgb),.045)}
+.zhd{display:flex;align-items:baseline;margin:0 0 10px}
+.zhd b{font-size:10.5px;font-weight:800;letter-spacing:.16em;color:var(--tx)}
+.zsec.ai .zhd b{color:var(--acc-br)}
+/* AI 구역은 강조 틴트를 깔아 갈라 두는데, 그 틴트가 --dim 을 밀어 올려
+   다섯 팔레트에서 4.24~4.48 로 떨어졌다 — 틴트 위 흐린 글자는 이번이 세 번째다.
+   틴트는 살리고 글자를 한 단계 올린다. */
+.zhd i{font-style:normal;margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--mut)}
+.zsec .console{margin-top:0}
+/* 갈래 — 눈금이 아니라 보기 전환이므로 가볍게 */
+.vzts{display:flex;gap:2px;margin:0 0 4px}
+.vzt{flex:1 1 0;min-width:0;height:30px;border:0;border-radius:var(--rad-s);
+  background:none;color:var(--dim);font-size:10.5px;font-weight:700;white-space:nowrap}
+.vzt.on{background:rgba(var(--acc-rgb),.13);color:var(--acc-br);font-weight:800}
 .vzt:active{opacity:.6}
+/* 한 줄 — 이름 · 판정 · 숫자. 숫자를 판정 색으로 칠해 훑기만 해도 읽히게 */
+.zrow{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;
+  padding:9px 0;border-top:1px solid rgba(var(--tx-rgb),.06)}
+.zrow:first-of-type{border-top:0}
+.zrow .nm{font-size:13px;font-weight:700;color:var(--tx)}
+.zrow .st{font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--dim)}
+.zrow .num{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
+  color:var(--mut);font-variant-numeric:tabular-nums}
+.zrow .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
+.zrow .sub{flex:1 0 100%;font-size:10px;color:var(--dim);line-height:1.4}
+.zrow.pos .num,.zrow.pos .st{color:var(--pos)}
+.zrow.neg .num,.zrow.neg .st{color:var(--sig)}
+.zrow.warn .num,.zrow.warn .st{color:var(--acc-br)}
+.ztot{display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:9px;
+  border-top:1px solid rgba(var(--tx-rgb),.16);font-size:10px;font-weight:800;
+  letter-spacing:.12em;color:var(--dim)}
+.ztot .num{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
+  letter-spacing:0;color:var(--tx)}
+.ztot .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
 /* 지난 리포트를 볼 때만 붙는 그때 그림 — 맨 위 대시보드와 구별되게 */
 .vzold{margin-top:10px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.09);opacity:.85}
 .ai-load{margin:11px 1px 0;font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
@@ -2724,6 +2749,16 @@ function renderSheet(){
        붙여 더 낫게 그리므로 여기서 또 그리면 랜드마크가 위아래로 두 번 나온다.
        주간 소비(kcalHtml)만 대시보드에 자리가 없어 '몸' 갈래로 옮겼다. */
     var td=todayISO(),used=(AIC.d===td?AIC.n:0);
+    /* 지금 바로 보는 것 — 앱이 낸다 */
+    var isD=!!DIETMODES[ANL];
+    var vlist=isD?VZD:VZT,vcur=(isD?UI.vzd:UI.vzt)||vlist[0][0];
+    h+='<section class="zsec"><div class="zhd"><b>지금 바로</b><i>앱이 냄</i></div>'
+      +vzTabs(vlist,vcur,isD?'vzd':'vzt')
+      +anlViz(ANL,vcur)
+      +'</section>';
+    /* AI 것은 조작부부터 리포트까지 한 덩어리로 — 예전에는 버튼이 맨 위,
+       머리글이 중간, 결과가 아래여서 무엇이 AI 인지 알 수 없었다 */
+    h+='<section class="zsec ai"><div class="zhd"><b>AI 분석</b><i>하루 '+used+'/20</i></div>';
     h+='<div class="console">';
     h+='<div class="gmwrap">';
     h+='<button class="gmbtn'+(ANLOPEN?' open':'')+'" data-act="anlopen">'
@@ -2773,15 +2808,7 @@ function renderSheet(){
     h+='</div>';
     var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
     h+='<div id="aiOut" class="show">';
-    /* 숫자는 AI 와 무관하게 늘 그린다 — 키가 없어도, 20회를 다 써도,
-       호출이 실패해도 보여야 한다. 그것이 가르기의 요점이다.
-       다만 전부 펼치면 한 두루마리가 되므로 갈래로 나눈다. */
-    var isD=!!DIETMODES[ANL];
-    var vlist=isD?VZD:VZT,vcur=(isD?UI.vzd:UI.vzt)||vlist[0][0];
-    h+='<div class="vzhd"><span>지금 바로</span><i>앱이 냄 · 기다림 없음</i></div>';
-    h+=vzTabs(vlist,vcur,isD?'vzd':'vzt');
-    h+=anlViz(ANL,vcur);
-    h+='<div class="vzhd ai"><span>AI 분석</span><i>눌러야 나옴 · 하루 20회</i></div>';
+
     if(cur){
       h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'TRAINING PLAN')+'</span>'
         +'<span class="mt">'
@@ -2794,9 +2821,9 @@ function renderSheet(){
       if(AIVIEW>0&&cur.vz)h+='<div class="vzold">'+vzCap('그때 기록')+cur.vz+'</div>';
       h+=aiFmt(cur.o,cur.ck||[],cur.ph);
     }else if(!AIRUN){
-      h+='<div class="ai-empty">위 숫자는 앱이 직접 냄 · '+esc(ANLN[ANL]||'')+'은 아직 없음</div>';
+      h+='<div class="ai-empty">아직 없음 — 위 숫자는 눌러 보지 않아도 나옴</div>';
     }
-    h+='</div>';
+    h+='</div></section>';
   }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div>'+exFormHtml(false);
@@ -4950,7 +4977,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 11:00';
+var BUILD='2026-09-07 13:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -5856,23 +5883,27 @@ function vzBar(name,cur,goal,sub,vd,mark){
   var mk='';
   if(over)mk='<i class="gl" style="left:'+gp+'%"></i>';
   else if(mark){var pl=paceLeft();if(pl>0&&pl<100)mk='<i class="mk" style="left:'+pl+'%"></i>';}
-  return '<div class="ai-row"><div class="t"><span class="nm">'+esc(name)+'</span>'
-    +(vd?vzChip(vd):'')
-    +'<span class="num">'+cur+'<em>/'+goal+'</em></span></div>'
-    +'<div class="ai-bar'+(over?' ov':'')+'"><b style="width:'+fill+'%"></b>'+mk+'</div>'
-    +(sub?('<div class="ai-sub">'+esc(sub)+'</div>'):'')
+  /* 3px 막대가 여섯 줄 늘어서면 밝은 팔레트에서는 보이지도 않으면서 자리만
+     먹는다. 숫자 자체를 판정 색으로 칠하면 훑기만 해도 어디가 넘쳤는지 읽힌다.
+     세부 랜드마크는 자기 눈금이 있으므로 거기는 그대로 둔다. */
+  return '<div class="zrow'+(vd&&vd.c?' '+vd.c:'')+'">'
+    +'<span class="nm">'+esc(name)+'</span>'
+    +(vd&&vd.t?'<span class="st">'+esc(vd.t)+'</span>':'')
+    +'<span class="num">'+cur+'<em>/'+goal+'</em></span>'
+    +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')
     +'</div>';
 }
 function vzTotal(label,cur,goal){
-  return '<div class="ai-total"><span>'+esc(label)+'</span>'
+  return '<div class="ztot"><span>'+esc(label)+'</span>'
     +'<span class="num">'+(+cur||0)+'<em>/'+(+goal||0)+'</em></span></div>';
 }
 /* 값 대신 사실 한 줄. 막대가 뜻을 갖지 않는 것들(연속일, 정체 종목 등) */
 function vzLine(name,val,sub,vd){
-  return '<div class="ai-row nb"><div class="t"><span class="nm">'+esc(name)+'</span>'
-    +(vd?vzChip(vd):'')
-    +'<span class="num">'+esc(String(val==null?'':val))+'</span></div>'
-    +(sub?('<div class="ai-sub">'+esc(sub)+'</div>'):'')+'</div>';
+  return '<div class="zrow'+(vd&&vd.c?' '+vd.c:'')+'">'
+    +'<span class="nm">'+esc(name)+'</span>'
+    +(vd&&vd.t?'<span class="st">'+esc(vd.t)+'</span>':'')
+    +'<span class="num">'+esc(String(val==null?'':val))+'</span>'
+    +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')+'</div>';
 }
 /* 판정 칩. AI 글에서는 aiStat 이 문자열을 되짚어 붙이느라
    '신규 진전 없음' 이 ['없음','정상'] 에 선매돼 초록이 됐다.
