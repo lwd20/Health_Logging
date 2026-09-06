@@ -402,7 +402,15 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
 .hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
-.hdate>em.none{color:var(--dim)}
+/* '운동 없음' 은 누르면 '쉬는 날' 이 된다. 글자만 두면 눌리는 줄 모르므로
+   테두리를 준다 — 켜지면 강조색으로 채워 한눈에 갈린다(틴트로는 팔레트에
+   따라 켜진 티가 안 난다). 세로 여백은 음수 마진으로 되돌려 줄 높이를
+   안 늘리면서 누를 자리만 넓힌다. */
+.doff{border:1px solid rgba(var(--tx-rgb),.22);border-radius:var(--rad-s);
+  padding:11px 9px;margin:-8px 0;font-size:11px;font-weight:700;color:var(--mut);
+  letter-spacing:.04em}
+.doff:active{opacity:.6}
+.doff.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc)}
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
    이 줄은 아래 큰 숫자에 자리를 내주고 물러난다. */
 .hdate em{font-size:11px;color:var(--dim);font-weight:700;margin-left:3px}
@@ -2138,7 +2146,11 @@ function render(){
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'<em class="none">운동 없음</em>');
+    /* 기록이 없는 날에만 나온다 — 세트가 있으면 쉰 날이 아니므로 고를
+       것도 없다. 눌러서 '계획해서 쉬었다' 와 '그냥 안 했다' 를 가른다. */
+    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
+        :'<button class="doff'+(isOff(UI.wd)?' on':'')+'" data-act="off">'
+          +(isOff(UI.wd)?'쉬는 날':'운동 없음')+'</button>');
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">첫 인바디 기록 추가 ▸</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
@@ -2195,7 +2207,18 @@ function partDot(part){
   var set=partDays(part);
   if(set[0])return '';
   if(DOT.r){var hot=true,i;for(i=1;i<=DOT.rd;i++)if(!set[i]){hot=false;break;}if(hot)return 'hot';}
-  if(DOT.y){var st2=true,j;for(j=1;j<=DOT.yd;j++)if(set[j]){st2=false;break;}if(st2)return 'stale';}
+  /* 쉬기로 한 날은 방치가 아니다 — DOT.yd 가 기본 2라 이틀만 쉬면 다섯
+     부위에 전부 방치 경고가 붙었다. 쉰 날은 건너뛰고 훈련할 수 있었던
+     날만 센다. 빨간 점(연속 수행)은 손대지 않는다 — 쉬면 연속이 실제로
+     끊기므로 지금 동작이 맞다. */
+  if(DOT.y){
+    var st2=true,j2=1,cnt=0;
+    while(cnt<DOT.yd&&j2<=DOT.yd+14){
+      if(!isOff(dsAgo(j2))){if(set[j2]){st2=false;break;}cnt++;}
+      j2++;
+    }
+    if(st2&&cnt>=DOT.yd)return 'stale';
+  }
   return '';
 }
 function renderChips(){
@@ -3608,6 +3631,55 @@ function subName(k){
   return '';
 }
 var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
+/* 날짜별 휴식. RD 는 '보통 무슨 요일에 쉬나' 이고 이것은 '그 날 실제로
+   쉬었나' 다. 둘을 구분하지 못하면 기록이 없는 날이 전부 한 가지로 보여
+   계획해서 쉰 날과 빼먹은 날이 같은 취급을 받는다. */
+var OFF={};
+function offSave(){
+  if(!canLS)return;
+  /* 한 해가 지나면 지난 것은 셈에 안 쓰인다 — 400일만 남긴다.
+     하루 12바이트라 400일이면 5KB 남짓이다. */
+  var lim=new Date();lim.setDate(lim.getDate()-400);
+  var li=lim.getFullYear()+'-'+('0'+(lim.getMonth()+1)).slice(-2)+'-'+('0'+lim.getDate()).slice(-2);
+  var k,n={};
+  for(k in OFF)if(OFF[k]&&k>=li)n[k]=1;
+  OFF=n;
+  try{localStorage.setItem(KEY+'.off',JSON.stringify(OFF));}catch(e){}
+  /* save() 를 부르면 demoClear() 가 샘플을 날리므로 미러만 직접 민다.
+     안드로이드 미러는 재해 복구 경로가 읽는 사본이라, 쉬는 날만 켜고
+     세트를 안 넣으면 거기 안 들어간 채로 남는다. */
+  try{mirrorPush(true);}catch(e){}
+}
+/* 그 날 세트가 하나라도 있으면 쉰 날이 아니다. 표시를 켜 둔 뒤 기록하면
+   둘이 어긋나는데, 지우러 다니는 대신 읽을 때 기록을 우선한다. */
+function dayLogged(ds){
+  var k,se;
+  for(k in S.l){se=sessOn(k,ds);if(se&&se.s&&se.s.length)return true;}
+  return false;
+}
+function isOff(ds){return !!(OFF[ds]&&!dayLogged(ds));}
+/* daysAgo 의 역 — n일 전의 날짜 */
+function dsAgo(n){
+  var d=new Date();d.setDate(d.getDate()-n);
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
+/* 이번 주 월~일 날짜. computedFacts·paceLeft 가 저마다 같은 셈을 했다 */
+function wkDates(){
+  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now),o=[],i,t;
+  mon.setDate(now.getDate()-dow);
+  for(i=0;i<7;i++){
+    t=new Date(mon);t.setDate(mon.getDate()+i);
+    o.push(t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2));
+  }
+  return o;
+}
+/* 이번 주에 쉬기로 표시한 날 수 — 원래 훈련일이던 것만 센다.
+   월·목은 어차피 훈련일이 아니라 표시해도 달라지는 것이 없다. */
+function wkOffCount(){
+  var W=wkDates(),n=0,i;
+  for(i=0;i<7;i++)if(RD.indexOf((i+1)%7)<0&&isOff(W[i]))n++;
+  return n;
+}
 (function(){
   if(!canLS)return;
   try{var h=Math.floor(+localStorage.getItem(KEY+'.hrm'));if(h>=120&&h<=220)HRM=h;}catch(e){}
@@ -3634,12 +3706,19 @@ var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
     var rd2=JSON.parse(localStorage.getItem(KEY+'.rd')||'null');
     if(Array.isArray(rd2)){rd2=rd2.filter(function(x){return x>=0&&x<=6;});if(rd2.length<7)RD=rd2;}
   }catch(e){}
+  try{
+    var of2=JSON.parse(localStorage.getItem(KEY+'.off')||'null');
+    if(of2&&typeof of2==='object'&&!Array.isArray(of2)){
+      var ok;
+      for(ok in of2)if(of2[ok]&&/^\d{4}-\d{2}-\d{2}$/.test(ok))OFF[ok]=1;
+    }
+  }catch(e){}
 })();
 function bkText(){
   var S2=DEMO?{m:S.m,l:demoStrip(S.l)}:S;
   return JSON.stringify({v:2,S:S2,cfg:{
     wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
-    st:{v:2,t:STG},rd:RD,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT
   }});
 }
 function applyBackup(o){
@@ -3679,6 +3758,11 @@ function applyBackup(o){
         }
       }
       if(Array.isArray(c.rd)){var r2=c.rd.filter(function(x){return x>=0&&x<=6;});if(r2.length<7)RD=r2;}
+      /* 옛 백업에는 off 가 없다 — 없으면 손대지 않는다(지우지도 않는다) */
+      if(c.off&&typeof c.off==='object'&&!Array.isArray(c.off)){
+        OFF={};
+        for(var ok2 in c.off)if(c.off[ok2]&&/^\d{4}-\d{2}-\d{2}$/.test(ok2))OFF[ok2]=1;
+      }
       if(Array.isArray(c.bh))bhSave(c.bh.filter(function(x){return x&&x.d&&+x.w>0&&+x.f>0;}));
       if(typeof c.pr==='string')PR=c.pr;
       if(c.dot&&typeof c.dot==='object'){
@@ -3699,6 +3783,7 @@ function applyBackup(o){
           localStorage.setItem(KEY+'.wr',String(WR));
           localStorage.setItem(KEY+'.st',JSON.stringify(STG));
           localStorage.setItem(KEY+'.rd',JSON.stringify(RD));
+          localStorage.setItem(KEY+'.off',JSON.stringify(OFF));
           localStorage.setItem(KEY+'.pr',PR);
         }catch(e5){}
       }
@@ -4262,7 +4347,7 @@ var ANLD={
 };
 var ANLG=[{name:'ANALYSIS',items:['plan','meal']}];
 var ANLDEF={
- plan:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 이미 끝낸 값이다. 숫자와 판정은 화면이 그리고 있으므로 다시 나열하지 말고 결정만 내려라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[평가]\n- 목표 미달 부위 중 간접 기여 세트로 메워지는 곳은 부족이라 쓰지 말고 제외한 이유를 한 줄로 씀.\n- 계획 요일과 실제 수행 요일이 어긋난 부위가 있으면 한 줄. 없으면 생략함.\n- 잘한 점 한 줄. 개선 후보 중 이번 주에 가장 값진 것 하나만 고름.\n\n[처방]\n- 남은 세션에 넣거나 뺄 것을 (요일, 부위, ±세트) 형식으로 최대 3줄. 남은 세션이 없으면 다음 주 기준으로 씀.\n- 늘릴 곳을 정하면 줄일 곳도 함께 씀 — 감량기에는 총량을 늘리지 않음.\n- 정체·퇴행 종목은 무게 유지 / 5% 재빌드 / 반복 상향 중 하나를 골라 한 줄씩, 최대 2종목. 옷맵시 핵심 종목을 먼저 다룸.\n- 이미 수행한 볼륨을 줄이라고 쓰지 않음.\n\n[한 줄]\n- 이번 주 가장 먼저 손댈 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
+ plan:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 이미 끝낸 값이다. 숫자와 판정은 화면이 그리고 있으므로 다시 나열하지 말고 결정만 내려라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[평가]\n- 목표 미달 부위 중 간접 기여 세트로 메워지는 곳은 부족이라 쓰지 말고 제외한 이유를 한 줄로 씀.\n- 계획 요일과 실제 수행 요일이 어긋난 부위가 있으면 한 줄. 없으면 생략함.\n- 이번주쉰날은 본인이 쉬기로 정한 날이라 잔여훈련일에서 이미 빠져 있음. 빠진 훈련으로 세지 않음.\n- 잘한 점 한 줄. 개선 후보 중 이번 주에 가장 값진 것 하나만 고름.\n\n[처방]\n- 남은 세션에 넣거나 뺄 것을 (요일, 부위, ±세트) 형식으로 최대 3줄. 남은 세션이 없으면 다음 주 기준으로 씀.\n- 늘릴 곳을 정하면 줄일 곳도 함께 씀 — 감량기에는 총량을 늘리지 않음.\n- 정체·퇴행 종목은 무게 유지 / 5% 재빌드 / 반복 상향 중 하나를 골라 한 줄씩, 최대 2종목. 옷맵시 핵심 종목을 먼저 다룸.\n- 이미 수행한 볼륨을 줄이라고 쓰지 않음.\n\n[한 줄]\n- 이번 주 가장 먼저 손댈 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
  meal:'당신은 감량기 식단 코치다. 남은 몫과 끼니 소계는 화면이 이미 그린다. 무엇을 먹을지만 정하라.\n전제: 감량기, 근손실 방지 최우선, 한국에서 흔히 구할 수 있는 음식.\n\n[다음 끼니]\n- 단백질 반찬 하나, 밥·면 하나, 채소 하나를 1인분 그램과 대략 열량으로 씀. 최대 3줄.\n- 남은 단백질이 많으면 단백질 위주, 남은 열량이 적으면 부피 큰 저열량 위주, 오늘 훈련했으면 탄수를 앞에 둠.\n- 안 먹은 끼니가 없거나 지금이 그 끼니를 먹을 때가 아니면 이 섹션을 통째로 생략함.\n\n[줄일 곳]\n- 오늘 목표를 넘겼을 때만 씀. 초과를 밀어올린 끼니를 짚고 무엇을 얼마나 덜었으면 됐는지 한 줄씩 최대 2줄. 넘기지 않았으면 이 섹션을 통째로 생략함.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 기록에 없는 것을 먹었다고 가정하지 않음. 훈련 부위·종목은 언급하지 않음. 한 줄 25자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n'
 };
 function hasTodayStrength(){
@@ -4279,9 +4364,13 @@ function hasTodayStrength(){
 var GLOS='아래 값은 앱이 판정을 끝낸 결과다. 세트 원본과 종목 이력은 넘기지 않는다.\n'
   +'vd 는 앱이 붙인 판정이고 화면에 이미 칩으로 떠 있다 — 옮겨 적지 말고 뒤집거나 순위를 매길 때만 인용함.\n';
 function anlPrompt(){
+  /* 쉬기로 한 날에 '오늘 세션에서 바로 실행하라' 고 시키면 AI 가 쉬는 날에
+     운동을 처방한다. 기록이 없는 것과 쉬기로 한 것은 다른 말이다. */
   var ph=hasTodayStrength()
     ?'실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방은 다음 세션 기준으로 씀.\n'
-    :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방은 오늘 세션에서 바로 실행할 항목으로 씀.\n';
+    :(isOff(todayISO())
+      ?'실행 시점: 오늘은 본인이 쉬기로 정한 날임. 오늘 할 것을 시키지 말고 처방은 다음 훈련일 기준으로 씀.\n'
+      :'실행 시점: 오늘 세션 기록 없음(운동 전). 처방은 오늘 세션에서 바로 실행할 항목으로 씀.\n');
   var base=(ANL==='plan'&&PR)?PR:(ANLDEF[ANL]||'');
   /* 주 중반에는 [이행]·[감량] 을 프롬프트에서 물리적으로 잘라낸다.
      문구로만 '생략하라' 고 하면 없는 자료로 지어낸다. */
@@ -4492,7 +4581,14 @@ function pgSubAvg(sk,cx){
     for(j=0;j<a2.length;j++)
       if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n;
   }
-  cx.sa[sk]=Math.round(t/wk*10)/10;
+  /* 늘 4로 나누면 한 주를 통째로 쉬었을 때 평균이 실제의 4분의 3으로
+     희석돼 MEV 미만으로 오진된다. 훈련할 수 있었던 날이 하나도 없던 주는
+     분모에서 뺀다. */
+  var act=0,wi,di;
+  for(wi=0;wi<wk;wi++){
+    for(di=0;di<7;di++)if(!isOff(dsAgo(wi*7+di))){act++;break;}
+  }
+  cx.sa[sk]=Math.round(t/Math.max(1,act)*10)/10;
   return cx.sa[sk];
 }
 /* 같은 이름이 둘이면 어느 쪽인지 알 수 없다 — Standing Lateral Raise 가
@@ -4530,7 +4626,14 @@ function pgWhy(m,a,cx,sc){
   if(ago>=21)return {c:'공백',w:'마지막 기록 '+ago+'일 전 · 디트레이닝 구간',drop:false};
   if(a.length>1){
     var g01=pgGapD(a[0],a[1]);
-    if(g01>=10)return {c:'공백',w:'간격 '+g01+'일 · 자극 공백',drop:false};
+    /* '자극 공백' 은 프로그래밍이 비었다는 주장이라 달력이 아니라 훈련할
+       수 있었던 날로 세야 한다 — 그 사이 사흘을 쉬기로 했으면 건너뛴
+       기회는 그만큼 적다. 바로 위 디트레이닝(ago>=21)은 반대로 달력
+       그대로다: 근육은 왜 쉬었는지 모른다. */
+    var gv=g01,gb=daysAgo(a[0].d),gi;
+    for(gi=1;gi<g01;gi++)if(isOff(dsAgo(gb+gi)))gv--;
+    if(gv>=10)return {c:'공백',w:'훈련 가능 '+gv+'일 비어 있음'
+      +(gv<g01?' (달력 '+g01+'일)':''),drop:false};
   }
   var w28=0;
   for(i=0;i<a.length;i++)if(daysAgo(a[i].d)<28)w28++;
@@ -4746,7 +4849,8 @@ function heroSignal(){
     /* 칼로리는 바로 아래 TDEE 에 이미 있다 — 같은 숫자를 두 번 적지 않는다 */
     seg.push('오늘 '+pp.join('·')+'세트');
   }else{
-    seg.push('오늘 미기록');
+    /* 미기록은 '안 적었다' 는 말이고 쉬는 날은 '적을 것이 없다' 는 말이다 */
+    seg.push(isOff(td)?'오늘 휴식':'오늘 미기록');
   }
 
   /* 2) 가장 시급한 신호 하나 */
@@ -5067,7 +5171,9 @@ function vzTrain(tab){
   var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
   h+=vzBar('유산소',wc.z2,ctg,wc.days+'회'+(wc.neat>0?' · 걷기 '+wc.neat+'분 별도':''),
            vzVerdict(wc.z2,ctg),false);
-  h+=vzTotal('TOTAL · 수행 '+wkTrainDays()+'일',tot,tgt);
+  /* '수행 3일' 만 적으면 계획이 5일인데 셋만 한 것인지, 이틀을 쉬기로 해서
+     셋이 계획이자 실적인지가 안 보인다 */
+  h+=vzTotal('TOTAL · 수행 '+wkTrainDays()+'/'+((computedFacts()||{}).trainDaysPerWeek||0)+'일',tot,tgt);
   }
   if(tab==='sub'){
   /* 세부 랜드마크 */
@@ -5473,7 +5579,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-07 20:30';
+var BUILD='2026-09-07 22:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6099,7 +6205,10 @@ function planPayload(){
   }}catch(e){}
   return {
     주단계:cf.weekPhase,경과훈련일:cf.elapsedTrainDays,잔여훈련일:cf.remainTrainDays,
-    휴식요일:RD,실제훈련일:wkTrainDays(),
+    /* 날짜 목록은 안 보낸다 — 세는 값이면 판단에 충분하고, 날짜 맵을
+       통째로 흘리면 페이로드가 부풀기만 한다 */
+    휴식요일:RD.map(function(x){return '일월화수목금토'.charAt(x);}),
+    실제훈련일:wkTrainDays(),이번주쉰날:wkOffCount(),오늘쉬는날:isOff(todayISO()),
     부위:parts,손댈세부:subs,
     진전:nm(pr.upL),정체:nm(pr.stL),퇴행:nm(pr.dnL),보류:nm(pr.holdL),
     빈도:wkDaysByPart(),
@@ -6133,6 +6242,8 @@ function mealPayload(){
           남은단백질:Math.round(t.proteinLeft||0),
           안먹은끼니:t.missingMeals,먹은끼니:t.eatenMeals,끼니별:t.byMeal},
     오늘운동:dayExKcal(todayISO())>0,
+    /* 쉬는 날은 소비가 낮다 — 안 보내면 훈련일과 같은 몫을 권한다 */
+    오늘쉬는날:isOff(todayISO()),
     페이스:(function(){var p=paceCalc(BW,BF,GF);return p.ok?p.tag:'';})(),
     끝난날평균:nf.completedDaysCount>0?{일수:nf.completedDaysCount,
       섭취:Math.round(nf.completedDaysAvgIntake),목표:Math.round(nf.completedDaysAvgTarget)}:null
@@ -6233,8 +6344,10 @@ function nutriFacts(){
 /* 앱이 확정한 파생 지표 — AI가 다시 계산하다 틀리는 것을 막기 위해 그대로 전달함 */
 function computedFacts(){
   var now=new Date(),dow=(now.getDay()+6)%7;
-  var TR={},n=0,d;
-  for(d=0;d<7;d++){var gd=(d+1)%7;if(RD.indexOf(gd)<0){TR[d]=1;n++;}}
+  var TR={},n=0,d,WD=wkDates();
+  /* 쉬기로 표시한 날은 애초에 훈련일이 아니다 — 분모에서 빼지 않으면
+     쉰 만큼 잔여가 부풀고 페이스가 미달로 잡힌다 */
+  for(d=0;d<7;d++){var gd=(d+1)%7;if(RD.indexOf(gd)<0&&!isOff(WD[d])){TR[d]=1;n++;}}
   /* 걷기 30분을 훈련일로 세면 남은 훈련일이 하나 사라진다.
      근력 기준은 이미 hasTodayStrength() 가 갖고 있다 */
   var hasToday=hasTodayStrength();
@@ -6262,10 +6375,13 @@ function paceLeft(){
   try{
     var now=new Date();
     var dow=(now.getDay()+6)%7; /* 월=0 */
-    var TR={},td3;
+    var TR={},td3,WD=wkDates();
     for(td3=0;td3<7;td3++){
       var gd=(td3+1)%7; /* 월0→getDay1 */
-      if(RD.indexOf(gd)<0)TR[td3]=1;
+      /* 쉬기로 표시한 날은 분모에서 뺀다. 이 값을 heroSignal 의 뒤처짐
+         판정과 pgWhy 의 볼륨 문턱이 같이 쓰므로, 여기 하나를 안 고치면
+         네 군데가 같이 틀린다. */
+      if(RD.indexOf(gd)<0&&!isOff(WD[td3]))TR[td3]=1;
     }
     var hasToday=hasTodayStrength();
     var TN=0,d3;
@@ -6971,6 +7087,16 @@ document.addEventListener('click',function(e){
     case 'tg':
       openRow(v);UI.sheet='ex';render();
       break;
+    case 'off':
+      /* 세트가 있는 날에는 단추가 안 나오지만, 그 사이 기록이 들어왔을
+         수도 있으므로 한 번 더 막는다 */
+      if(dayLogged(UI.wd)){toast('기록이 있는 날은 쉬는 날로 둘 수 없음');break;}
+      if(OFF[UI.wd])delete OFF[UI.wd];else OFF[UI.wd]=1;
+      offSave();render();
+      toast(OFF[UI.wd]
+        ?'<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐'
+        :'쉬는 날 해제');
+      break;
     case 'd-':shiftDay(-1);break;
     case 'd+':shiftDay(1);break;
     case 'd0':if(setWd(today()))render();break;
@@ -7033,7 +7159,7 @@ document.addEventListener('click',function(e){
         if(UNDO.logs)S.l[UNDO.m.i]=UNDO.logs;
         UNDO=null;save();render();toast('<em>Restored</em>');
       }else if(UNDO&&UNDO.kind==='all'){
-        S=UNDO.s;UNDO=null;save();render();toast('<em>Restored</em>');
+        S=UNDO.s;if(UNDO.off)OFF=UNDO.off;offSave();UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
     case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editCt='tread';UI.pickOpen='';render();break;
@@ -7488,9 +7614,11 @@ document.addEventListener('click',function(e){
       break;
     case 'rs':
       if(UI.arm==='rs'){
-        UNDO={kind:'all',s:S};
-        if(canLS){try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+'.d');localStorage.removeItem(KEY+'.bk');}catch(err){}}
-        mem=null;S=load();
+        /* OFF 는 설정이 아니라 날짜 데이터라 S 와 함께 지운다.
+           UNDO 에 같이 담지 않으면 되돌려도 쉬는 날만 안 돌아온다. */
+        UNDO={kind:'all',s:S,off:OFF};
+        if(canLS){try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+'.d');localStorage.removeItem(KEY+'.bk');localStorage.removeItem(KEY+'.off');}catch(err){}}
+        mem=null;S=load();OFF={};
         UI.open=null;UI.sheet=null;UI.arm=null;UI.draft={};UI.dirty={};
         render();
         toast('<em>Reset</em> <button class="tundo" data-act="un">UNDO</button>',8000);
