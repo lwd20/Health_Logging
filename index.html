@@ -1304,6 +1304,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);color:var(--mut)}
 .sxb.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .sxb:active{opacity:.6}
+.skhd{display:flex;align-items:baseline;gap:6px}
 .sxadd{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:800;
   border:var(--bw) dashed rgba(var(--tx-rgb),.25);background:none;color:var(--dim)}
 .ai-sub{margin-top:5px;font-size:11px;color:var(--dim)}
@@ -2020,7 +2021,7 @@ var LS_WAS_EMPTY=(function(){
   try{return canLS&&!localStorage.getItem(KEY);}catch(e){return false;}
 })();
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -5511,9 +5512,17 @@ function clsCheckHtml(){
       manual:subValid(m.sk)});
   }
   if(!tot)return '';
-  var h='<div class="sh-l" style="margin-top:16px">주동근 정리'
+  /* 손봐야 할 것 = 미분류 + 다른 부위의 근육으로 잡힌 것.
+     이 목록을 보러 오는 이유가 그것이고, 제대로 잡힌 것은 평소에 볼 일이 없다. */
+  var nfix=0,pi0;
+  for(pi0 in byP)byP[pi0].forEach(function(r){if(r.none||r.oth)nfix++;});
+  var all=!!UI.skAll;
+  var h='<div class="sh-l skhd" style="margin-top:16px">주동근 정리'
     +'<span style="font-weight:400;letter-spacing:0;color:'+(nbad?'var(--sig)':'var(--dim)')+'"> '
-    +(nbad?nbad+'개 미분류 — 눌러서 지정':tot+'개 전부 분류됨 — 눌러서 수정')+'</span></div>';
+    +(nbad?nbad+'개 미분류':(nfix?nfix+'개 확인 필요':tot+'개 전부 분류됨'))+'</span>'
+    +'<button class="sxadd" style="margin-left:auto" data-act="skall">'
+    +(all?'접기':'전체 '+tot+'개')+'</button></div>';
+  if(!all&&!nfix)h+='<div class="note" style="margin:0 0 4px">손볼 것이 없음 — 전체를 보려면 위를 누름</div>';
   for(var pi=0;pi<ORD.length;pi++){
     var P2=ORD[pi],rows=byP[P2];
     if(!rows||!rows.length)continue;
@@ -5522,9 +5531,14 @@ function clsCheckHtml(){
       var av=(a.none?0:(a.oth?1:2)),bv=(b.none?0:(b.oth?1:2));
       return av!==bv?av-bv:(a.m.n<b.m.n?-1:1);
     });
-    h+='<div class="bhd" style="margin-top:11px">'+(PN4[P2]||P2)+'<i>'+rows.length+'</i></div>';
-    for(i=0;i<rows.length;i++){
-      var r=rows[i],id=r.m.i,open=(UI.skOpen===id);
+    /* 펼치지 않았으면 손볼 것만. 부위 머리글도 보여 줄 줄이 있을 때만 —
+       안 그러면 빈 머리글 다섯이 남는다. */
+    var show=all?rows:rows.filter(function(x){return x.none||x.oth;});
+    if(!show.length)continue;
+    h+='<div class="bhd" style="margin-top:11px">'+(PN4[P2]||P2)
+      +'<i>'+show.length+(all?'':' / '+rows.length)+'</i></div>';
+    for(i=0;i<show.length;i++){
+      var r=show[i],id=r.m.i,open=(UI.skOpen===id);
       h+='<div class="ckrow'+(r.none?' bad':(r.oth?' oth':''))+'" data-act="sko" data-v="'+id+'">'
         +'<span class="nm2">'+esc(r.m.n)+(r.m.b?' '+esc(r.m.b):'')+'</span>'
         +'<span class="au">'+(r.manual?'지정':'자동')+'</span>'
@@ -6180,7 +6194,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 13:00';
+var BUILD='2026-09-09 13:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8153,6 +8167,7 @@ document.addEventListener('click',function(e){
       for(di=0;di<S.m.length;di++)if(S.m[di].sk===v)delete S.m[di].sk;
       subxSave();save();render();break;
     }
+    case 'skall':UI.skAll=!UI.skAll;UI.skOpen='';render();break;
     /* 누르면 그 자리에서 열린다. 같은 것을 다시 누르면 닫힌다 */
     case 'sko':UI.skOpen=(UI.skOpen===v?'':v);render();break;
     case 'skset':{
