@@ -1,21 +1,97 @@
-MIT License
+PLUS2.5 — 독점 소프트웨어 라이선스
+PLUS2.5 — Proprietary Software License
 
-Copyright (c) 2026 lwd20
+Copyright (c) 2026 lwd20. All rights reserved.
+저작권자 lwd20. 모든 권리를 보유합니다.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+─────────────────────────────────────────────────────────────────────
+한국어
+─────────────────────────────────────────────────────────────────────
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+이 저장소의 모든 소스 코드, 디자인, 문서, 이미지 및 그 밖의 자료(이하
+"본 소프트웨어")에 대한 저작권은 저작권자에게 있습니다.
+
+본 소프트웨어는 소스 코드가 공개되어 있으나, 오픈 소스가 아닙니다.
+공개는 열람을 위한 것일 뿐이며 이용 허락을 의미하지 않습니다.
+
+1. 허용되는 것
+   - 열람 및 학습 목적의 읽기
+   - 저작권자에게 제보하기 위한 목적의 인용
+
+2. 저작권자의 사전 서면 동의 없이 금지되는 것
+   - 복제, 배포, 전송, 전시, 공중송신
+   - 2차적 저작물 작성(수정, 번안, 이식, 파생 앱 제작)
+   - 상업적 또는 비상업적 이용
+   - 애플리케이션 마켓(Google Play, App Store 등)에의 등록
+   - 본 소프트웨어의 전부 또는 일부를 다른 소프트웨어에 포함시키는 행위
+   - 재라이선스 또는 판매
+
+3. 상표 및 명칭
+   "PLUS2.5" 및 관련 아이콘·로고에 대한 권리는 저작권자에게 있으며,
+   본 라이선스는 그에 대한 어떠한 이용 권한도 부여하지 않습니다.
+
+4. 보증의 부인 및 책임의 제한
+   본 소프트웨어는 어떠한 명시적·묵시적 보증 없이 "있는 그대로" 제공됩니다.
+   본 소프트웨어는 건강 및 운동 기록을 돕기 위한 것으로, 의료기기가 아니며
+   의학적 진단·치료·처방을 제공하지 않습니다. 본 소프트웨어의 이용 또는
+   이용 불능으로 발생한 어떠한 손해에 대해서도 저작권자는 책임을 지지
+   않습니다.
+
+5. 문의
+   위 금지 사항에 해당하는 이용을 원하시는 경우 저작권자에게 문의하십시오.
+
+
+─────────────────────────────────────────────────────────────────────
+English
+─────────────────────────────────────────────────────────────────────
+
+All source code, design, documentation, images and other materials in this
+repository (the "Software") are the copyrighted work of the copyright holder.
+
+The Software is source-available but is NOT open source. Public visibility of
+the source is provided for inspection only and does not grant any license to
+use it.
+
+1. Permitted
+   - Viewing and reading the source for personal study
+   - Quoting excerpts for the purpose of reporting an issue to the author
+
+2. Prohibited without the prior written permission of the copyright holder
+   - Copying, distribution, transmission, public display or public performance
+   - Creating derivative works (modification, adaptation, porting, forks
+     intended for use rather than for submitting changes back)
+   - Commercial or non-commercial use
+   - Submission to any application marketplace (Google Play, App Store, etc.)
+   - Incorporating any part of the Software into other software
+   - Sublicensing or sale
+
+3. Trademarks
+   "PLUS2.5" and its associated icons and logos are the property of the
+   copyright holder. This license grants no rights in them.
+
+4. Disclaimer of warranty and limitation of liability
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED. The Software is a training and health logging aid. It is not a
+   medical device and does not provide medical diagnosis, treatment or advice.
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY ARISING FROM THE USE OF OR INABILITY TO USE THE SOFTWARE.
+
+5. Contact
+   For any use falling outside the permissions above, contact the copyright
+   holder.
+
+
+─────────────────────────────────────────────────────────────────────
+이전 라이선스에 관한 고지 / Note on the previous license
+─────────────────────────────────────────────────────────────────────
+
+2026년 9월 7일 이전에 이 저장소는 MIT 라이선스로 공개되어 있었습니다.
+그 기간에 배포된 판본에 대한 MIT 라이선스는 소급하여 철회할 수 없으며,
+그 시점까지의 코드를 이미 취득한 자에 대해서는 계속 유효합니다.
+본 라이선스는 2026년 9월 7일 이후의 판본에 적용됩니다.
+
+Prior to 7 September 2026 this repository was published under the MIT License.
+That grant cannot be revoked retroactively and remains valid for anyone who
+obtained a copy of the code before that date. This license governs all
+versions published on or after 7 September 2026.
