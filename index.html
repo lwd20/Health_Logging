@@ -5947,7 +5947,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 06:15';
+var BUILD='2026-09-09 06:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8207,12 +8207,26 @@ function buildPing(force){
   if(!force&&now-BTAGT<600000)return;   /* 10분에 한 번이면 넉넉하다 */
   BTAGT=now;
   try{
-    fetch('index.html',{method:'HEAD',cache:'no-cache'}).then(function(r){
-      var t=r.headers.get('ETag')||r.headers.get('Last-Modified')||'';
-      if(!t)return;
-      if(!BTAG){BTAG=t;return;}          /* 처음 본 값이 기준 */
-      if(t!==BTAG)newBuild();
-    }).catch(function(){});
+    /* ETag 만 보던 것은 '켜 둔 사이에 바뀌었나' 만 답한다. 처음 본 값을
+       기준으로 삼기 때문에, 이미 옛 판으로 시작했으면 서버가 아무리
+       새것이어도 영영 안 뜬다 — 실제로 그렇게 며칠 묵은 판을 봤다.
+       version.txt 에 그 판의 BUILD 를 적어 두고 지금 돌고 있는 BUILD 와
+       바로 견준다. 언제 켰는지와 무관하게 낡았으면 낡았다고 나온다. */
+    fetch('version.txt',{cache:'no-cache'}).then(function(r){
+      if(!r.ok)throw 0;
+      return r.text();
+    }).then(function(t){
+      t=(t||'').trim();
+      if(t&&t!==BUILD)newBuild();
+    }).catch(function(){
+      /* version.txt 가 없는 판에서도 예전처럼은 돌게 둔다 */
+      fetch('index.html',{method:'HEAD',cache:'no-cache'}).then(function(r){
+        var t2=r.headers.get('ETag')||r.headers.get('Last-Modified')||'';
+        if(!t2)return;
+        if(!BTAG){BTAG=t2;return;}
+        if(t2!==BTAG)newBuild();
+      }).catch(function(){});
+    });
   }catch(e){}
 }
 if(location.protocol==='https:'){
