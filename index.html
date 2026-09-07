@@ -876,6 +876,27 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ghost.armed{color:var(--sig)}
 .hist{border-top:1px solid var(--line);margin-top:5px;padding-top:11px}
 .spk{width:100%;height:38px;display:block;margin:0 0 9px}
+/* 먹은 것과 태운 것 — 날마다 있는 자료다 */
+.eat{width:100%;display:block;margin:1px 0 0}
+.eat .gr{stroke:var(--line);stroke-width:1}
+.eat .vg{stroke:var(--line);stroke-width:1;opacity:.5}
+.eat .tk{stroke:var(--dim);stroke-width:1;opacity:.5}
+.eat text{fill:var(--dim);font-family:var(--mono);font-size:8.5px}
+.eat .bOK{fill:var(--pos);opacity:.20}      /* 적자 — 빠지는 쪽 */
+.eat .bNG{fill:var(--neg);opacity:.20}      /* 잉여 */
+.eat .lOut{fill:none;stroke:var(--mut);stroke-width:1.6;
+  stroke-linejoin:round;stroke-linecap:round}
+.eat .lIn{fill:none;stroke:var(--acc-br);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round}
+.eat .dOut{fill:var(--mut)}
+.eat .dIn{fill:var(--acc-br)}
+.eatl{display:flex;flex-wrap:wrap;gap:3px 12px;margin:5px 2px 12px;
+  font-size:11px;color:var(--mut);font-family:var(--mono);
+  font-variant-numeric:tabular-nums;align-items:center}
+.eatl i{display:inline-flex;align-items:center;gap:4px;font-style:normal}
+.eatl i::before{content:'';width:11px;height:0;border-top:2px solid var(--mut)}
+.eatl i.k1::before{border-top-color:var(--acc-br)}
+.eatl b{color:var(--tx);font-weight:600}
 /* 주마다 막대. 하루치를 서른 개 늘어놓으면 잡음을 그리게 된다 —
    주로 묶으면 흔들림이 상쇄되고 막대가 다섯이라 셀 필요도 없다. */
 .wkc{margin:2px 0 11px}
@@ -5375,6 +5396,88 @@ function trendRows(days){
   }
   return out;
 }
+/* 어림수 눈금. 자료에서 그냥 뽑은 2,339 는 눈금이 아니다 — 사이를
+   눈으로 나눌 수 없다. */
+function niceStep(range,want){
+  if(!(range>0))return 1;
+  var raw=range/Math.max(1,want);
+  var pw=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)),n=raw/pw;
+  return (n<=1?1:(n<=2?2:(n<=2.5?2.5:(n<=5?5:10))))*pw;
+}
+/* 먹은 것과 태운 것. 체중을 언제 쟀는지와 무관하게 날마다 있는 자료라,
+   인바디를 얼마나 자주 재느냐와 아무 상관이 없다.
+   소비 선이 위면 적자, 섭취 선이 위면 잉여 — 사이를 색으로 칠해 어느
+   날이 어느 쪽인지 세지 않아도 보이게 한다.
+   운동은 소비 선을 밀어 올린다. 운동한 날 선이 볼록해지는 것이 곧 운동이
+   만든 몫이라 따로 막대를 쌓지 않아도 눈에 들어온다. */
+function chartEat(days){
+  var a=trendRows(days).filter(function(r){return r.ate!=null;});
+  if(a.length<2)return '';
+  var W=320,H=126,L=36,R=7,T=14,B=19,i,lo=null,hi=null;
+  function see(v){if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
+  for(i=0;i<a.length;i++){see(a[i].ate);see(a[i].base+a[i].ex);}
+  var pad=(hi-lo)*0.18||200;lo=Math.max(0,lo-pad);hi=hi+pad;
+  var t0=new Date(a[0].d).getTime(),t1=new Date(a[a.length-1].d).getTime();
+  if(!(t1>t0))t1=t0+86400000;
+  var span=Math.max(1,Math.round((t1-t0)/86400000));
+  function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
+  function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
+  var g='';
+  /* 사흘 넘게 벌어지면 끊는다 — 이어 버리면 안 먹은 날을 지어내는 셈이다 */
+  var runs=[],cur=[a[0]];
+  for(i=1;i<a.length;i++){
+    if(Math.round((new Date(a[i].d)-new Date(a[i-1].d))/86400000)>3){runs.push(cur);cur=[];}
+    cur.push(a[i]);
+  }
+  runs.push(cur);
+  /* 눈금 먼저 — 선 밑에 깔린다 */
+  var st=niceStep(hi-lo,3),v=Math.ceil(lo/st)*st,top=null,gi=0;
+  while(v<=hi+1e-9&&gi<12){
+    g+='<line class="gr" x1="'+L+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(v).toFixed(1)+'"/>'
+      +'<text x="'+(L-4)+'" y="'+(Y(v)+3).toFixed(1)+'" text-anchor="end">'+Math.round(v).toLocaleString()+'</text>';
+    top=Y(v);v+=st;gi++;
+  }
+  if(top!==null)g+='<text x="'+(L-4)+'" y="'+(top-6).toFixed(1)+'" text-anchor="end">kcal</text>';
+  var lab=(span<=10?1:(span<=24?3:7));
+  for(i=0;i<=span;i++){
+    var x=L+(W-L-R)*i/span;
+    if(i%lab!==0&&i!==span)continue;
+    if(i===span&&span%lab!==0&&span%lab<lab*0.5)continue;
+    if(i!==0&&i!==span)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+(H-B)+'"/>';
+    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
+    var dd=new Date(t0+i*86400000);
+    g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
+      +(i===0?'start':(i===span?'end':'middle'))+'">'+(dd.getMonth()+1)+'/'+dd.getDate()+'</text>';
+  }
+  /* 구간마다 칠하고 긋는다 */
+  for(var q=0;q<runs.length;q++){
+    var rn=runs[q];
+    if(rn.length<2)continue;
+    var pIn=[],pOut=[],k;
+    for(k=0;k<rn.length;k++){
+      pIn.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].ate).toFixed(1));
+      pOut.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].base+rn[k].ex).toFixed(1));
+    }
+    /* 하루하루 사다리꼴로 칠해야 부호가 바뀌는 날도 제 색이 난다 */
+    for(k=1;k<rn.length;k++){
+      var p0=rn[k-1],p1=rn[k];
+      var d0=(p0.base+p0.ex)-p0.ate,d1=(p1.base+p1.ex)-p1.ate;
+      var cls=((d0+d1)>=0?'bOK':'bNG');
+      g+='<polygon class="'+cls+'" points="'
+        +X(p0.d).toFixed(1)+','+Y(p0.ate).toFixed(1)+' '
+        +X(p1.d).toFixed(1)+','+Y(p1.ate).toFixed(1)+' '
+        +X(p1.d).toFixed(1)+','+Y(p1.base+p1.ex).toFixed(1)+' '
+        +X(p0.d).toFixed(1)+','+Y(p0.base+p0.ex).toFixed(1)+'"/>';
+    }
+    g+='<polyline class="lOut" points="'+pOut.join(' ')+'"/>'
+      +'<polyline class="lIn" points="'+pIn.join(' ')+'"/>';
+  }
+  var lastD=a[a.length-1];
+  g+='<circle class="dOut" cx="'+X(lastD.d).toFixed(1)+'" cy="'+Y(lastD.base+lastD.ex).toFixed(1)+'" r="2.6"/>'
+    +'<circle class="dIn" cx="'+X(lastD.d).toFixed(1)+'" cy="'+Y(lastD.ate).toFixed(1)+'" r="3"/>';
+  return '<svg class="eat" viewBox="0 0 '+W+' '+H+'" role="img" '
+    +'aria-label="날마다 먹은 열량과 태운 열량">'+g+'</svg>';
+}
 /* 잰 간격은 사람마다 다르다. 체중계를 매일 타는 사람도 있고 인바디를
    열흘에 한 번 재는 사람도 있다. 주 단위로 못박으면 후자는 막대가 영영
    안 나온다 — 실제로 그랬다(49일에 5점, 화면엔 '기록 부족').
@@ -5485,8 +5588,23 @@ function vzBody(tab){
     /* 주마다 막대 하나. 하루치 서른 개는 잡음이라 읽히지 않았고, 견줄
        대상도 '기록이 맞았다면 있었을 체중' 이라는 반사실이었다. 주로
        묶고 목표 속도와 견준다 — 계획과의 비교는 머리를 안 굴려도 된다. */
+    /* 요청은 '매일 먹는 음식, 매일 하는 운동의 추이' 였다. 그것부터 그린다 —
+       체중을 언제 쟀는지와 무관하게 날마다 있는 자료다. */
+    var et=chartEat(35);
+    if(et){
+      var er=trendRows(35).filter(function(r){return r.ate!=null;});
+      var sI=0,sO=0,sX=0,ng=0;
+      er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
+      var n2=er.length;
+      h+=vzCap('날마다 먹은 것과 태운 것')+et
+        +'<div class="eatl"><i class="k1">먹음 <b>'+Math.round(sI/n2).toLocaleString()+'</b></i>'
+        +'<i>태움 <b>'+Math.round(sO/n2).toLocaleString()+'</b> (운동 '+Math.round(sX/n2).toLocaleString()+')</i>'
+        +'<i style="margin-left:auto">하루 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
+        +'</b>kcal · '+n2+'일 중 '+ng+'일 넘김</i></div>';
+    }else h+=vzLine('먹은 것 · 태운 것','기록 부족',
+      '이틀 이상 식사가 들어오면 그림이 나옴 · 삼성헬스에서 넘어옴',{t:'',c:''});
     var wkh=weekChartHtml();
-    if(wkh)h+=vzCap('잴 때마다 주당 몇 kg — 점선이 목표 -'+WR+'kg')+wkh;
+    if(wkh)h+=vzCap('체중 — 잴 때마다 주당 몇 kg · 점선이 목표 -'+WR+'kg')+wkh;
     /* 조건이 안 맞으면 그림 자리가 그냥 비어 버렸다. 없어진 것과 원래
        없는 것을 구분할 수 없으면 고장으로 읽힌다 — 왜 없는지 적는다. */
     else h+=vzLine('추세 그래프','기록 부족',
@@ -5902,7 +6020,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 02:40';
+var BUILD='2026-09-09 03:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
