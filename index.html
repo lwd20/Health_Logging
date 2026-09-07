@@ -3843,7 +3843,10 @@ function bkText(){
   var S2=DEMO?{m:S.m,l:demoStrip(S.l)}:S;
   return JSON.stringify({v:2,S:S2,cfg:{
     wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
-    st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
+    /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
+       API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
+    ppk:PRO_PER_KG,gm:GM,lm:LM
   }});
 }
 function applyBackup(o){
@@ -3897,8 +3900,14 @@ function applyBackup(o){
         if(+c.dot.yd>=1&&+c.dot.yd<=7)DOT.yd=Math.floor(+c.dot.yd);
         dotSave();
       }
+      if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
+      if(c.gm&&GMN[c.gm])GM=c.gm;
+      if(c.lm&&KS[c.lm]!==undefined)LM=c.lm;
       if(canLS){
         try{
+          localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
+          localStorage.setItem(KEY+'.gm',GM);
+          localStorage.setItem(KEY+'.lm',LM);
           localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));
           localStorage.setItem(KEY+'.hrm',String(HRM));
           localStorage.setItem(KEY+'.bw',String(BW));
@@ -5778,7 +5787,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 21:30';
+var BUILD='2026-09-08 22:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
