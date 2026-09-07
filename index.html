@@ -590,6 +590,21 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 #chips .chip.on{color:var(--acc-br)}
 #chips .chip.on::before{content:'';position:absolute;left:0;right:0;bottom:9px;height:2px;background:var(--acc-sf);border-radius:1px}
 #chips .chip:active{opacity:.55}
+/* 근육 거르개. 위(부위)는 밑줄, 이건 알약 — 같은 모양으로 두 줄을 쌓으면
+   어느 쪽이 상위인지 흐려진다. */
+#subchips{display:flex;gap:6px;overflow-x:auto;padding:0 13px 9px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+#subchips::-webkit-scrollbar{display:none}
+#subchips:empty{display:none}
+.schip{flex:0 0 auto;display:inline-flex;align-items:baseline;gap:4px;
+  padding:6px 11px;border-radius:100px;background:var(--inset);
+  border:var(--bw) solid rgba(var(--tx-rgb),.07);color:var(--mut);
+  font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;
+  line-height:1.25}
+.schip i{font-style:normal;font-family:var(--mono);font-size:9.5px;opacity:.55}
+.schip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
+.schip.on i{opacity:.85}
+.schip:active{opacity:.6}
 /* 상태 점은 글자 위에 얹음 — 한 줄이라 옆에 둘 자리가 없음 */
 #chips .chip.stale::after,#chips .chip.hot::after{top:7px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px}
 /* ★는 부위 선택이 아니라 보기 전환이라 맨 앞에 따로 둠 */
@@ -1586,6 +1601,7 @@ html{color-scheme:dark}
     <div id="henrg"></div>
   </div>
   <nav id="chips"></nav>
+  <nav id="subchips"></nav>
 </div>
 
 <main id="list"></main>
@@ -1968,7 +1984,7 @@ var LS_WAS_EMPTY=(function(){
   try{return canLS&&!localStorage.getItem(KEY);}catch(e){return false;}
 })();
 var S=migrateLines(load());save();
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2403,6 +2419,36 @@ function renderChips(){
     h+='<button class="chip'+(!q&&UI.filter===all[i]?' on':'')+(partDot(all[i])?' '+partDot(all[i]):'')+'" data-act="fl" data-v="'+all[i]+'">'+all[i]+'</button>';
   }
   document.getElementById('chips').innerHTML=h;
+  renderSubChips();
+}
+/* 주동근 키가 될 수 없는 값이라야 '전체'(빈 값)와 안 부딪친다 */
+var SUB_ETC='·etc';
+/* 지금 부위에 실제로 있는 근육만 알약으로 낸다. 없는 것을 고르고 있으면
+   여기서 푼다 — 가슴에서 '광배' 를 고른 채 등으로 갈 수 있기 때문이다. */
+function renderSubChips(){
+  var el=document.getElementById('subchips');
+  if(!el)return;
+  var q=String(UI.q||'').trim();
+  if(q||UI.filter==='CARDIO'){el.innerHTML='';UI.sub='';return;}
+  var arr=[],i;
+  for(i=0;i<S.m.length;i++)if(S.m[i].p===UI.filter)arr.push(S.m[i]);
+  var gs=subGroups(arr);
+  /* 하나뿐이면 고를 것이 없는데 줄만 는다 */
+  if(gs.length<2){el.innerHTML='';UI.sub='';return;}
+  /* '기타'(추정 실패)는 키가 빈 문자열인데 '전체' 도 빈 값이라, 아무것도
+     안 고른 상태에서 기타까지 골라진 것처럼 보였다. 실제 주동근 키와는
+     겹칠 수 없는 표(SUB_ETC)를 준다. */
+  var ok=false;
+  for(i=0;i<gs.length;i++)if((gs[i].k||SUB_ETC)===UI.sub)ok=true;
+  if(UI.sub&&!ok)UI.sub='';
+  var h2='<button class="schip'+(UI.sub?'':' on')+'" data-act="sl" data-v="">전체<i>'
+    +arr.length+'</i></button>';
+  for(i=0;i<gs.length;i++){
+    var kv=gs[i].k||SUB_ETC;
+    h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl" data-v="'
+      +esc(kv)+'">'+esc(gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
+  }
+  el.innerHTML=h2;
 }
 function favFirst(arr){
   var a=[],b=[],i;
@@ -2436,6 +2482,8 @@ function renderList(){
       if(S.m[i].p!==UI.filter)continue;
       totP++;
       if(UI.favOnly&&!S.m[i].f)continue;
+      /* 근육을 골랐으면 그것만. 추정이 안 된 것들은 '기타'(빈 키)로 모인다 */
+      if(UI.sub&&(subOf(S.m[i])||SUB_ETC)!==UI.sub)continue;
       arr2.push(S.m[i]);
     }
     if(UI.favOnly){
@@ -5955,7 +6003,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 07:40';
+var BUILD='2026-09-09 08:25';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7519,9 +7567,12 @@ document.addEventListener('click',function(e){
         save();render();
       })();
       break;
-    case 'fl':UI.filter=v;
+    case 'fl':UI.filter=v;UI.sub='';
       if(UI.q){UI.q='';var qe=document.getElementById('q');if(qe)qe.value='';}
       render();break;
+    /* 같은 것을 다시 누르면 풀린다 — 전체로 돌아가려고 '전체' 를 찾아
+       누르지 않아도 되게 */
+    case 'sl':UI.sub=(UI.sub===v?'':v);render();break;
     case 'help':UI.sheet='help';render();break;
     case 'tg':
       openRow(v);UI.sheet='ex';render();
