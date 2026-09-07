@@ -2469,24 +2469,31 @@ function renderList(){
         for(j=0;j<cds.length;j++)h+=rowHtml(cds[j]);
         h+='</div>';
       }else{
-        var bgs=brandGroups(arr2),bg,bj;
-        for(bj=0;bj<bgs.length;bj++){
-          bg=bgs[bj];
-          /* ★는 브랜드 묶음마다 그 안에서 위로 — 부위 전체에 걸면 묶음 순서까지 흔들린다 */
-          var sgs=subGroups(bg.items),sj;
-          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bg.items.length+'</i></div><div class="grp">';
-          /* 칸막이는 셋 이상일 때만. 어깨 GYM80 은 측면 1 · 전면 1 이라
-             갈래가 둘인데도 칸막이를 치면 종목 5개에 제목이 7개가 된다 —
-             'Standing Lateral Raise' 와 'Shoulder Press' 는 이름만으로
-             이미 갈린다. 줄일 것이 있을 때만 가른다. */
-          if(sgs.length<2||bg.items.length<3){
-            var bit=favFirst(bg.items);
-            for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
+        /* 목록을 훑는 이유는 '오늘 등 할 건데 광배 뭐 있지' 이지
+           'GYM80 에 뭐 있지' 가 아니다. 브랜드가 위에 있으면 같은 근육이
+           브랜드마다 흩어져 광배를 보려면 여섯 묶음을 다 뒤져야 했다.
+           근육이 중간, 기계가 그 안이다. */
+        var sgs=subGroups(arr2),sg,sj;
+        for(sj=0;sj<sgs.length;sj++){
+          sg=sgs[sj];
+          h+='<div class="bhd">'+esc(sg.n)+'<i>'+sg.items.length+'</i></div><div class="grp">';
+          var bgs=brandGroups(sg.items),bj;
+          /* 브랜드 칸막이도 같은 절제 — 갈래가 둘 이상이고 종목이 셋 이상일
+             때만. 브랜드는 이미 종목 행마다 배지로 붙어 있어서 칸막이가
+             없어도 어느 기계인지 안다. */
+          if(bgs.length<2||sg.items.length<3){
+            /* ★는 묶음 안에서만 위로 — 부위 전체에 걸면 묶음 순서가 흔들린다 */
+            /* 배지를 켠다. rowHtml 의 둘째 인자는 '브랜드 배지 숨김' 인데,
+               브랜드가 바깥 제목이던 시절엔 제목이 이미 말해 줘서 껐던 것이다.
+               이제 바깥은 근육이라 배지를 끄면 어깨의 Standing Lateral Raise
+               두 줄이 똑같아 보인다 — 칸막이가 없는 자리에서는 켜야 한다. */
+            var sit=favFirst(sg.items);
+            for(j=0;j<sit.length;j++)h+=rowHtml(sit[j],false);
           }else{
-            for(sj=0;sj<sgs.length;sj++){
-              var sg=sgs[sj],sit=favFirst(sg.items);
-              h+='<div class="sbh">'+esc(sg.n)+'<i>'+sit.length+'</i></div>';
-              for(j=0;j<sit.length;j++)h+=rowHtml(sit[j],true);
+            for(bj=0;bj<bgs.length;bj++){
+              var bg=bgs[bj],bit=favFirst(bg.items);
+              h+='<div class="sbh">'+esc(bg.n)+'<i>'+bit.length+'</i></div>';
+              for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
             }
           }
           h+='</div>';
@@ -5948,7 +5955,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 07:00';
+var BUILD='2026-09-09 07:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
