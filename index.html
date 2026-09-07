@@ -5279,20 +5279,91 @@ function vzTabs(list,cur,act){
       +list[i][1]+'</button>';
   return '<div class="vzts">'+t+'</div>';
 }
+/* 감량기에 물어야 할 것은 '얼마나 빠졌나' 가 아니라 '무엇이 빠졌나' 다.
+   인바디에 체중과 체지방률이 있으니 지방량과 제지방을 갈라 낼 수 있다 —
+   지금은 제지방 변화만 한 줄 보여 주고 지방은 안 보여 준다.
+   이레 넘게 벌어진 두 기록을 쓴다: 그보다 촘촘하면 측정 오차가 변화보다 크다. */
+function fatSplit(){
+  var a=bhLoad();
+  if(a.length<2)return null;
+  var b=a[a.length-1],p=null,i;
+  for(i=a.length-2;i>=0;i--){
+    if(Math.round((new Date(b.d)-new Date(a[i].d))/86400000)>=7){p=a[i];break;}
+  }
+  if(!p)return null;
+  var f1=p.w*p.f/100,f2=b.w*b.f/100;
+  return {지방:Math.round((f2-f1)*10)/10,제지방:Math.round(((b.w-f2)-(p.w-f1))*10)/10,
+          체중:Math.round((b.w-p.w)*10)/10,
+          gap:Math.round((new Date(b.d)-new Date(p.d))/86400000),a:p.d,b:b.d};
+}
+/* 이 앱은 섭취도 알고 소비도 아니까 '이대로면 주당 얼마' 를 낼 수 있다.
+   그것을 체중계 실측과 견주면 모델이 맞는지 알 수 있다 — 어긋나면 섭취
+   기록이 새거나 소비를 높이 잡은 것이다. 그 둘을 대조할 수 있는 자리는
+   이 앱에서 여기뿐이다. */
+function eatPace(){
+  var nf=nutriFacts();
+  if(!nf||!(nf.completedDaysCount>0))return null;
+  var dfc=nf.dailyDeficitTarget||Math.round(WR*7700/7);
+  /* 평균목표 = 그날 소비 − 적자 목표 이므로, 소비는 목표에 적자를 되돌린 값 */
+  var tdee=nf.completedDaysAvgTarget+dfc;
+  var gap=tdee-nf.completedDaysAvgIntake;      /* 하루 적자 실측 */
+  return {일수:nf.completedDaysCount,적자:Math.round(gap),
+          주당:Math.round(gap*7/7700*100)/100,소비:Math.round(tdee),
+          섭취:Math.round(nf.completedDaysAvgIntake)};
+}
 /* 몸 — 체중이 어디로 가고 있나, 그리고 그것을 무엇이 밀고 있나 */
 function vzBody(tab){
   tab=tab||'chg';
   var h='';
   if(tab==='chg'){
+    /* 숫자만으로는 '주당 -0.21' 이 흔들림인지 추세인지 안 보인다. 선을
+       그린다 — spark 는 종목 이력이 쓰던 것을 그대로 쓴다: 새 그림 어휘를
+       만들 이유가 없다. 점이 셋은 되어야 선이 뜻을 갖는다. */
+    var ws2=wSeries(60),pts=ws2.a.map(function(x){return x[1];});
+    if(pts.length>=3){
+      h+=vzCap('체중 · 최근 '+Math.max(1,Math.round(
+        (new Date(ws2.a[ws2.a.length-1][0])-new Date(ws2.a[0][0]))/86400000))+'일 '
+        +pts.length+'점')+spark(pts);
+    }
     var pc=paceCalc(BW,BF,GF);
     /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
        이름이 방향을 못박고 있었다. 무엇을 보고 낸 값인지도 같이 적는다. */
     if(pc.ok)h+=vzLine('주당 변화',(pc.rate>0?'+':'')+pc.rate+'kg',
       '목표 -'+WR+'kg/주 · '+pc.how+(pc.stale?' — 최근 자료가 없어 창을 넓힘':''),
       {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
-    var lt=lbmTrend();
-    if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',lt.from+'→'+lt.to+' · '+lt.gap+'일',
+    /* 제지방만 보여 주고 지방은 안 보여 주면 '무엇이 빠졌나' 에 답이 안 된다.
+       둘을 나란히 놓아야 판단이 선다 — 체중이 같아도 속이 다를 수 있다. */
+    var fs=fatSplit(),lt=lbmTrend();
+    if(fs){
+      /* 제지방은 체지방률에서 뺀 값이라 물과 뼈를 품고, 골격근은 인바디가
+         따로 재는 값이다. 다른 지표지만 감량기에는 대개 나란히 움직여
+         두 줄로 두면 같은 말을 두 번 하는 것처럼 보인다 — 한 줄로 묶고,
+         판정은 골격근이 있으면 그것으로 낸다: 근손실을 묻는 자리에서
+         더 곧은 값이기 때문이다. */
+      var mm=(lt&&lt.k==='골격근')?lt.d:null;
+      var jd=(mm===null?fs.제지방:mm);
+      h+=vzLine('감량 구성',
+        '지방 '+(fs.지방>0?'+':'')+fs.지방+' · 제지방 '+(fs.제지방>0?'+':'')+fs.제지방,
+        md(fs.a)+'→'+md(fs.b)+' · '+fs.gap+'일 · 체중 '+(fs.체중>0?'+':'')+fs.체중+'kg'
+          +(mm===null?'':' · 골격근 '+(mm>0?'+':'')+mm),
+        jd<=-0.5?{t:'근손실 우려',c:'neg'}
+          :(fs.지방<0&&jd>=-0.2?{t:'지방만 빠짐',c:'pos'}:{t:'',c:''}));
+    }else if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',
+      lt.from+'→'+lt.to+' · '+lt.gap+'일',
       lt.d<=-0.5?{t:'근손실 우려',c:'neg'}:{t:'유지 중',c:''});
+    /* 모델과 체중계를 맞대는 자리. 어긋나면 섭취 기록이 새거나 소비를
+       높이 잡은 것이다 — 어느 쪽인지는 부호가 말해 준다. */
+    var ep=eatPace();
+    if(ep){
+      var df=pc.ok?Math.round((pc.rate-(-ep.주당))*100)/100:null;
+      h+=vzLine('섭취 대비','예상 '+(ep.주당>0?'-':'+')+Math.abs(ep.주당)+'kg/주',
+        '소비 '+ep.소비.toLocaleString()+' − 섭취 '+ep.섭취.toLocaleString()
+        +' = 하루 '+ep.적자+'kcal · '+ep.일수+'일 평균'
+        +(df===null?'':(Math.abs(df)<=0.15?' · 실측과 맞음'
+          :(df>0?' · 기록보다 덜 빠짐 — 섭취 누락이나 소비 과대'
+                :' · 기록보다 더 빠짐 — 섭취 과다 기록이나 소비 과소'))),
+        df===null?{t:'',c:''}:(Math.abs(df)<=0.15?{t:'모델 맞음',c:'pos'}:{t:'어긋남',c:'warn'}));
+    }
     if(pc.ok&&!pc.done&&pc.eta)
       h+=vzLine('목표 도달',pc.eta,'체지방 '+GF+'% 까지 약 '+pc.weeks+'주 · D-'+pc.days,
         {t:'예상',c:''});
@@ -5627,7 +5698,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 18:00';
+var BUILD='2026-09-08 19:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
