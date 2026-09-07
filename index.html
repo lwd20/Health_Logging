@@ -5321,15 +5321,18 @@ function vzBody(tab){
        만들 이유가 없다. 점이 셋은 되어야 선이 뜻을 갖는다. */
     var ws2=wSeries(60),pts=ws2.a.map(function(x){return x[1];});
     if(pts.length>=3){
-      h+=vzCap('체중 · 최근 '+Math.max(1,Math.round(
-        (new Date(ws2.a[ws2.a.length-1][0])-new Date(ws2.a[0][0]))/86400000))+'일 '
-        +pts.length+'점')+spark(pts);
+      /* 폴리라인만 두면 위가 몇 kg 아래가 몇 kg 인지 없어 선을 봐도 어디서
+         어디로 갔는지 모른다. 캡션에 시작과 끝을 적어 축을 대신한다 —
+         눈금 그림을 새로 만들 것까지는 없다. */
+      h+=vzCap('체중 '+fmtW(pts[0])+' → '+fmtW(pts[pts.length-1])+'kg · '
+        +Math.max(1,Math.round((new Date(ws2.a[ws2.a.length-1][0])-new Date(ws2.a[0][0]))/86400000))+'일')
+        +spark(pts);
     }
     var pc=paceCalc(BW,BF,GF);
     /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
        이름이 방향을 못박고 있었다. 무엇을 보고 낸 값인지도 같이 적는다. */
     if(pc.ok)h+=vzLine('주당 변화',(pc.rate>0?'+':'')+pc.rate+'kg',
-      '목표 -'+WR+'kg/주 · '+pc.how+(pc.stale?' — 최근 자료가 없어 창을 넓힘':''),
+      '목표 -'+WR+' · '+pc.how+(pc.stale?' · 최근 자료 없어 창 넓힘':''),
       {t:pc.tag||'',c:pc.rate<0?(pc.tag==='과속 — 근손실 주의'?'neg':'pos'):'warn'});
     /* 제지방만 보여 주고 지방은 안 보여 주면 '무엇이 빠졌나' 에 답이 안 된다.
        둘을 나란히 놓아야 판단이 선다 — 체중이 같아도 속이 다를 수 있다. */
@@ -5342,10 +5345,14 @@ function vzBody(tab){
          더 곧은 값이기 때문이다. */
       var mm=(lt&&lt.k==='골격근')?lt.d:null;
       var jd=(mm===null?fs.제지방:mm);
-      h+=vzLine('감량 구성',
-        '지방 '+(fs.지방>0?'+':'')+fs.지방+' · 제지방 '+(fs.제지방>0?'+':'')+fs.제지방,
-        md(fs.a)+'→'+md(fs.b)+' · '+fs.gap+'일 · 체중 '+(fs.체중>0?'+':'')+fs.체중+'kg'
-          +(mm===null?'':' · 골격근 '+(mm>0?'+':'')+mm),
+      /* 다른 줄은 숫자 칸에 값이 하나인데 여기만 라벨 둘이 들어가 오른쪽
+         끝이 안 맞았다. 머리 숫자는 체중 변화 하나로 두고 무엇이 빠졌는지는
+         근거 줄로 내린다 — 줄의 이름이 '구성' 이므로 그 자리가 맞다. */
+      h+=vzLine('감량 구성',(fs.체중>0?'+':'')+fs.체중+'kg',
+        '지방 '+(fs.지방>0?'+':'')+fs.지방
+          +' · 제지방 '+(fs.제지방>0?'+':'')+fs.제지방
+          +(mm===null?'':' · 골격근 '+(mm>0?'+':'')+mm)
+          +' · '+fs.gap+'일',
         jd<=-0.5?{t:'근손실 우려',c:'neg'}
           :(fs.지방<0&&jd>=-0.2?{t:'지방만 빠짐',c:'pos'}:{t:'',c:''}));
     }else if(lt)h+=vzLine(lt.k,(lt.d>0?'+':'')+lt.d+'kg',
@@ -5355,17 +5362,24 @@ function vzBody(tab){
        높이 잡은 것이다 — 어느 쪽인지는 부호가 말해 준다. */
     var ep=eatPace();
     if(ep){
-      var df=pc.ok?Math.round((pc.rate-(-ep.주당))*100)/100:null;
-      h+=vzLine('섭취 대비','예상 '+(ep.주당>0?'-':'+')+Math.abs(ep.주당)+'kg/주',
-        '소비 '+ep.소비.toLocaleString()+' − 섭취 '+ep.섭취.toLocaleString()
-        +' = 하루 '+ep.적자+'kcal · '+ep.일수+'일 평균'
-        +(df===null?'':(Math.abs(df)<=0.15?' · 실측과 맞음'
-          :(df>0?' · 기록보다 덜 빠짐 — 섭취 누락이나 소비 과대'
-                :' · 기록보다 더 빠짐 — 섭취 과다 기록이나 소비 과소'))),
-        df===null?{t:'',c:''}:(Math.abs(df)<=0.15?{t:'모델 맞음',c:'pos'}:{t:'어긋남',c:'warn'}));
+      /* 이 줄의 요점은 '예상과 실측이 얼마나 벌어졌나' 라는 대비다.
+         예상만 숫자 칸에 놓고 실측을 근거 줄 끝에 묻어 두면, 견주라고
+         만든 줄에서 견줄 것이 한눈에 안 들어온다. 둘을 나란히 놓는다. */
+      var pred=-ep.주당;
+      var df=pc.ok?Math.round((pc.rate-pred)*100)/100:null;
+      h+=vzLine('섭취 대비',
+        /* 라벨이 없으면 어느 쪽이 예상이고 어느 쪽이 실측인지 모른다 —
+           견주라고 놓은 두 수인데 무엇과 무엇인지가 빠지면 뜻이 없다 */
+        '예상 '+(pred>0?'+':'')+pred+(pc.ok?' / 실측 '+((pc.rate>0?'+':'')+pc.rate):''),
+        '하루 '+ep.적자+'kcal 적자 · '+ep.일수+'일 평균'
+        +(df===null?'':(Math.abs(df)<=0.15?' · 예상과 맞음'
+          :(df>0?' · 기록보다 덜 빠짐': ' · 기록보다 더 빠짐'))),
+        df===null?{t:'',c:''}
+          :(Math.abs(df)<=0.15?{t:'예상 · 실측',c:'pos'}
+            :{t:(df>0?'섭취 누락 의심':'소비 과소 의심'),c:'warn'}));
     }
     if(pc.ok&&!pc.done&&pc.eta)
-      h+=vzLine('목표 도달',pc.eta,'체지방 '+GF+'% 까지 약 '+pc.weeks+'주 · D-'+pc.days,
+      h+=vzLine('목표 도달',pc.eta,'체지방 '+GF+'%까지 '+pc.weeks+'주 · D-'+pc.days,
         {t:'예상',c:''});
     if(!pc.ok&&!lt)h+=vzLine('인바디','기록 부족','2건 이상이고 이레 넘게 벌어지면 페이스가 나옴',{t:'기록 없음',c:''});
   }
@@ -5698,7 +5712,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 19:30';
+var BUILD='2026-09-08 20:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
