@@ -5391,8 +5391,13 @@ function weekBars(nw){
     for(j=0;j<a.length;j++)sum+=a[j];
     out.push({w:keys[i],avg:sum/a.length,n:a.length});
   }
-  /* 첫 주는 견줄 앞 주가 없어 변화가 없다 */
-  for(i=1;i<out.length;i++)out[i].d=Math.round((out[i].avg-out[i-1].avg)*100)/100;
+  /* 첫 주는 견줄 앞 주가 없어 변화가 없다. 그리고 한 주가 통째로 비면
+     그 다음 주는 2주치 변화를 갖게 되는데 그걸 '주간 변화' 로 찍으면
+     두 배로 보인다 — 이레 떨어진 주끼리만 견준다. */
+  for(i=1;i<out.length;i++){
+    var gp=Math.round((new Date(out[i].w)-new Date(out[i-1].w))/86400000);
+    if(gp===7)out[i].d=Math.round((out[i].avg-out[i-1].avg)*100)/100;
+  }
   return out.filter(function(x){return x.d!==undefined;}).slice(-nw);
 }
 /* 그 주에 하루 평균 얼마나 적자였나. 주별 체중 변화 옆에 두면 '덜 빠진
@@ -5413,7 +5418,9 @@ function weekDeficit(rows){
 }
 function weekChartHtml(){
   var wk=weekBars(6);
-  if(wk.length<2)return '';
+  /* 둘을 요구하면 서로 다른 세 주가 있어야 한다(첫 주는 막대가 안 된다).
+     옛 그림은 점 셋이면 그려졌으니 그보다 까다로워진 것이다. 하나면 그린다. */
+  if(wk.length<1)return '';
   var df=weekDeficit(trendRows(60)),i,mx=WR;
   for(i=0;i<wk.length;i++)mx=Math.max(mx,Math.abs(wk[i].d));
   mx=mx*1.12;
@@ -5499,6 +5506,11 @@ function vzBody(tab){
        묶고 목표 속도와 견준다 — 계획과의 비교는 머리를 안 굴려도 된다. */
     var wkh=weekChartHtml();
     if(wkh)h+=vzCap('주마다 얼마나 빠졌나 — 점선이 목표 -'+WR+'kg')+wkh;
+    /* 조건이 안 맞으면 그림 자리가 그냥 비어 버렸다. 없어진 것과 원래
+       없는 것을 구분할 수 없으면 고장으로 읽힌다 — 왜 없는지 적는다. */
+    else h+=vzLine('주간 그래프','기록 부족',
+      '이어지는 두 주에 체중이 있어야 막대가 나옴 · 체중계나 인바디로 재면 쌓임',
+      {t:'',c:''});
     var pc=paceCalc(BW,BF,GF);
     /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
        이름이 방향을 못박고 있었다. 무엇을 보고 낸 값인지도 같이 적는다. */
@@ -5902,7 +5914,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 01:50';
+var BUILD='2026-09-09 02:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
