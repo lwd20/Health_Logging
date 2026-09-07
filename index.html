@@ -592,7 +592,11 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 #chips .chip:active{opacity:.55}
 /* 근육 거르개. 위(부위)는 밑줄, 이건 알약 — 같은 모양으로 두 줄을 쌓으면
    어느 쪽이 상위인지 흐려진다. */
-#subchips{display:flex;gap:6px;overflow-x:auto;padding:0 13px 9px;
+/* nav 에 justify-content:space-between 이 걸려 있다(584줄). 안 덮으면
+   알약이 폭 전체로 벌어져 '전체' 와 '기타' 사이가 화면만큼 떨어진다.
+   왼쪽부터 붙여 늘어놓고 넘치면 옆으로 민다. */
+#subchips{display:flex;justify-content:flex-start;align-items:center;
+  gap:6px;overflow-x:auto;padding:0 13px 9px;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 #subchips::-webkit-scrollbar{display:none}
 #subchips:empty{display:none}
@@ -6003,7 +6007,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 08:25';
+var BUILD='2026-09-09 08:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
