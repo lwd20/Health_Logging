@@ -901,23 +901,29 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .vg{stroke:var(--line);stroke-width:1;opacity:.5}
 .trg .tk{stroke:var(--dim);stroke-width:1;opacity:.5}
 .trg text{fill:var(--dim);font-family:var(--mono);font-size:8.5px}
-.trg .bOK{fill:var(--pos);opacity:.20}      /* 적자 — 빠지는 쪽 */
-.trg .bNG{fill:var(--neg);opacity:.20}      /* 잉여 */
-.trg .lOut{fill:none;stroke:var(--mut);stroke-width:1.6;
-  stroke-linejoin:round;stroke-linecap:round}
-.trg .lIn{fill:none;stroke:var(--acc-br);stroke-width:2;
+/* 적자는 accent 로 옅게 깔고 넘긴 날만 --sig. --pos 초록은 면적이 커서
+   강조가 아니라 배경이 되고, 팔레트를 바꾸면 더 어긋난다.
+   눈이 가야 할 곳은 넘긴 날이지 잘한 날이 아니다. */
+.trg .bOK{fill:var(--acc-br);opacity:.13}
+.trg .bNG{fill:var(--sig);opacity:.20}
+/* 색만으로 가르면 밝은 팔레트에서 둘 다 진한 회색으로 앉는다. 몸 그림처럼
+   모양으로도 가른다 — 소비는 파선, 섭취는 실선. */
+.trg .lOut{fill:none;stroke:var(--mut);stroke-width:1.7;stroke-dasharray:5 3;
+  stroke-linejoin:round;stroke-linecap:butt}
+.trg .lIn{fill:none;stroke:var(--acc-br);stroke-width:2.2;
   stroke-linejoin:round;stroke-linecap:round}
 .trg .dOut{fill:var(--mut)}
 .trg .gv{font-family:var(--mono);font-size:8.5px;font-weight:600}
-.trg .gvOK{fill:var(--pos)}
-.trg .gvNG{fill:var(--neg)}
+/* 적자 날까지 색을 주면 여섯 개가 다 소리친다. 적자는 조용히 */
+.trg .gvOK{fill:var(--mut)}
+.trg .gvNG{fill:var(--sig)}
 .trg .dIn{fill:var(--acc-br)}
 .trgl{display:flex;flex-wrap:wrap;gap:3px 12px;margin:5px 2px 12px;
   font-size:11px;color:var(--mut);font-family:var(--mono);
   font-variant-numeric:tabular-nums;align-items:center}
 .trgl i{display:inline-flex;align-items:center;gap:4px;font-style:normal}
-.trgl i::before{content:'';width:11px;height:0;border-top:2px solid var(--mut)}
-.trgl i.k1::before{border-top-color:var(--acc-br)}
+.trgl i::before{content:'';width:12px;height:0;border-top:2px dashed var(--mut)}
+.trgl i.k1::before{border-top:2.2px solid var(--acc-br)}
 .trgl b{color:var(--tx);font-weight:600}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
@@ -5843,19 +5849,21 @@ function vzBody(tab){
       var sI=0,sO=0,sX=0,ng=0;
       er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
       var n2=er.length;
-      h+=vzCap('날마다 먹은 것과 태운 것')+et
-        +'<div class="trgl"><i class="k1">먹음 <b>'+Math.round(sI/n2).toLocaleString()+'</b></i>'
-        +'<i>태움 <b>'+Math.round(sO/n2).toLocaleString()+'</b> (운동 '+Math.round(sX/n2).toLocaleString()+')</i>'
-        +'<i style="margin-left:auto">하루 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
-        +'</b>kcal · '+n2+'일 중 '+ng+'일 넘김</i></div>';
-    }else h+=vzLine('먹은 것 · 태운 것','기록 부족',
-      '이틀 이상 식사가 들어오면 그림이 나옴 · 삼성헬스에서 넘어옴',{t:'',c:''});
+      h+=vzCap('날마다 · 섭취와 소비')+et
+        /* 메인 화면이 '섭취 여유'·'하루 소비' 라고 쓰므로 같은 말로 맞춘다 —
+           한 앱에서 같은 것을 두 이름으로 부르면 그때마다 머리를 다시 맞춰야 한다 */
+        +'<div class="trgl"><i class="k1">섭취 <b>'+Math.round(sI/n2).toLocaleString()+'</b></i>'
+        +'<i>소비 <b>'+Math.round(sO/n2).toLocaleString()+'</b> (운동 '+Math.round(sX/n2).toLocaleString()+')</i>'
+        +'<i style="margin-left:auto">하루 평균 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
+        +'</b>kcal · '+n2+'일 중 '+ng+'일 초과</i></div>';
+    }else h+=vzLine('섭취와 소비','기록 부족',
+      '식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴',{t:'',c:''});
     var bd2=chartBody();
     if(bd2){
       var ba=bhLoad().filter(function(x){return x.w>0&&x.f>0;});
       var b0=ba[0],b1=ba[ba.length-1];
       function dlt(x,y,u2){return (x>y?'+':'')+(Math.round((x-y)*10)/10)+u2;}
-      h+=vzCap('몸 — 시작 대비 얼마나 · '+md(b0.d)+' 부터 '+ba.length+'번 잼')+bd2
+      h+=vzCap('몸 — '+md(b0.d)+' 대비 변화 · '+ba.length+'회 측정')+bd2
         +'<div class="trgl">'
         +'<i class="kW">체중 <b>'+fmtW(b1.w)+'</b>kg '+dlt(b1.w,b0.w,'')+'</i>'
         +'<i class="kF">체지방 <b>'+(Math.round(b1.f*10)/10)+'</b>% '+dlt(b1.f,b0.f,'')+'</i>'
@@ -6194,7 +6202,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 13:40';
+var BUILD='2026-09-09 14:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
