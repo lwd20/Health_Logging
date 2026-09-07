@@ -880,7 +880,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .cht{width:100%;display:block;margin:1px 0 0}
 .cht .gr{stroke:var(--line);stroke-width:1}
 .cht .vg{stroke:var(--line);stroke-width:1;opacity:.55}
-.cht .tk{stroke:var(--dim);stroke-width:1;opacity:.5}
+.cht .tk{stroke:var(--dim);stroke-width:1;opacity:.55}
+.cht .td{stroke:var(--dim);stroke-width:1;opacity:.28}   /* 날마다 서는 잔눈금 */
+.cht .un{fill:var(--dim);opacity:.85}
 .cht .zr{stroke:var(--mut);stroke-width:1;opacity:.55}
 .cht text{fill:var(--dim);font-family:var(--mono);font-size:8.5px}
 .cht .l1{fill:none;stroke:var(--acc-br);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
@@ -5406,30 +5408,59 @@ function trendAxis(rows){
   if(!(t1>t0))t1=t0+86400000;
   return {t0:t0,t1:t1,span:Math.round((t1-t0)/86400000)};
 }
-/* 눈금 넷과 옅은 세로선. 양끝 날짜만 적으면 가운데가 언제인지 모른다 */
+/* 자료에서 그냥 뽑은 81.2 / 79.1 은 눈금이 아니다 — 사이를 눈으로 나눌
+   수 없다. 1·2·2.5·5·10 배수로 끊어야 '가운데는 얼마' 가 바로 온다. */
+function niceStep(range,want){
+  if(!(range>0))return 1;
+  var raw=range/Math.max(1,want);
+  var pw=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)),n=raw/pw;
+  return (n<=1?1:(n<=2?2:(n<=2.5?2.5:(n<=5?5:10))))*pw;
+}
+/* x 는 날마다 잔눈금, 이레마다 날짜. 60일을 320px 에 넣으면 하루가 4.7px
+   이라 짚을 수 없어 창을 35일로 줄였다 — 하루 8px 이면 셀 수 있다. */
 function axisMarks(ax,L,R,W,yTop,yBot,yLab){
-  var g='',i,k=4,t,x;
-  for(i=0;i<=k;i++){
-    t=ax.t0+(ax.t1-ax.t0)*i/k;
-    x=L+(W-L-R)*i/k;
-    if(i>0&&i<k)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+yTop+'" x2="'+x.toFixed(1)+'" y2="'+yBot.toFixed(1)+'"/>';
-    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+yBot.toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+(yBot+2.5).toFixed(1)+'"/>';
-    var d=new Date(t),lb=(d.getMonth()+1)+'/'+d.getDate();
+  var g='',i,x,pw=W-L-R,days=Math.max(1,ax.span);
+  var every=(days<=45?1:(days<=90?2:7));          /* 잔눈금 간격(일) */
+  var lab=(days<=10?1:(days<=24?3:(days<=45?7:14)));  /* 날짜 다는 간격(일) */
+  for(i=0;i<=days;i++){
+    x=L+pw*i/days;
+    if(i%every===0&&i%lab!==0)
+      g+='<line class="td" x1="'+x.toFixed(1)+'" y1="'+yBot.toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+(yBot+2).toFixed(1)+'"/>';
+    /* 마지막 날은 늘 적되, 앞 라벨과 너무 붙으면 겹쳐 읽힌다 */
+    if(i===days&&days%lab!==0&&days%lab<lab*0.5)continue;
+    if(i%lab!==0&&i!==days)continue;
+    if(i!==0&&i!==days)
+      g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+yTop+'" x2="'+x.toFixed(1)+'" y2="'+yBot.toFixed(1)+'"/>';
+    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+yBot.toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+(yBot+3.5).toFixed(1)+'"/>';
+    var d=new Date(ax.t0+i*86400000);
     g+='<text x="'+x.toFixed(1)+'" y="'+yLab+'" text-anchor="'
-      +(i===0?'start':(i===k?'end':'middle'))+'">'+lb+'</text>';
+      +(i===0?'start':(i===days?'end':'middle'))+'">'+(d.getMonth()+1)+'/'+d.getDate()+'</text>';
   }
+  return g;
+}
+/* y 눈금 — 어림수로 끊고 가로줄을 같이 긋는다. 단위는 맨 위에만. */
+function yMarks(lo,hi,Y,L,R,W,unit,dec){
+  var g='',st=niceStep(hi-lo,3),v=Math.ceil(lo/st)*st,top=null,i=0;
+  while(v<=hi+1e-9&&i<12){
+    var y=Y(v);
+    g+='<line class="gr" x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'"/>'
+      +'<text x="'+(L-4)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end">'
+      +(dec?(Math.round(v*10)/10).toFixed(1):Math.round(v).toLocaleString())+'</text>';
+    top=y;v+=st;i++;
+  }
+  if(top!==null&&unit)g+='<text class="un" x="'+(L-4)+'" y="'+(top-6).toFixed(1)+'" text-anchor="end">'+unit+'</text>';
   return g;
 }
 /* 체중 두 선. 벌어지는 폭이 이 그림의 전부라 그 사이를 옅게 채운다. */
 function chartWeight(rows,pred){
-  var W=320,H=118,L=29,R=7,T=9,B=15,i;
+  var W=320,H=132,L=34,R=7,T=15,B=19,i;
   var lo=null,hi=null;
   function see(v){if(v==null)return;if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
   for(i=0;i<rows.length;i++)see(rows[i].w);
   if(pred)for(i=0;i<pred.a.length;i++)see(pred.a[i]);
   if(lo===null)return '';
   if(hi-lo<0.6){var mid=(hi+lo)/2;lo=mid-0.4;hi=mid+0.4;}
-  var tp=hi,bt=lo,pd=(hi-lo)*0.12;lo-=pd;hi+=pd;
+  var pd=(hi-lo)*0.12;lo-=pd;hi+=pd;   /* 눈금은 yMarks 가 어림수로 잡는다 */
   var n=rows.length,ax=trendAxis(rows);
   /* 날짜로 자리를 잡는다 — 기록이 빈 구간은 빈 채로 보여야 한다 */
   function X(i2){
@@ -5451,15 +5482,12 @@ function chartWeight(rows,pred){
     bandR.reverse();
     g+='<polygon class="gap" points="'+band.concat(bandR).join(' ')+'"/>';
   }
-  g+='<line class="gr" x1="'+L+'" y1="'+Y(tp).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(tp).toFixed(1)+'"/>'
-    +'<line class="gr" x1="'+L+'" y1="'+Y(bt).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(bt).toFixed(1)+'"/>'
-    +'<text x="0" y="'+(Y(tp)+3).toFixed(1)+'">'+fmtW(tp)+'</text>'
-    +'<text x="0" y="'+(Y(bt)+3).toFixed(1)+'">'+fmtW(bt)+'</text>';
+  g=yMarks(lo,hi,Y,L,R,W,'kg',1)+g;
   if(p2.length>1)g+='<polyline class="l2" points="'+p2.join(' ')+'"/>';
   if(p1.length>1)g+='<polyline class="l1" points="'+p1.join(' ')+'"/>';
   if(pred&&p2.length)g+='<circle class="d2" cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="2.6"/>';
   if(p1.length)g+='<circle class="d1" cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="3.2"/>';
-  g=axisMarks(ax,L,R,W,T,H-B,H-3)+g;
+  g=axisMarks(ax,L,R,W,T,H-B,H-4)+g;
   return '<svg class="cht" viewBox="0 0 '+W+' '+H+'" role="img" '
     +'aria-label="체중 실측과 기록대로 예상한 값">'+g+'</svg>';
 }
@@ -5467,7 +5495,7 @@ function chartWeight(rows,pred){
 function chartBalance(rows){
   var a=rows.filter(function(r){return r.ate!=null;});
   if(a.length<3)return '';
-  var W=320,H=84,L=29,R=7,T=8,B=14,i,r,mx=0,t;
+  var W=320,H=100,L=34,R=7,T=14,B=19,i,r,mx=0,t;
   for(i=0;i<a.length;i++){
     t=Math.abs(a[i].base+a[i].ex-a[i].ate);
     if(t>mx)mx=t;
@@ -5479,9 +5507,11 @@ function chartBalance(rows){
      또 어긋난다. */
   var days=Math.max(1,ax.span),bw=Math.max(1.6,Math.min(9,(W-L-R)/days*0.72));
   var z=T+(H-T-B)*0.62,sc=(H-T-B)*0.62/mx,scDn=(H-T-B)*0.38/mx;
-  var g='<line class="zr" x1="'+L+'" y1="'+z.toFixed(1)+'" x2="'+(W-R)+'" y2="'+z.toFixed(1)+'"/>'
-    +'<text x="0" y="'+(z+3).toFixed(1)+'">0</text>'
-    +'<text x="0" y="'+(T+7)+'">'+Math.round(mx)+'</text>';
+  /* 0 과 최대값만 적으면 막대 높이를 읽을 수 없다. 어림수로 끊어
+     가로줄을 긋는다 — 위는 적자, 아래는 넘긴 날이라 자가 다르다. */
+  function Yb(v){return v>=0?z-v*sc:z-v*scDn;}
+  var g=yMarks(0,mx,Yb,L,R,W,'kcal',0);
+  g+='<line class="zr" x1="'+L+'" y1="'+z.toFixed(1)+'" x2="'+(W-R)+'" y2="'+z.toFixed(1)+'"/>';
   for(i=0;i<n;i++){
     r=a[i];
     var cx=L+(W-L-R)*(new Date(r.d).getTime()-ax.t0)/(ax.t1-ax.t0);
@@ -5497,7 +5527,7 @@ function chartBalance(rows){
         +'" width="'+bw.toFixed(1)+'" height="'+Math.min((H-B)-z,-tot*scDn).toFixed(1)+'" rx="1"/>';
     }
   }
-  g=axisMarks(ax,L,R,W,T,H-B,H-2)+g;
+  g=axisMarks(ax,L,R,W,T,H-B,H-4)+g;
   return '<svg class="cht" viewBox="0 0 '+W+' '+H+'" role="img" '
     +'aria-label="하루 적자와 그중 운동이 만든 몫">'+g+'</svg>';
 }
@@ -5553,7 +5583,9 @@ function vzBody(tab){
        그린다 — spark 는 종목 이력이 쓰던 것을 그대로 쓴다: 새 그림 어휘를
        만들 이유가 없다. 점이 셋은 되어야 선이 뜻을 갖는다. */
     var ws2=wSeries(60);
-    var trs=trendRows(60),prd=trendPred(trs);
+    /* 60일이면 하루가 4.7px 이라 날짜를 짚을 수 없다. 35일이면 8px 이다.
+       밑의 '주당 변화' 도 최근 28일을 보고 내니 창이 그에 맞는다. */
+    var trs=trendRows(35),prd=trendPred(trs);
     var wOnly=trs.filter(function(r){return r.w!=null;});
     if(wOnly.length>=3){
       h+=vzCap('체중 — 실측과 기록대로라면')+chartWeight(trs,prd);
@@ -5983,7 +6015,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 00:20';
+var BUILD='2026-09-09 00:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
