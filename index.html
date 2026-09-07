@@ -900,18 +900,29 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .eatl i::before{content:'';width:11px;height:0;border-top:2px solid var(--mut)}
 .eatl i.k1::before{border-top-color:var(--acc-br)}
 .eatl b{color:var(--tx);font-weight:600}
-/* 몸 세 선 — 시작 대비 변화. 색이 곧 이름이라 범례가 필수다 */
-.eat .lW{fill:none;stroke:var(--acc-br);stroke-width:2;
+/* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
+   색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
+   준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
+.eat .lW{fill:none;stroke:var(--acc-br);stroke-width:2.4;
   stroke-linejoin:round;stroke-linecap:round}
-.eat .lF{fill:none;stroke:var(--sig);stroke-width:1.8;
+.eat .lF{fill:none;stroke:var(--sig);stroke-width:1.8;stroke-dasharray:6 3.5;
+  stroke-linejoin:round;stroke-linecap:butt}
+/* --pos 는 mint·patina 팔레트에서 --acc-br 과 완전히 같은 색이다(dE 0).
+   28개 팔레트를 다 재 보니 어떤 토큰도 세 선을 항상 갈라 주지 못한다 —
+   최선이 --dim(15) 과 --mut(12) 이고 --pos·--neg 는 0 이다. 그래서 색은
+   거들 뿐이고 굵기·선모양·점모양이 실제로 가른다. 그중 제일 나은 --mut. */
+.eat .lM{fill:none;stroke:var(--mut);stroke-width:1.8;stroke-dasharray:1.5 2.8;
   stroke-linejoin:round;stroke-linecap:round}
-.eat .lM{fill:none;stroke:var(--pos);stroke-width:1.8;
-  stroke-linejoin:round;stroke-linecap:round}
-.eat .dW{fill:var(--acc-br)} .eat .dF{fill:var(--sig)} .eat .dM{fill:var(--pos)}
+/* 점도 모양을 달리한다. 인바디는 띄엄띄엄 재므로 점이 곧 '언제 쟀나' 다 */
+.eat .dW{fill:var(--acc-br)}
+.eat .dF{fill:var(--sig)}
+.eat .dM{fill:var(--plate);stroke:var(--mut);stroke-width:1.6}
 .eat .zr{stroke:var(--mut);stroke-width:1;opacity:.55}
-.eatl i.kW::before{border-top-color:var(--acc-br)}
-.eatl i.kF::before{border-top-color:var(--sig)}
-.eatl i.kM::before{border-top-color:var(--pos)}
+/* 범례 표식을 그림과 같은 모양으로. 범례가 실선인데 그림이 파선이면
+   범례가 거짓말이 된다 */
+.eatl i.kW::before{border-top:2.4px solid var(--acc-br);width:13px}
+.eatl i.kF::before{border-top:2px dashed var(--sig);width:13px}
+.eatl i.kM::before{border-top:2px dotted var(--mut);width:13px}
 .spk polyline{fill:none;stroke:var(--chrome);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .spk circle{fill:var(--chrome)}
 .hr2{display:flex;align-items:center;gap:11px;padding:1px 2px;font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -5510,20 +5521,28 @@ function chartBody(){
     g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
       +(i===0?'start':(i===span?'end':'middle'))+'">'+(dd.getMonth()+1)+'/'+dd.getDate()+'</text>';
   }
-  function line(cls,pick){
-    var p=[],k;
-    for(k=0;k<a.length;k++){var val=pick(a[k]);if(val===null)continue;
-      p.push(X(a[k].d).toFixed(1)+','+Y(val).toFixed(1));}
-    return p.length>1?'<polyline class="'+cls+'" points="'+p.join(' ')+'"/>':'';
+  /* 점 모양도 셋을 가른다 — 꽉 찬 동그라미·네모·빈 동그라미.
+     모든 측정점에 찍는다: 인바디는 띄엄띄엄 재므로 점이 곧 언제 쟀나 다. */
+  function mark(sh,cls,x,y){
+    if(sh==='s')return '<rect class="'+cls+'" x="'+(x-2.3).toFixed(1)+'" y="'+(y-2.3).toFixed(1)
+      +'" width="4.6" height="4.6" rx="0.6"/>';
+    return '<circle class="'+cls+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)
+      +'" r="'+(sh==='o'?2.5:2.6)+'"/>';
   }
-  g+=line('lF',function(r){return r.f-f0;})
-    +line('lM',function(r){return (mFirst!==null&&r.m>0)?r.m-mFirst:null;})
-    +line('lW',function(r){return r.w-w0;});
-  var lastR=a[a.length-1];
-  g+='<circle class="dF" cx="'+X(lastR.d).toFixed(1)+'" cy="'+Y(lastR.f-f0).toFixed(1)+'" r="2.6"/>';
-  if(mFirst!==null&&lastR.m>0)
-    g+='<circle class="dM" cx="'+X(lastR.d).toFixed(1)+'" cy="'+Y(lastR.m-mFirst).toFixed(1)+'" r="2.6"/>';
-  g+='<circle class="dW" cx="'+X(lastR.d).toFixed(1)+'" cy="'+Y(lastR.w-w0).toFixed(1)+'" r="3"/>';
+  function line(cls,dcl,sh,pick){
+    var p=[],dots='',k;
+    for(k=0;k<a.length;k++){
+      var val=pick(a[k]);
+      if(val===null)continue;
+      var x=X(a[k].d),y=Y(val);
+      p.push(x.toFixed(1)+','+y.toFixed(1));
+      dots+=mark(sh,dcl,x,y);
+    }
+    return (p.length>1?'<polyline class="'+cls+'" points="'+p.join(' ')+'"/>':'')+dots;
+  }
+  g+=line('lF','dF','s',function(r){return r.f-f0;})
+    +line('lM','dM','o',function(r){return (mFirst!==null&&r.m>0)?r.m-mFirst:null;})
+    +line('lW','dW','c',function(r){return r.w-w0;});
   return '<svg class="eat" viewBox="0 0 '+W+' '+H+'" role="img" '
     +'aria-label="체중 체지방률 골격근량의 시작 대비 변화">'+g+'</svg>';
 }
@@ -5891,7 +5910,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 04:20';
+var BUILD='2026-09-09 05:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
