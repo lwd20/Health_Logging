@@ -925,6 +925,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trgl i::before{content:'';width:12px;height:0;border-top:2px dashed var(--mut)}
 .trgl i.k1::before{border-top:2.2px solid var(--acc-br)}
 .trgl b{color:var(--tx);font-weight:600}
+.trgl u{text-decoration:none;opacity:.7;font-size:10px}
+/* 요약. 표식이 붙으면 안 되므로 범례와 다른 칸이다 */
+.trgs{margin:-7px 2px 12px;font-size:11.5px;color:var(--mut);
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
+.trgs b{color:var(--tx);font-weight:700;font-size:13px}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -5855,11 +5860,16 @@ function vzBody(tab){
            그런데 그 답이 바로 옆에 이미 있다 — 같은 말을 두 번 하면서 한 번은
            계산까지 시킨 셈이다.
            범례가 할 일은 '어느 선이 무엇인가' 뿐이다. 수는 결론 하나만 둔다. */
-        +'<div class="trgl"><i class="k1">섭취</i>'
-        +'<i>소비 <u style="opacity:.75;text-decoration:none">운동 '
-        +Math.round(sX/n2).toLocaleString()+' 포함</u></i>'
-        +'<i style="margin-left:auto">하루 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
-        +'</b>kcal · '+n2+'일 중 '+ng+'일 초과</i></div>';
+        /* 요약을 범례 칸에 넣었더니 표식(점선)이 자동으로 붙어, 그림에 없는
+           세 번째 선처럼 보였다. 범례가 거짓말을 한 셈이다.
+           범례는 '어느 선이 무엇인가' 만, 요약은 딴 줄에 말로 적는다. */
+        +'<div class="trgl"><i class="k1">섭취</i><i>소비 <u>운동 포함</u></i></div>'
+        /* 꼬리말은 셋으로 갈린다. '6일 중 6일은 더 먹음' 같은 말이 나오지
+           않게, 하나도 없을 때와 전부일 때를 따로 적는다. */
+        +'<div class="trgs">하루 <b>'+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()+'</b>kcal '
+        +(sO>=sI?'더 씀':'더 먹음')+' — '
+        +(ng===0?'더 먹은 날 없음'
+          :(ng===n2?n2+'일 모두 더 먹음':n2+'일 중 '+ng+'일 더 먹음'))+'</div>';
     }else h+=vzLine('섭취와 소비','기록 부족',
       '식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴',{t:'',c:''});
     var bd2=chartBody();
@@ -6206,7 +6216,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 14:50';
+var BUILD='2026-09-09 15:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
