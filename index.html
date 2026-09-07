@@ -1178,14 +1178,15 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:13px 3px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
-/* 카드 안의 칸막이. 브랜드 제목(.bhd)은 카드 밖이라 한 급 위다 —
-   같은 굵기로 두면 어느 쪽이 상위인지 흐려진다. */
-.sbh{display:flex;align-items:baseline;gap:6px;padding:10px 0 5px;
-  font-size:9.5px;font-weight:700;letter-spacing:.05em;color:var(--dim);
-  border-bottom:1px solid rgba(var(--tx-rgb),.055)}
-.sbh i{font-style:normal;font-family:var(--mono);font-size:9px;opacity:.75}
-.sbh::after{content:'';flex:1;height:1px;background:var(--line);opacity:.5;
-  align-self:center}
+/* 카드 안의 칸막이. 처음엔 종목 행과 같은 테두리(border-bottom)에 가로줄
+   까지 달았더니 빈 행이 하나 낀 것처럼 보여 눈이 걸렸다. 칸막이는 줄이
+   아니라 이름표다 — 테두리도 가로줄도 뺀다.
+   위를 넉넉히, 아래를 좁게 두어 제 아래 종목들에 붙어 보이게 한다.
+   앞 행의 테두리가 이미 경계를 그으므로 여기서 또 그을 필요가 없다. */
+.sbh{display:flex;align-items:baseline;gap:5px;padding:12px 0 3px;
+  font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--dim);opacity:.72}
+.sbh:first-child{padding-top:9px}
+.sbh i{font-style:normal;font-family:var(--mono);font-size:8.5px;opacity:.7}
 .bhd::after{content:'';flex:1;height:1px;background:var(--line);opacity:.7}
 /* 범례를 누르면 뜻을 설명한 도움말이 열린다 */
 .lmlg{display:flex;gap:12px;align-items:center;margin:0 -4px;padding:9px 4px 7px;font-family:var(--mono);font-size:9px;color:var(--dim);cursor:pointer}
@@ -5947,7 +5948,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 06:40';
+var BUILD='2026-09-09 07:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
