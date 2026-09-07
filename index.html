@@ -5375,76 +5375,57 @@ function trendRows(days){
   }
   return out;
 }
-/* 주마다 얼마나 빠졌나. 끝점끼리 빼면 그날 저울이 흔들린 만큼이 그대로
-   주간 변화가 된다 — 주 평균끼리 뺀다. 월요일로 주를 가른다. */
-function weekBars(nw){
-  var ws=wSeries((nw+2)*7),m={},i,j;
-  for(i=0;i<ws.a.length;i++){
-    var d=new Date(ws.a[i][0]),off=(d.getDay()+6)%7;
-    var mo=new Date(d);mo.setDate(d.getDate()-off);
-    var k=mo.getFullYear()+'-'+('0'+(mo.getMonth()+1)).slice(-2)+'-'+('0'+mo.getDate()).slice(-2);
-    (m[k]=m[k]||[]).push(ws.a[i][1]);
+/* 잰 간격은 사람마다 다르다. 체중계를 매일 타는 사람도 있고 인바디를
+   열흘에 한 번 재는 사람도 있다. 주 단위로 못박으면 후자는 막대가 영영
+   안 나온다 — 실제로 그랬다(49일에 5점, 화면엔 '기록 부족').
+   잰 것들 사이를 걸어가며 닷새 넘게 벌어질 때마다 한 칸을 낸다.
+   kg/주 로 환산하니 어느 쪽이든 같은 자로 읽히고 목표와 바로 견줘진다. */
+function paceBars(nb){
+  var a=wSeries(140).a,out=[],anchor=0,i;
+  if(a.length<2)return out;
+  for(i=1;i<a.length;i++){
+    var gap=Math.round((new Date(a[i][0])-new Date(a[anchor][0]))/86400000);
+    /* 닷새보다 촘촘하면 저울이 흔들린 폭이 변화율로 증폭된다 */
+    if(gap<5)continue;
+    out.push({from:a[anchor][0],to:a[i][0],days:gap,
+      d:Math.round((a[i][1]-a[anchor][1])/gap*7*100)/100});
+    anchor=i;
   }
-  var keys=Object.keys(m).sort(),out=[];
-  for(i=0;i<keys.length;i++){
-    var a=m[keys[i]],sum=0;
-    for(j=0;j<a.length;j++)sum+=a[j];
-    out.push({w:keys[i],avg:sum/a.length,n:a.length});
-  }
-  /* 첫 주는 견줄 앞 주가 없어 변화가 없다. 그리고 한 주가 통째로 비면
-     그 다음 주는 2주치 변화를 갖게 되는데 그걸 '주간 변화' 로 찍으면
-     두 배로 보인다 — 이레 떨어진 주끼리만 견준다. */
-  for(i=1;i<out.length;i++){
-    var gp=Math.round((new Date(out[i].w)-new Date(out[i-1].w))/86400000);
-    if(gp===7)out[i].d=Math.round((out[i].avg-out[i-1].avg)*100)/100;
-  }
-  return out.filter(function(x){return x.d!==undefined;}).slice(-nw);
+  return out.slice(-nb);
 }
-/* 그 주에 하루 평균 얼마나 적자였나. 주별 체중 변화 옆에 두면 '덜 빠진
-   주는 적자도 적었다' 가 한 줄에서 보인다 — 하루 단위로는 안 보이던 것. */
-function weekDeficit(rows){
-  var m={},i;
+/* 그 구간에 하루 평균 얼마나 적자였나. 체중 변화 옆에 두면 '덜 빠진
+   구간은 적자도 적었다' 가 한 줄에서 보인다. */
+function rangeDeficit(rows,from,to){
+  var s2=0,e=0,n=0,i;
   for(i=0;i<rows.length;i++){
     var r=rows[i];
-    if(r.ate==null)continue;
-    var d=new Date(r.d),off=(d.getDay()+6)%7,mo=new Date(d);
-    mo.setDate(d.getDate()-off);
-    var k=mo.getFullYear()+'-'+('0'+(mo.getMonth()+1)).slice(-2)+'-'+('0'+mo.getDate()).slice(-2);
-    if(!m[k])m[k]={s:0,e:0,n:0};
-    m[k].s+=(r.base+r.ex-r.ate);m[k].e+=r.ex;m[k].n++;
+    if(r.ate==null||r.d<=from||r.d>to)continue;
+    s2+=(r.base+r.ex-r.ate);e+=r.ex;n++;
   }
-  for(var k2 in m){m[k2].avg=Math.round(m[k2].s/m[k2].n);m[k2].ex=Math.round(m[k2].e/m[k2].n);}
-  return m;
+  return n?{avg:Math.round(s2/n),ex:Math.round(e/n),n:n}:null;
 }
 function weekChartHtml(){
-  var wk=weekBars(6);
-  /* 둘을 요구하면 서로 다른 세 주가 있어야 한다(첫 주는 막대가 안 된다).
-     옛 그림은 점 셋이면 그려졌으니 그보다 까다로워진 것이다. 하나면 그린다. */
+  var wk=paceBars(6);
   if(wk.length<1)return '';
-  var df=weekDeficit(trendRows(60)),i,mx=WR;
+  var rows=trendRows(140),i,mx=WR;
   for(i=0;i<wk.length;i++)mx=Math.max(mx,Math.abs(wk[i].d));
   mx=mx*1.12;
-  var thisMon=(function(){var d=new Date(),o=(d.getDay()+6)%7,m2=new Date(d);
-    m2.setDate(d.getDate()-o);
-    return m2.getFullYear()+'-'+('0'+(m2.getMonth()+1)).slice(-2)+'-'+('0'+m2.getDate()).slice(-2);})();
   var h='<div class="wkc">';
   for(i=0;i<wk.length;i++){
     var x=wk[i],gp=WR/mx*100;
-    /* -0.48 은 화면에 -0.5 로 나온다. 보이는 값과 판정이 어긋나면
-       그 판정을 못 믿게 된다 — 반올림한 자리에서 견준다. */
-    /* 판정도 표시도 반올림한 값 하나로 낸다. 따로 쓰면 -0.04 가 화면엔
-       '-0.0' 으로 찍히고(부호만 남은 0), 판정은 또 다른 값을 본다. */
+    /* 판정도 표시도 반올림한 값 하나로 낸다. 따로 쓰면 -0.48 이 화면엔
+       '-0.5' 로 찍히는데 목표 달성으로는 안 쳐서 어긋난다. */
     var dv=Math.round(x.d*10)/10;
-    var hit=(dv<=-WR),up=(dv>0),cur=(x.w===thisMon);
-    var dd=df[x.w];
-    h+='<div class="wkr'+(cur?' now':'')+'">'
-      +'<i>'+md(x.w)+'</i>'
+    var hit=(dv<=-WR),up=(dv>0);
+    var dd=rangeDeficit(rows,x.from,x.to);
+    h+='<div class="wkr">'
+      +'<i>'+md(x.to)+'</i>'
       +'<span class="wkt"><b class="'+(up?'up':(hit?'hit':''))+'" style="width:'
         +Math.min(100,Math.abs(dv)/mx*100).toFixed(1)+'%"></b>'
       +'<s style="left:'+gp.toFixed(1)+'%"></s></span>'
       +'<u>'+(dv>0?'+':'')+dv.toFixed(1)+'</u></div>';
-    h+='<div class="wksub"><i></i><span>'
-      +(cur?'이번 주 · 아직 진행 중':(dd?'하루 적자 '+dd.avg.toLocaleString()+' · 그중 운동 '+dd.ex.toLocaleString():'섭취 기록 없음'))
+    h+='<div class="wksub"><i></i><span>'+x.days+'일 만에 잼'
+      +(dd?' · 하루 적자 '+dd.avg.toLocaleString()+' · 그중 운동 '+dd.ex.toLocaleString():'')
       +'</span></div>';
   }
   return h+'</div>';
@@ -5505,11 +5486,11 @@ function vzBody(tab){
        대상도 '기록이 맞았다면 있었을 체중' 이라는 반사실이었다. 주로
        묶고 목표 속도와 견준다 — 계획과의 비교는 머리를 안 굴려도 된다. */
     var wkh=weekChartHtml();
-    if(wkh)h+=vzCap('주마다 얼마나 빠졌나 — 점선이 목표 -'+WR+'kg')+wkh;
+    if(wkh)h+=vzCap('잴 때마다 주당 몇 kg — 점선이 목표 -'+WR+'kg')+wkh;
     /* 조건이 안 맞으면 그림 자리가 그냥 비어 버렸다. 없어진 것과 원래
        없는 것을 구분할 수 없으면 고장으로 읽힌다 — 왜 없는지 적는다. */
-    else h+=vzLine('주간 그래프','기록 부족',
-      '이어지는 두 주에 체중이 있어야 막대가 나옴 · 체중계나 인바디로 재면 쌓임',
+    else h+=vzLine('추세 그래프','기록 부족',
+      '체중을 두 번 이상, 닷새 넘게 띄워 재면 막대가 나옴',
       {t:'',c:''});
     var pc=paceCalc(BW,BF,GF);
     /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
@@ -5569,11 +5550,18 @@ function vzBody(tab){
          이것을 (-WR)-rate 로 뒤집어 써서 '하루 --418kcal, 섭취를 늘려라'
          가 나왔었다 — 감량 갈래에서 정반대를 시키고 있었다. */
       var need=Math.round((pc.rate+WR)*7700/7);
-      h+=vzLine('더 줄일 양','하루 -'+need.toLocaleString()+'kcal',
+      /* 실측 반응으로 낸 수라 산수는 맞지만, 그대로 두면 기초대사보다
+         낮은 섭취를 앱이 먼저 권하게 된다(1,459 인데 기초대사가 1,735).
+         기초대사에서 끊고 왜 끊었는지 적는다 — 숫자를 숨기지는 않는다. */
+      var bFloor=bmr(BW,BF),tgt=ep.섭취-need,cut=false;
+      if(bFloor>0&&tgt<bFloor){tgt=bFloor;need=ep.섭취-bFloor;cut=true;}
+      h+=vzLine('더 줄일 양','하루 -'+Math.max(0,need).toLocaleString()+'kcal',
         /* '1,481으로' 는 수에 따라 조사가 틀린다(1,481 은 '로'). 수를 매번
            읽어 조사를 고르느니 조사가 안 붙는 '까지' 로 적는다. */
-        '지금 '+ep.섭취.toLocaleString()+' · '+(ep.섭취-need).toLocaleString()
-        +' 까지 낮추면 목표 -'+WR+'kg/주',{t:'실제로 빠진 만큼 계산',c:'warn'});
+        '지금 '+ep.섭취.toLocaleString()+' · '+tgt.toLocaleString()+' 까지'
+        +(cut?' — 기초대사에서 끊음. 이대로도 목표 -'+WR+'kg/주 에는 못 미침'
+             :' 낮추면 목표 -'+WR+'kg/주'),
+        {t:cut?'기초대사가 바닥':'실제로 빠진 만큼 계산',c:'warn'});
     }
     /* '섭취 대비' 줄은 첫 그림 그 자체라 걷어냈다 — 두 선이 갈라지는
        것을 보는 쪽이 '예상 -0.44 / 실측 -0.15' 를 읽어 내는 것보다 빠르고,
@@ -5914,7 +5902,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 02:10';
+var BUILD='2026-09-09 02:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
