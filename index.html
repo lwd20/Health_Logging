@@ -1178,6 +1178,14 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lmcap::after{content:'';flex:1;height:1px;background:var(--line)}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:13px 3px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
+/* 카드 안의 칸막이. 브랜드 제목(.bhd)은 카드 밖이라 한 급 위다 —
+   같은 굵기로 두면 어느 쪽이 상위인지 흐려진다. */
+.sbh{display:flex;align-items:baseline;gap:6px;padding:10px 0 5px;
+  font-size:9.5px;font-weight:700;letter-spacing:.05em;color:var(--dim);
+  border-bottom:1px solid rgba(var(--tx-rgb),.055)}
+.sbh i{font-style:normal;font-family:var(--mono);font-size:9px;opacity:.75}
+.sbh::after{content:'';flex:1;height:1px;background:var(--line);opacity:.5;
+  align-self:center}
 .bhd::after{content:'';flex:1;height:1px;background:var(--line);opacity:.7}
 /* 범례를 누르면 뜻을 설명한 도움말이 열린다 */
 .lmlg{display:flex;gap:12px;align-items:center;margin:0 -4px;padding:9px 4px 7px;font-family:var(--mono);font-size:9px;color:var(--dim);cursor:pointer}
@@ -2464,9 +2472,22 @@ function renderList(){
         for(bj=0;bj<bgs.length;bj++){
           bg=bgs[bj];
           /* ★는 브랜드 묶음마다 그 안에서 위로 — 부위 전체에 걸면 묶음 순서까지 흔들린다 */
-          var bit=favFirst(bg.items);
-          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bit.length+'</i></div><div class="grp">';
-          for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
+          var sgs=subGroups(bg.items),sj;
+          h+='<div class="bhd">'+esc(bg.n)+'<i>'+bg.items.length+'</i></div><div class="grp">';
+          /* 칸막이는 셋 이상일 때만. 어깨 GYM80 은 측면 1 · 전면 1 이라
+             갈래가 둘인데도 칸막이를 치면 종목 5개에 제목이 7개가 된다 —
+             'Standing Lateral Raise' 와 'Shoulder Press' 는 이름만으로
+             이미 갈린다. 줄일 것이 있을 때만 가른다. */
+          if(sgs.length<2||bg.items.length<3){
+            var bit=favFirst(bg.items);
+            for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
+          }else{
+            for(sj=0;sj<sgs.length;sj++){
+              var sg=sgs[sj],sit=favFirst(sg.items);
+              h+='<div class="sbh">'+esc(sg.n)+'<i>'+sit.length+'</i></div>';
+              for(j=0;j<sit.length;j++)h+=rowHtml(sit[j],true);
+            }
+          }
           h+='</div>';
         }
       }
@@ -3803,6 +3824,22 @@ function subAuto(m){
 function subOf(m){
   if(m&&m.sk&&SUBRX[m.sk])return m.sk;
   return subAuto(m);
+}
+/* 브랜드 묶음 안을 주동근으로 다시 가른다. 차례는 SUBS 에 적힌 순서를
+   따른다 — 화면마다 순서가 달라지면 못 찾는다. 추정이 안 된 것은 맨 아래. */
+function subGroups(items){
+  var m={},i,k;
+  for(i=0;i<items.length;i++){
+    k=subOf(items[i])||'';
+    (m[k]=m[k]||[]).push(items[i]);
+  }
+  var out=[];
+  for(i=0;i<SUBS.length;i++){
+    k=SUBS[i].k;
+    if(m[k])out.push({k:k,n:subLabel(SUBS[i]),items:m[k]});
+  }
+  if(m[''])out.push({k:'',n:'기타',items:m['']});
+  return out;
 }
 function subName(k){
   for(var i=0;i<SUBS.length;i++)if(SUBS[i].k===k)return subLabel(SUBS[i]);
@@ -5910,7 +5947,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 05:30';
+var BUILD='2026-09-09 06:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
