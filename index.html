@@ -876,6 +876,32 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ghost.armed{color:var(--sig)}
 .hist{border-top:1px solid var(--line);margin-top:5px;padding-top:11px}
 .spk{width:100%;height:38px;display:block;margin:0 0 9px}
+/* 추세 그림 — 축이 있어야 선이 뜻을 갖는다 */
+.cht{width:100%;display:block;margin:1px 0 0}
+.cht .gr{stroke:var(--line);stroke-width:1}
+.cht .zr{stroke:var(--mut);stroke-width:1;opacity:.55}
+.cht text{fill:var(--dim);font-family:var(--mono);font-size:8.5px}
+.cht .l1{fill:none;stroke:var(--acc-br);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.cht .l2{fill:none;stroke:var(--mut);stroke-width:1.5;stroke-dasharray:3.5 3;
+  stroke-linejoin:round;stroke-linecap:round;opacity:.9}
+.cht .d1{fill:var(--acc-br)}
+.cht .d2{fill:var(--mut)}
+.cht .gap{fill:var(--sig);opacity:.10}
+.cht .bE{fill:var(--acc-br);opacity:.95}
+.cht .bD{fill:var(--acc-br);opacity:.36}
+.cht .bS{fill:var(--neg);opacity:.62}
+/* 범례 — 색이 무엇을 뜻하는지 없으면 그림이 안 읽힌다 */
+.lgd{display:flex;flex-wrap:wrap;gap:4px 13px;margin:5px 2px 11px;
+  font-size:11px;color:var(--mut);font-family:var(--mono);
+  font-variant-numeric:tabular-nums;align-items:center}
+.lgd i{display:inline-flex;align-items:center;gap:4px;font-style:normal}
+.lgd i::before{content:'';width:9px;height:9px;border-radius:2px;background:var(--mut)}
+.lgd i.k1::before{background:var(--acc-br)}
+.lgd i.k2::before{width:11px;height:0;border-radius:0;
+  border-top:2px dashed var(--mut);background:none}
+.lgd i.k3::before{background:var(--acc-br);opacity:.36}
+.lgd i.k4::before{background:var(--neg);opacity:.62}
+.lgd b{color:var(--tx);font-weight:600}
 .spk polyline{fill:none;stroke:var(--chrome);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .spk circle{fill:var(--chrome)}
 .hr2{display:flex;align-items:center;gap:11px;padding:1px 2px;font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -5335,6 +5361,113 @@ function vzTabs(list,cur,act){
       +list[i][1]+'</button>';
   return '<div class="vzts">'+t+'</div>';
 }
+/* 체중·섭취·운동을 날짜 하나에 모은다. 지금까지 이 셋은 따로 놀았다 —
+   체중은 선으로, 섭취는 숫자 줄로, 운동은 아예 이 갈래에 없었다. */
+function trendRows(days){
+  var lim=dsAgo(days),td0=today(),i,k,wm={},all={};
+  var ws=wSeries(days);
+  for(i=0;i<ws.a.length;i++){wm[ws.a[i][0]]=ws.a[i][1];all[ws.a[i][0]]=1;}
+  var hd=HC.days||{};
+  for(k in hd)if(k>=lim&&k<td0&&hd[k]&&hd[k].n>0)all[k]=1;
+  var b=bmr(BW,BF),base=b?Math.round(b*ACT):0;
+  var keys=Object.keys(all).sort(),out=[];
+  for(i=0;i<keys.length;i++){
+    k=keys[i];
+    var ate=(hd[k]&&hd[k].n>0&&k<td0)?Math.round(hd[k].kcal):null;
+    out.push({d:k,w:(wm[k]===undefined?null:wm[k]),ate:ate,base:base,ex:dayExKcal(k)});
+  }
+  return out;
+}
+/* 기록한 적자대로면 체중이 어디 있어야 하는가. 7700kcal 이 지방 1kg 이다.
+   섭취가 없는 날은 적자를 0 으로 두고 선을 수평으로 끈다 — 없는 날을
+   평균으로 메우면 기록이 성실했던 것처럼 보이게 만드는 거짓말이 된다. */
+function trendPred(rows){
+  var i,r,anchor=null,cum=0,out=[],logged=0;
+  for(i=0;i<rows.length;i++)if(rows[i].w!=null){anchor=rows[i].w;break;}
+  if(anchor===null)return null;
+  for(i=0;i<rows.length;i++){
+    r=rows[i];
+    if(r.ate!=null){cum+=(r.base+r.ex-r.ate);logged++;}
+    out.push(Math.round((anchor-cum/7700)*100)/100);
+  }
+  /* 절반도 안 적힌 창에 이 선을 그으면 '덜 빠졌다' 는 거짓 결론이 나온다 */
+  if(logged<Math.max(4,rows.length*0.5))return null;
+  return {a:out,logged:logged};
+}
+/* 체중 두 선. 벌어지는 폭이 이 그림의 전부라 그 사이를 옅게 채운다. */
+function chartWeight(rows,pred){
+  var W=320,H=118,L=29,R=7,T=9,B=15,i;
+  var lo=null,hi=null;
+  function see(v){if(v==null)return;if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
+  for(i=0;i<rows.length;i++)see(rows[i].w);
+  if(pred)for(i=0;i<pred.a.length;i++)see(pred.a[i]);
+  if(lo===null)return '';
+  if(hi-lo<0.6){var mid=(hi+lo)/2;lo=mid-0.4;hi=mid+0.4;}
+  var tp=hi,bt=lo,pd=(hi-lo)*0.12;lo-=pd;hi+=pd;
+  var n=rows.length;
+  function X(i2){return n<2?L:L+i2*(W-L-R)/(n-1);}
+  function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
+  var g='',p1=[],p2=[],lx=0,ly=0,px=0,py=0,band=[],bandR=[];
+  for(i=0;i<n;i++){
+    if(rows[i].w!=null){lx=X(i);ly=Y(rows[i].w);p1.push(lx.toFixed(1)+','+ly.toFixed(1));}
+    if(pred){px=X(i);py=Y(pred.a[i]);p2.push(px.toFixed(1)+','+py.toFixed(1));}
+  }
+  /* 두 선 사이를 채우려면 실측이 있는 날만 짝지어야 한다 */
+  if(pred&&p1.length>=2){
+    for(i=0;i<n;i++)if(rows[i].w!=null){
+      band.push(X(i).toFixed(1)+','+Y(rows[i].w).toFixed(1));
+      bandR.push(X(i).toFixed(1)+','+Y(pred.a[i]).toFixed(1));
+    }
+    bandR.reverse();
+    g+='<polygon class="gap" points="'+band.concat(bandR).join(' ')+'"/>';
+  }
+  g+='<line class="gr" x1="'+L+'" y1="'+Y(tp).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(tp).toFixed(1)+'"/>'
+    +'<line class="gr" x1="'+L+'" y1="'+Y(bt).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(bt).toFixed(1)+'"/>'
+    +'<text x="0" y="'+(Y(tp)+3).toFixed(1)+'">'+fmtW(tp)+'</text>'
+    +'<text x="0" y="'+(Y(bt)+3).toFixed(1)+'">'+fmtW(bt)+'</text>';
+  if(p2.length>1)g+='<polyline class="l2" points="'+p2.join(' ')+'"/>';
+  if(p1.length>1)g+='<polyline class="l1" points="'+p1.join(' ')+'"/>';
+  if(pred&&p2.length)g+='<circle class="d2" cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="2.6"/>';
+  if(p1.length)g+='<circle class="d1" cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="3.2"/>';
+  g+='<text x="'+L+'" y="'+(H-3)+'">'+md(rows[0].d)+'</text>'
+    +'<text x="'+(W-R)+'" y="'+(H-3)+'" text-anchor="end">'+md(rows[n-1].d)+'</text>';
+  return '<svg class="cht" viewBox="0 0 '+W+' '+H+'" role="img" '
+    +'aria-label="체중 실측과 기록대로 예상한 값">'+g+'</svg>';
+}
+/* 하루 수지. 막대 하나가 그날의 적자이고, 진한 칸이 운동이 만든 몫이다. */
+function chartBalance(rows){
+  var a=rows.filter(function(r){return r.ate!=null;});
+  if(a.length<3)return '';
+  var W=320,H=84,L=29,R=7,T=8,B=14,i,r,mx=0,t;
+  for(i=0;i<a.length;i++){
+    t=Math.abs(a[i].base+a[i].ex-a[i].ate);
+    if(t>mx)mx=t;
+  }
+  if(mx<100)mx=100;
+  var n=a.length,slot=(W-L-R)/n,bw=Math.max(2,Math.min(11,slot-1.6));
+  var z=T+(H-T-B)*0.62,sc=(H-T-B)*0.62/mx,scDn=(H-T-B)*0.38/mx;
+  var g='<line class="zr" x1="'+L+'" y1="'+z.toFixed(1)+'" x2="'+(W-R)+'" y2="'+z.toFixed(1)+'"/>'
+    +'<text x="0" y="'+(z+3).toFixed(1)+'">0</text>'
+    +'<text x="0" y="'+(T+7)+'">'+Math.round(mx)+'</text>';
+  for(i=0;i<n;i++){
+    r=a[i];
+    var x=L+i*slot+(slot-bw)/2,tot=r.base+r.ex-r.ate;
+    if(tot>=0){
+      var hh=tot*sc,hE=Math.min(r.ex,tot)*sc;
+      if(hh-hE>0.4)g+='<rect class="bD" x="'+x.toFixed(1)+'" y="'+(z-hh).toFixed(1)
+        +'" width="'+bw.toFixed(1)+'" height="'+(hh-hE).toFixed(1)+'" rx="1"/>';
+      if(hE>0.4)g+='<rect class="bE" x="'+x.toFixed(1)+'" y="'+(z-hE).toFixed(1)
+        +'" width="'+bw.toFixed(1)+'" height="'+hE.toFixed(1)+'" rx="1"/>';
+    }else{
+      g+='<rect class="bS" x="'+x.toFixed(1)+'" y="'+z.toFixed(1)
+        +'" width="'+bw.toFixed(1)+'" height="'+Math.min((H-B)-z,-tot*scDn).toFixed(1)+'" rx="1"/>';
+    }
+  }
+  g+='<text x="'+L+'" y="'+(H-2)+'">'+md(a[0].d)+'</text>'
+    +'<text x="'+(W-R)+'" y="'+(H-2)+'" text-anchor="end">'+md(a[n-1].d)+'</text>';
+  return '<svg class="cht" viewBox="0 0 '+W+' '+H+'" role="img" '
+    +'aria-label="하루 적자와 그중 운동이 만든 몫">'+g+'</svg>';
+}
 /* 감량기에 물어야 할 것은 '얼마나 빠졌나' 가 아니라 '무엇이 빠졌나' 다.
    인바디에 체중과 체지방률이 있으니 지방량과 제지방을 갈라 낼 수 있다 —
    지금은 제지방 변화만 한 줄 보여 주고 지방은 안 보여 준다.
@@ -5386,14 +5519,33 @@ function vzBody(tab){
     /* 숫자만으로는 '주당 -0.21' 이 흔들림인지 추세인지 안 보인다. 선을
        그린다 — spark 는 종목 이력이 쓰던 것을 그대로 쓴다: 새 그림 어휘를
        만들 이유가 없다. 점이 셋은 되어야 선이 뜻을 갖는다. */
-    var ws2=wSeries(60),pts=ws2.a.map(function(x){return x[1];});
-    if(pts.length>=3){
-      /* 폴리라인만 두면 위가 몇 kg 아래가 몇 kg 인지 없어 선을 봐도 어디서
-         어디로 갔는지 모른다. 캡션에 시작과 끝을 적어 축을 대신한다 —
-         눈금 그림을 새로 만들 것까지는 없다. */
-      h+=vzCap('체중 '+fmtW(pts[0])+' → '+fmtW(pts[pts.length-1])+'kg · '
-        +Math.max(1,Math.round((new Date(ws2.a[ws2.a.length-1][0])-new Date(ws2.a[0][0]))/86400000))+'일')
-        +spark(pts);
+    var ws2=wSeries(60);
+    var trs=trendRows(60),prd=trendPred(trs);
+    var wOnly=trs.filter(function(r){return r.w!=null;});
+    if(wOnly.length>=3){
+      h+=vzCap('체중 — 실측과 기록대로라면')+chartWeight(trs,prd);
+      var lastW=wOnly[wOnly.length-1].w;
+      var lg='<div class="lgd"><i class="k1">실측 <b>'+fmtW(lastW)+'</b></i>';
+      if(prd){
+        var pv=prd.a[prd.a.length-1],gp=Math.round((lastW-pv)*10)/10;
+        lg+='<i class="k2">기록대로면 <b>'+fmtW(pv)+'</b></i>'
+          +'<i style="margin-left:auto">'
+          +(gp>0.1?'덜 빠짐 <b>'+gp+'kg</b>'
+            :(gp<-0.1?'더 빠짐 <b>'+Math.abs(gp)+'kg</b>':'기록과 맞음'))+'</i>';
+      }else lg+='<i style="margin-left:auto">섭취 기록이 모자라 예상선 없음</i>';
+      h+=lg+'</div>';
+    }
+    var cb=chartBalance(trs);
+    if(cb){
+      var ld=trs.filter(function(r){return r.ate!=null;}),sd=0,se=0;
+      ld.forEach(function(r){sd+=(r.base+r.ex-r.ate);se+=r.ex;});
+      var aD=Math.round(sd/ld.length),aE=Math.round(se/ld.length);
+      h+=vzCap('하루 수지 — 진한 칸이 운동 몫')+cb
+        +'<div class="lgd"><i class="k3">덜 먹어서</i>'
+        +'<i class="k1">운동 <b>'+aE.toLocaleString()+'</b></i>'
+        +'<i class="k4">넘긴 날</i>'
+        +'<i style="margin-left:auto">하루 평균 <b>'
+        +(aD>=0?'-':'+')+Math.abs(aD).toLocaleString()+'</b>kcal</i></div>';
     }
     var pc=paceCalc(BW,BF,GF);
     /* '주당 감량 +0.27kg' 은 그 자체로 앞뒤가 안 맞았다 — 값이 부호를 갖는데
@@ -5450,25 +5602,9 @@ function vzBody(tab){
         '섭취 '+ep.섭취.toLocaleString()+' → '+(ep.섭취-need).toLocaleString()
         +' 이면 목표 -'+WR+'kg/주',{t:'실측 반응 기준',c:'warn'});
     }
-    if(ep){
-      /* 이 줄의 요점은 '예상과 실측이 얼마나 벌어졌나' 라는 대비다.
-         예상만 숫자 칸에 놓고 실측을 근거 줄 끝에 묻어 두면, 견주라고
-         만든 줄에서 견줄 것이 한눈에 안 들어온다. 둘을 나란히 놓는다. */
-      var pred=-ep.주당;
-      var df=pc.ok?Math.round((pc.rate-pred)*100)/100:null;
-      h+=vzLine('섭취 대비',
-        /* 라벨이 없으면 어느 쪽이 예상이고 어느 쪽이 실측인지 모른다 —
-           견주라고 놓은 두 수인데 무엇과 무엇인지가 빠지면 뜻이 없다 */
-        '예상 '+(pred>0?'+':'')+pred+(pc.ok?' / 실측 '+((pc.rate>0?'+':'')+pc.rate):''),
-        '하루 '+ep.적자+'kcal 적자 · '+ep.일수+'일 평균'
-        +((df===null||vague)?'':(Math.abs(df)<=0.15?' · 예상과 맞음'
-          :(df>0?' · 기록보다 덜 빠짐': ' · 기록보다 더 빠짐'))),
-        /* 추세 자체가 흔들림 안이면 그것과 모델을 견준 차이도 뜻이 없다 —
-           판정을 달면 흔들림을 근거로 식단을 고치게 된다 */
-        (df===null||vague)?{t:'',c:''}
-          :(Math.abs(df)<=0.15?{t:'예상 · 실측',c:'pos'}
-            :{t:(df>0?'섭취 누락 의심':'소비 과소 의심'),c:'warn'}));
-    }
+    /* '섭취 대비' 줄은 첫 그림 그 자체라 걷어냈다 — 두 선이 갈라지는
+       것을 보는 쪽이 '예상 -0.44 / 실측 -0.15' 를 읽어 내는 것보다 빠르고,
+       같은 말을 두 번 하면 둘 다 안 읽힌다. */
     /* 판정도 안 서는 기울기로 여덟 달 뒤를 짚는 것은 숫자를 지어내는 것에
        가깝다 — 흔들림 폭 밖일 때만 그린다 */
     if(pc.ok&&!vague&&!pc.done&&pc.eta)
@@ -5805,7 +5941,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 23:00';
+var BUILD='2026-09-08 23:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
