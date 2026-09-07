@@ -3846,25 +3846,29 @@ var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':
 var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
 var SUBS=[
  {k:'sd', p:'SHOULDERS',n:'측면',      d:18,r:/\blateral|래터럴|레터럴|라테랄|사레레|사이드\s*?레이즈|side\s*raise|neck\s*press|넥\s*?프레스|네크\s*?프레스|측면/},
- {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹/},
+ {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹|arnold|아놀드/},
  {k:'pd', p:'SHOULDERS',n:'후면',      d:0, r:/rear|리어|reverse\s*pec|리버스\s*?펙|face\s*pull|페이스\s*?풀|reverse\s*fly|리버스\s*?플라이/},
- {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫풀|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|high\s*row|하이\s*?로우|dorsi|dorsy|도르시|광배/},
+ {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫풀|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|high\s*row|하이\s*?로우|dorsi|dorsy|도르시|광배|턱걸이/},
  {k:'ut', p:'BACK',     n:'승모 상부', d:0, r:/shrug|슈러그|셰러그|셸러그|upright\s*row|업라이트/},
  {k:'tm', p:'BACK',     n:'중부·능형', d:0, r:/\brow|로우|t-?bar|티바|중부|능형/},
+ {k:'es', p:'BACK',     n:'척추기립근', d:0, r:/deadlift|데드\s*?리프트|데드리프트|rack\s*pull|랙\s*?풀|hyper\s*-?ext|하이퍼\s*?익스텐션|back\s*extension|백\s*?익스텐션|erector|기립근/},
  {k:'uc', p:'CHEST',    n:'상부',      d:0, r:/incline|인클라인/},
- {k:'mc', p:'CHEST',    n:'중하부',    d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|\bfly|플라이|pec\s*deck|펙\s*?덱|flat\s*press|플랫|decline|디클라인/},
- {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션/},
+ {k:'mc', p:'CHEST',    n:'중하부',    d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|\bfly|플라이|pec\s*deck|펙\s*?덱|flat\s*press|플랫|decline|디클라인|cross\s*-?over|크로스\s*?오버|push\s*-?up|푸시\s*?업|팔굽혀/},
+ {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션|lunge|런지|step\s*-?up|스텝\s*?업|split\s*squat|스플릿\s*?스쿼트/},
  {k:'hm', p:'LEGS',     n:'햄스트링',  d:10, r:/leg\s*curl|레그\s*?컬|햄스트링|hamstring|\bham\b|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
- {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|back\s*extension|백\s*?익스텐션|bridge|브릿지|킥\s*?백\s*?머신/},
- {k:'abd',p:'LEGS',     n:'외전근',    d:0, r:/abduct|어브덕|앱덕|외전|outer\s*thigh|아웃터\s*?사이/},
- {k:'adc',p:'LEGS',     n:'내전근',    d:0, r:/adduct|어덕|애덕|내전|inner\s*thigh|이너\s*?사이/},
+ {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|bridge|브릿지|킥\s*?백\s*?머신/},
+ {k:'abd',p:'LEGS',     n:'외전근',    d:0, r:/abduct|어브덕|앱덕|외전|outer\s*thigh|아웃터\s*?사이|아웃\s*?타이/},
+ {k:'adc',p:'LEGS',     n:'내전근',    d:0, r:/adduct|어덕|애덕|내전|inner\s*thigh|이너\s*?사이|이너\s*?타이/},
  {k:'cf', p:'LEGS',     n:'종아리',    d:0, r:/calf|카프|종아리/},
  {k:'bi', p:'ARMS·ETC', n:'이두',      d:0, r:/bicep|바이셉|이두|curl|컬/},
- {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백/},
+ {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백|skull|스컬|overhead\s*ext|오버헤드\s*?익스텐션|lying\s*ext|라잉\s*?익스텐션/},
  {k:'fa', p:'ARMS·ETC', n:'전완',      d:0, r:/forearm|전완|wrist\s*curl|리스트\s*?컬|grip|그립|손목/},
- {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈/}
+ {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈|russian|러시안/}
 ];
-var EVORD=['sd','pd','ad','hm','abd','adc','lt','ut','tm','uc','mc','qd','gl','tri','cf','fa','bi','ab'];
+/* es 는 hm 뒤여야 한다. 앞에 두면 Romanian Deadlift·Stiff Leg Deadlift 가
+   햄스트링에서 끌려간다 — 그 둘은 햄스트링이 맞다.
+   gl 앞이어야 백익스텐션이 둔근에서 척추기립근으로 옮겨 온다. */
+var EVORD=['sd','pd','ad','hm','es','abd','adc','lt','ut','tm','uc','mc','qd','gl','tri','cf','fa','bi','ab'];
 var WR=0.5; /* 주당 감량 목표 kg */
 var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 /* 승모 상부는 '추적 안 함'(-1)이 아니라 '회피'(0)다. -1 로 두면
@@ -6007,7 +6011,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 08:50';
+var BUILD='2026-09-09 09:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
