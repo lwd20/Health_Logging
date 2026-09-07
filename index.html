@@ -5850,11 +5850,15 @@ function vzBody(tab){
       er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
       var n2=er.length;
       h+=vzCap('날마다 · 섭취와 소비')+et
-        /* 메인 화면이 '섭취 여유'·'하루 소비' 라고 쓰므로 같은 말로 맞춘다 —
-           한 앱에서 같은 것을 두 이름으로 부르면 그때마다 머리를 다시 맞춰야 한다 */
-        +'<div class="trgl"><i class="k1">섭취 <b>'+Math.round(sI/n2).toLocaleString()+'</b></i>'
-        +'<i>소비 <b>'+Math.round(sO/n2).toLocaleString()+'</b> (운동 '+Math.round(sX/n2).toLocaleString()+')</i>'
-        +'<i style="margin-left:auto">하루 평균 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
+        /* '섭취 2,292 · 소비 2,758' 을 적어 뒀었다. 창 전체의 평균인데 그렇게
+           안 적혀 있어 오늘 값처럼 읽히고, 뜻을 알려면 둘을 빼야 한다.
+           그런데 그 답이 바로 옆에 이미 있다 — 같은 말을 두 번 하면서 한 번은
+           계산까지 시킨 셈이다.
+           범례가 할 일은 '어느 선이 무엇인가' 뿐이다. 수는 결론 하나만 둔다. */
+        +'<div class="trgl"><i class="k1">섭취</i>'
+        +'<i>소비 <u style="opacity:.75;text-decoration:none">운동 '
+        +Math.round(sX/n2).toLocaleString()+' 포함</u></i>'
+        +'<i style="margin-left:auto">하루 <b>'+(sO>=sI?'-':'+')+Math.abs(Math.round((sO-sI)/n2)).toLocaleString()
         +'</b>kcal · '+n2+'일 중 '+ng+'일 초과</i></div>';
     }else h+=vzLine('섭취와 소비','기록 부족',
       '식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴',{t:'',c:''});
@@ -6202,7 +6206,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 14:20';
+var BUILD='2026-09-09 14:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
