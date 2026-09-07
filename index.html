@@ -3910,6 +3910,9 @@ var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 /* 승모 상부는 '추적 안 함'(-1)이 아니라 '회피'(0)다. -1 로 두면
    subAvoid 가 늘 비어 AI 가 금기를 볼 방법이 없다 */
 (function(){for(var i=0;i<SUBS.length;i++)STG[SUBS[i].k]=(SUBS[i].d>0?SUBS[i].d:(SUBS[i].k==='ut'?0:-1));})();
+/* SUBS 에서 파생되는 정규식 표. subxApply 가 여기에 쓰므로 먼저 선언한다 */
+var SUBRX={};
+(function(){for(var i=0;i<SUBS.length;i++)SUBRX[SUBS[i].k]=SUBS[i].r;})();
 /* 사용자가 고친 것. 원본 SUBS 는 안 건드리고 덧칠만 담는다 — 앱이
    판올림되어 기본 목록이 바뀌어도 고친 것이 남는다. */
 var SUBX={ren:{},hide:{},add:[]};
@@ -3926,9 +3929,13 @@ function subxSave(){
   if(!canLS)return;
   try{localStorage.setItem(KEY+'.subx',JSON.stringify(SUBX));}catch(e){}
 }
-/* 더한 항목은 정규식이 없다 — 이름으로 추정하지 않고 손으로 지정한 것만
-   들어간다. 사용자가 정규식을 쓸 수는 없으니 그 편이 정직하다. */
-(function(){
+/* 더한 항목을 실제로 쓸 수 있게 등록한다. SUBS 에 넣는 것만으로는 모자라
+   SUBRX·LMK·STG 까지 채워야 한다 — 그걸 빠뜨려 '목록엔 보이는데 고를 수
+   없는 항목' 이 나왔었다. 켤 때와 백업을 되돌릴 때가 같은 길을 쓰도록
+   함수로 묶는다.
+   정규식은 안 준다. 이름으로 추정하지 않고 손으로 지정한 것만 들어간다 —
+   사용자가 정규식을 쓸 수는 없으니 그 편이 정직하다. */
+function subxApply(){
   for(var i=0;i<SUBX.add.length;i++){
     var a=SUBX.add[i];
     if(!a||!a.k||!a.p||!a.n)continue;
@@ -3936,9 +3943,12 @@ function subxSave(){
     for(q=0;q<SUBS.length;q++)if(SUBS[q].k===a.k)dup=true;
     if(dup)continue;
     SUBS.push({k:a.k,p:a.p,n:a.n,d:0,r:/(?!)/,user:1});
+    SUBRX[a.k]=/(?!)/;
+    if(typeof LMK!=='undefined'&&!LMK[a.k])LMK[a.k]=[0,4,8,12];
     if(STG[a.k]===undefined)STG[a.k]=-1;
   }
-})();
+}
+subxApply();
 function subHidden(k){return !!SUBX.hide[k];}
 /* 쓸 수 있는 근육인가. 예전에는 SUBRX(정규식 표)에 물었는데, 그건 '이름으로
    추정할 때 쓰는 말' 이지 '있는 근육인가' 가 아니다. 더한 항목은 정규식이
@@ -3953,8 +3963,7 @@ function subLabel(e){
   if(SUBX.ren[e.k])return SUBX.ren[e.k];
   return e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);
 }
-var SUBRX={};
-(function(){for(var i=0;i<SUBS.length;i++)SUBRX[SUBS[i].k]=SUBS[i].r;})();
+(function(){for(var i=0;i<SUBS.length;i++)if(!SUBRX[SUBS[i].k])SUBRX[SUBS[i].k]=SUBS[i].r;})();
 /* 종목명으로 추정한 주동근 */
 function subAuto(m){
   if(!m||isCard(m.p))return null;
@@ -4089,7 +4098,10 @@ function bkText(){
     st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
-    ppk:PRO_PER_KG,gm:GM,lm:LM
+    ppk:PRO_PER_KG,gm:GM,lm:LM,
+    /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
+       숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
+    subx:{ren:SUBX.ren,hide:SUBX.hide,add:SUBX.add}
   }});
 }
 function applyBackup(o){
@@ -4142,6 +4154,12 @@ function applyBackup(o){
         if(+c.dot.rd>=1&&+c.dot.rd<=6)DOT.rd=Math.floor(+c.dot.rd);
         if(+c.dot.yd>=1&&+c.dot.yd<=7)DOT.yd=Math.floor(+c.dot.yd);
         dotSave();
+      }
+      if(c.subx&&typeof c.subx==='object'){
+        SUBX.ren=c.subx.ren||{};SUBX.hide=c.subx.hide||{};
+        SUBX.add=Array.isArray(c.subx.add)?c.subx.add:[];
+        /* 켤 때와 같은 길로 등록한다 — SUBS 에 넣는 것만으로는 못 쓴다 */
+        subxApply();subxSave();
       }
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(c.gm&&GMN[c.gm])GM=c.gm;
@@ -5557,7 +5575,7 @@ function subEditHtml(){
       var hid=subHidden(e.k);
       h+='<div class="sxrow'+(hid?' off':'')+'">'
         +'<input class="sxnm" id="subn-'+esc(e.k)+'" value="'+esc(subLabel(e))+'" '
-        +'placeholder="이름" autocomplete="off">'
+        +'placeholder="이름" autocomplete="off" maxlength="12">'
         +(e.user?'<span class="tagu">추가함</span>':'')
         +'<button class="sxb'+(hid?' on':'')+'" data-act="sxhide" data-v="'+esc(e.k)+'">'
         +(hid?'숨김':'보임')+'</button>'
@@ -6162,7 +6180,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 11:40';
+var BUILD='2026-09-09 13:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8409,7 +8427,8 @@ document.addEventListener('input',function(e){
   if(e.target.id==='q'){UI.q=e.target.value;renderChips();renderList();return;}
   /* 근육 이름 — 비우면 덧칠을 지워 기본 이름으로 돌아간다 */
   if(e.target.id&&e.target.id.indexOf('subn-')===0){
-    var sk2=e.target.id.slice(5),vv=e.target.value.trim();
+    /* 긴 이름은 알약이 화면을 넘는다. 12자에서 끊는다 */
+    var sk2=e.target.id.slice(5),vv=e.target.value.trim().slice(0,12);
     if(vv)SUBX.ren[sk2]=vv;else delete SUBX.ren[sk2];
     var ad=SUBX.add.filter(function(x){return x.k===sk2;})[0];
     if(ad&&vv)ad.n=vv;
