@@ -2930,7 +2930,11 @@ function exFormHtml(isEdit){
 
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
     var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : '미분류' }];
-    for (i = 0; i < SUBS.length; i++) kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
+    /* 목록·거르개·추정에서는 숨긴 것을 뺐는데 이 한 곳을 빠뜨렸다 */
+    for (i = 0; i < SUBS.length; i++) {
+      if (subHidden(SUBS[i].k)) continue;
+      kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
+    }
     h += pickRow('sk', '주동근', UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : '미분류'),
       UI.editSk ? '직접 지정' : '자동',
       chipRow(kItems, 'psk', UI.editSk, 3));
@@ -3711,7 +3715,7 @@ function addMachine(name,part,brand,line){
   if(UI.editStep>0&&UI.editStep!==2.5)nm.st=UI.editStep;
   if(UI.editRx&&UI.editRx!==12)nm.rx=UI.editRx;
   if(UI.editAs)nm.as=1;
-  if(UI.editSk&&SUBRX[UI.editSk])nm.sk=UI.editSk;
+  if(subValid(UI.editSk))nm.sk=UI.editSk;
   if(isCard(part)&&ctOk(UI.editCt))nm.ct=UI.editCt;
   S.m.push(nm);
   save();render();
@@ -3769,7 +3773,7 @@ function editMachine(){
   }
   m.n=name;m.p=UI.addPart;m.b=brand;m.ln=line;m.st=UI.editStep||2.5;
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
-  if(UI.editSk&&SUBRX[UI.editSk])m.sk=UI.editSk;else delete m.sk;
+  if(subValid(UI.editSk))m.sk=UI.editSk;else delete m.sk;
   if(UI.editAs)m.as=1;else delete m.as;
   if(isCard(UI.addPart)&&ctOk(UI.editCt))m.ct=UI.editCt;else delete m.ct;
   UI.sheet=null;
@@ -3936,6 +3940,15 @@ function subxSave(){
   }
 })();
 function subHidden(k){return !!SUBX.hide[k];}
+/* 쓸 수 있는 근육인가. 예전에는 SUBRX(정규식 표)에 물었는데, 그건 '이름으로
+   추정할 때 쓰는 말' 이지 '있는 근육인가' 가 아니다. 더한 항목은 정규식이
+   없는 것이 정상인데 그걸 없는 근육으로 읽어, 목록엔 보여도 고를 수가
+   없었다. SUBS 에 있고 숨기지 않았으면 쓸 수 있다. */
+function subValid(k){
+  if(!k||subHidden(k))return false;
+  for(var i=0;i<SUBS.length;i++)if(SUBS[i].k===k)return true;
+  return false;
+}
 function subLabel(e){
   if(SUBX.ren[e.k])return SUBX.ren[e.k];
   return e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);
@@ -3956,7 +3969,7 @@ function subAuto(m){
 }
 /* 사용자가 지정한 주동근(sk)이 있으면 그것이 절대 기준, 없으면 추정 */
 function subOf(m){
-  if(m&&m.sk&&SUBRX[m.sk]&&!subHidden(m.sk))return m.sk;
+  if(m&&subValid(m.sk))return m.sk;
   return subAuto(m);
 }
 /* 브랜드 묶음 안을 주동근으로 다시 가른다. 차례는 SUBS 에 적힌 순서를
@@ -5477,7 +5490,7 @@ function clsCheckHtml(){
     var none=!k, oth=(!!k&&ep!==m.p);
     if(none)nbad++;
     (byP[m.p]=byP[m.p]||[]).push({m:m,k:k,sn:k?subName(k):'',none:none,oth:oth,
-      manual:!!(m.sk&&SUBRX[m.sk])});
+      manual:subValid(m.sk)});
   }
   if(!tot)return '';
   var h='<div class="sh-l" style="margin-top:16px">주동근 정리'
@@ -6149,7 +6162,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 11:00';
+var BUILD='2026-09-09 11:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7804,7 +7817,7 @@ document.addEventListener('click',function(e){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -8004,7 +8017,7 @@ document.addEventListener('click',function(e){
       break;
     case 'px':UI.editRx=+v;render();break;
     case 'pct':UI.editCt=ctOk(v)?v:'tread';UI.pickOpen='';render();break;
-    case 'psk':UI.editSk=(v&&SUBRX[v])?v:'';UI.pickOpen='';render();break;
+    case 'psk':UI.editSk=subValid(v)?v:'';UI.pickOpen='';render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
     case 'pas':UI.editAs=(v==='1');UI.pickOpen='';render();break;
@@ -8098,6 +8111,9 @@ document.addEventListener('click',function(e){
       var nk='u'+(mx+1);
       SUBX.add.push({k:nk,p:v,n:'새 근육'});
       SUBS.push({k:nk,p:v,n:'새 근육',d:0,r:/(?!)/,user:1});
+      /* SUBRX 는 SUBS 에서 파생되는데 그 파생이 켤 때 한 번만 돈다.
+         여기서 같이 안 채우면 쓰다가 더한 항목만 표에서 빠진다. */
+      SUBRX[nk]=/(?!)/;
       if(!LMK[nk])LMK[nk]=[0,4,8,12];
       if(STG[nk]===undefined)STG[nk]=-1;
       subxSave();render();
@@ -8114,6 +8130,7 @@ document.addEventListener('click',function(e){
       SUBX.add=SUBX.add.filter(function(x){return x.k!==v;});
       delete SUBX.ren[v];delete SUBX.hide[v];
       for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
+      delete SUBRX[v];delete LMK[v];delete STG[v];
       /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
       for(di=0;di<S.m.length;di++)if(S.m[di].sk===v)delete S.m[di].sk;
       subxSave();save();render();break;
@@ -8125,7 +8142,7 @@ document.addEventListener('click',function(e){
       if(mm){
         /* 빈 값은 '자동' — sk 를 지우면 subAuto 가 다시 돈다. 한번 손으로
            지정하면 이름을 바꿔도 추정이 안 도는데 풀 길이 없으면 갇힌다. */
-        if(pp[1]&&SUBRX[pp[1]])mm.sk=pp[1];else delete mm.sk;
+        if(subValid(pp[1]))mm.sk=pp[1];else delete mm.sk;
         save();
       }
       UI.skOpen='';render();break;
@@ -8135,7 +8152,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=(m.sk&&SUBRX[m.sk])?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
