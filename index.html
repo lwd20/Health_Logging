@@ -1894,6 +1894,12 @@ function migrateLines(st){
   }
   return st;
 }
+/* 바로 아래 save() 가 씨앗을 기기에 쓴다. 그래서 그 뒤에 "기기가 비어
+   있나" 를 물으면 언제나 아니오다 — mirrorRestore 의 조건이 영원히 거짓이라
+   앱 저장소 사본 복구가 한 번도 돈 적이 없다. 쓰기 전에 붙잡아 둔다. */
+var LS_WAS_EMPTY=(function(){
+  try{return canLS&&!localStorage.getItem(KEY);}catch(e){return false;}
+})();
 var S=migrateLines(load());save();
 var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
@@ -3678,7 +3684,8 @@ function mirrorRestore(){
   try{
     if(!(window.AndroidFile&&AndroidFile.mirrorRead))return false;
     if(!canLS)return false;
-    if(localStorage.getItem(KEY))return false;
+    /* 지금 물으면 늦다 — 켤 때 이미 씨앗이 쓰였다. 쓰기 전에 잡아 둔 값을 본다 */
+    if(!LS_WAS_EMPTY)return false;
     var raw=AndroidFile.mirrorRead();
     if(!raw||raw.length<32)return false;
     var ob=JSON.parse(raw);
@@ -5771,7 +5778,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 21:00';
+var BUILD='2026-09-08 21:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
