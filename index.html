@@ -2832,7 +2832,7 @@ function rowHtml(m,noBadge){
 function lastLine(m){
   var a=sess(m.i),p=null,i;
   for(i=0;i<a.length;i++)if(a[i].d<UI.wd&&a[i].s&&a[i].s.length){p=a[i];break;}
-  if(!p)return '<div class="exsub"><span class="none">첫 기록</span></div>';
+  if(!p)return '<div class="exsub"><span class="none">'+TX('첫 기록')+'</span></div>';
   var cd=isCard(m.p);
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
     +(cd?('<span>'+cardDetail(p.s,m.n)+'</span>')
@@ -2876,7 +2876,7 @@ function panelHtml(m){
            숫자 오른쪽 끝이 63px 씩 튄다 */
         +'<s class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">'
         +(g2?((g2.pct>0?'▲ ':(g2.pct<0?'▼ ':''))
-             +(g2.pct?Math.abs(g2.pct)+'%':'유지')):'–')+'</s>'
+             +(g2.pct?Math.abs(g2.pct)+'%':TX('유지'))):'–')+'</s>'
         +'</div>';   /* 그리는 자리는 저장 버튼 아래 */
     }else{
       var sk=kcalSess(draft,m),skm=0;
@@ -2892,7 +2892,7 @@ function panelHtml(m){
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
   var cd=isCardId(UI.open);
   h+='<div class="inzone">'
-    +'<div class="izl">'+(isAssist(m)?'보조 무게 · 낮을수록 고강도':'입력')+'</div>'
+    +'<div class="izl">'+(isAssist(m)?TX('보조 무게 · 낮을수록 고강도'):TX('입력'))+'</div>'
     +'<div class="inrow">'
     +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><button data-act="w+">＋</button></div></div>'
@@ -3064,53 +3064,53 @@ function exFormHtml(isEdit){
     h += '<button class="chip' + (UI.addPart === PARTS[i] ? ' on' : '') + '" data-act="pp" data-v="' + PARTS[i] + '">' + PARTS[i] + '</button>';
   h += '</div>';
 
-  h += '<div class="fgrp"><div class="ft">종목</div>';
-  h += fRow('이름', '<input id="addName" class="fin" enterkeyhint="done" placeholder="종목 이름" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '">');
+  h += '<div class="fgrp"><div class="ft">' + TX('종목') + '</div>';
+  h += fRow(TX('이름'), '<input id="addName" class="fin" enterkeyhint="done" placeholder="' + TX('종목 이름') + '" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '">');
 
-  var bl = brandListAll(), bItems = [{ v: '', l: '없음' }];
+  var bl = brandListAll(), bItems = [{ v: '', l: TX('없음') }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
-  h += pickRow('brand', '브랜드', normBrand(UI.addBrand) || '없음', '',
-    chipRow(bItems, 'pb', normBrand(UI.addBrand), 2) + txtRow('addBrand', '목록에 없으면 직접 입력', UI.addBrand));
+  h += pickRow('brand', TX('브랜드'), normBrand(UI.addBrand) || TX('없음'), '',
+    chipRow(bItems, 'pb', normBrand(UI.addBrand), 2) + txtRow('addBrand', TX('목록에 없으면 직접 입력'), UI.addBrand));
 
-  var ll = lineListOf(UI.addBrand), lItems = [{ v: '', l: '없음' }];
+  var ll = lineListOf(UI.addBrand), lItems = [{ v: '', l: TX('없음') }];
   for (i = 0; i < ll.length; i++) lItems.push({ v: ll[i], l: ll[i] });
-  h += pickRow('line', '라인', cleanLine(UI.addLine) || '없음', ll.length ? '' : '목록 없음',
-    (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine), 2) : '') + txtRow('addLine', '목록에 없으면 직접 입력', UI.addLine));
+  h += pickRow('line', TX('라인'), cleanLine(UI.addLine) || TX('없음'), ll.length ? '' : TX('목록 없음'),
+    (ll.length ? chipRow(lItems, 'pl', cleanLine(UI.addLine), 2) : '') + txtRow('addLine', TX('목록에 없으면 직접 입력'), UI.addLine));
   h += '</div>';
 
   if (cd) {
     /* 종류를 값으로 받는다 — 이름 추측은 어느 키워드에도 안 걸리면 전부
        트레드밀로 떨어져 레벨을 km/h 로 읽는다 */
     var ck = UI.editCt || 'tread', cItems = [];
-    for (i = 0; i < CTYPES.length; i++) cItems.push({ v: CTYPES[i].k, l: CTYPES[i].n });
-    h += '<div class="fgrp"><div class="ft">기록 설정</div>'
-      + pickRow('ct', '기구 종류', ctOf(ck).n, ctOf(ck).d,
+    for (i = 0; i < CTYPES.length; i++) cItems.push({ v: CTYPES[i].k, l: TX(CTYPES[i].n) });
+    h += '<div class="fgrp"><div class="ft">' + TX('기록 설정') + '</div>'
+      + pickRow('ct', TX('기구 종류'), TX(ctOf(ck).n), TX(ctOf(ck).d),
           chipRow(cItems, 'pct', ck, 3))
-      + '<div class="note" style="margin:6px 0 0">종류에 따라 속도 단위(km/h·레벨)와 소비 열량 계산식이 달라짐</div>'
+      + '<div class="note" style="margin:6px 0 0">' + TX('종류에 따라 속도 단위(km/h·레벨)와 소비 열량 계산식이 달라짐') + '</div>'
       + '</div>';
   }
   if (!cd) {
-    h += '<div class="fgrp"><div class="ft">기록 설정</div>';
+    h += '<div class="fgrp"><div class="ft">' + TX('기록 설정') + '</div>';
     var steps = [1, 2.5, 5], sItems = [];
     for (i = 0; i < steps.length; i++) sItems.push({ v: steps[i], l: fmtW(steps[i]) });
     var rxs = [10, 12, 15, 20], rItems = [];
     for (i = 0; i < rxs.length; i++) rItems.push({ v: rxs[i], l: String(rxs[i]) });
-    h += fRow('증량 단위', chipRow(sItems, 'ps', UI.editStep), 'chiprow')
-      + fRow('반복 상한', chipRow(rItems, 'px', (UI.editRx || 12)), 'chiprow');
+    h += fRow(TX('증량 단위'), chipRow(sItems, 'ps', UI.editStep), 'chiprow')
+      + fRow(TX('반복 상한'), chipRow(rItems, 'px', (UI.editRx || 12)), 'chiprow');
 
-    h += pickRow('mt', '머신 종류', UI.editAs ? '어시스트' : '일반', UI.editAs ? '체중 보조' : '무게가 곧 부하',
-      chipRow([{ v: 0, l: '일반', s: '무게가 곧 부하' }, { v: 1, l: '어시스트', s: '무게만큼 체중 보조' }], 'pas', UI.editAs ? 1 : 0, 2)
-      + (UI.editAs ? '<div class="note">친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중(' + fmtW(BW) + 'kg)에서 뺀 값으로 계산함.</div>' : ''));
+    h += pickRow('mt', TX('머신 종류'), UI.editAs ? TX('어시스트') : TX('일반'), UI.editAs ? TX('체중 보조') : TX('무게가 곧 부하'),
+      chipRow([{ v: 0, l: TX('일반'), s: TX('무게가 곧 부하') }, { v: 1, l: TX('어시스트'), s: TX('무게만큼 체중 보조') }], 'pas', UI.editAs ? 1 : 0, 2)
+      + (UI.editAs ? '<div class="note">' + TX1('친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중({0}kg)에서 뺀 값으로 계산함.', fmtW(BW)) + '</div>' : ''));
 
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
-    var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : '미분류' }];
+    var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : TX('미분류') }];
     /* 목록·거르개·추정에서는 숨긴 것을 뺐는데 이 한 곳을 빠뜨렸다 */
     for (i = 0; i < SUBS.length; i++) {
       if (subHidden(SUBS[i].k)) continue;
       kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
     }
-    h += pickRow('sk', '주동근', UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : '미분류'),
-      UI.editSk ? '직접 지정' : '자동',
+    h += pickRow('sk', TX('주동근'), UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : TX('미분류')),
+      UI.editSk ? TX('직접 지정') : TX('자동'),
       chipRow(kItems, 'psk', UI.editSk, 3));
     h += '</div>';
   }
@@ -3393,7 +3393,7 @@ function renderSheet(){
   }
   if(UI.sheet==='edit'){
     h+='<div class="sh-t">Edit Exercise</div>'+exFormHtml(true)
-      +'<div class="note">기록은 그대로 유지됨 — 이름·부위·브랜드·라인·설정만 바뀜.</div>';
+      +'<div class="note">'+TX('기록은 그대로 유지됨 — 이름·부위·브랜드·라인·설정만 바뀜.')+'</div>';
   }
   if(UI.sheet==='log'){
     h+='<div class="sh-t">Log</div>'+journalHtml();
@@ -3729,8 +3729,8 @@ function setWd(ds){
     PENDWD=(ds>today())?today():ds;
     var names=[],k2,m2;
     for(k2 in UI.dirty)if(UI.dirty[k2]){m2=machById(k2);if(m2)names.push(m2.n);}
-    var lb=names.length?esc(names[0])+(names.length>1?' 외 '+(names.length-1)+'종목':''):'';
-    toast('<em>미저장</em> '+lb+' — 저장하거나 <button class="tundo" data-act="dcd">DISCARD</button>',7000);
+    var lb=names.length?(names.length>1?TX1('{0} 외 {1}종목',esc(names[0]),names.length-1):esc(names[0])):'';
+    toast(TX1('<em>미저장</em> {0} — 저장하거나 <button class="tundo" data-act="dcd">DISCARD</button>',lb),7000);
     return false;
   }
   if(ds>today())ds=today();
@@ -3792,7 +3792,7 @@ function addSet(){
   if(cd){
     var mC=machById(UI.open);
     if(mC&&cardioOut(set,mC.n))
-      toast('<em>범위 확인</em> 속도·경사가 일반 범위를 벗어남 — 칼로리는 상한으로 계산됨');
+      toast(TX('<em>범위 확인</em> 속도·경사가 일반 범위를 벗어남 — 칼로리는 상한으로 계산됨'));
   }
   /* 마지막 세트를 지우면 delSet이 draft 배열을 제거하므로 재생성함 */
   if(!UI.draft[UI.open])UI.draft[UI.open]=[];
@@ -4522,15 +4522,15 @@ function kcalWeek(back){
    그건 '목표보다 483 덜 먹음' 이다. 같은 숫자라도 말을 갈라 준다. */
 function gapTxt(left,isToday){
   var n=Math.abs(left).toLocaleString();
-  if(left<0)return '초과 '+n;
-  if(isToday)return '남은 '+n;
-  return left===0?'목표 달성':'덜 먹음 '+n;
+  if(left<0)return TX1('초과 {0}',n);
+  if(isToday)return TX1('남은 {0}',n);
+  return left===0?TX('목표 달성'):TX1('덜 먹음 {0}',n);
 }
 
 function kcalHtml(){
   var w=kcalWeek(0);
   if(!w)return '';
-  var DN=['월','화','수','목','금','토','일'],i;
+  var DN=TX('월,화,수,목,금,토,일').split(','),i;
   /* 축은 운동분 범위에 맞춘다. 기초대사를 섞으면 전체의 94%를 차지해
      날마다의 차이가 뭉개진다. */
   var mx=0;
@@ -4544,7 +4544,7 @@ function kcalHtml(){
      운동한 날의 평균을 가로선으로 깔면 각 날이 그 위인지 아래인지 바로 읽힌다.
      하루뿐이면 평균이 곧 그날이라 선을 긋는 의미가 없다. */
   var avg=dn?w.ex/dn:0,avp=(dn>1&&avg>0)?Math.min(96,avg/mx*100):0;
-  var h='<div class="lmsec"><div class="lmcap">EXERCISE · 이번 주</div><div class="kwk">';
+  var h='<div class="lmsec"><div class="lmcap">'+TX('EXERCISE · 이번 주')+'</div><div class="kwk">';
   for(i=0;i<w.days.length;i++){
     var d=w.days[i],pc=d.future?0:Math.max(d.ex>0?4:0,d.ex/mx*100);
     h+='<div class="kwd'+(d.future?' fut':'')+(d.today?' now':'')+(!d.future&&d.ex<=0?' rest':'')+'">'
@@ -4554,8 +4554,8 @@ function kcalHtml(){
       +'<u>'+(d.future?'':(d.ex>0?d.ex:'—'))+'</u></div>';
   }
   h+='</div>';
-  h+='<div class="ctrow"><b class="k">주 합계</b><span class="v"><b>'+w.ex.toLocaleString()+'</b> kcal'
-    +(dn?' · 운동 <b>'+dn+'</b>일 · 하루 <b>'+Math.round(w.ex/dn).toLocaleString()+'</b>':'')+'</span></div>';
+  h+='<div class="ctrow"><b class="k">'+TX('주 합계')+'</b><span class="v"><b>'+w.ex.toLocaleString()+'</b> kcal'
+    +(dn?' · '+TX1('운동 <b>{0}</b>일 · 하루 <b>{1}</b>',dn,Math.round(w.ex/dn).toLocaleString()):'')+'</span></div>';
   /* 최근 4주 표와 설명 문장은 뺐다 — 이번 주만 보면 되고,
      기초대사를 왜 뺐는지는 도움말이 설명한다 */
   return h+'</div>';
@@ -4825,7 +4825,13 @@ var CTYPES=[
   {k:'row',  n:'로잉',    d:'로잉머신 · 레벨'},
   {k:'ellip',n:'일립티컬', d:'크로스트레이너 · 레벨'}
 ];
-function ctOf(k){for(var i=0;i<CTYPES.length;i++)if(CTYPES[i].k===k)return CTYPES[i];return CTYPES[0];}
+/* 이름·설명은 화면에 그대로 나가므로 옮긴 사본을 준다. CTYPES 원본은 한국어로
+   둔다 — 그것이 사전 열쇠이고, 앱을 켠 뒤 언어를 바꿔도 따라와야 하기 때문이다. */
+function ctOf(k){
+  var c=CTYPES[0],i;
+  for(i=0;i<CTYPES.length;i++)if(CTYPES[i].k===k){c=CTYPES[i];break;}
+  return {k:c.k,n:TX(c.n),d:TX(c.d)};
+}
 function ctOk(k){for(var i=0;i<CTYPES.length;i++)if(CTYPES[i].k===k)return true;return false;}
 /* 머신 객체와 이름 문자열을 둘 다 받는다 — 옛 호출부가 이름만 넘기기 때문 */
 function cKind(x){
@@ -5300,7 +5306,7 @@ function pgWhy(m,a,cx,sc){
 
   /* 회피 목표 근육에 자극이 쌓였다 — 앱 어디서도 아직 안 잡던 신호다 */
   if(cx.wk>=40&&sk&&STG[sk]===0&&sv>0)
-    return {c:'회피 근육',w:subName(sk)+' 회피 목표 · 이번 주 '+sv+'세트',drop:false};
+    return {c:'회피 근육',w:TX1('{0} 회피 목표 · 이번 주 {1}세트',TX(subName(sk)),sv),drop:false};
 
   /* 안 한 것이 과하게 한 것을 이긴다 */
   var ago=daysAgo(a[0].d);
@@ -5320,7 +5326,7 @@ function pgWhy(m,a,cx,sc){
   var w28=0;
   for(i=0;i<a.length;i++)if(daysAgo(a[i].d)<28)w28++;
   if(w28>0&&w28<=2&&a.length>w28)
-    return {c:'빈도 부족',w:'4주 '+w28+'회 · 자극 간격 과다',drop:false};
+    return {c:'빈도 부족',w:TX1('4주 {0}회 · 자극 간격 과다',w28),drop:false};
 
   /* 근육 총량보다 종목 단위 삭감이 인과가 직접적이다 */
   var h0=pgHard(a,0,1),hb=pgHard(a,1,4);
@@ -5341,7 +5347,7 @@ function pgWhy(m,a,cx,sc){
 
   /* 세트 수만으로 과다를 선언하지 않는다 — RIR 상승을 AND 로 건다 */
   if(L&&mrv>0&&av>mrv&&v0!==null&&v2!==null&&v2-v0>=1)
-    return {c:'볼륨 과다',w:subName(sk)+' 주 '+av+'세트 · 보정 MRV '+mrv+' 초과',drop:false};
+    return {c:'볼륨 과다',w:TX1('{0} 주 {1}세트 · 보정 MRV {2} 초과',TX(subName(sk)),av,mrv),drop:false};
 
   /* 실패까지 가면 비례하는 이득 없이 피로만 크게 는다 */
   if(v0!==null&&v1!==null&&v0<=0.5&&v1<=0.5)
@@ -5918,7 +5924,7 @@ function vzTabs(list,cur,act){
   var t='',i;
   for(i=0;i<list.length;i++)
     t+='<button class="vzt'+(cur===list[i][0]?' on':'')+'" data-act="'+act+'" data-v="'+list[i][0]+'">'
-      +list[i][1]+'</button>';
+      +TX(list[i][1])+'</button>';
   return '<div class="vzts">'+t+'</div>';
 }
 /* 체중·섭취·운동을 날짜 하나에 모은다. 지금까지 이 셋은 따로 놀았다 —
@@ -6067,7 +6073,7 @@ function chartEat(days){
     g+='<circle class="dOutO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.base+tdD.ex).toFixed(1)+'" r="2.8"/>'
       +'<circle class="dInO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.ate).toFixed(1)+'" r="3.2"/>';
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
-    +'aria-label="날마다 먹은 열량과 태운 열량">'+g+'</svg>';
+    +'aria-label="'+TX('날마다 먹은 열량과 태운 열량')+'">'+g+'</svg>';
 }
 /* 체중·체지방률·골격근량을 한 그림에. 셋은 단위가 달라(kg·%·kg) 절대값을
    같은 축에 올리면 서로 아득히 떨어져 있고 각자의 변화는 눈금보다 작아
@@ -6138,7 +6144,7 @@ function chartBody(){
     +line('lM','dM','o',function(r){return (mFirst!==null&&r.m>0)?r.m-mFirst:null;})
     +line('lW','dW','c',function(r){return r.w-w0;});
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
-    +'aria-label="체중 체지방률 골격근량의 시작 대비 변화">'+g+'</svg>';
+    +'aria-label="'+TX('체중 체지방률 골격근량의 시작 대비 변화')+'">'+g+'</svg>';
 }
 /* 몸 — 체중이 어디로 가고 있나, 그리고 그것을 무엇이 밀고 있나 */
 function vzBody(tab){
@@ -6675,7 +6681,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 00:42';
+var BUILD='2026-09-09 08:59';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -6777,7 +6783,7 @@ function tFetch(url,opt,ms){
   opt.signal=ac.signal;
   return fetch(url,opt).then(
     function(r){clearTimeout(tid);return r;},
-    function(e){clearTimeout(tid);throw (e&&e.name==='AbortError')?new Error('요청 시간 초과 '+Math.round(ms/1000)+'초'):e;}
+    function(e){clearTimeout(tid);throw (e&&e.name==='AbortError')?new Error(TX1('요청 시간 초과 {0}초',Math.round(ms/1000))):e;}
   );
 }
 function gemDiscover(){
@@ -6963,10 +6969,10 @@ function ocrCall(eng,b64,mime,onNote){
           return gemDiscoverList().then(function(names){
             names.forEach(function(m){if(!tried[m]&&list.indexOf(m)<0)list.push(m);});
             if(li<list.length)return next();
-            throw lastErr||new Error('사용 가능한 모델 없음');
+            throw lastErr||new Error(TX('사용 가능한 모델 없음'));
           });
         }
-        throw lastErr||new Error('판독 실패');
+        throw lastErr||new Error(TX('판독 실패'));
       }
       var m=list[li++];tried[m]=1;
       return attempt(m,0);
@@ -7030,7 +7036,7 @@ function ocrInbody(b64,mime){
   function fill(t,usedEng){
     t=String(t||'').replace(/```json|```/g,'').trim();
     var a1=t.indexOf('{'),b1=t.lastIndexOf('}');
-    if(a1<0||b1<=a1)throw new Error('JSON 없음');
+    if(a1<0||b1<=a1)throw new Error(TX('JSON 없음'));
     var o=JSON.parse(t.slice(a1,b1+1));
     var dd=(o.date&&/^\d{4}-\d{2}-\d{2}$/.test(o.date))?o.date:'';
     var w2=parseFloat(o.weight),f2=parseFloat(o.fat),m2=parseFloat(o.smm);
@@ -8040,6 +8046,72 @@ var EN={
 '초반':'Early',
 '하루 {0}/20':'{0}/20 today',
 '현황':'Status',
+
+/* ── 2830-3200 ── */
+'기구 종류':'Equipment',
+'기록 설정':'Log settings',
+'라인':'Line',
+'머신 종류':'Machine',
+'목록 없음':'No list',
+'목록에 없으면 직접 입력':'Type it if not listed',
+'무게가 곧 부하':'Weight is the load',
+'무게만큼 체중 보조':'Offsets that much body weight',
+'반복 상한':'Rep cap',
+'보조 무게 · 낮을수록 고강도':'Assist weight · lower is harder',
+'브랜드':'Brand',
+'어시스트':'Assist',
+'일반':'Standard',
+'입력':'Enter',
+'종류에 따라 속도 단위(km/h·레벨)와 소비 열량 계산식이 달라짐':'Speed unit (km/h or level) and the kcal formula follow the type',
+'종목':'Exercise',
+'종목 이름':'Exercise name',
+'주동근':'Prime mover',
+'증량 단위':'Weight step',
+'직접 지정':'manual',
+'첫 기록':'First log',
+'체중 보조':'Offsets body weight',
+'친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중({0}kg)에서 뺀 값으로 계산함.':'Machines like assisted pull-up and dip get lighter as the set weight goes up. Real load is body weight ({0}kg) minus that.',
+/* ── 3200-3800 ── */
+'<em>미저장</em> {0} — 저장하거나 <button class="tundo" data-act="dcd">DISCARD</button>':'<em>Unsaved</em> {0} — save it or <button class="tundo" data-act="dcd">DISCARD</button>',
+'<em>범위 확인</em> 속도·경사가 일반 범위를 벗어남 — 칼로리는 상한으로 계산됨':'<em>Check range</em> speed/incline outside the usual range — kcal capped at the limit',
+'{0} 외 {1}종목':'{0} +{1} more',
+'기록은 그대로 유지됨 — 이름·부위·브랜드·라인·설정만 바뀜.':'Logs are kept — only name, part, brand, line and settings change',
+/* ── 3800-5000 ── */
+'EXERCISE · 이번 주':'EXERCISE · THIS WEEK',
+'걷기':'Walking',
+'걷기·달리기 · 속도 km/h':'Walk·run · speed km/h',
+'계단':'Stairs',
+'남은 {0}':'{0} left',
+'덜 먹음 {0}':'{0} under',
+'로잉':'Row',
+'로잉머신 · 레벨':'Rower · level',
+'사이클':'Cycle',
+'산책 · km/h · 유산소 합계에서 빼고 NEAT 로 셈':'Stroll · km/h · taken out of cardio, counted as NEAT',
+'스텝밀·천국의계단 · 레벨':'Stepmill · level',
+'실내자전거 · 레벨':'Indoor bike · level',
+'운동 <b>{0}</b>일 · 하루 <b>{1}</b>':'<b>{0}</b> days · <b>{1}</b>/day',
+'일립티컬':'Elliptical',
+'주 합계':'TOTAL',
+'초과 {0}':'Over {0}',
+'크로스트레이너 · 레벨':'Cross trainer · level',
+'트레드밀':'Treadmill',
+/* ── 5000-6000 ── */
+'근육':'Muscles',
+'부위':'Parts',
+'소비':'Burn',
+'추세':'Trend',
+'평균':'Average',
+/* ── 6000+ ── */
+'<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림':'<em>Restored</em> device storage was empty — brought back from the copy',
+'<em>새 버전</em>이 나왔음 — <button class="tundo" data-act="rlod">새로고침</button>':'<em>New version</em> is out — <button class="tundo" data-act="rlod">RELOAD</button>',
+'<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐':'<em>Rest day</em> dropped from training-day count and pace',
+'JSON 없음':'No JSON in response',
+'기록이 있는 날은 쉬는 날로 둘 수 없음':'A day with logged sets cannot be a rest day',
+'사용 가능한 모델 없음':'No usable model',
+'샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐':'Showing sample data — it goes away once you log something real',
+'쉬는 날 해제':'Rest day cleared',
+'요청 시간 초과 {0}초':'Request timed out after {0}s',
+'판독 실패':'Scan failed',
 };
 /* 이름이 L 이었는데 차트 여백(var L=36)과 볼륨 랜드마크(var L=LMK[k])가
    같은 이름을 지역 변수로 쓰고 있었다. var 는 함수 전체로 끌어올려지므로
@@ -8293,7 +8365,7 @@ function vzVerdict(cur,goal){
   cur=+cur||0;goal=+goal||0;
   /* 기록이 없는 것이 아니라 그 부위에 주간 목표를 안 정한 것이다.
      '미기록' 이라 쓰면 세트를 다 채운 사람에게도 그렇게 뜬다. */
-  if(!(goal>0))return {t:'목표 없음',c:''};
+  if(!(goal>0))return {t:TX('목표 없음'),c:''};
   var ph=(computedFacts()||{}).weekPhase||'';
   var late=(ph==='막바지'||ph==='마지막날');
   if(!late){
@@ -8305,11 +8377,11 @@ function vzVerdict(cur,goal){
       var exp=Math.round(goal*pl/100);
       return cur>=exp?{t:TX('페이스 맞음'),c:'pos'}:{t:TX('페이스 밀림'),c:'neg'};
     }
-    return {t:'주 초반',c:''};
+    return {t:TX('주 초반'),c:''};
   }
-  if(cur>=goal+3)return {t:'목표 초과',c:'warn'};   /* 목표+3 문턱 */
-  if(cur>=goal)return {t:'목표 달성',c:'pos'};
-  return {t:'목표 미달',c:'neg'};
+  if(cur>=goal+3)return {t:TX('목표 초과'),c:'warn'};   /* 목표+3 문턱 */
+  if(cur>=goal)return {t:TX('목표 달성'),c:'pos'};
+  return {t:TX('목표 미달'),c:'neg'};
 }
 /* 랜드마크는 목표 대비가 아니라 구간 안에 있는지로 본다 */
 function vzZone(cur,L){
@@ -9180,12 +9252,12 @@ document.addEventListener('click',function(e){
     case 'off':
       /* 세트가 있는 날에는 단추가 안 나오지만, 그 사이 기록이 들어왔을
          수도 있으므로 한 번 더 막는다 */
-      if(dayLogged(UI.wd)){toast('기록이 있는 날은 쉬는 날로 둘 수 없음');break;}
+      if(dayLogged(UI.wd)){toast(TX('기록이 있는 날은 쉬는 날로 둘 수 없음'));break;}
       if(OFF[UI.wd])delete OFF[UI.wd];else OFF[UI.wd]=1;
       offSave();render();
       toast(OFF[UI.wd]
-        ?'<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐'
-        :'쉬는 날 해제');
+        ?TX('<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐')
+        :TX('쉬는 날 해제'));
       break;
     case 'd-':shiftDay(-1);break;
     case 'd+':shiftDay(1);break;
@@ -9264,7 +9336,29 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'hcask':try{AndroidHealth.ask();}catch(e){}break;
-    case 'rlod':location.reload(true);break;
+    case 'rlod':
+      /* location.reload(true) 였는데 그 true 는 지금 브라우저가 통째로 무시한다 —
+         그냥 새로고침이라 서비스워커가 쥔 옛 사본이 그대로 다시 나왔다.
+         캐시를 비우고 워커를 갱신한 뒤 쿼리를 붙여 들어간다. 둘 중 하나가
+         매달려도 2.5초 뒤엔 넘어간다 — 눌렀는데 아무 일도 안 나는 게 제일 나쁘다. */
+      (function(){
+        var went=false;
+        function go(){if(went)return;went=true;
+          try{location.replace(location.pathname+'?r='+(+new Date()));}
+          catch(e){location.reload();}}
+        try{
+          var ps=[];
+          if(window.caches&&caches.keys)
+            ps.push(caches.keys().then(function(ks){
+              return Promise.all(ks.map(function(k){return caches.delete(k);}));}));
+          if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)
+            ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+              return Promise.all(rs.map(function(r){return r.update();}));}));
+          if(ps.length)Promise.all(ps).then(go,go);else go();
+          setTimeout(go,2500);
+        }catch(e){go();}
+      })();
+      break;
     /* 용어를 마주친 자리에서 바로 설명으로 보낸다 */
     case 'hgo':UI.htab=v||'num';UI.sheet='help';render();break;
     case 'mu':moveMachine(UI.open,-1);break;
@@ -9938,8 +10032,8 @@ var restored=mirrorRestore();
 demoSeed();
 render();
 mirrorPush(true);
-if(restored)setTimeout(function(){try{toast('<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림');}catch(e){}},700);
-if(DEMO)setTimeout(function(){try{toast('샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐');}catch(e){}},600);
+if(restored)setTimeout(function(){try{toast(TX('<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림'));}catch(e){}},700);
+if(DEMO)setTimeout(function(){try{toast(TX('샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐'));}catch(e){}},600);
 tmrDraw();
 widgetSync();
 setTimeout(autoBackup,1500);
@@ -9951,7 +10045,7 @@ var BTAG='',BTAGT=0,BTOLD=false;
 function newBuild(){
   if(BTOLD)return;
   BTOLD=true;
-  try{toast('<em>새 버전</em>이 나왔음 — <button class="tundo" data-act="rlod">새로고침</button>',12000);}catch(e){}
+  try{toast(TX('<em>새 버전</em>이 나왔음 — <button class="tundo" data-act="rlod">새로고침</button>'),12000);}catch(e){}
 }
 function buildPing(force){
   var now=+new Date();
