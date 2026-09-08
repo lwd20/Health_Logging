@@ -930,48 +930,21 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trgs{margin:-7px 2px 12px;font-size:11.5px;color:var(--mut);
   font-family:var(--mono);font-variant-numeric:tabular-nums}
 .trgs b{color:var(--tx);font-weight:700;font-size:13px}
-/* 끼니별로 나뉜 막대. 3px 은 밝은 팔레트에서 안 보여 걷어냈던 것이지
-   막대가 틀렸던 게 아니다 — 두껍게 그린다. */
-.mbar{margin:4px 0 12px}
-.mbh{display:flex;align-items:baseline;gap:7px;font-family:var(--mono);
-  font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--dim);
-  text-transform:uppercase}
-.mbh b{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
-  color:var(--tx);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.mbh b em{font-style:normal;font-size:10px;font-weight:600;color:var(--dim)}
-.mbt{position:relative;display:flex;height:17px;border-radius:4px;
-  background:var(--inset);margin:6px 0 5px;overflow:visible}
-.mbt>i{display:block;height:100%}
-.mbt>i:first-child{border-radius:4px 0 0 4px}
-.mbt>i:last-of-type{border-radius:0 4px 4px 0}
-/* 색을 여럿 쓰면 팔레트마다 어긋난다 — 강조색 하나의 농담으로 가른다 */
-.mbt>i.s1{background:var(--acc-br);opacity:1}
-.mbt>i.s2{background:var(--acc-br);opacity:.72}
-.mbt>i.s3{background:var(--acc-br);opacity:.46}
-.mbt>i.s4{background:var(--acc-br);opacity:.26}
-.mbt>i.ov{background:var(--sig);opacity:.9}
-/* 매크로 칸. 단백질이 가장 진하다 — 감량기에 먼저 봐야 하는 것이라 */
-.mbt>i.mP{background:var(--acc-br);opacity:1}
-.mbt>i.mC{background:var(--acc-br);opacity:.55}
-.mbt>i.mF{background:var(--acc-br);opacity:.30}
-.mbt>i.mX{background:var(--mut);opacity:.28}
-/* 구성 견주기 — 폭이 같아야 길이가 곧 비율이다 */
-.cmpr{display:flex;align-items:center;gap:8px;margin:3px 0}
-.cmpr>u{flex:0 0 30px;text-decoration:none;font-family:var(--mono);font-size:9.5px;
-  font-weight:800;letter-spacing:.05em;color:var(--dim)}
-.cmpb{flex:1;display:flex;height:13px;border-radius:3px;overflow:hidden;
-  background:var(--inset);min-width:0}
-.cmpb>i{display:block;height:100%}
-.cmpr>b{flex:0 0 auto;font-family:var(--mono);font-size:10px;font-weight:600;
-  color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
-.cmpr.avg .cmpb{opacity:.5}
-.cmpr.avg>u,.cmpr.avg>b{opacity:.75}
-/* 목표선. 넘기면 넘긴 만큼이 이 선 밖으로 뻗는다 */
-.mbt>s{position:absolute;top:-3px;bottom:-3px;width:0;
-  border-left:2px dashed var(--sig);opacity:.9}
-.mbs{font-family:var(--mono);font-size:10.5px;color:var(--dim);
-  font-variant-numeric:tabular-nums}
-.mbs em{font-style:normal;color:var(--mut)}
+/* 한 줄에 하나. 네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다 */
+.sbar{margin:0 0 11px}
+.sbh{display:flex;align-items:baseline;gap:8px}
+.sbh>u{flex:0 0 44px;text-decoration:none;font-size:11px;font-weight:700;color:var(--mut)}
+.sbh>b{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
+  color:var(--tx);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sbh>b em{font-style:normal;font-size:10px;font-weight:600;color:var(--dim)}
+.sbt{position:relative;display:flex;height:15px;border-radius:4px;
+  background:var(--inset);margin:5px 0 0;overflow:visible}
+.sbt>i{display:block;height:100%;border-radius:4px;background:var(--acc-br)}
+.sbt>i.hi{background:var(--sig)}
+.sbt>s{position:absolute;top:-3px;bottom:-3px;width:0;
+  border-left:2px dashed var(--sig);opacity:.85}
+.sbf{margin-top:4px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.sbf b{color:var(--mut);font-weight:700}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -6216,27 +6189,21 @@ function vzDiet(tab){
        것이 없다. 이미 먹은 끼니는 되돌릴 수 없기 때문이다.
        매크로로 쪼개면 '열량은 맞췄는데 단백질이 낮고 탄수가 높다' 가 보이고,
        그건 남은 끼니에서 바꿀 수 있다. */
-    var td2=hcDay(UI.wd)||{};
-    h+=vzMacroBar(ate,td2.p,td2.c,td2.f,goal);
-    /* 46% 를 보고도 평소보다 높은지 낮은지 모르면 판단이 안 선다.
-       같은 폭으로 나란히 놓으면 길이가 곧 비율이라 치우침이 눈으로 온다. */
-    var am=avgMacro(nf);
-    if(am&&(+td2.p>0||+td2.c>0||+td2.f>0)){
-      h+=vzCap('구성 견주기 — 단백 · 탄수 · 지방 %')
-        +cmpRow('오늘',td2.p,td2.c,td2.f,'',false)
-        +cmpRow('평균',am.p,am.c,am.f,'기록 '+am.n+'일',true);
-    }
-    /* 단백질만 막대를 남긴다 — 셋 중 목표가 있는 것은 그것뿐이고, 남은
-       끼니로 채울 수 있는지가 오늘 당장 바꿀 수 있는 유일한 것이다. */
-    var MO=['breakfast','lunch','dinner','snack'],MN2={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
-    var pseg=[],bm=t.byMeal||{},q2,got2=0;
-    for(q2=0;q2<MO.length;q2++){
-      var mv=bm[MO[q2]];
-      if(mv&&+mv.p>0){pseg.push({n:MN2[MO[q2]],v:+mv.p});got2+=(+mv.p);}
-    }
-    if(!pseg.length&&pr2>0)pseg=[{n:'먹은 것',v:pr2}];
-    else if(pseg.length&&pr2-got2>1)pseg.push({n:'그 밖',v:pr2-got2});
-    h+=vzMealBar('단백질',pseg,pg,'g');
+    /* 막대 하나에 네 뜻을 싣고 퍼센트를 붙이고 그 밑에 견주는 줄까지 놓았더니
+       읽는 사람이 머리로 풀어야 하는 그림이 됐다. 한 줄에 하나만 담는다.
+       네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다. */
+    var td2=hcDay(UI.wd)||{},am=avgMacro(nf);
+    h+=vzSimple('열량',ate,goal,'kcal',
+      ate>goal?('<b>'+(ate-goal).toLocaleString()+'</b> 초과')
+              :('<b>'+(goal-ate).toLocaleString()+'</b> 더 먹어도 됨'),true);
+    h+=vzSimple('단백질',pr2,pg,'g',
+      pr2>=pg?'다 채움':('<b>'+(pg-pr2)+'g</b> 더 먹기'));
+    /* 탄수·지방은 목표가 없다. 자기 평소 값을 눈금으로 삼으면 목표를
+       지어내지 않으면서도 '오늘은 평소보다 적다' 가 길이로 보인다. */
+    if(+td2.c>0||am)h+=vzSimple('탄수',td2.c,am?am.c:0,'g',
+      am?('평소 <b>'+Math.round(am.c)+'g</b> · 기록 '+am.n+'일'):'');
+    if(+td2.f>0||am)h+=vzSimple('지방',td2.f,am?am.f:0,'g',
+      am?('평소 <b>'+Math.round(am.f)+'g</b> · 기록 '+am.n+'일'):'');
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
     var MEAL={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
     function mn(a){return (a||[]).map(function(x){return MEAL[x]||x;}).join(' · ');}
@@ -6353,7 +6320,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 20:00';
+var BUILD='2026-09-09 21:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7371,11 +7338,25 @@ function vzBar(name,cur,goal,sub,vd,mark){
     +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')
     +'</div>';
 }
-/* 오늘 열량이 무엇으로 채워졌나. 매크로를 4/4/9 로 열량 환산해 한 막대에
-   쌓는다 — 예산의 몇 할을 썼나, 그 안이 무엇인가, 얼마 남았나를 한꺼번에.
-   환산 합이 삼성헬스가 준 열량과 어긋나는 날이 있다(식이섬유·알코올·반올림).
-   그 차이는 '그 밖' 으로 따로 둔다. 비율을 맞추려고 늘리거나 줄이면 없는
-   수를 지어내는 것이다. */
+/* 한 줄에 하나. ref 는 눈금이고, 목표가 있으면 목표를 없으면 평소 값을 쓴다.
+   목표를 지어내지 않으면서도 '평소보다 적다' 가 길이로 보인다. */
+function vzSimple(name,cur,ref,unit,foot,warn){
+  cur=Math.round(+cur||0);ref=Math.round(+ref||0);
+  var mx=Math.max(ref,cur)||1,over=ref>0&&cur>ref;
+  /* 넘겼다고 다 경고는 아니다. 감량기에 단백질을 목표보다 많이 먹은 것은
+     나쁜 일이 아니고, 탄수·지방이 평소보다 많은 것도 그 자체로는 판단할
+     일이 아니다. 색이 판단을 하면 안 되는 자리다 — 예산을 넘긴 열량만
+     경고색을 쓴다. */
+  var hi=over&&warn;
+  var h='<div class="sbar"><div class="sbh"><u>'+esc(name)+'</u>'
+    +'<b>'+cur.toLocaleString()+'<em>'+(ref>0?' / '+ref.toLocaleString():'')+' '+esc(unit)+'</em></b></div>'
+    +'<div class="sbt">';
+  if(cur>0)h+='<i class="'+(hi?'hi':'')+'" style="width:'+(cur*100/mx).toFixed(1)+'%"></i>';
+  if(over)h+='<s style="left:'+(ref*100/mx).toFixed(1)+'%"></s>';
+  h+='</div>';
+  if(foot)h+='<div class="sbf">'+foot+'</div>';
+  return h+'</div>';
+}
 /* 최근 기록의 평균 구성. byDay 에 21일치 매크로가 들어 있는데 평균을 안
    내고 있었다 — 오늘 수치를 견줄 것이 없으면 판단이 안 선다. */
 function avgMacro(nf){
@@ -7388,79 +7369,6 @@ function avgMacro(nf){
   }
   if(!n)return null;
   return {n:n,p:P2/n,c:C2/n,f:F2/n};
-}
-/* 구성 한 줄. 폭이 같아야 길이가 곧 비율이고, 두 줄을 견주면 오늘이 어느
-   쪽으로 치우쳤는지 눈으로 온다. */
-function cmpRow(label,p,c,f,tail,dim){
-  var kp=(+p||0)*4,kc=(+c||0)*4,kf=(+f||0)*9,tt=kp+kc+kf;
-  if(tt<=0)return '';
-  function pc(v){return Math.round(v*100/tt);}
-  return '<div class="cmpr'+(dim?' avg':'')+'"><u>'+esc(label)+'</u><span class="cmpb">'
-    +'<i class="mP" style="width:'+(kp*100/tt).toFixed(2)+'%"></i>'
-    +'<i class="mC" style="width:'+(kc*100/tt).toFixed(2)+'%"></i>'
-    +'<i class="mF" style="width:'+(kf*100/tt).toFixed(2)+'%"></i></span>'
-    +'<b>'+pc(kp)+' · '+pc(kc)+' · '+pc(kf)+(tail?' <span style="opacity:.7">'+esc(tail)+'</span>':'')+'</b></div>';
-}
-function vzMacroBar(kcal,p,c,f,goal){
-  kcal=Math.round(+kcal||0);goal=Math.round(+goal||0);
-  var kp=Math.round((+p||0)*4),kc=Math.round((+c||0)*4),kf=Math.round((+f||0)*9);
-  var etc=Math.max(0,kcal-kp-kc-kf);
-  var mx=Math.max(goal,kcal)||1,over=goal>0&&kcal>goal;
-  function pct(v){return kcal>0?Math.round(v*100/kcal):0;}
-  var h='<div class="mbar"><div class="mbh">오늘 열량'
-    +'<b>'+kcal.toLocaleString()+'<em> / '+goal.toLocaleString()+' kcal</em></b></div>'
-    +'<div class="mbt">';
-  [['mP',kp],['mC',kc],['mF',kf],['mX',etc]].forEach(function(x){
-    if(x[1]>0)h+='<i class="'+x[0]+'" style="width:'+(x[1]*100/mx).toFixed(2)+'%"></i>';
-  });
-  if(over)h+='<s style="left:'+(goal*100/mx).toFixed(2)+'%"></s>';
-  h+='</div><div class="mbs">';
-  var q=[];
-  if(kp>0)q.push('<em>단백질</em> '+kp.toLocaleString()+' ('+pct(kp)+'%)');
-  if(kc>0)q.push('<em>탄수</em> '+kc.toLocaleString()+' ('+pct(kc)+'%)');
-  if(kf>0)q.push('<em>지방</em> '+kf.toLocaleString()+' ('+pct(kf)+'%)');
-  /* 매크로가 하나도 안 온 날은 전부가 '그 밖' 이 되는데, 그때 그 이름은
-     틀린 말이다 — 나머지가 아니라 전부다 */
-  if(etc>0)q.push('<em>'+((kp||kc||kf)?'그 밖':'먹은 것')+'</em> '+etc.toLocaleString());
-  if(!q.length)q.push('아직 없음');
-  q.push(over?('<em>초과</em> '+(kcal-goal).toLocaleString())
-             :('<em>남음</em> '+(goal-kcal).toLocaleString()));
-  return h+q.join(' · ')+'</div></div>';
-}
-/* 끼니별로 나뉜 막대. segs=[{n:'아침',v:420},...] 이고 v 의 합이 cur 다.
-   목표를 넘기면 넘긴 만큼이 목표선 밖으로 뻗어, 넘쳤다는 것이 길이로 보인다. */
-function vzMealBar(label,segs,goal,unit){
-  var cur=0,i;
-  for(i=0;i<segs.length;i++)cur+=(+segs[i].v||0);
-  cur=Math.round(cur);goal=Math.round(+goal||0);
-  var mx=Math.max(goal,cur)||1;
-  var over=goal>0&&cur>goal;
-  var h='<div class="mbar"><div class="mbh">'+esc(label)
-    +'<b>'+cur.toLocaleString()+'<em> / '+goal.toLocaleString()+' '+esc(unit)+'</em></b></div>'
-    +'<div class="mbt">';
-  /* 목표 안까지는 끼니별로, 넘긴 몫은 한 칸으로 몰아 --sig 로 */
-  var used=0,cls=['s1','s2','s3','s4'];
-  for(i=0;i<segs.length;i++){
-    var v=Math.round(+segs[i].v||0);
-    if(v<=0)continue;
-    var inGoal=goal>0?Math.max(0,Math.min(v,goal-used)):v;
-    if(inGoal>0)h+='<i class="'+cls[Math.min(i,3)]+'" style="width:'+(inGoal*100/mx).toFixed(2)+'%"></i>';
-    var out=v-inGoal;
-    if(out>0)h+='<i class="ov" style="width:'+(out*100/mx).toFixed(2)+'%"></i>';
-    used+=v;
-  }
-  if(over)h+='<s style="left:'+(goal*100/mx).toFixed(2)+'%"></s>';
-  h+='</div><div class="mbs">';
-  var parts=[];
-  for(i=0;i<segs.length;i++){
-    var v2=Math.round(+segs[i].v||0);
-    if(v2>0)parts.push('<em>'+esc(segs[i].n)+'</em> '+v2.toLocaleString());
-  }
-  if(!parts.length)parts.push('아직 없음');
-  parts.push(over?('<em>초과</em> '+(cur-goal).toLocaleString())
-                 :('<em>남음</em> '+(goal-cur).toLocaleString()));
-  h+=parts.join(' · ')+'</div></div>';
-  return h;
 }
 function vzTotal(label,cur,goal){
   return '<div class="ztot"><span>'+esc(label)+'</span>'
