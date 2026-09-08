@@ -1496,7 +1496,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 주말 두 칸을 한 단계 밝게. 무늬가 주말에 몰리는 일이 잦아 눈이 짚을 데를 준다 */
 .dggrid .dgwe{fill:var(--mut)}
 .dggrid .dgl{font-family:var(--mono);font-size:8px;fill:var(--dim)}
-/* 판정 띠(±100). 기록이 있는 날 위에만 이어 깔린다 — 끊긴 자리가 곧
+/* 지킴 폭. 세는 줄 끝에 물러선 채로 붙는다 — 뜻풀이지 셈이 아니다 */
+.dgbd{margin-left:auto;opacity:.75}
+/* 판정 띠. 기록이 있는 날 위에만 이어 깔린다 — 끊긴 자리가 곧
    '그날은 안 왔다' 다. --inset 을 안 쓴 까닭은 어두운 팔레트에서 --plate 보다
    더 어두워 4px 두께로는 카드에 묻히기 때문이다. --tx 틴트는 밝은 판에서도
    어두운 판에서도 늘 판보다 도드라진다. */
@@ -6543,7 +6545,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 20:13';
+var BUILD='2026-09-08 20:23';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7307,6 +7309,16 @@ function mealPayload(){
 /* 끼니가 지나는 때(시). 이 시각을 넘기고도 기록이 없으면 남은 끼니가
    아니라 거른 끼니다 — 저녁은 하루 끝까지 열려 있다. */
 var MEAL_END={breakfast:11,lunch:16,dinner:24};
+/* 목표를 '지켰다' 고 볼 폭. 100 고정이던 것을 목표에 비례시킨다 —
+   목표 2,208 인 사람에게 100 은 4.5% 라 식사 기록 자체의 오차보다 좁다.
+   삼성헬스가 집밥 한 끼를 100~200kcal 틀리는 것은 예사고, 같은 음식도 담는
+   양에 따라 그만큼 움직인다. 재는 자가 눈금보다 굵으면 판정이 안 된다.
+   10% 인 까닭: 그만큼 넘겨도 그날 적자가 550 에서 329 로 줄 뿐 부호가 안
+   뒤집힌다. 방향이 살아 있는 데까지가 '지킴' 이라 부를 수 있는 자리다.
+   바닥 150 은 목표가 낮은 사람 몫이다 — 1,200 의 10% 는 120 이라 도로 좁다.
+   세 군데(날짜 세기·평균 판정·칸 표식)가 이 하나를 본다. 흩어 두면 세는
+   수와 그리는 칸이 갈라진다. */
+function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
 var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
 /* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
    바닥으로 흔히 쓰는 값이다. 탄수는 목표가 아니라 '남는 것' 이므로
@@ -7344,7 +7356,8 @@ function nutriFacts(){
       partial:(ks[i]===td0)};
     if(ks[i]===td0)continue;
     sum+=d.kcal;pk+=d.p;sumTgt+=dTgt;sumTdee+=dTd;done++;
-    if(dif>100)over++;else if(dif<-100)under++;else onT++;
+    var bnd=okBand(dTgt);
+    if(dif>bnd)over++;else if(dif<-bnd)under++;else onT++;
   }
   /* 오늘 아직 안 먹은 끼니를 짚어 주려면 끼니별로 갈라야 한다.
      합계만 있으면 '저녁을 안 먹었다'를 알 수 없다. */
@@ -7688,11 +7701,12 @@ function deficitBars(tdee,goal){
    큰 수는 어떤 판정에서도 --tx 다 — 잰 값은 잘잘못이 아니다. 색은 칩만 진다. */
 function dgHead(nf){
   var avD=Math.round(nf.completedDaysAvgDiff||0);
-  /* 하루 판정과 같은 ±100 밴드. 예전엔 평균이 부호만 보고 음수면 전부
+  /* 하루 판정과 같은 폭을 쓴다. 예전엔 평균이 부호만 보고 음수면 전부
      '준수' 라, 같은 -158 이 하루로는 부족이고 평균으로는 준수였다.
      감량기에 만성적으로 덜 먹는 것은 근손실 쪽이라 칭찬할 일이 아니다. */
-  var cls=avD>100?'dgh-ov':(avD<-100?'dgh-un':'dgh-ok');
-  var vt=avD>100?'목표 초과':(avD<-100?'목표 미달':'목표 안');
+  var bnd=okBand(nf.completedDaysAvgTarget);
+  var cls=avD>bnd?'dgh-ov':(avD<-bnd?'dgh-un':'dgh-ok');
+  var vt=avD>bnd?'목표 초과':(avD<-bnd?'목표 미달':'목표 안');
   /* '±100 기준' 이라는 꼬리말을 뺐다. 밑의 격자가 그 밴드를 띠로 그려 놓았고,
      그림이 제 일을 하면 설명이 필요 없다. */
   return '<div class="dgh '+cls+'">'
@@ -7772,11 +7786,13 @@ function dgWeekGrid(nf){
       if(!rec)continue;
       var df=Math.round(rec.diff||0);
       wN[c]++;wS[c]+=df;
-      if(df>100){
+      /* 그날의 목표로 그날의 폭을 낸다 — 운동한 날은 목표가 커서 폭도 넓다 */
+      var db=okBand(rec.target);
+      if(df>db){
         wO[c]++;
         mk+='<rect class="dgu" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy-8.5).toFixed(1)
           +'" width="11" height="7.5" rx="2.5"/>';
-      }else if(df<-100){
+      }else if(df<-db){
         wU[c]++;
         mk+='<rect class="dgd" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy+1).toFixed(1)
           +'" width="11" height="7.5" rx="2.5"/>';
@@ -7789,7 +7805,7 @@ function dgWeekGrid(nf){
     g+=mk;   /* 표식을 띠보다 뒤에 그려야 띠에 안 먹힌다 */
   }
   var h='<svg class="dggrid" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'
-    +'최근 21일을 요일별로 놓은 격자. 목표 ±100 안에 든 날은 띠 위의 점, '
+    +'최근 21일을 요일별로 놓은 격자. 그날 목표 언저리에 든 날은 띠 위의 점, '
     +'더 먹은 날은 띠 위로 솟은 칸, 덜 먹은 날은 띠 아래로 내린 칸">'+g+'</svg>';
   /* 세는 줄이 곧 격자 읽는 법이다 — 표식이 격자 속 표식과 같은 그림이라
      범례를 따로 안 둔다. 어차피 읽을 수를 읽으면 읽는 법이 따라 붙는다.
@@ -7800,6 +7816,9 @@ function dgWeekGrid(nf){
     +'<span><i class="dgi dgi-on"></i>지킴 <b>'+on+'</b>일</span>'
     +'<span><i class="dgi dgi-up"></i>초과 <b>'+ov+'</b>일</span>'
     +'<span><i class="dgi dgi-dn"></i>부족 <b>'+un+'</b>일</span>'
+    /* 폭이 이제 사람마다 다르다. '지킴' 이라는 낱말이 있는 자리라야
+       그 뜻을 적을 자리다 — 머리줄에 적으면 낱말과 떨어진다. */
+    +'<span class="dgbd">±'+okBand(nf.completedDaysAvgTarget).toLocaleString()+' 안</span>'
     +'</div>';
   /* 노트는 그림 뜻을 푸는 각주가 아니라 그림에서 나온 판정이다.
      없는데 '무늬 없음' 이라 적으면 칸만 먹고 판단은 못 준다 — 없으면 안 적는다.
