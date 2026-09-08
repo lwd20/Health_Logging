@@ -6315,7 +6315,11 @@ function vzDiet(tab){
       var pPer=(t.proteinLeft>0)?Math.round(t.proteinLeft/miss.length):0;
       /* '한 끼에 403kcal' 는 이제 칸 안에 있다 — 글로 또 적지 않는다.
          단백질은 칸에 안 들어가므로 여기 남긴다. */
-      var sub=(pPer>0)?('남은 끼니마다 단백질 '+pPer+'g'):'';
+      var sub=(pPer>0)?((miss.length>1?'남은 끼니마다 ':'')+'단백질 '+pPer+'g'):'';
+      /* 거른 끼니를 밝힌다. 안 적으면 저녁 몫이 왜 큰지 알 수가 없다 —
+         아침을 걸러서 그 몫이 저녁으로 간 것이다. */
+      var skp=(t.skippedMeals||[]);
+      if(skp.length)sub=mn(skp)+' 거름'+(sub?' · '+sub:'');
       h+=vzLine('남은 끼니',mn(miss),sub,
         /* 한 끼에 50g 넘게 몰아넣기는 어렵다. 열량만 맞추고 단백질이
            무너지는 것이 감량기에 가장 흔한 실패라 미리 짚는다. */
@@ -6424,7 +6428,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 19:01';
+var BUILD='2026-09-08 19:12';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7168,7 +7172,10 @@ function mealPayload(){
           남은열량:Math.round(t.kcalLeft||0),
           단백질:Math.round(t.proteinSoFar||0),단백질목표:Math.round(t.proteinGoal||0),
           남은단백질:Math.round(t.proteinLeft||0),
-          안먹은끼니:t.missingMeals,먹은끼니:t.eatenMeals,끼니별:t.byMeal},
+          /* 거른끼니는 안먹은끼니에서 이미 빠져 있다. 그래도 보낸다 —
+             빼기만 하면 AI 는 저녁 한 끼에 왜 하루치가 몰렸는지 모른다. */
+          안먹은끼니:t.missingMeals,거른끼니:t.skippedMeals,
+          먹은끼니:t.eatenMeals,끼니별:t.byMeal},
     오늘운동:dayExKcal(todayISO())>0,
     /* 쉬는 날은 소비가 낮다 — 안 보내면 훈련일과 같은 몫을 권한다 */
     오늘쉬는날:isOff(todayISO()),
@@ -7182,6 +7189,9 @@ function mealPayload(){
    읽지 않게 한다. 모르는 것과 안 먹은 것은 다르다. */
 /* 단백질 하루 목표 — 체중당 g. 페이로드와 프롬프트가 같은 값을 봐야
    리포트에 '1.5/1.8' 과 '기준치 1.6g' 이 같이 나오는 일이 없다. */
+/* 끼니가 지나는 때(시). 이 시각을 넘기고도 기록이 없으면 남은 끼니가
+   아니라 거른 끼니다 — 저녁은 하루 끝까지 열려 있다. */
+var MEAL_END={breakfast:11,lunch:16,dinner:24};
 var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
 /* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
    바닥으로 흔히 쓰는 값이다. 탄수는 목표가 아니라 '남는 것' 이므로
@@ -7229,16 +7239,26 @@ function nutriFacts(){
     /* 끼니 구분은 새 APK 부터 들어온다. 옛 APK 는 합계만 보내는데,
        그때 '전부 안 먹었다'로 적으면 AI 가 굶은 줄 알고 엉뚱한 제안을 한다.
        모르는 것은 모른다고 넘긴다. */
-    var ms=tday.meals,eaten=null,missing=null,ORD=['breakfast','lunch','dinner'],q;
+    var ms=tday.meals,eaten=null,missing=null,skipped=null,
+        ORD=['breakfast','lunch','dinner'],q;
     if(ms&&Object.keys(ms).length){
-      eaten=[];missing=[];
-      for(q=0;q<ORD.length;q++)(ms[ORD[q]]&&ms[ORD[q]].n>0?eaten:missing).push(ORD[q]);
+      eaten=[];missing=[];skipped=[];
+      /* 끼니에는 때가 있다. 오후 5시에 안 먹은 아침은 남은 끼니가 아니라
+         거른 끼니다 — 남은 몫을 거기에 배정하면 저녁 몫이 절반으로 줄어
+         정작 먹을 수 있는 양을 잘못 알려 준다. 늦은 점심을 경계 뒤에
+         먹으면 그때는 기록이 들어오므로 '먹음' 으로 잡힌다. */
+      var nowH=new Date().getHours();
+      for(q=0;q<ORD.length;q++){
+        var mk=ORD[q];
+        if(ms[mk]&&ms[mk].n>0){eaten.push(mk);continue;}
+        (nowH>=MEAL_END[mk]?skipped:missing).push(mk);
+      }
       if(ms.snack&&ms.snack.n>0)eaten.push('snack');
     }
     /* 단백질은 하루 목표를 체중당 1.8g 로 잡고 남은 몫을 낸다 */
     var pGoal=BW>0?Math.round(BW*PRO_PER_KG):null;
     todayBlock={
-      eatenMeals:eaten, missingMeals:missing,
+      eatenMeals:eaten, missingMeals:missing, skippedMeals:skipped,
       byMeal:ms||null,
       intakeSoFar:tday.kcal,
       goalIntake:goal,
