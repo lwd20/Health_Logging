@@ -942,28 +942,34 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .sbf{margin-top:4px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 /* 끼니 칸. 너비가 열량에 비례해 '저녁에 얼마 남았나' 가 길이로 온다.
    먹은 끼니는 채우고 남은 끼니는 테두리만 — 지난 일과 할 일이 눈에서 갈린다 */
-.mplan{display:flex;gap:3px;margin:5px 0 5px;height:30px}
-.mslot{flex:1 1 0;min-width:0;display:flex;flex-direction:column;
+.mplan{display:flex;gap:3px;margin:5px 0 5px;height:34px}
+/* 눈은 앞으로 먹을 쪽으로 가야 한다 — 남은 끼니가 채운 강조색이고
+   먹은 끼니가 물러선 회색이다. 처음에 이걸 거꾸로 줬었다. */
+.mslot{flex:1 1 0;min-width:46px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;border-radius:4px;overflow:hidden;
-  border:var(--bw) dashed rgba(var(--acc-rgb),.6);color:var(--acc-br)}
-.mslot.on{border-style:solid;border-color:transparent;
   background:var(--acc-br);color:var(--on-acc)}
-.mslot b{font-size:9.5px;font-weight:800;line-height:1.2;white-space:nowrap}
+.mslot.on{background:var(--inset);color:var(--dim)}
+.mslot b{font-size:9.5px;font-weight:800;line-height:1.25;white-space:nowrap}
+/* 색만 쓰면 어느 쪽이 어느 쪽인지 약속을 알아야 읽힌다. 글자는 약속이 없다 */
 .mslot em{font-style:normal;font-family:var(--mono);font-size:9.5px;
-  font-weight:700;opacity:.85;line-height:1.2;white-space:nowrap}
-/* 적자는 소비와 섭취의 차이다. 두 막대를 같은 폭에 놓으면 그 차이가
-   빗금 칸으로 눈에 보인다 — 수를 읽고 빼는 일을 사람에게 안 시킨다 */
-.dfr{display:flex;align-items:center;gap:7px;margin:3px 0}
-.dfr>u{flex:0 0 26px;text-decoration:none;font-size:10px;font-weight:700;color:var(--mut)}
-.dft{flex:1;display:flex;height:13px;border-radius:3px;background:var(--inset);
-  overflow:hidden;min-width:0}
-.dft>i{display:block;height:100%;background:var(--acc-br)}
-/* 적자 칸. 경고색을 안 쓴다 — 적자는 잘못이 아니라 노리는 것이다 */
-.dft>i.gap{background:repeating-linear-gradient(-45deg,
-  rgba(var(--acc-rgb),.30) 0 3px,transparent 3px 6px);
-  border-left:var(--bw) dashed var(--acc-br)}
-.dfr>b{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;font-weight:700;
-  color:var(--mut);font-variant-numeric:tabular-nums}
+  font-weight:700;line-height:1.25;white-space:nowrap}
+/* 적자는 두 막대의 '차이' 가 아니라 막대 하나를 가른 조각이다.
+   차이로 그리면 두 값을 보고 빼서 그 결과가 빗금임을 알아채야 한다 —
+   세 걸음이다. 조각으로 그리면 볼 것이 하나뿐이다. */
+.dfb{margin:7px 0 2px}
+.dfh{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-bottom:5px;
+  font-variant-numeric:tabular-nums}
+.dfh b{color:var(--mut);font-weight:700}
+/* 식의 낱말과 막대 조각에 같은 색을 준다 — 어느 게 어느 것인지 짚을 게 없어진다 */
+.dfh em{font-style:normal;font-weight:700}
+.dfh em.e{color:var(--acc-br)}
+.dfh em.c{color:var(--mut)}
+.dfbar{display:flex;height:17px;border-radius:4px;overflow:hidden;
+  background:var(--inset)}
+.dfbar>i{display:block;height:100%;min-width:0}
+.dfbar>i.eat{background:var(--acc-br)}
+/* 경고색을 안 쓴다 — 적자는 잘못이 아니라 노리는 것이다 */
+.dfbar>i.cut{background:rgba(var(--acc-rgb),.26)}
 .sbf b{color:var(--mut);font-weight:700}
 /* 탄단지 원 셋. 나란히 놓아야 서로 견줘진다 */
 /* 아래 여백은 각주가 지고 있었다. 각주를 걷어냈으니 여기로 옮긴다 */
@@ -6355,7 +6361,7 @@ function vzDiet(tab){
     '주당 -'+WR+'kg 에서 나옴','')
     /* 550 이라는 수 하나로는 어디서 나온 것인지 알 수가 없다.
        적자는 소비와 섭취의 차이이므로 그 차이를 그린다. */
-    +deficitBars(nf.todayTdee,nf.todayTargetIntake,nf.dailyDeficitTarget);
+    +deficitBars(nf.todayTdee,nf.todayTargetIntake);
   return '<div class="anlviz">'+h+'</div>';
 }
 
@@ -6418,7 +6424,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 18:24';
+var BUILD='2026-09-08 19:01';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7511,25 +7517,28 @@ function mealPlan(bm,miss,left,goal){
   for(i=0;i<segs.length;i++){
     if(segs[i].v<=0)continue;
     h+='<div class="mslot'+(segs[i].on?' on':'')+'" style="flex:'+segs[i].v+' 1 0">'
-      +'<b>'+esc(segs[i].n)+'</b><em>'+segs[i].v.toLocaleString()+'</em></div>';
+      +'<b>'+esc(segs[i].n)+'</b><em>'+segs[i].v.toLocaleString()
+      +(segs[i].on?' 먹음':' 남음')+'</em></div>';
   }
   return h+'</div>';
 }
-/* 하루 적자를 소비와 섭취의 사이 칸으로. 550 이라는 수 하나로는 어디서
-   나온 것인지 알 수가 없다 — 두 막대를 같은 폭에 놓으면 차이가 보인다. */
-function deficitBars(tdee,goal,dfc){
-  tdee=Math.round(+tdee||0);goal=Math.round(+goal||0);dfc=Math.round(+dfc||0);
-  if(!(tdee>0&&goal>0&&goal<=tdee))return '';
-  var gp=(tdee-goal)*100/tdee;
-  return '<div class="dfr"><u>소비</u><span class="dft">'
-    +'<i style="width:100%"></i></span><b>'+tdee.toLocaleString()+'</b></div>'
-    +'<div class="dfr"><u>섭취</u><span class="dft">'
-    +'<i style="width:'+(100-gp).toFixed(2)+'%"></i>'
-    +'<i class="gap" style="width:'+gp.toFixed(2)+'%"></i></span>'
-    +'<b>'+goal.toLocaleString()+'</b></div>'
-    +'<div class="sbf">빗금 칸 <b>'+dfc.toLocaleString()+'kcal</b> 가 하루 적자'
-    +' — 한 주 <b>'+(dfc*7).toLocaleString()+'kcal</b>, 지방 '
-    +(Math.round(dfc*7/7700*100)/100)+'kg 어치</div>';
+/* 하루 태우는 열량을 두 조각으로 가른다 — 밥으로 되채우는 몫과 안 채우는
+   몫. 안 채우는 그 조각이 곧 적자다. 조각으로 그리면 볼 것이 하나뿐이다.
+   적자는 dailyDeficitTarget 이 아니라 tdee-goal 로 낸다. 목표 열량이 0 으로
+   잘린 날에는 둘이 어긋나는데, 그림이 거짓말을 하느니 식을 맞춘다. */
+function deficitBars(tdee,goal){
+  tdee=Math.round(+tdee||0);goal=Math.round(+goal||0);
+  if(!(tdee>0&&goal>0&&goal<tdee))return '';
+  var cut=tdee-goal;
+  return '<div class="dfb">'
+    +'<div class="dfh">소비 <b>'+tdee.toLocaleString()+'</b> = '
+    +'<em class="e">섭취 '+goal.toLocaleString()+'</em> + '
+    +'<em class="c">적자 '+cut.toLocaleString()+'</em></div>'
+    +'<div class="dfbar"><i class="eat" style="flex:'+goal+' 1 0"></i>'
+    +'<i class="cut" style="flex:'+cut+' 1 0"></i></div>'
+    +'<div class="sbf">한 주로는 <b>'+(cut*7).toLocaleString()+'kcal</b>'
+    +' — 지방 <b>'+(Math.round(cut*7/7700*100)/100)+'kg</b> 어치</div>'
+    +'</div>';
 }
 /* 값 대신 사실 한 줄. 막대가 뜻을 갖지 않는 것들(연속일, 정체 종목 등) */
 function vzLine(name,val,sub,vd){
