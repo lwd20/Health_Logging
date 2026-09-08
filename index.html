@@ -3386,13 +3386,20 @@ function renderSheet(){
            접을 것이 없으니 접지 않는다 */
         var hh='<div class="sh-l" style="margin-top:2px">Cut settings</div>';
           {
+            /* 다섯을 한 줄에 밀어 넣으면 9px 라벨이 폰에서 깨진다. 하는 일로 가른다 —
+               위 셋은 하루 열량을 정하고, 아래 둘은 그 열량을 무엇으로 채울지를 정한다. */
             hh+='<div class="wtg">'
               +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
               +'<div><b>PACE · KG/주</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
               +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
-              +'<div><b>단백질 G/KG</b><input id="pp0" inputmode="decimal" maxlength="4" value="'+PRO_PER_KG+'"></div>'
               +'</div>'
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
+              +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
+              +'<div class="wtg">'
+              +'<div><b>단백질 G/KG</b><input id="pp0" inputmode="decimal" maxlength="4" value="'+PRO_PER_KG+'"></div>'
+              +'<div><b>지방 G/KG</b><input id="fp0" inputmode="decimal" maxlength="4" value="'+FAT_PER_KG+'"></div>'
+              +'</div>'
+              +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG)+'</div>'
               +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
           return hh;
@@ -4136,7 +4143,7 @@ function bkText(){
     st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
-    ppk:PRO_PER_KG,gm:GM,lm:LM,
+    ppk:PRO_PER_KG,fpk:FAT_PER_KG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
     subx:{ren:SUBX.ren,hide:SUBX.hide,add:SUBX.add}
@@ -4200,11 +4207,13 @@ function applyBackup(o){
         subxApply();subxSave();
       }
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
+      if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(c.gm&&GMN[c.gm])GM=c.gm;
       if(c.lm&&KS[c.lm]!==undefined)LM=c.lm;
       if(canLS){
         try{
           localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
+          localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
           localStorage.setItem(KEY+'.gm',GM);
           localStorage.setItem(KEY+'.lm',LM);
           localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));
@@ -4540,6 +4549,28 @@ function bodyLine(bw,bf,gf,hrm,act){
     out+='<br><b class="warn">인바디도 체중계 기록도 없음</b> — 기본값 '+BW+'kg / '+BF+'% 로 계산 중';
   if(HC.wp===false&&hcOn())
     out+='<br>체중 읽기 권한이 꺼져 있음 — 삼성헬스 체중을 쓰려면 허용 필요';
+  return out;
+}
+/* 매크로 바닥을 만질 때 탄수가 얼마나 밀리는지 보여 준다.
+   탄수는 목표가 아니라 '남는 몫' 이라 지방 눈금이 조용히 탄수를 정한다.
+   그 물림이 화면에 없으면 왜 탄수 목표가 그 값인지 알 길이 없다. */
+function macroLine(ppk,fpk){
+  if(!(BW>0))return '체중이 없어 매크로 눈금을 못 냄';
+  var goal=0;
+  try{goal=Math.round(nutriFacts().todayTargetIntake||0);}catch(e){}
+  var p=Math.round(BW*ppk),f=Math.round(BW*fpk);
+  var out='단백질 <b>'+p+'</b>g · 지방 <b>'+f+'</b>g';
+  if(!(goal>0))return out+' — 목표 열량이 아직 없어 탄수 몫은 못 냄';
+  var left=goal-p*4-f*9;
+  if(left<=0)
+    return out+'<br><b class="warn">둘만으로 목표를 넘김</b> — '
+      +(p*4+f*9).toLocaleString()+'kcal 인데 목표가 '+goal.toLocaleString()
+      +'kcal 라 탄수 몫이 없음. 지방이나 단백질을 낮춰야 함';
+  out+=' · 탄수 <b>'+Math.round(left/4)+'</b>g'
+    +'<br>목표 '+goal.toLocaleString()+'kcal 에서 '+(p*4).toLocaleString()
+    +' + '+(f*9).toLocaleString()+' 를 못박고 남은 '+left.toLocaleString()+' 이 탄수'
+    /* 이 한 줄이 요점이다 — 지방 칸을 만지면 탄수가 따라 움직인다 */
+    +'<br>지방을 <b>0.1</b> 올리면 탄수가 <b>'+Math.round(BW*0.225)+'g</b> 줄어듦';
   return out;
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -6344,7 +6375,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 22:30';
+var BUILD='2026-09-08 17:28';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7109,6 +7140,8 @@ var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼�
 var FAT_PER_KG=0.8;
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.ppk'));
   if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*10)/10;}catch(e){}})();
+(function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.fpk'));
+  if(v>=0.3&&v<=1.5)FAT_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 
 function nutriFacts(){
   var ks=[],k,td0=today();
@@ -8510,6 +8543,14 @@ document.addEventListener('click',function(e){
           if(pv2>=1&&pv2<=3){PRO_PER_KG=Math.round(pv2*10)/10;
             if(canLS){try{localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));}catch(e9){}}}
         }
+        var fpEl=document.getElementById('fp0');
+        if(fpEl){
+          var fv2=parseFloat(String(fpEl.value).replace(',','.'));
+          /* 0.3 밑으로 내리면 호르몬 쪽이 먼저 무너지고, 1.5 를 넘으면
+             '바닥' 이 아니라 탄수를 밀어내는 목표가 된다 */
+          if(fv2>=0.3&&fv2<=1.5){FAT_PER_KG=Math.round(fv2*10)/10;
+            if(canLS){try{localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));}catch(eF){}}}
+        }
         var si;
         for(si=0;si<SUBS.length;si++){
           var sEl=document.getElementById('st'+si);if(!sEl)continue;
@@ -8652,6 +8693,16 @@ document.addEventListener('input',function(e){
     if(bi){
       var gv2=function(id,dv){var el2=document.getElementById(id);var n2=parseFloat(String(el2?el2.value:'').replace(',','.'));return isNaN(n2)?dv:n2;};
       bi.innerHTML=bodyLine(gv2('bw0',BW),gv2('bf0',BF),gv2('gf0',GF),gv2('hr0',HRM),gv2('ac0',ACT));
+    }
+  }
+  /* 지방 칸을 만지면 탄수가 그 자리에서 따라 움직여야 물림이 보인다.
+     열량 목표는 저장 전까지 예전 값이라 위 셋(gf0/pc0/ac0)에는 안 건다. */
+  if(e.target.id==='pp0'||e.target.id==='fp0'){
+    var mi=document.getElementById('mgInfo');
+    if(mi){
+      var gv3=function(id,dv){var e3=document.getElementById(id);
+        var n3=parseFloat(String(e3?e3.value:'').replace(',','.'));return isNaN(n3)?dv:n3;};
+      mi.innerHTML=macroLine(gv3('pp0',PRO_PER_KG),gv3('fp0',FAT_PER_KG));
     }
   }
   if(e.target.id==='addBrand')UI.addBrand=e.target.value;
