@@ -1461,6 +1461,77 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
 .zrow.warn .num,.zrow.warn .st{color:var(--acc-br)}
+/* ── 평균 탭 · 요일 격자 ──
+   .zrow 블록 바로 뒤(1459행 근처)에 넣는다.
+   이름 충돌 확인함 — index.html 에 .dgh .dgk .dgcp .dgv .dgun .dgsb .dggrid
+   .dgb .dgo .dgu .dgd .dgt .dgw .dgwe .dgl .dgtal .dgi .dgnt 가 하나도 없다
+   (.dgrp · .dgoal 은 있으나 정확 일치가 아니라 안 부딪친다).
+   맨 표식 이름(.ov .un .up .on 따위)은 하나도 안 쓴다 — .ov 는 1038행이
+   시트 뒤 오버레이로 position:fixed·opacity:0 을 얹어 표식을 통째로 지운다.
+
+   평균 한 줄. .zrow 를 안 쓴 까닭 둘 —
+   (1) .zrow.warn 의 숫자·칩이 --acc-br 이라 같은 카드에서 '초과' 가 격자의
+       --sig 와 두 색이 된다. 한 낱말에 두 색이면 다른 뜻인지 짚어 보게 된다.
+   (2) .zrow 한 줄이 57px 다. 격자를 얹으면 평균 탭이 380px 를 넘는다. */
+.dgh{display:flex;align-items:baseline;gap:6px;padding:0 1px 1px}
+.dgk{font-size:12.5px;font-weight:700;color:var(--tx)}
+.dgcp{font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--dim)}
+/* 잰 값은 잘잘못이 아니다 — 큰 수는 늘 --tx 고 판정 색은 칩만 진다 */
+.dgv{margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:800;
+  color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.dgun{font-size:10px;font-weight:700;color:var(--dim)}
+/* 칩 색이 격자 표식 색과 같다 — 줄과 그림이 같은 낱말을 같은 색으로 말한다 */
+.dgh-ov .dgcp{color:var(--sig)}
+.dgh-un .dgcp{color:var(--mut)}
+.dgh-ok .dgcp{color:var(--pos)}
+.dgsb{margin:1px 1px 0;font-family:var(--mono);font-size:10px;line-height:1.35;
+  color:var(--dim);font-variant-numeric:tabular-nums}
+.dgsb b{color:var(--mut);font-weight:700}
+
+/* 격자. 높이는 viewBox 가 지고 여기서는 폭만 맡는다 — width:100% 라
+   실폭 313px 에 앉아 가로 스크롤이 원리상 안 난다 */
+.dggrid{width:100%;height:auto;display:block;margin:5px 0 0}
+/* 요일 글자는 본문 폰트다 — 한글은 mono 에서 자간이 무너진다 */
+.dggrid .dgw{font-size:9px;font-weight:700;fill:var(--dim)}
+/* 주말 두 칸을 한 단계 밝게. 무늬가 주말에 몰리는 일이 잦아 눈이 짚을 데를 준다 */
+.dggrid .dgwe{fill:var(--mut)}
+.dggrid .dgl{font-family:var(--mono);font-size:8px;fill:var(--dim)}
+/* 판정 띠(±100). 기록이 있는 날 위에만 이어 깔린다 — 끊긴 자리가 곧
+   '그날은 안 왔다' 다. --inset 을 안 쓴 까닭은 어두운 팔레트에서 --plate 보다
+   더 어두워 4px 두께로는 카드에 묻히기 때문이다. --tx 틴트는 밝은 판에서도
+   어두운 판에서도 늘 판보다 도드라진다. */
+.dggrid .dgb{fill:rgba(var(--tx-rgb),.10)}
+/* 목표 안에 든 날 — 넘긴 것이 아니라 지킨 것이므로 --pos */
+.dggrid .dgo{fill:var(--pos)}
+/* 감량기에 눈이 가야 할 곳은 넘긴 날이다 */
+.dggrid .dgu{fill:var(--sig)}
+/* 덜 먹은 날도 어긴 것이지만 넘긴 날만큼 소리치면 스무 칸이 다 경고가 된다.
+   방향(아래)이 이미 뜻을 지므로 색은 물러선다 */
+.dggrid .dgd{fill:var(--mut)}
+/* 오늘. 아직 안 끝났으므로 판정하지 않고 자리만 짚는다 */
+.dggrid .dgt{fill:none;stroke:var(--acc-br);stroke-width:1.6;stroke-dasharray:2.2 2.2}
+
+/* 세는 줄. 표식이 격자 속 표식과 같은 그림이라 범례를 따로 안 둔다 */
+.dgtal{display:flex;flex-wrap:wrap;gap:2px 14px;margin:2px 1px 0;
+  font-family:var(--mono);font-size:10.5px;color:var(--dim);
+  font-variant-numeric:tabular-nums;align-items:center}
+.dgtal span{display:inline-flex;align-items:center}
+.dgtal b{color:var(--tx);font-weight:700;margin:0 1px 0 4px}
+.dgi{position:relative;display:inline-block;width:16px;height:14px;
+  margin-right:4px;flex:0 0 auto}
+.dgi::before{content:'';position:absolute;left:0;right:0;top:5px;height:4px;
+  border-radius:2px;background:rgba(var(--tx-rgb),.10)}
+/* 띠 위로 솟은 칸 · 띠 아래로 내린 칸 — 격자의 표식과 같은 짜임이다 */
+.dgi::after{content:'';position:absolute;left:4px}
+.dgi-on::after{top:3.4px;width:7px;height:7px;border-radius:50%;background:var(--pos)}
+.dgi-up::after{top:0;width:8px;height:8px;border-radius:2px;background:var(--sig)}
+.dgi-dn::after{bottom:0;width:8px;height:8px;border-radius:2px;background:var(--mut)}
+
+/* 요일 노트. 그림 뜻을 푸는 각주가 아니라 그림에서 나온 판정이다 */
+.dgnt{margin:3px 1px 0;font-family:var(--mono);font-size:10.5px;line-height:1.35;
+  color:var(--dim);font-variant-numeric:tabular-nums}
+.dgnt b{font-weight:700;color:var(--mut)}
+.dgnt-up b{color:var(--sig)}
 /* ── 손댈 것 · 진단 줄 ──
    이름/원인칩/숫자 + 근거 두 줄이 한 덩어리로 읽혀야 하는데 .zrow 의 윗선만
    으로는 서로 다른 줄처럼 갈린다. 왼쪽 레일이 그것을 묶고 판정을 글자 없이
@@ -6383,20 +6454,25 @@ function vzDiet(tab){
       '오늘 운동한 만큼 먹을 수 있는 양이 늘어남',{t:'',c:'pos'});
   }
   if(tab==='avg'&&nf.completedDaysCount>0){
-    /* '끝난 날 4일' 이 최근 나흘로 읽힌다. 창(21일)과 그 안에서 기록이 들어온
-       날 수는 다른 값이라 둘 다 적는다 — 나흘은 기간이 아니라 표본 크기다. */
-    h+=vzCap('최근 21일 · 기록 있는 '+nf.completedDaysCount+'일 평균');
-    /* 하루 판정은 ±100 밴드로 초과·부족·지킴을 가르는데 평균은 부호만 보고
-       음수면 전부 '준수' 라 했다. 같은 -158 이 하루로는 부족이고 평균으로는
-       준수가 된다. 게다가 감량기에 만성적으로 덜 먹는 것은 근손실 쪽이라
-       칭찬할 일이 아니다 — 밴드를 하루 판정과 같게 맞춘다. */
-    var avD=nf.completedDaysAvgDiff;
-    h+=vzLine('섭취',Math.round(nf.completedDaysAvgIntake)+' kcal',
-      '목표 '+Math.round(nf.completedDaysAvgTarget)+' · 차이 '+(avD>0?'+':'')+Math.round(avD)
-        +' · 하루 판정과 같은 ±100 기준',
-      avD>100?{t:'목표 초과',c:'warn'}:(avD<-100?{t:'목표 미달',c:'warn'}:{t:'목표 안',c:'pos'}));
-    h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
-      '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)+'일','');
+    /* 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못 말한다. 같은 +122 가
+       고르게 지킨 세 주일 수도 토요일마다 무너진 세 주일 수도 있고, 둘은
+       다음에 할 일이 다르다. 평균이 크기를, 격자가 자리를 맡는다 —
+       둘이 안 겹치므로 같은 사실을 두 번 적는 자리가 없다.
+       vzCap 을 뺐다. 표본 크기('최근 21일 중 13일 기록')는 dgHead 의 밑줄이
+       이어받고, 캡션 한 줄 29px 을 남기면 320px 예산이 깨진다. */
+    h+=dgHead(nf);
+    /* 체중이 없으면 dayTDEE 가 0 이라 target 이 0 이고, 그러면 모든 날이
+       초과로 찍힌다. 진단이 아니라 고장으로 보이므로 안 그리고 고칠 데를 적는다. */
+    if(!(nf.completedDaysAvgTarget>0))
+      h+=vzLine('요일 격자','못 그림',
+        '설정에 체중을 넣어야 그날 목표가 잡힘',{t:'',c:''});
+    /* 나흘치로 '토요일마다' 를 말할 수는 없다. 빈 격자에 80px 을 쓰느니
+       세던 것을 세고, 며칠이 더 있어야 하는지도 같이 적는다. */
+    else if(nf.completedDaysCount<5)
+      h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
+        '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)
+        +'일 · 기록 5일부터 요일 격자가 나옴','');
+    else h+=dgWeekGrid(nf);
   }
   if(tab==='avg'&&!(nf.completedDaysCount>0))
     h+=vzLine('끝난 날','기록 없음','하루가 더 쌓이면 평균이 나옴',{t:'기록 없음',c:''});
@@ -6467,7 +6543,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 20:08';
+var BUILD='2026-09-08 20:13';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7598,6 +7674,165 @@ function deficitBars(tdee,goal){
     +'<div class="sbf">한 주로는 <b>'+(cut*7).toLocaleString()+'kcal</b>'
     +' — 지방 <b>'+(Math.round(cut*7/7700*100)/100)+'kg</b> 어치</div>'
     +'</div>';
+}
+/* ── 평균 탭 · 요일 격자 ───────────────────────────────────────────
+   deficitBars 바로 뒤(7562행 근처)에 둔다. 함수 선언이라 호이스팅되므로
+   vzDiet 보다 뒤에 있어도 된다. insISO(6419) · vzLine(7564) 은 이미 있다. */
+
+/* 평균 한 줄. .zrow 를 쓰지 않은 까닭 둘 —
+   (1) .zrow.warn 의 숫자·칩 색이 --acc-br 이라, 같은 카드에서 '초과' 가
+       격자에선 --sig, 줄에선 --acc-br 로 두 색이 된다. 한 낱말에 두 색이면
+       둘이 다른 뜻인지 짚어 보게 된다.
+   (2) .zrow 한 줄이 57px 다. 격자를 얹으면 평균 탭이 380px 를 넘어
+       '한눈에' 가 스크롤로 깨진다.
+   큰 수는 어떤 판정에서도 --tx 다 — 잰 값은 잘잘못이 아니다. 색은 칩만 진다. */
+function dgHead(nf){
+  var avD=Math.round(nf.completedDaysAvgDiff||0);
+  /* 하루 판정과 같은 ±100 밴드. 예전엔 평균이 부호만 보고 음수면 전부
+     '준수' 라, 같은 -158 이 하루로는 부족이고 평균으로는 준수였다.
+     감량기에 만성적으로 덜 먹는 것은 근손실 쪽이라 칭찬할 일이 아니다. */
+  var cls=avD>100?'dgh-ov':(avD<-100?'dgh-un':'dgh-ok');
+  var vt=avD>100?'목표 초과':(avD<-100?'목표 미달':'목표 안');
+  /* '±100 기준' 이라는 꼬리말을 뺐다. 밑의 격자가 그 밴드를 띠로 그려 놓았고,
+     그림이 제 일을 하면 설명이 필요 없다. */
+  return '<div class="dgh '+cls+'">'
+    +'<span class="dgk">평균 섭취</span><span class="dgcp">'+vt+'</span>'
+    +'<span class="dgv">'+Math.round(nf.completedDaysAvgIntake).toLocaleString()+'</span>'
+    +'<span class="dgun">kcal</span></div>'
+    /* 창(21일)과 기록이 들어온 날 수는 다른 값이다. '13일' 만 적으면
+       최근 열사흘로 읽힌다 — 그건 기간이 아니라 표본 크기다. */
+    +'<div class="dgsb">목표 '+Math.round(nf.completedDaysAvgTarget).toLocaleString()
+    +' · 차이 <b>'+(avD>0?'+':'')+avD.toLocaleString()+'</b>'
+    +' · 최근 21일 중 <b>'+nf.completedDaysCount+'일</b> 기록</div>';
+}
+
+/* 최근 21일을 요일 격자로. 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못
+   말한다 — 같은 +122 가 고르게 지킨 세 주일 수도, 토요일마다 무너진 세
+   주일 수도 있고 둘은 다음에 할 일이 다르다.
+   길이로 값을 싣지 않는다. 폰 폭에 21칸을 놓으면 쓸 수 있는 길이 차이가
+   5px 뿐이라, 막대처럼 생겨 놓고 길이에 값이 안 실리면 눈이 먼저 읽는 쪽이
+   거짓말을 하게 된다. 크기는 위의 평균 줄이 지고, 격자는 판정과 자리만
+   진다 — 그래서 칸 안에 수가 하나도 없다.
+   농도로도 값을 안 싣는다. 회색 두 칸의 진하기를 견주는 일은 사람이 못 한다. */
+function dgWeekGrid(nf){
+  var W=320,GL=30,CW=(W-GL-2)/7,HH=10,RH=18;
+  var WD=['월','화','수','목','금','토','일'];
+  var now=new Date();
+  /* nutriFacts 의 21일 창과 같은 식이라 격자의 표식 수와 daysOnTarget/
+     Over/Under 의 합이 정확히 맞는다. 창을 따로 잡으면 두 수가 갈라진다. */
+  var lo=new Date(now);lo.setDate(now.getDate()-20);
+  var dwLo=(lo.getDay()+6)%7;                       /* 월=0 */
+  var st=new Date(lo);st.setDate(lo.getDate()-dwLo); /* 창 첫날이 든 주의 월요일 */
+  /* 요일이 세로줄이 되어야 무늬가 보이므로 격자를 월요일에 맞춘다.
+     창이 주 경계에 안 맞으면 줄이 하나 는다 — 창을 자르느니 줄을 늘린다.
+     오늘이 일요일일 때만 세 줄이고, 그때는 카드가 18px 짧아진다. */
+  var ROWS=Math.ceil((dwLo+21)/7),H=HH+RH*ROWS;
+  var loIso=insISO(lo),tdIso=insISO(now);
+  var wN=[0,0,0,0,0,0,0],wO=[0,0,0,0,0,0,0],wU=[0,0,0,0,0,0,0],wS=[0,0,0,0,0,0,0];
+  var g='',r,c,q;
+  for(c=0;c<7;c++)
+    g+='<text class="dgw'+(c>4?' dgwe':'')+'" x="'+(GL+CW*c+CW/2).toFixed(1)
+      +'" y="7.5" text-anchor="middle">'+WD[c]+'</text>';
+  for(r=0;r<ROWS;r++){
+    var cy=HH+RH*r+RH/2,mk='',lab='',runS=-1,dt=null;
+    /* c===7 은 줄 끝에서 띠 도막을 닫으려고 한 번 더 도는 자리다 */
+    for(c=0;c<8;c++){
+      var iso='',rec=null,isTd=false,inWin=false;
+      if(c<7){
+        dt=new Date(st.getTime());dt.setDate(st.getDate()+r*7+c);
+        iso=insISO(dt);
+        inWin=(iso>=loIso&&iso<=tdIso);
+        isTd=(iso===tdIso);
+        rec=inWin?(nf.byDay[iso]||null):null;
+      }
+      /* 띠는 기록이 있는 날 위에만 이어 깐다. 이어 그려야 '길' 이 되고,
+         길이라야 길에서 벗어난 것이 읽힌다. 기록이 없는 날에서 띠가
+         끊기므로 안 온 날과 0kcal 먹은 날이 모양으로 갈린다 —
+         빈 동그라미 표식을 하나 더 두면 그때부터 범례가 필요해진다. */
+      var hasBand=(c<7&&inWin&&(rec||isTd));
+      if(hasBand&&runS<0)runS=c;
+      if(!hasBand&&runS>=0){
+        g+='<rect class="dgb" x="'+(GL+CW*runS+1.5).toFixed(1)+'" y="'+(cy-2).toFixed(1)
+          +'" width="'+(CW*(c-runS)-3).toFixed(1)+'" height="4" rx="2"/>';
+        runS=-1;
+      }
+      if(c>=7||!inWin)continue;
+      /* 줄머리는 그 줄에서 처음 그린 칸의 날짜다. 그 주 월요일을 적으면
+         라벨이 가리키는 칸이 없는 줄이 생긴다(첫 줄이 늘 그렇다). */
+      if(!lab)lab=(dt.getMonth()+1)+'/'+dt.getDate();
+      var cx=GL+CW*c+CW/2;
+      if(isTd){
+        /* 오늘은 아직 안 끝났다. 판정하면 아침만 먹은 낮 열두시가 '부족'
+           이 된다. 파선으로 그린다 — 팔레트 28개를 재 보면 --acc-br 은
+           --pos 와 늘 구분되지만(ΔE 15 이상), 색 하나에만 기대는 것보다
+           모양으로도 갈리는 편이 작은 표식에서 확실하다. */
+        mk+='<circle class="dgt" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3.4"/>';
+        continue;
+      }
+      if(!rec)continue;
+      var df=Math.round(rec.diff||0);
+      wN[c]++;wS[c]+=df;
+      if(df>100){
+        wO[c]++;
+        mk+='<rect class="dgu" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy-8.5).toFixed(1)
+          +'" width="11" height="7.5" rx="2.5"/>';
+      }else if(df<-100){
+        wU[c]++;
+        mk+='<rect class="dgd" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy+1).toFixed(1)
+          +'" width="11" height="7.5" rx="2.5"/>';
+      }else{
+        mk+='<circle class="dgo" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3.2"/>';
+      }
+    }
+    if(lab)g+='<text class="dgl" x="'+(GL-5)+'" y="'+(cy+2.8).toFixed(1)
+      +'" text-anchor="end">'+lab+'</text>';
+    g+=mk;   /* 표식을 띠보다 뒤에 그려야 띠에 안 먹힌다 */
+  }
+  var h='<svg class="dggrid" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'
+    +'최근 21일을 요일별로 놓은 격자. 목표 ±100 안에 든 날은 띠 위의 점, '
+    +'더 먹은 날은 띠 위로 솟은 칸, 덜 먹은 날은 띠 아래로 내린 칸">'+g+'</svg>';
+  /* 세는 줄이 곧 격자 읽는 법이다 — 표식이 격자 속 표식과 같은 그림이라
+     범례를 따로 안 둔다. 어차피 읽을 수를 읽으면 읽는 법이 따라 붙는다.
+     수는 앱이 이미 센 것을 쓴다. 여기서 또 세면 두 수가 갈라질 자리가 생긴다. */
+  var on=nf.daysOnTarget||0,ov=nf.daysOverTarget||0,un=nf.daysUnderTarget||0;
+  var tot=on+ov+un;
+  h+='<div class="dgtal">'
+    +'<span><i class="dgi dgi-on"></i>지킴 <b>'+on+'</b>일</span>'
+    +'<span><i class="dgi dgi-up"></i>초과 <b>'+ov+'</b>일</span>'
+    +'<span><i class="dgi dgi-dn"></i>부족 <b>'+un+'</b>일</span>'
+    +'</div>';
+  /* 노트는 그림 뜻을 푸는 각주가 아니라 그림에서 나온 판정이다.
+     없는데 '무늬 없음' 이라 적으면 칸만 먹고 판단은 못 준다 — 없으면 안 적는다.
+     21일 창에서 한 요일은 많아야 세 번이라 n>=3 은 곧 '세 주 내리' 다.
+     n=2 짜리 무늬는 동전던지기고, 한 번 틀리면 카드 전체를 안 믿게 된다. */
+  var nt='',ntc='',mAv;
+  function dgSgn(v){return (v>0?'+':'')+v.toLocaleString();}
+  if(tot>=5&&ov===tot){
+    /* 전부 한쪽이면 그건 요일 이야기가 아니다. 정작 할 말이 제일 분명한
+       때라 예전 조건(over<tot)처럼 입을 다물면 안 된다. */
+    nt='세 주 내내 <b>목표 위</b> · 하루 평균 '
+      +dgSgn(Math.round(nf.completedDaysAvgDiff||0))+' kcal';ntc=' dgnt-up';
+  }else if(tot>=5&&un===tot){
+    nt='세 주 내내 <b>목표 아래</b> · 하루 평균 '
+      +dgSgn(Math.round(nf.completedDaysAvgDiff||0))+' kcal';
+  }else{
+    /* 초과 무늬와 부족 무늬를 대등하게 겨루게 한다. 초과를 늘 앞세우면
+       감량기 만성 저섭취가 영영 안 보인다 — 근손실 쪽이 더 비싸다. */
+    var bi=-1,bs=-1,bd='';
+    for(q=0;q<7;q++){
+      if(wN[q]<3)continue;
+      mAv=Math.abs(Math.round(wS[q]/wN[q]));
+      if(wO[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd='초과';}
+      else if(wU[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd='부족';}
+    }
+    if(bi>=0){
+      nt='<b>'+WD[bi]+'요일</b>은 세 주 내리 '+bd+' · 평균 '
+        +dgSgn(Math.round(wS[bi]/wN[bi]))+' kcal';
+      if(bd==='초과')ntc=' dgnt-up';
+    }
+  }
+  if(nt)h+='<div class="dgnt'+ntc+'">'+nt+'</div>';
+  return h;
 }
 /* 값 대신 사실 한 줄. 막대가 뜻을 갖지 않는 것들(연속일, 정체 종목 등) */
 function vzLine(name,val,sub,vd){
