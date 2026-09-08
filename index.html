@@ -930,6 +930,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trgs{margin:-7px 2px 12px;font-size:11.5px;color:var(--mut);
   font-family:var(--mono);font-variant-numeric:tabular-nums}
 .trgs b{color:var(--tx);font-weight:700;font-size:13px}
+/* 열량 한 줄. 막대를 뺀 자리 — 원에서 복원이 안 되는 수만 남긴다 */
+.kcline{display:flex;align-items:baseline;gap:8px;margin:2px 0 9px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
+.kcline>span{font-size:11px;font-weight:700;color:var(--mut);font-family:inherit}
+.kcline>b{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
+.kcline>b em{font-style:normal;font-size:10px;font-weight:600;color:var(--dim)}
+.kcline>i{margin-left:auto;font-style:normal;font-size:11px;color:var(--mut)}
+.kcline>i.ov{color:var(--sig);font-weight:700}
+/* 그림 밑 설명 한 줄 */
+.sbf{margin-top:4px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.sbf b{color:var(--mut);font-weight:700}
 /* 탄단지 원 셋. 나란히 놓아야 서로 견줘진다 */
 .rings{display:flex;gap:6px;margin:2px 0 4px}
 .ring{flex:1 1 0;min-width:0;text-align:center}
@@ -945,21 +956,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rgv{font-family:var(--mono);font-size:10.5px;color:var(--dim);
   font-variant-numeric:tabular-nums}
 .rgv em{font-style:normal;opacity:.75}
-/* 한 줄에 하나. 네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다 */
-.sbar{margin:0 0 11px}
-.sbh{display:flex;align-items:baseline;gap:8px}
-.sbh>u{flex:0 0 44px;text-decoration:none;font-size:11px;font-weight:700;color:var(--mut)}
-.sbh>b{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
-  color:var(--tx);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.sbh>b em{font-style:normal;font-size:10px;font-weight:600;color:var(--dim)}
-.sbt{position:relative;display:flex;height:15px;border-radius:4px;
-  background:var(--inset);margin:5px 0 0;overflow:visible}
-.sbt>i{display:block;height:100%;border-radius:4px;background:var(--acc-br)}
-.sbt>i.hi{background:var(--sig)}
-.sbt>s{position:absolute;top:-3px;bottom:-3px;width:0;
-  border-left:2px dashed var(--sig);opacity:.85}
-.sbf{margin-top:4px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
-.sbf b{color:var(--mut);font-weight:700}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -6208,9 +6204,16 @@ function vzDiet(tab){
        읽는 사람이 머리로 풀어야 하는 그림이 됐다. 한 줄에 하나만 담는다.
        네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다. */
     var td2=hcDay(UI.wd)||{};
-    h+=vzSimple('열량',ate,goal,'kcal',
-      ate>goal?('<b>'+(ate-goal).toLocaleString()+'</b> 초과')
-              :('<b>'+(goal-ate).toLocaleString()+'</b> 더 먹어도 됨'),true);
+    /* 열량 막대를 뺐다. 세 원의 목표를 더하면 정확히 목표 열량이라 원만
+       봐도 상태가 짐작된다 — 막대까지 두면 같은 말이 두 번이다.
+       다만 '먹은 열량' 은 원에서 복원이 안 된다. 삼성헬스가 준 열량과
+       매크로 환산 합이 어긋나는 날이 있어서다(식이섬유·알코올·반올림).
+       그 수는 한 줄로 남긴다. */
+    h+='<div class="kcline"><span>열량</span><b>'+ate.toLocaleString()
+      +'<em> / '+goal.toLocaleString()+' kcal</em></b>'
+      +'<i class="'+(ate>goal?'ov':'')+'">'
+      +(ate>goal?(ate-goal).toLocaleString()+' 초과'
+                :(goal-ate).toLocaleString()+' 더 먹어도 됨')+'</i></div>';
     /* 눈금을 '평소 값' 으로 두던 것을 고쳤다. 평소가 잘못돼 있으면 잘못된
        것을 기준으로 삼는 셈이라 늘 100% 근처에 앉아 아무 말도 안 한다.
        목표 열량에서 뽑는다. */
@@ -6341,7 +6344,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 22:00';
+var BUILD='2026-09-09 22:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7376,8 +7379,6 @@ function macroGoals(kcalGoal){
   var c=left>0?Math.round(left/4):0;
   return {p:p,f:f,c:c};
 }
-/* 한 줄에 하나. ref 는 눈금이고, 목표가 있으면 목표를 없으면 평소 값을 쓴다.
-   목표를 지어내지 않으면서도 '평소보다 적다' 가 길이로 보인다. */
 /* 원 하나. 셋을 나란히 놓으면 '어느 것이 덜 찼나' 가 채워진 정도로 보인다.
    눈금이 없으면(탄수 몫이 0) 원 대신 값만 적는다 — 기준 없는 원은 거짓말이다. */
 function vzRing(name,cur,goal,unit,floor){
@@ -7399,23 +7400,6 @@ function vzRing(name,cur,goal,unit,floor){
     +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
     +'</div>';
   return h;
-}
-function vzSimple(name,cur,ref,unit,foot,warn){
-  cur=Math.round(+cur||0);ref=Math.round(+ref||0);
-  var mx=Math.max(ref,cur)||1,over=ref>0&&cur>ref;
-  /* 넘겼다고 다 경고는 아니다. 감량기에 단백질을 목표보다 많이 먹은 것은
-     나쁜 일이 아니고, 탄수·지방이 평소보다 많은 것도 그 자체로는 판단할
-     일이 아니다. 색이 판단을 하면 안 되는 자리다 — 예산을 넘긴 열량만
-     경고색을 쓴다. */
-  var hi=over&&warn;
-  var h='<div class="sbar"><div class="sbh"><u>'+esc(name)+'</u>'
-    +'<b>'+cur.toLocaleString()+'<em>'+(ref>0?' / '+ref.toLocaleString():'')+' '+esc(unit)+'</em></b></div>'
-    +'<div class="sbt">';
-  if(cur>0)h+='<i class="'+(hi?'hi':'')+'" style="width:'+(cur*100/mx).toFixed(1)+'%"></i>';
-  if(over)h+='<s style="left:'+(ref*100/mx).toFixed(1)+'%"></s>';
-  h+='</div>';
-  if(foot)h+='<div class="sbf">'+foot+'</div>';
-  return h+'</div>';
 }
 function vzTotal(label,cur,goal){
   return '<div class="ztot"><span>'+esc(label)+'</span>'
