@@ -6339,13 +6339,19 @@ function vzDiet(tab){
   var nf=nutriFacts();
   if(!nf)return '<div class="anlviz"><div class="lmunk">섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴</div></div>';
   var h='',t=nf.today;
+  /* 이 갈래는 '오늘' 이다. 카드 머리(catCtx)도 보는 날짜와 무관하게 늘 오늘을
+     적고, '남은 끼니' 는 오늘에만 뜻이 있다 — 어제 저녁은 남은 끼니가 아니다.
+     그런데 t 는 오늘인데 탄단지·운동·진단은 UI.wd(보는 날짜)를 보고 있었다.
+     어제로 넘긴 채 열면 '600kcal 먹음 · 단백질 200g' 처럼 한 화면이 자기모순이
+     된다. 메인 화면의 날짜 넘김은 운동 기록용이고 이 시트와 상관이 없다. */
+  var DTD=todayISO();
   /* 오늘 식사가 아직 안 들어오면 t 가 없어 이 갈래가 통째로 비었다. 화면에
      '하루 적자 목표' 한 줄만 남는다 — 열어 봐야 아무것도 없다.
      먹은 것을 몰라도 아는 것은 있다: 오늘 얼마까지 먹어도 되는지, 단백질
      목표가 몇인지, 운동으로 얼마를 벌었는지. 그것부터 보여 준다. */
   if(tab==='today'&&!t){
     var gi=Math.round(nf.todayTargetIntake||0),tdA=Math.round(nf.todayTdee||0);
-    var exA=Math.round(dayExKcal(UI.wd));
+    var exA=Math.round(dayExKcal(DTD));
     h+=vzCap('오늘 · 아직 식사 기록이 없음');
     if(gi>0)h+=vzLine('먹을 수 있는 양',gi.toLocaleString()+' kcal',
       '오늘 소비 '+tdA.toLocaleString()+' − 적자 '+Math.round(nf.dailyDeficitTarget),{t:'',c:''});
@@ -6357,7 +6363,7 @@ function vzDiet(tab){
     /* '기록이 없다' 만 적으면 넣었는데 안 뜰 때 원인을 알 수가 없다.
        앱이 마지막으로 읽은 시각과, 읽어 온 것에 오늘이 있는지를 그대로 적는다 —
        삼성헬스가 아직 안 넘긴 것과 앱이 아직 안 읽은 것은 다른 일이다. */
-    var raw=(HC&&HC.days)?HC.days[UI.wd]:null;
+    var raw=(HC&&HC.days)?HC.days[DTD]:null;
     var at=(HC&&HC.at)?new Date(HC.at):null;
     var ago=at?Math.round((Date.now()-HC.at)/60000):null;
     if(raw&&!(raw.n>0)&&raw.kcal>0){
@@ -6388,7 +6394,7 @@ function vzDiet(tab){
     /* 막대 하나에 네 뜻을 싣고 퍼센트를 붙이고 그 밑에 견주는 줄까지 놓았더니
        읽는 사람이 머리로 풀어야 하는 그림이 됐다. 한 줄에 하나만 담는다.
        네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다. */
-    var td2=hcDay(UI.wd)||{};
+    var td2=hcDay(DTD)||{};
     /* 열량 막대를 뺐다. 세 원의 목표를 더하면 정확히 목표 열량이라 원만
        봐도 상태가 짐작된다 — 막대까지 두면 같은 말이 두 번이다.
        다만 '먹은 열량' 은 원에서 복원이 안 된다. 삼성헬스가 준 열량과
@@ -6452,7 +6458,7 @@ function vzDiet(tab){
     }
     /* 오늘 남은 몫이 어제보다 큰 이유가 운동인데 섞여만 있었다. 떼어 놓으면
        '오늘은 더 먹어도 되는 날' 인 것이 보인다. */
-    var exT=Math.round(dayExKcal(UI.wd));
+    var exT=Math.round(dayExKcal(DTD));
     /* '운동으로 는 몫' 이라 적어 뒀었다 — '늘어난' 을 줄이다 조사만 남아
        말이 깨졌다. '번' 이 짧으면서 뜻이 산다. */
     if(exT>0)h+=vzLine('운동으로 번 몫','+'+exT.toLocaleString()+' kcal',
@@ -6548,7 +6554,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 20:45';
+var BUILD='2026-09-08 23:03';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
