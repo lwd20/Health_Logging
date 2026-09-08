@@ -6140,10 +6140,39 @@ function vzDiet(tab){
     h+=vzBar('단백질',pr2,pg,
       (t.proteinLeft>0?'남음 '+Math.round(t.proteinLeft)+'g':'채움'),
       (pg>0&&pr2>=pg)?{t:'목표 달성',c:'pos'}:{t:'',c:''},false);
-    if(t.missingMeals&&t.missingMeals.length)
-      h+=vzLine('안 먹은 끼니',t.missingMeals.join(', '),'',{t:'보류',c:''});
-    else if(t.eatenMeals&&t.eatenMeals.length)
-      h+=vzLine('먹은 끼니',t.eatenMeals.join(', '),'',{t:'기록됨',c:'pos'});
+    /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
+    var MEAL={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
+    function mn(a){return (a||[]).map(function(x){return MEAL[x]||x;}).join(' · ');}
+    var miss=(t.missingMeals||[]).filter(function(x){return x!=='snack';});
+    /* 589kcal 남았고 저녁 한 끼가 남았으면 저녁이 589 다. 나눗셈을 읽는
+       사람에게 시키지 않는다. */
+    if(miss.length&&t.kcalLeft>0){
+      var per=Math.round(t.kcalLeft/miss.length);
+      var pPer=(t.proteinLeft>0)?Math.round(t.proteinLeft/miss.length):0;
+      var sub=[];
+      if(miss.length>1)sub.push('한 끼에 '+per.toLocaleString()+'kcal');
+      if(pPer>0)sub.push('단백질 '+pPer+'g'+(miss.length>1?' 씩':''));
+      h+=vzLine('남은 끼니',mn(miss),sub.join(' · '),
+        /* 한 끼에 50g 넘게 몰아넣기는 어렵다. 열량만 맞추고 단백질이
+           무너지는 것이 감량기에 가장 흔한 실패라 미리 짚는다. */
+        (pPer>=50)?{t:'단백질 몰림',c:'warn'}:{t:'',c:''});
+    }else if(miss.length&&t.kcalLeft<=0){
+      h+=vzLine('남은 끼니',mn(miss),'열량은 이미 다 씀 — 단백질 위주로',{t:'초과',c:'warn'});
+    }else if(t.eatenMeals&&t.eatenMeals.length){
+      /* '안 먹은 끼니 없음' 은 아무것도 안 알려 준다. 남은 몫이 어디로
+         갈 수 있는지를 적는다. */
+      h+=vzLine('끼니',mn(t.eatenMeals)+' 먹음',
+        t.kcalLeft>0?('남은 '+Math.round(t.kcalLeft).toLocaleString()+'kcal 는 간식 몫')
+                    :'열량은 이미 다 씀',
+        t.kcalLeft>0?{t:'',c:''}:{t:'초과',c:'warn'});
+    }
+    /* 오늘 남은 몫이 어제보다 큰 이유가 운동인데 섞여만 있었다. 떼어 놓으면
+       '오늘은 더 먹어도 되는 날' 인 것이 보인다. */
+    var exT=Math.round(dayExKcal(UI.wd));
+    /* '운동으로 는 몫' 이라 적어 뒀었다 — '늘어난' 을 줄이다 조사만 남아
+       말이 깨졌다. '번' 이 짧으면서 뜻이 산다. */
+    if(exT>0)h+=vzLine('운동으로 번 몫','+'+exT.toLocaleString()+' kcal',
+      '오늘 운동한 만큼 먹을 수 있는 양이 늘어남',{t:'',c:'pos'});
   }
   if(tab==='avg'&&nf.completedDaysCount>0){
     /* '끝난 날 4일' 이 최근 나흘로 읽힌다. 창(21일)과 그 안에서 기록이 들어온
@@ -6227,7 +6256,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 16:25';
+var BUILD='2026-09-09 17:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
