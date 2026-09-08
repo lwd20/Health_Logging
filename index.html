@@ -950,6 +950,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mbt>i.s3{background:var(--acc-br);opacity:.46}
 .mbt>i.s4{background:var(--acc-br);opacity:.26}
 .mbt>i.ov{background:var(--sig);opacity:.9}
+/* 매크로 칸. 단백질이 가장 진하다 — 감량기에 먼저 봐야 하는 것이라 */
+.mbt>i.mP{background:var(--acc-br);opacity:1}
+.mbt>i.mC{background:var(--acc-br);opacity:.55}
+.mbt>i.mF{background:var(--acc-br);opacity:.30}
+.mbt>i.mX{background:var(--mut);opacity:.28}
 /* 목표선. 넘기면 넘긴 만큼이 이 선 밖으로 뻗는다 */
 .mbt>s{position:absolute;top:-3px;bottom:-3px;width:0;
   border-left:2px dashed var(--sig);opacity:.9}
@@ -6196,24 +6201,23 @@ function vzDiet(tab){
     h+=vzCap('오늘 · 남은 몫');
     var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
     var pr2=Math.round(t.proteinSoFar||0),pg=Math.round(t.proteinGoal||0);
-    /* 끼니별 열량은 이미 들어오고 있었다 — HcReader 가 끼니마다 {kcal,p,c,f,n}
-       을 보내는데 웹은 n(개수)만 읽고 있었다. 그 값으로 '오늘 열량이 어디로
-       갔나' 를 한 막대에 그린다. */
+    /* 끼니로 쪼갠 막대는 '아침 420 · 점심 780' 을 알려 주는데, 알아도 바꿀
+       것이 없다. 이미 먹은 끼니는 되돌릴 수 없기 때문이다.
+       매크로로 쪼개면 '열량은 맞췄는데 단백질이 낮고 탄수가 높다' 가 보이고,
+       그건 남은 끼니에서 바꿀 수 있다. */
+    var td2=hcDay(UI.wd)||{};
+    h+=vzMacroBar(ate,td2.p,td2.c,td2.f,goal);
+    /* 단백질만 막대를 남긴다 — 셋 중 목표가 있는 것은 그것뿐이고, 남은
+       끼니로 채울 수 있는지가 오늘 당장 바꿀 수 있는 유일한 것이다. */
     var MO=['breakfast','lunch','dinner','snack'],MN2={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
-    function segsOf(key){
-      var out=[],bm=t.byMeal||{},q,got=0;
-      for(q=0;q<MO.length;q++){
-        var mv=bm[MO[q]];
-        if(mv&&+mv[key]>0){out.push({n:MN2[MO[q]],v:+mv[key]});got+=(+mv[key]);}
-      }
-      /* 끼니 구분이 안 온 날은 합계 한 칸으로. 못 가른다고 안 그릴 일은 아니다 */
-      var tot=(key==='kcal')?ate:pr2;
-      if(!out.length&&tot>0)return [{n:'먹은 것',v:tot}];
-      if(out.length&&tot-got>1)out.push({n:'그 밖',v:tot-got});
-      return out;
+    var pseg=[],bm=t.byMeal||{},q2,got2=0;
+    for(q2=0;q2<MO.length;q2++){
+      var mv=bm[MO[q2]];
+      if(mv&&+mv.p>0){pseg.push({n:MN2[MO[q2]],v:+mv.p});got2+=(+mv.p);}
     }
-    h+=vzMealBar('열량',segsOf('kcal'),goal,'kcal')
-      +vzMealBar('단백질',segsOf('p'),pg,'g');
+    if(!pseg.length&&pr2>0)pseg=[{n:'먹은 것',v:pr2}];
+    else if(pseg.length&&pr2-got2>1)pseg.push({n:'그 밖',v:pr2-got2});
+    h+=vzMealBar('단백질',pseg,pg,'g');
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
     var MEAL={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
     function mn(a){return (a||[]).map(function(x){return MEAL[x]||x;}).join(' · ');}
@@ -6330,7 +6334,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 18:40';
+var BUILD='2026-09-09 19:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7347,6 +7351,37 @@ function vzBar(name,cur,goal,sub,vd,mark){
     +'<span class="num">'+cur+'<em>/'+goal+'</em></span>'
     +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')
     +'</div>';
+}
+/* 오늘 열량이 무엇으로 채워졌나. 매크로를 4/4/9 로 열량 환산해 한 막대에
+   쌓는다 — 예산의 몇 할을 썼나, 그 안이 무엇인가, 얼마 남았나를 한꺼번에.
+   환산 합이 삼성헬스가 준 열량과 어긋나는 날이 있다(식이섬유·알코올·반올림).
+   그 차이는 '그 밖' 으로 따로 둔다. 비율을 맞추려고 늘리거나 줄이면 없는
+   수를 지어내는 것이다. */
+function vzMacroBar(kcal,p,c,f,goal){
+  kcal=Math.round(+kcal||0);goal=Math.round(+goal||0);
+  var kp=Math.round((+p||0)*4),kc=Math.round((+c||0)*4),kf=Math.round((+f||0)*9);
+  var etc=Math.max(0,kcal-kp-kc-kf);
+  var mx=Math.max(goal,kcal)||1,over=goal>0&&kcal>goal;
+  function pct(v){return kcal>0?Math.round(v*100/kcal):0;}
+  var h='<div class="mbar"><div class="mbh">오늘 열량'
+    +'<b>'+kcal.toLocaleString()+'<em> / '+goal.toLocaleString()+' kcal</em></b></div>'
+    +'<div class="mbt">';
+  [['mP',kp],['mC',kc],['mF',kf],['mX',etc]].forEach(function(x){
+    if(x[1]>0)h+='<i class="'+x[0]+'" style="width:'+(x[1]*100/mx).toFixed(2)+'%"></i>';
+  });
+  if(over)h+='<s style="left:'+(goal*100/mx).toFixed(2)+'%"></s>';
+  h+='</div><div class="mbs">';
+  var q=[];
+  if(kp>0)q.push('<em>단백질</em> '+kp.toLocaleString()+' ('+pct(kp)+'%)');
+  if(kc>0)q.push('<em>탄수</em> '+kc.toLocaleString()+' ('+pct(kc)+'%)');
+  if(kf>0)q.push('<em>지방</em> '+kf.toLocaleString()+' ('+pct(kf)+'%)');
+  /* 매크로가 하나도 안 온 날은 전부가 '그 밖' 이 되는데, 그때 그 이름은
+     틀린 말이다 — 나머지가 아니라 전부다 */
+  if(etc>0)q.push('<em>'+((kp||kc||kf)?'그 밖':'먹은 것')+'</em> '+etc.toLocaleString());
+  if(!q.length)q.push('아직 없음');
+  q.push(over?('<em>초과</em> '+(kcal-goal).toLocaleString())
+             :('<em>남음</em> '+(goal-kcal).toLocaleString()));
+  return h+q.join(' · ')+'</div></div>';
 }
 /* 끼니별로 나뉜 막대. segs=[{n:'아침',v:420},...] 이고 v 의 합이 cur 다.
    목표를 넘기면 넘긴 만큼이 목표선 밖으로 뻗어, 넘쳤다는 것이 길이로 보인다. */
