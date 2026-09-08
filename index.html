@@ -930,6 +930,21 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trgs{margin:-7px 2px 12px;font-size:11.5px;color:var(--mut);
   font-family:var(--mono);font-variant-numeric:tabular-nums}
 .trgs b{color:var(--tx);font-weight:700;font-size:13px}
+/* 탄단지 원 셋. 나란히 놓아야 서로 견줘진다 */
+.rings{display:flex;gap:6px;margin:2px 0 4px}
+.ring{flex:1 1 0;min-width:0;text-align:center}
+.rgn{font-size:10px;font-weight:700;color:var(--mut);letter-spacing:.02em}
+.rgs{width:100%;max-width:74px;height:auto;display:block;margin:3px auto 1px;
+  transform:rotate(-90deg)}
+.rgs .tr{fill:none;stroke:var(--inset);stroke-width:7}
+.rgs .fl{fill:none;stroke:var(--acc-br);stroke-width:7;stroke-linecap:round}
+.rgs .fl.ov{stroke:var(--sig)}
+/* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
+.rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
+  text-anchor:middle;transform:rotate(90deg);transform-origin:32px 32px}
+.rgv{font-family:var(--mono);font-size:10.5px;color:var(--dim);
+  font-variant-numeric:tabular-nums}
+.rgv em{font-style:normal;opacity:.75}
 /* 한 줄에 하나. 네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다 */
 .sbar{margin:0 0 11px}
 .sbh{display:flex;align-items:baseline;gap:8px}
@@ -6192,18 +6207,24 @@ function vzDiet(tab){
     /* 막대 하나에 네 뜻을 싣고 퍼센트를 붙이고 그 밑에 견주는 줄까지 놓았더니
        읽는 사람이 머리로 풀어야 하는 그림이 됐다. 한 줄에 하나만 담는다.
        네 줄이 같은 꼴이라 눈이 한 번만 익으면 된다. */
-    var td2=hcDay(UI.wd)||{},am=avgMacro(nf);
+    var td2=hcDay(UI.wd)||{};
     h+=vzSimple('열량',ate,goal,'kcal',
       ate>goal?('<b>'+(ate-goal).toLocaleString()+'</b> 초과')
               :('<b>'+(goal-ate).toLocaleString()+'</b> 더 먹어도 됨'),true);
-    h+=vzSimple('단백질',pr2,pg,'g',
-      pr2>=pg?'다 채움':('<b>'+(pg-pr2)+'g</b> 더 먹기'));
-    /* 탄수·지방은 목표가 없다. 자기 평소 값을 눈금으로 삼으면 목표를
-       지어내지 않으면서도 '오늘은 평소보다 적다' 가 길이로 보인다. */
-    if(+td2.c>0||am)h+=vzSimple('탄수',td2.c,am?am.c:0,'g',
-      am?('평소 <b>'+Math.round(am.c)+'g</b> · 기록 '+am.n+'일'):'');
-    if(+td2.f>0||am)h+=vzSimple('지방',td2.f,am?am.f:0,'g',
-      am?('평소 <b>'+Math.round(am.f)+'g</b> · 기록 '+am.n+'일'):'');
+    /* 눈금을 '평소 값' 으로 두던 것을 고쳤다. 평소가 잘못돼 있으면 잘못된
+       것을 기준으로 삼는 셈이라 늘 100% 근처에 앉아 아무 말도 안 한다.
+       목표 열량에서 뽑는다. */
+    var mg=macroGoals(goal);
+    if(mg){
+      h+='<div class="rings">'
+        +vzRing('단백질',td2.p,mg.p,'g',true)
+        +vzRing('탄수',td2.c,mg.c,'g')
+        +vzRing('지방',td2.f,mg.f,'g')
+        +'</div>'
+        +'<div class="sbf" style="margin:0 0 10px">목표 '+goal.toLocaleString()
+        +'kcal 를 <b>단백질 '+mg.p+'g</b> · <b>지방 '+mg.f+'g</b> 로 못박고 남은 몫이 탄수'
+        +(mg.c>0?'':' — 남는 몫이 없어 탄수 눈금 없음')+'</div>';
+    }
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
     var MEAL={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
     function mn(a){return (a||[]).map(function(x){return MEAL[x]||x;}).join(' · ');}
@@ -6320,7 +6341,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 21:10';
+var BUILD='2026-09-09 22:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7079,6 +7100,10 @@ function mealPayload(){
 /* 단백질 하루 목표 — 체중당 g. 페이로드와 프롬프트가 같은 값을 봐야
    리포트에 '1.5/1.8' 과 '기준치 1.6g' 이 같이 나오는 일이 없다. */
 var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
+/* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
+   바닥으로 흔히 쓰는 값이다. 탄수는 목표가 아니라 '남는 것' 이므로
+   상수가 없다 — 단백질·지방을 빼고 남는 열량이 곧 탄수 몫이다. */
+var FAT_PER_KG=0.8;
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.ppk'));
   if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 
@@ -7338,8 +7363,43 @@ function vzBar(name,cur,goal,sub,vd,mark){
     +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')
     +'</div>';
 }
+/* 목표 열량에서 탄단지 눈금을 뽑는다. 감량기 표준 순서 — 단백질을 먼저
+   못박고, 지방은 바닥을 깔고, 남는 것이 탄수다.
+   이 순서라야 목표 열량이 바뀔 때 탄수만 움직이고 단백질·지방 바닥은
+   그대로다. 지켜야 할 것이 지켜진다. */
+function macroGoals(kcalGoal){
+  if(!(BW>0)||!(kcalGoal>0))return null;
+  var p=Math.round(BW*PRO_PER_KG),f=Math.round(BW*FAT_PER_KG);
+  var left=kcalGoal-p*4-f*9;
+  /* 남는 열량이 없으면 탄수 눈금을 안 준다. 0 을 눈금으로 두면 몇 g 을
+     먹어도 무한대가 된다. */
+  var c=left>0?Math.round(left/4):0;
+  return {p:p,f:f,c:c};
+}
 /* 한 줄에 하나. ref 는 눈금이고, 목표가 있으면 목표를 없으면 평소 값을 쓴다.
    목표를 지어내지 않으면서도 '평소보다 적다' 가 길이로 보인다. */
+/* 원 하나. 셋을 나란히 놓으면 '어느 것이 덜 찼나' 가 채워진 정도로 보인다.
+   눈금이 없으면(탄수 몫이 0) 원 대신 값만 적는다 — 기준 없는 원은 거짓말이다. */
+function vzRing(name,cur,goal,unit,floor){
+  /* 단백질은 바닥이고 탄수·지방은 몫이다. 바닥은 넘겨도 좋은 일이라
+     경고색을 안 쓴다 — 몫을 넘기면 그만큼 열량이 넘으므로 그때만 쓴다. */
+  cur=Math.round(+cur||0);goal=Math.round(+goal||0);
+  var R=26,C=2*Math.PI*R;
+  var rate=goal>0?cur/goal:0,over=goal>0&&cur>goal,warn=over&&!floor;
+  var fill=Math.max(0,Math.min(1,rate))*C;
+  var pct=goal>0?Math.round(rate*100):null;
+  var h='<div class="ring"><div class="rgn">'+esc(name)+'</div>'
+    +'<svg viewBox="0 0 64 64" class="rgs">'
+    +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
+  if(goal>0&&fill>0)
+    h+='<circle class="fl'+(warn?' ov':'')+'" cx="32" cy="32" r="'+R+'" '
+      +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
+  h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
+    +'<div class="rgv">'+cur.toLocaleString()
+    +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
+    +'</div>';
+  return h;
+}
 function vzSimple(name,cur,ref,unit,foot,warn){
   cur=Math.round(+cur||0);ref=Math.round(+ref||0);
   var mx=Math.max(ref,cur)||1,over=ref>0&&cur>ref;
@@ -7356,19 +7416,6 @@ function vzSimple(name,cur,ref,unit,foot,warn){
   h+='</div>';
   if(foot)h+='<div class="sbf">'+foot+'</div>';
   return h+'</div>';
-}
-/* 최근 기록의 평균 구성. byDay 에 21일치 매크로가 들어 있는데 평균을 안
-   내고 있었다 — 오늘 수치를 견줄 것이 없으면 판단이 안 선다. */
-function avgMacro(nf){
-  var d=nf&&nf.byDay,k,n=0,P2=0,C2=0,F2=0;
-  for(k in d){
-    var r=d[k];
-    if(!r||r.partial)continue;
-    if(!(+r.protein>0||+r.carb>0||+r.fat>0))continue;
-    P2+=(+r.protein||0);C2+=(+r.carb||0);F2+=(+r.fat||0);n++;
-  }
-  if(!n)return null;
-  return {n:n,p:P2/n,c:C2/n,f:F2/n};
 }
 function vzTotal(label,cur,goal){
   return '<div class="ztot"><span>'+esc(label)+'</span>'
