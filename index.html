@@ -6128,6 +6128,24 @@ function vzDiet(tab){
   var nf=nutriFacts();
   if(!nf)return '<div class="anlviz"><div class="lmunk">섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴</div></div>';
   var h='',t=nf.today;
+  /* 오늘 식사가 아직 안 들어오면 t 가 없어 이 갈래가 통째로 비었다. 화면에
+     '하루 적자 목표' 한 줄만 남는다 — 열어 봐야 아무것도 없다.
+     먹은 것을 몰라도 아는 것은 있다: 오늘 얼마까지 먹어도 되는지, 단백질
+     목표가 몇인지, 운동으로 얼마를 벌었는지. 그것부터 보여 준다. */
+  if(tab==='today'&&!t){
+    var gi=Math.round(nf.todayTargetIntake||0),tdA=Math.round(nf.todayTdee||0);
+    var exA=Math.round(dayExKcal(UI.wd));
+    h+=vzCap('오늘 · 아직 식사 기록이 없음');
+    if(gi>0)h+=vzLine('먹을 수 있는 양',gi.toLocaleString()+' kcal',
+      '오늘 소비 '+tdA.toLocaleString()+' − 적자 '+Math.round(nf.dailyDeficitTarget),{t:'',c:''});
+    if(BW>0)h+=vzLine('단백질 목표',Math.round(BW*PRO_PER_KG)+' g',
+      /* 2.0 이 '2' 로 찍혀 정수 배율처럼 보였다 */
+      '체중 '+fmtW(BW)+'kg × '+PRO_PER_KG.toFixed(1),{t:'',c:''});
+    if(exA>0)h+=vzLine('운동으로 번 몫','+'+exA.toLocaleString()+' kcal',
+      '오늘 운동한 만큼 먹을 수 있는 양이 늘어남',{t:'',c:'pos'});
+    h+=vzLine('기록','삼성헬스에서 들어옴','식사가 들어오면 남은 몫과 끼니가 여기 나옴',
+      {t:'기다리는 중',c:''});
+  }
   if(tab==='today'&&t){
     h+=vzCap('오늘 · 남은 몫');
     var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
@@ -6256,7 +6274,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 17:05';
+var BUILD='2026-09-09 17:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
