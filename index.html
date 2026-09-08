@@ -945,17 +945,25 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rings{display:flex;gap:6px;margin:2px 0 4px}
 .ring{flex:1 1 0;min-width:0;text-align:center}
 .rgn{font-size:10px;font-weight:700;color:var(--mut);letter-spacing:.02em}
+/* 성격표. 셋이 같은 꼴이라 안 적으면 셋 다 같은 뜻으로 읽힌다 */
+.rgn i{display:block;font-style:normal;font-size:8.5px;font-weight:800;
+  letter-spacing:.09em;color:var(--dim);margin-top:1px}
 .rgs{width:100%;max-width:74px;height:auto;display:block;margin:3px auto 1px;
   transform:rotate(-90deg)}
 .rgs .tr{fill:none;stroke:var(--inset);stroke-width:7}
 .rgs .fl{fill:none;stroke:var(--acc-br);stroke-width:7;stroke-linecap:round}
-.rgs .fl.ov{stroke:var(--sig)}
+/* 넘긴 것은 잘못이 아니라 채운 것이다 — 경고색이 아니라 충족색을 쓴다 */
+.rgs .fl.met{stroke:var(--pos)}
 /* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
 .rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
   text-anchor:middle;transform:rotate(90deg);transform-origin:32px 32px}
 .rgv{font-family:var(--mono);font-size:10.5px;color:var(--dim);
   font-variant-numeric:tabular-nums}
 .rgv em{font-style:normal;opacity:.75}
+/* 퍼센트는 상태고 이 줄은 할 일이다 — 다음에 뭘 먹어야 하는지 */
+.rgd{font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--acc-br);margin-top:2px;font-variant-numeric:tabular-nums}
+.rgd.met{color:var(--pos)}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -6251,12 +6259,14 @@ function vzDiet(tab){
     var mg=macroGoals(goal);
     if(mg){
       h+='<div class="rings">'
-        +vzRing('단백질',td2.p,mg.p,'g',true)
-        +vzRing('탄수',td2.c,mg.c,'g')
-        +vzRing('지방',td2.f,mg.f,'g')
+        +vzRing('단백질','opt',td2.p,mg.p,'g')
+        +vzRing('탄수','min',td2.c,mg.c,'g')
+        +vzRing('지방','min',td2.f,mg.f,'g')
         +'</div>'
-        +'<div class="sbf" style="margin:0 0 10px">목표 '+goal.toLocaleString()
-        +'kcal 를 <b>단백질 '+mg.p+'g</b> · <b>지방 '+mg.f+'g</b> 로 못박고 남은 몫이 탄수'
+        +'<div class="sbf" style="margin:0 0 10px">'
+        +'셋 다 <b>적어도 이만큼</b> — 넘긴 건 괜찮고 못 채운 것만 문제<br>'
+        +'단백질 '+mg.p+'g 은 적정치 · 지방 '+mg.f+'g 은 하한 · 탄수는 목표 '
+        +goal.toLocaleString()+'kcal 에서 둘을 빼고 남은 몫'
         +(mg.c>0?'':' — 남는 몫이 없어 탄수 눈금 없음')+'</div>';
     }
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
@@ -6375,7 +6385,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 17:28';
+var BUILD='2026-09-08 18:04';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7412,25 +7422,30 @@ function macroGoals(kcalGoal){
   var c=left>0?Math.round(left/4):0;
   return {p:p,f:f,c:c};
 }
-/* 원 하나. 셋을 나란히 놓으면 '어느 것이 덜 찼나' 가 채워진 정도로 보인다.
-   눈금이 없으면(탄수 몫이 0) 원 대신 값만 적는다 — 기준 없는 원은 거짓말이다. */
-function vzRing(name,cur,goal,unit,floor){
-  /* 단백질은 바닥이고 탄수·지방은 몫이다. 바닥은 넘겨도 좋은 일이라
-     경고색을 안 쓴다 — 몫을 넘기면 그만큼 열량이 넘으므로 그때만 쓴다. */
+/* 원 하나. 눈금은 셋 다 '적어도 이만큼' 이다 — 넘긴 것은 잘못이 아니라
+   채운 것이므로 어떤 원도 넘겼다고 경고색을 쓰지 않는다. 못 채운 것만 말한다.
+   눈금이 없으면(탄수 몫이 0) 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
+   kind: 'opt' 적정(단백질만) · 'min' 최소(지방·탄수) */
+function vzRing(name,kind,cur,goal,unit){
   cur=Math.round(+cur||0);goal=Math.round(+goal||0);
   var R=26,C=2*Math.PI*R;
-  var rate=goal>0?cur/goal:0,over=goal>0&&cur>goal,warn=over&&!floor;
+  var rate=goal>0?cur/goal:0,met=goal>0&&cur>=goal;
   var fill=Math.max(0,Math.min(1,rate))*C;
   var pct=goal>0?Math.round(rate*100):null;
-  var h='<div class="ring"><div class="rgn">'+esc(name)+'</div>'
+  var h='<div class="ring"><div class="rgn">'+esc(name)
+    +'<i>'+(kind==='opt'?'적정':'최소')+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
-    h+='<circle class="fl'+(warn?' ov':'')+'" cx="32" cy="32" r="'+R+'" '
+    h+='<circle class="fl'+(met?' met':'')+'" cx="32" cy="32" r="'+R+'" '
       +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
   h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
     +'<div class="rgv">'+cur.toLocaleString()
     +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
+    /* 58% 는 상태고 '67g 더' 는 할 일이다. 감량기에 필요한 것은
+       상태가 아니라 다음 끼니에 뭘 먹느냐다. */
+    +'<div class="rgd'+(met?' met':'')+'">'
+    +(goal<=0?'—':(met?'충족':(goal-cur).toLocaleString()+esc(unit)+' 더'))+'</div>'
     +'</div>';
   return h;
 }
