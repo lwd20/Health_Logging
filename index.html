@@ -918,6 +918,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .gvOK{fill:var(--mut)}
 .trg .gvNG{fill:var(--sig)}
 .trg .dIn{fill:var(--acc-br)}
+/* 오늘은 아직 안 끝났다 — 속을 비워 끝난 날의 채운 점과 가른다 */
+.trg .dInO{fill:none;stroke:var(--acc-br);stroke-width:2}
+.trg .dOutO{fill:none;stroke:var(--mut);stroke-width:1.6}
+.trg .tdy{opacity:.42}
 .trgl{display:flex;flex-wrap:wrap;gap:3px 12px;margin:5px 2px 12px;
   font-size:11px;color:var(--mut);font-family:var(--mono);
   font-variant-numeric:tabular-nums;align-items:center}
@@ -5758,13 +5762,16 @@ function trendRows(days){
   var ws=wSeries(days);
   for(i=0;i<ws.a.length;i++){wm[ws.a[i][0]]=ws.a[i][1];all[ws.a[i][0]]=1;}
   var hd=HC.days||{};
-  for(k in hd)if(k>=lim&&k<td0&&hd[k]&&hd[k].n>0)all[k]=1;
+  /* 오늘도 들인다. 다만 part 로 표시해 둔다 — 하루가 안 끝났으므로 그리는
+     쪽에서 끝난 날과 다르게 다뤄야 하고, 평균 내는 쪽에서는 빼야 한다. */
+  for(k in hd)if(k>=lim&&k<=td0&&hd[k]&&hd[k].n>0)all[k]=1;
   var b=bmr(BW,BF),base=b?Math.round(b*ACT):0;
   var keys=Object.keys(all).sort(),out=[];
   for(i=0;i<keys.length;i++){
     k=keys[i];
-    var ate=(hd[k]&&hd[k].n>0&&k<td0)?Math.round(hd[k].kcal):null;
-    out.push({d:k,w:(wm[k]===undefined?null:wm[k]),ate:ate,base:base,ex:dayExKcal(k)});
+    var ate=(hd[k]&&hd[k].n>0)?Math.round(hd[k].kcal):null;
+    out.push({d:k,w:(wm[k]===undefined?null:wm[k]),ate:ate,base:base,ex:dayExKcal(k),
+      part:(k===td0)});
   }
   return out;
 }
@@ -5784,7 +5791,10 @@ function niceStep(range,want){
    만든 몫이라 따로 막대를 쌓지 않아도 눈에 들어온다. */
 function chartEat(days){
   var a=trendRows(days).filter(function(r){return r.ate!=null;});
-  if(a.length<2)return '';
+  /* 기준은 '끝난 날 둘' 이다. 오늘까지 세면 끝난 날 하나 + 오늘로 그림이
+     서서, 흐린 도막 하나만 덩그러니 남는다. */
+  var fin=a.filter(function(r){return !r.part;});
+  if(fin.length<2)return '';
   var W=320,H=126,L=36,R=7,T=14,B=19,i,lo=null,hi=null;
   function see(v){if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
   for(i=0;i<a.length;i++){see(a[i].ate);see(a[i].base+a[i].ex);}
@@ -5818,18 +5828,36 @@ function chartEat(days){
     if(i!==0&&i!==span)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+(H-B)+'"/>';
     g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
     var dd=new Date(t0+i*86400000);
+    /* 마지막 점이 오늘이면 날짜 대신 '오늘' 이라 적는다. 범례를 안 읽어도
+       어디가 오늘인지 알 수 있다 — 표식보다 이게 세다. */
+    var xl=(i===span&&a[a.length-1].part)?'오늘':((dd.getMonth()+1)+'/'+dd.getDate());
     g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
-      +(i===0?'start':(i===span?'end':'middle'))+'">'+(dd.getMonth()+1)+'/'+dd.getDate()+'</text>';
+      +(i===0?'start':(i===span?'end':'middle'))+'">'+xl+'</text>';
   }
   /* 구간마다 칠하고 긋는다 */
   for(var q=0;q<runs.length;q++){
     var rn=runs[q];
     if(rn.length<2)continue;
+    /* 오늘은 하루가 안 끝났다. 마지막 도막을 떼어 흐리게 긋고 칠도 안 한다 —
+       끝나지도 않은 하루를 끝난 날과 같은 굵기로 칠하면, 아침에 조금 먹은
+       것이 굉장한 적자 날로 읽힌다. 점선은 못 쓴다. 소비 선이 이미 점선이라
+       같은 표식이 두 뜻을 갖게 된다. */
+    var tail=(rn[rn.length-1].part&&rn.length>=2)?rn[rn.length-1]:null;
+    if(tail)rn=rn.slice(0,rn.length-1);
     var pIn=[],pOut=[],k;
     for(k=0;k<rn.length;k++){
       pIn.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].ate).toFixed(1));
       pOut.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].base+rn[k].ex).toFixed(1));
     }
+    if(tail&&rn.length){
+      var pv=rn[rn.length-1];
+      g+='<g class="tdy">'
+        +'<polyline class="lOut" points="'+X(pv.d).toFixed(1)+','+Y(pv.base+pv.ex).toFixed(1)
+        +' '+X(tail.d).toFixed(1)+','+Y(tail.base+tail.ex).toFixed(1)+'"/>'
+        +'<polyline class="lIn" points="'+X(pv.d).toFixed(1)+','+Y(pv.ate).toFixed(1)
+        +' '+X(tail.d).toFixed(1)+','+Y(tail.ate).toFixed(1)+'"/></g>';
+    }
+    if(rn.length<2)continue;
     /* 하루하루 사다리꼴로 칠해야 부호가 바뀌는 날도 제 색이 난다 */
     for(k=1;k<rn.length;k++){
       var p0=rn[k-1],p1=rn[k];
@@ -5849,7 +5877,10 @@ function chartEat(days){
      마지막 날만 — 서른 개에 다 적으면 숫자가 겹쳐 못 읽는다. */
   var everyDay=(a.length<=8);
   for(i=0;i<a.length;i++){
-    if(!everyDay&&i!==a.length-1)continue;
+    /* 오늘은 반쪽 값이다. 사이값을 적으면 진행 중인 것을 하루치 적자로
+       읽게 되므로 안 적는다. */
+    if(a[i].part)continue;
+    if(!everyDay&&i!==fin.length-1)continue;
     var rr=a[i],yI=Y(rr.ate),yO=Y(rr.base+rr.ex),df=(rr.base+rr.ex)-rr.ate;
     var thin=Math.abs(yI-yO)<11;
     var yy=thin?Math.min(yI,yO)-4:(yI+yO)/2+3;
@@ -5860,9 +5891,15 @@ function chartEat(days){
     g+='<text class="gv '+(df>=0?'gvOK':'gvNG')+'" x="'+xx.toFixed(1)+'" y="'+yy.toFixed(1)
       +'" text-anchor="'+an+'">'+(df>=0?'-':'+')+Math.abs(Math.round(df)).toLocaleString()+'</text>';
   }
-  var lastD=a[a.length-1];
+  /* 채운 점은 마지막으로 끝난 날에, 빈 원은 오늘에. 속이 비어 있는 것이
+     '아직 진행 중' 이라는 표식이다 — 채운 점과 한눈에 갈린다. */
+  var lastD=fin[fin.length-1];
   g+='<circle class="dOut" cx="'+X(lastD.d).toFixed(1)+'" cy="'+Y(lastD.base+lastD.ex).toFixed(1)+'" r="2.6"/>'
     +'<circle class="dIn" cx="'+X(lastD.d).toFixed(1)+'" cy="'+Y(lastD.ate).toFixed(1)+'" r="3"/>';
+  var tdD=a[a.length-1];
+  if(tdD.part)
+    g+='<circle class="dOutO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.base+tdD.ex).toFixed(1)+'" r="2.8"/>'
+      +'<circle class="dInO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.ate).toFixed(1)+'" r="3.2"/>';
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
     +'aria-label="날마다 먹은 열량과 태운 열량">'+g+'</svg>';
 }
@@ -5946,7 +5983,9 @@ function vzBody(tab){
        체중을 언제 쟀는지와 무관하게 날마다 있는 자료다. */
     var et=chartEat(35);
     if(et){
-      var er=trendRows(35).filter(function(r){return r.ate!=null;});
+      /* 평균은 끝난 날들의 값이라야 한다. 진행 중인 오늘을 섞으면 반쪽
+         값이 평균 적자를 부풀린다 — 그림에는 넣되 평균에서는 뺀다. */
+      var er=trendRows(35).filter(function(r){return r.ate!=null&&!r.part;});
       var sI=0,sO=0,sX=0,ng=0;
       er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
       var n2=er.length;
@@ -6428,7 +6467,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 19:12';
+var BUILD='2026-09-08 20:08';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
