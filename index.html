@@ -955,6 +955,17 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .mbt>i.mC{background:var(--acc-br);opacity:.55}
 .mbt>i.mF{background:var(--acc-br);opacity:.30}
 .mbt>i.mX{background:var(--mut);opacity:.28}
+/* 구성 견주기 — 폭이 같아야 길이가 곧 비율이다 */
+.cmpr{display:flex;align-items:center;gap:8px;margin:3px 0}
+.cmpr>u{flex:0 0 30px;text-decoration:none;font-family:var(--mono);font-size:9.5px;
+  font-weight:800;letter-spacing:.05em;color:var(--dim)}
+.cmpb{flex:1;display:flex;height:13px;border-radius:3px;overflow:hidden;
+  background:var(--inset);min-width:0}
+.cmpb>i{display:block;height:100%}
+.cmpr>b{flex:0 0 auto;font-family:var(--mono);font-size:10px;font-weight:600;
+  color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cmpr.avg .cmpb{opacity:.5}
+.cmpr.avg>u,.cmpr.avg>b{opacity:.75}
 /* 목표선. 넘기면 넘긴 만큼이 이 선 밖으로 뻗는다 */
 .mbt>s{position:absolute;top:-3px;bottom:-3px;width:0;
   border-left:2px dashed var(--sig);opacity:.9}
@@ -6207,6 +6218,14 @@ function vzDiet(tab){
        그건 남은 끼니에서 바꿀 수 있다. */
     var td2=hcDay(UI.wd)||{};
     h+=vzMacroBar(ate,td2.p,td2.c,td2.f,goal);
+    /* 46% 를 보고도 평소보다 높은지 낮은지 모르면 판단이 안 선다.
+       같은 폭으로 나란히 놓으면 길이가 곧 비율이라 치우침이 눈으로 온다. */
+    var am=avgMacro(nf);
+    if(am&&(+td2.p>0||+td2.c>0||+td2.f>0)){
+      h+=vzCap('구성 견주기 — 단백 · 탄수 · 지방 %')
+        +cmpRow('오늘',td2.p,td2.c,td2.f,'',false)
+        +cmpRow('평균',am.p,am.c,am.f,'기록 '+am.n+'일',true);
+    }
     /* 단백질만 막대를 남긴다 — 셋 중 목표가 있는 것은 그것뿐이고, 남은
        끼니로 채울 수 있는지가 오늘 당장 바꿀 수 있는 유일한 것이다. */
     var MO=['breakfast','lunch','dinner','snack'],MN2={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
@@ -6334,7 +6353,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 19:35';
+var BUILD='2026-09-09 20:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7357,6 +7376,31 @@ function vzBar(name,cur,goal,sub,vd,mark){
    환산 합이 삼성헬스가 준 열량과 어긋나는 날이 있다(식이섬유·알코올·반올림).
    그 차이는 '그 밖' 으로 따로 둔다. 비율을 맞추려고 늘리거나 줄이면 없는
    수를 지어내는 것이다. */
+/* 최근 기록의 평균 구성. byDay 에 21일치 매크로가 들어 있는데 평균을 안
+   내고 있었다 — 오늘 수치를 견줄 것이 없으면 판단이 안 선다. */
+function avgMacro(nf){
+  var d=nf&&nf.byDay,k,n=0,P2=0,C2=0,F2=0;
+  for(k in d){
+    var r=d[k];
+    if(!r||r.partial)continue;
+    if(!(+r.protein>0||+r.carb>0||+r.fat>0))continue;
+    P2+=(+r.protein||0);C2+=(+r.carb||0);F2+=(+r.fat||0);n++;
+  }
+  if(!n)return null;
+  return {n:n,p:P2/n,c:C2/n,f:F2/n};
+}
+/* 구성 한 줄. 폭이 같아야 길이가 곧 비율이고, 두 줄을 견주면 오늘이 어느
+   쪽으로 치우쳤는지 눈으로 온다. */
+function cmpRow(label,p,c,f,tail,dim){
+  var kp=(+p||0)*4,kc=(+c||0)*4,kf=(+f||0)*9,tt=kp+kc+kf;
+  if(tt<=0)return '';
+  function pc(v){return Math.round(v*100/tt);}
+  return '<div class="cmpr'+(dim?' avg':'')+'"><u>'+esc(label)+'</u><span class="cmpb">'
+    +'<i class="mP" style="width:'+(kp*100/tt).toFixed(2)+'%"></i>'
+    +'<i class="mC" style="width:'+(kc*100/tt).toFixed(2)+'%"></i>'
+    +'<i class="mF" style="width:'+(kf*100/tt).toFixed(2)+'%"></i></span>'
+    +'<b>'+pc(kp)+' · '+pc(kc)+' · '+pc(kf)+(tail?' <span style="opacity:.7">'+esc(tail)+'</span>':'')+'</b></div>';
+}
 function vzMacroBar(kcal,p,c,f,goal){
   kcal=Math.round(+kcal||0);goal=Math.round(+goal||0);
   var kp=Math.round((+p||0)*4),kc=Math.round((+c||0)*4),kf=Math.round((+f||0)*9);
