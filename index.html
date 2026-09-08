@@ -1644,6 +1644,12 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
 @keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 #aiOut.show{display:block}
+/* 말 고르기. 두 칸뿐이라 격자가 아니라 좌우로 가른다 */
+.lgsw{display:flex;gap:7px;margin:9px 0 4px}
+.lgb{flex:1;padding:12px 0;border:var(--bw) solid rgba(var(--tx-rgb),.12);
+  border-radius:var(--rad-s);background:var(--sunk);color:var(--mut);
+  font-size:13px;font-weight:700;letter-spacing:.01em}
+.lgb.on{background:var(--acc-br);border-color:transparent;color:var(--on-acc)}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
 .wtg b{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
@@ -2177,6 +2183,7 @@ var LS_WAS_EMPTY=(function(){
   try{return canLS&&!localStorage.getItem(KEY);}catch(e){return false;}
 })();
 var S=migrateLines(load());save();
+try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
 var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
@@ -3399,6 +3406,14 @@ function renderSheet(){
       /* 고르는 동안 결과가 계속 보이게 맨 위에 붙여 둔다 — 무늬 40개를 훑어도
          시트 스크롤은 유지되므로 견본이 눈앞에서 바뀐다 */
       h+=thPreview();
+      /* 색·무늬보다 위에 둔다. 무늬 40개를 훑다가 우연히 만날 것이 아니라
+         앱을 처음 열었을 때 제일 먼저 찾을 것이다. */
+      h+='<div class="fgrp fg1"><div class="ft">'+L('말')
+        +' <span class="ftn">'+L('화면에 쓰는 언어')+'</span></div>'
+        +'<div class="lgsw">'
+        +'<button class="lgb'+(LANG==='ko'?' on':'')+'" data-act="lang" data-v="ko">한국어</button>'
+        +'<button class="lgb'+(LANG==='en'?' on':'')+'" data-act="lang" data-v="en">English</button>'
+        +'</div></div>';
       var dsub=UI.dsub||'set';
 
       if(dsub==='set'&&PSETS.length){
@@ -4265,7 +4280,7 @@ function bkText(){
     st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
-    ppk:PRO_PER_KG,fpk:FAT_PER_KG,gm:GM,lm:LM,
+    ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
     subx:{ren:SUBX.ren,hide:SUBX.hide,add:SUBX.add}
@@ -4330,12 +4345,14 @@ function applyBackup(o){
       }
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
+      if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
       if(c.gm&&GMN[c.gm])GM=c.gm;
       if(c.lm&&KS[c.lm]!==undefined)LM=c.lm;
       if(canLS){
         try{
           localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
           localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
+          localStorage.setItem(KEY+'.lang',LANG);
           localStorage.setItem(KEY+'.gm',GM);
           localStorage.setItem(KEY+'.lm',LM);
           localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));
@@ -6340,7 +6357,7 @@ function vzTrain(tab){
 function vzDiet(tab){
   tab=tab||'today';
   var nf=nutriFacts();
-  if(!nf)return '<div class="anlviz"><div class="lmunk">섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴</div></div>';
+  if(!nf)return '<div class="anlviz"><div class="lmunk">'+L('섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴')+'</div></div>';
   var h='',t=nf.today;
   /* 이 갈래는 '오늘' 이다. 카드 머리(catCtx)도 보는 날짜와 무관하게 늘 오늘을
      적고, '남은 끼니' 는 오늘에만 뜻이 있다 — 어제 저녁은 남은 끼니가 아니다.
@@ -6355,14 +6372,14 @@ function vzDiet(tab){
   if(tab==='today'&&!t){
     var gi=Math.round(nf.todayTargetIntake||0),tdA=Math.round(nf.todayTdee||0);
     var exA=Math.round(dayExKcal(DTD));
-    h+=vzCap('오늘 · 아직 식사 기록이 없음');
-    if(gi>0)h+=vzLine('먹을 수 있는 양',gi.toLocaleString()+' kcal',
-      '오늘 소비 '+tdA.toLocaleString()+' − 적자 '+Math.round(nf.dailyDeficitTarget),{t:'',c:''});
-    if(BW>0)h+=vzLine('단백질 목표',Math.round(BW*PRO_PER_KG)+' g',
+    h+=vzCap(L('오늘 · 아직 식사 기록이 없음'));
+    if(gi>0)h+=vzLine(L('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
+      L1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
+    if(BW>0)h+=vzLine(L('단백질 목표'),Math.round(BW*PRO_PER_KG)+' g',
       /* 2.0 이 '2' 로 찍혀 정수 배율처럼 보였다 */
-      '체중 '+fmtW(BW)+'kg × '+PRO_PER_KG.toFixed(1),{t:'',c:''});
-    if(exA>0)h+=vzLine('운동으로 번 몫','+'+exA.toLocaleString()+' kcal',
-      '오늘 운동한 만큼 먹을 수 있는 양이 늘어남',{t:'',c:'pos'});
+      L1('체중 {0}kg × {1}',fmtW(BW),PRO_PER_KG.toFixed(1)),{t:'',c:''});
+    if(exA>0)h+=vzLine(L('운동으로 번 몫'),'+'+exA.toLocaleString()+' kcal',
+      L('오늘 운동한 만큼 먹을 수 있는 양이 늘어남'),{t:'',c:'pos'});
     /* '기록이 없다' 만 적으면 넣었는데 안 뜰 때 원인을 알 수가 없다.
        앱이 마지막으로 읽은 시각과, 읽어 온 것에 오늘이 있는지를 그대로 적는다 —
        삼성헬스가 아직 안 넘긴 것과 앱이 아직 안 읽은 것은 다른 일이다. */
@@ -6372,22 +6389,22 @@ function vzDiet(tab){
     if(raw&&!(raw.n>0)&&raw.kcal>0){
       /* 열량은 왔는데 끼니 수가 0 이면 끼니별로 못 가른다. 그래도 먹은 것은
          먹은 것이라 그렇게 적는다. */
-      h+=vzLine('오늘 기록',Math.round(raw.kcal).toLocaleString()+' kcal 들어옴',
-        '끼니 구분이 안 와서 남은 끼니는 못 나눔',{t:'일부만',c:'warn'});
+      h+=vzLine(L('오늘 기록'),L1('{0} kcal 들어옴',Math.round(raw.kcal).toLocaleString()),
+        L('끼니 구분이 안 와서 남은 끼니는 못 나눔'),{t:L('일부만'),c:'warn'});
     }else if(raw){
-      h+=vzLine('오늘 기록','들어와 있음','새로고침하면 반영됨',{t:'',c:''});
+      h+=vzLine(L('오늘 기록'),L('들어와 있음'),L('새로고침하면 반영됨'),{t:'',c:''});
     }else{
-      h+=vzLine('오늘 기록','아직 없음',
-        (!hcOn()?'앱이 아니라 브라우저에서 보는 중 — 폰 앱에서 봐야 들어옴'
-          :(HC&&HC.why?'못 읽음: '+esc(String(HC.why))
-            :(at?'마지막으로 읽은 때 '+('0'+at.getHours()).slice(-2)+':'+('0'+at.getMinutes()).slice(-2)
-                 +' ('+ago+'분 전) · 삼성헬스에 적힌 뒤 몇 분 걸림'
-               :'아직 한 번도 못 읽음'))),
-        {t:'기다리는 중',c:''});
+      h+=vzLine(L('오늘 기록'),L('아직 없음'),
+        (!hcOn()?L('앱이 아니라 브라우저에서 보는 중 — 폰 앱에서 봐야 들어옴')
+          :(HC&&HC.why?L1('못 읽음: {0}',esc(String(HC.why)))
+            :(at?L1('마지막으로 읽은 때 {0}:{1} ({2}분 전) · 삼성헬스에 적힌 뒤 몇 분 걸림',
+                 ('0'+at.getHours()).slice(-2),('0'+at.getMinutes()).slice(-2),ago)
+               :L('아직 한 번도 못 읽음')))),
+        {t:L('기다리는 중'),c:''});
     }
   }
   if(tab==='today'&&t){
-    h+=vzCap('오늘 · 남은 몫');
+    h+=vzCap(L('오늘 · 남은 몫'));
     var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
     /* 끼니로 쪼갠 막대는 '아침 420 · 점심 780' 을 알려 주는데, 알아도 바꿀
        것이 없다. 이미 먹은 끼니는 되돌릴 수 없기 때문이다.
@@ -6402,20 +6419,20 @@ function vzDiet(tab){
        다만 '먹은 열량' 은 원에서 복원이 안 된다. 삼성헬스가 준 열량과
        매크로 환산 합이 어긋나는 날이 있어서다(식이섬유·알코올·반올림).
        그 수는 한 줄로 남긴다. */
-    h+='<div class="kcline"><span>열량</span><b>'+ate.toLocaleString()
+    h+='<div class="kcline"><span>'+L('열량')+'</span><b>'+ate.toLocaleString()
       +'<em> / '+goal.toLocaleString()+' kcal</em></b>'
       +'<i class="'+(ate>goal?'ov':'')+'">'
-      +(ate>goal?(ate-goal).toLocaleString()+' 초과'
-                :(goal-ate).toLocaleString()+' 더 먹어도 됨')+'</i></div>';
+      +(ate>goal?L1('{0} 초과',(ate-goal).toLocaleString())
+                :L1('{0} 더 먹어도 됨',(goal-ate).toLocaleString()))+'</i></div>';
     /* 눈금을 '평소 값' 으로 두던 것을 고쳤다. 평소가 잘못돼 있으면 잘못된
        것을 기준으로 삼는 셈이라 늘 100% 근처에 앉아 아무 말도 안 한다.
        목표 열량에서 뽑는다. */
     var mg=macroGoals(goal);
     if(mg){
       h+='<div class="rings">'
-        +vzRing('단백질','opt',td2.p,mg.p,'g')
-        +vzRing('탄수','min',td2.c,mg.c,'g')
-        +vzRing('지방','min',td2.f,mg.f,'g')
+        +vzRing(L('단백질'),'opt',td2.p,mg.p,'g')
+        +vzRing(L('탄수'),'min',td2.c,mg.c,'g')
+        +vzRing(L('지방'),'min',td2.f,mg.f,'g')
         +'</div>';
       /* 각주를 걷어냈다. 원에 '적정·최소' 를 붙여 놓고 그 밑에 그게 무슨
          뜻인지 또 쓰고 있었다 — 표를 못 믿어 각주를 단 꼴이다. 탄수가
@@ -6423,12 +6440,13 @@ function vzDiet(tab){
          눈금을 아예 못 낸 때만 남긴다. 그때는 원이 '—' 라 까닭이 없으면
          고장으로 보이고, 설정을 고쳐야 풀리므로 어디를 고치는지도 적는다. */
       if(!(mg.c>0))
-        h+='<div class="sbf" style="margin:0 0 10px">단백질·지방만으로 목표 '
-          +goal.toLocaleString()+'kcal 를 다 써 <b>탄수 눈금이 없음</b>'
-          +' — 설정 · Macro floors 에서 지방 g/kg 을 낮추면 몫이 생김</div>';
+        h+='<div class="sbf" style="margin:0 0 10px">'
+          +L1('단백질·지방만으로 목표 {0}kcal 를 다 써 <b>탄수 눈금이 없음</b>'
+             +' — 설정 · Macro floors 에서 지방 g/kg 을 낮추면 몫이 생김',
+             goal.toLocaleString())+'</div>';
     }
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
-    var MEAL={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
+    var MEAL={breakfast:L('아침'),lunch:L('점심'),dinner:L('저녁'),snack:L('간식')};
     function mn(a){return (a||[]).map(function(x){return MEAL[x]||x;}).join(' · ');}
     var miss=(t.missingMeals||[]).filter(function(x){return x!=='snack';});
     /* 589kcal 남았고 저녁 한 끼가 남았으면 저녁이 589 다. 나눗셈을 읽는
@@ -6438,33 +6456,35 @@ function vzDiet(tab){
       var pPer=(t.proteinLeft>0)?Math.round(t.proteinLeft/miss.length):0;
       /* '한 끼에 403kcal' 는 이제 칸 안에 있다 — 글로 또 적지 않는다.
          단백질은 칸에 안 들어가므로 여기 남긴다. */
-      var sub=(pPer>0)?((miss.length>1?'남은 끼니마다 ':'')+'단백질 '+pPer+'g'):'';
+      var sub=(pPer>0)?(miss.length>1?L1('남은 끼니마다 단백질 {0}g',pPer)
+                                     :L1('단백질 {0}g',pPer)):'';
       /* 거른 끼니를 밝힌다. 안 적으면 저녁 몫이 왜 큰지 알 수가 없다 —
          아침을 걸러서 그 몫이 저녁으로 간 것이다. */
       var skp=(t.skippedMeals||[]);
-      if(skp.length)sub=mn(skp)+' 거름'+(sub?' · '+sub:'');
-      h+=vzLine('남은 끼니',mn(miss),sub,
+      if(skp.length)sub=L1('{0} 거름',mn(skp))+(sub?' · '+sub:'');
+      h+=vzLine(L('남은 끼니'),mn(miss),sub,
         /* 한 끼에 50g 넘게 몰아넣기는 어렵다. 열량만 맞추고 단백질이
            무너지는 것이 감량기에 가장 흔한 실패라 미리 짚는다. */
-        (pPer>=50)?{t:'단백질 몰림',c:'warn'}:{t:'',c:''})
+        (pPer>=50)?{t:L('단백질 몰림'),c:'warn'}:{t:'',c:''})
         +mealPlan(t.byMeal,miss,t.kcalLeft,goal);
     }else if(miss.length&&t.kcalLeft<=0){
-      h+=vzLine('남은 끼니',mn(miss),'열량은 이미 다 씀 — 단백질 위주로',{t:'초과',c:'warn'});
+      h+=vzLine(L('남은 끼니'),mn(miss),L('열량은 이미 다 씀 — 단백질 위주로'),
+        {t:L('초과'),c:'warn'});
     }else if(t.eatenMeals&&t.eatenMeals.length){
       /* '안 먹은 끼니 없음' 은 아무것도 안 알려 준다. 남은 몫이 어디로
          갈 수 있는지를 적는다. */
-      h+=vzLine('끼니',mn(t.eatenMeals)+' 먹음',
-        t.kcalLeft>0?('남은 '+Math.round(t.kcalLeft).toLocaleString()+'kcal 는 간식 몫')
-                    :'열량은 이미 다 씀',
-        t.kcalLeft>0?{t:'',c:''}:{t:'초과',c:'warn'});
+      h+=vzLine(L('끼니'),L1('{0} 먹음',mn(t.eatenMeals)),
+        t.kcalLeft>0?L1('남은 {0}kcal 는 간식 몫',Math.round(t.kcalLeft).toLocaleString())
+                    :L('열량은 이미 다 씀'),
+        t.kcalLeft>0?{t:'',c:''}:{t:L('초과'),c:'warn'});
     }
     /* 오늘 남은 몫이 어제보다 큰 이유가 운동인데 섞여만 있었다. 떼어 놓으면
        '오늘은 더 먹어도 되는 날' 인 것이 보인다. */
     var exT=Math.round(dayExKcal(DTD));
     /* '운동으로 는 몫' 이라 적어 뒀었다 — '늘어난' 을 줄이다 조사만 남아
        말이 깨졌다. '번' 이 짧으면서 뜻이 산다. */
-    if(exT>0)h+=vzLine('운동으로 번 몫','+'+exT.toLocaleString()+' kcal',
-      '오늘 운동한 만큼 먹을 수 있는 양이 늘어남',{t:'',c:'pos'});
+    if(exT>0)h+=vzLine(L('운동으로 번 몫'),'+'+exT.toLocaleString()+' kcal',
+      L('오늘 운동한 만큼 먹을 수 있는 양이 늘어남'),{t:'',c:'pos'});
   }
   if(tab==='avg'&&nf.completedDaysCount>0){
     /* 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못 말한다. 같은 +122 가
@@ -6477,18 +6497,18 @@ function vzDiet(tab){
     /* 체중이 없으면 dayTDEE 가 0 이라 target 이 0 이고, 그러면 모든 날이
        초과로 찍힌다. 진단이 아니라 고장으로 보이므로 안 그리고 고칠 데를 적는다. */
     if(!(nf.completedDaysAvgTarget>0))
-      h+=vzLine('요일 격자','못 그림',
-        '설정에 체중을 넣어야 그날 목표가 잡힘',{t:'',c:''});
+      h+=vzLine(L('요일 격자'),L('못 그림'),
+        L('설정에 체중을 넣어야 그날 목표가 잡힘'),{t:'',c:''});
     /* 나흘치로 '토요일마다' 를 말할 수는 없다. 빈 격자에 80px 을 쓰느니
        세던 것을 세고, 며칠이 더 있어야 하는지도 같이 적는다. */
     else if(nf.completedDaysCount<5)
-      h+=vzLine('목표 지킨 날',(nf.daysOnTarget||0)+'일',
-        '초과 '+(nf.daysOverTarget||0)+'일 · 부족 '+(nf.daysUnderTarget||0)
-        +'일 · 기록 5일부터 요일 격자가 나옴','');
+      h+=vzLine(L('목표 지킨 날'),L1('{0}일',nf.daysOnTarget||0),
+        L1('초과 {0}일 · 부족 {1}일 · 기록 5일부터 요일 격자가 나옴',
+           nf.daysOverTarget||0,nf.daysUnderTarget||0),'');
     else h+=dgWeekGrid(nf);
   }
   if(tab==='avg'&&!(nf.completedDaysCount>0))
-    h+=vzLine('끝난 날','기록 없음','하루가 더 쌓이면 평균이 나옴',{t:'기록 없음',c:''});
+    h+=vzLine(L('끝난 날'),L('기록 없음'),L('하루가 더 쌓이면 평균이 나옴'),{t:L('기록 없음'),c:''});
   /* 이 블록이 tab 검사 밖에 있어 평균 갈래에서도 오늘 수를 그렸다. 그래서
      머리줄은 '목표 1,805'(끝난 날 평균) 인데 세 줄 밑 막대는 '섭취 1,728'(오늘)
      이라, 한 카드 안에 목표가 둘이고 77kcal 어긋났다. 그 차이는 곧
@@ -6497,9 +6517,9 @@ function vzDiet(tab){
      큰 수가 막대에 또 찍혀 같은 말이 두 번 되고, 블록 뜻이 '기준' 에서
      '실적' 으로 바뀐다. */
   var useAvg=(tab==='avg'&&nf.completedDaysCount>0&&nf.completedDaysAvgTarget>0);
-  h+=vzCap('기준'+(useAvg?' · 끝난 날 평균':''))
-    +vzLine('하루 적자 목표',Math.round(nf.dailyDeficitTarget)+' kcal',
-    '주당 -'+WR+'kg 에서 나옴','')
+  h+=vzCap(useAvg?L('기준 · 끝난 날 평균'):L('기준'))
+    +vzLine(L('하루 적자 목표'),Math.round(nf.dailyDeficitTarget)+' kcal',
+    L1('주당 -{0}kg 에서 나옴',WR),'')
     /* 550 이라는 수 하나로는 어디서 나온 것인지 알 수가 없다.
        적자는 소비와 섭취의 차이이므로 그 차이를 그린다. */
     +deficitBars(useAvg?nf.completedDaysAvgTdee:nf.todayTdee,
@@ -6566,7 +6586,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-08 23:19';
+var BUILD='2026-09-08 23:37';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7329,6 +7349,114 @@ function mealPayload(){
    리포트에 '1.5/1.8' 과 '기준치 1.6g' 이 같이 나오는 일이 없다. */
 /* 끼니가 지나는 때(시). 이 시각을 넘기고도 기록이 없으면 남은 끼니가
    아니라 거른 끼니다 — 저녁은 하루 끝까지 열려 있다. */
+/* ── 언어 ──────────────────────────────────────────────────────
+   번역 열쇠를 따로 안 만들고 한글 원문을 열쇠로 쓴다. 열쇠를 새로 지으면
+   오타 하나가 화면에 'diet.meals.left' 를 띄우는데, 원문이 열쇠면 빠진
+   번역이 그냥 한국어로 남는다 — 옮기는 동안 화면이 안 깨진다.
+   덤으로 검증이 된다: EN 이 비어 있으면 L() 은 항등함수라, 감싸기 전과
+   후의 화면이 글자 하나까지 같아야 한다. */
+var LANG='ko';
+(function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
+  if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
+var EN={
+/* ── 식단 · 오늘 ── */
+'오늘 · 아직 식사 기록이 없음':'Today · no meals logged yet',
+'먹을 수 있는 양':'Can eat today',
+'오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
+'단백질 목표':'Protein target',
+'체중 {0}kg × {1}':'{0}kg × {1}',
+'운동으로 번 몫':'Earned by training',
+'오늘 운동한 만큼 먹을 수 있는 양이 늘어남':"Today's training raised what you can eat",
+'오늘 기록':"Today's data",
+'{0} kcal 들어옴':'{0} kcal received',
+'끼니 구분이 안 와서 남은 끼니는 못 나눔':'No meal breakdown — cannot split what is left',
+'일부만':'partial',
+'들어와 있음':'Received',
+'새로고침하면 반영됨':'Refresh to apply',
+'아직 없음':'Not yet',
+'앱이 아니라 브라우저에서 보는 중 — 폰 앱에서 봐야 들어옴':'Viewing in a browser, not the app — open the phone app',
+'못 읽음: {0}':'Read failed: {0}',
+'마지막으로 읽은 때 {0}:{1} ({2}분 전) · 삼성헬스에 적힌 뒤 몇 분 걸림':'Last read {0}:{1} ({2} min ago) · takes a few minutes after Samsung Health',
+'아직 한 번도 못 읽음':'Never read yet',
+'기다리는 중':'waiting',
+'섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴':'No intake logged — it appears here once Samsung Health syncs',
+'오늘 · 남은 몫':'Today · what is left',
+'열량':'Calories',
+'{0} 초과':'{0} over',
+'{0} 더 먹어도 됨':'{0} still available',
+'단백질':'Protein','탄수':'Carbs','지방':'Fat',
+'적정':'target','최소':'min','충족':'met',
+'{0}{1} 더':'{0}{1} to go',
+'단백질·지방만으로 목표 {0}kcal 를 다 써 <b>탄수 눈금이 없음</b> — 설정 · Macro floors 에서 지방 g/kg 을 낮추면 몫이 생김':'Protein and fat alone use up the {0} kcal target, so <b>carbs have no scale</b> — lower fat g/kg under Settings · Macro floors to make room',
+/* ── 끼니 ── */
+'아침':'Breakfast','점심':'Lunch','저녁':'Dinner','간식':'Snack',
+'먹음':'eaten','남음':'left','그 밖':'other',
+'남은 끼니':'Meals left',
+'남은 끼니마다 단백질 {0}g':'{0}g protein per remaining meal',
+'단백질 {0}g':'{0}g protein',
+'{0} 거름':'{0} skipped',
+'단백질 몰림':'protein piled up',
+'열량은 이미 다 씀 — 단백질 위주로':'Calories already spent — protein only',
+'초과':'over','부족':'under',
+'끼니':'Meals',
+'{0} 먹음':'{0} eaten',
+'남은 {0}kcal 는 간식 몫':'The remaining {0} kcal is for snacks',
+'열량은 이미 다 씀':'Calories already spent',
+/* ── 평균 ── */
+'평균 섭취':'Average intake',
+'목표 초과':'OVER TARGET','목표 미달':'UNDER TARGET','목표 안':'ON TARGET',
+'목표 {0}':'Target {0}',
+' · 차이 <b>{0}</b>':' · diff <b>{0}</b>',
+' · 단백질 <b class="dgpr{0}">{1}</b> g/kg':' · protein <b class="dgpr{0}">{1}</b> g/kg',
+' · 21일 중 <b>{0}일</b>':' · <b>{0}</b> of 21 days',
+'월,화,수,목,금,토,일':'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+'최근 21일을 요일별로 놓은 격자. 그날 목표 언저리에 든 날은 띠 위의 점, 더 먹은 날은 띠 위로 솟은 칸, 덜 먹은 날은 띠 아래로 내린 칸':'The last 21 days laid out by weekday. Days near that day’s target are dots on the rail, days over are blocks above it, days under are blocks below it',
+'지킴 <b>{0}</b>일':'on target <b>{0}</b>',
+'초과 <b>{0}</b>일':'over <b>{0}</b>',
+'부족 <b>{0}</b>일':'under <b>{0}</b>',
+'±{0} 안':'within ±{0}',
+'기록한 날 <b>모두 목표 위</b> · 하루 평균 {0} kcal':'<b>Every logged day over target</b> · {0} kcal/day',
+'기록한 날 <b>모두 목표 아래</b> · 하루 평균 {0} kcal':'<b>Every logged day under target</b> · {0} kcal/day',
+'<b>{0}요일</b>은 세 주 내리 {1} · 평균 {2} kcal':'<b>{0}</b> was {1} three weeks running · {2} kcal average',
+'요일 격자':'Weekday grid',
+'못 그림':'not drawn',
+'설정에 체중을 넣어야 그날 목표가 잡힘':'Enter body weight in Settings to get a daily target',
+'목표 지킨 날':'Days on target',
+'{0}일':'{0}',
+'초과 {0}일 · 부족 {1}일 · 기록 5일부터 요일 격자가 나옴':'over {0} · under {1} · the weekday grid appears from 5 logged days',
+'끝난 날':'Completed days',
+'기록 없음':'no data',
+'하루가 더 쌓이면 평균이 나옴':'One more day and an average appears',
+/* ── 기준 ── */
+'기준':'Basis','기준 · 끝난 날 평균':'Basis · completed-day average',
+'하루 적자 목표':'Daily deficit target',
+'주당 -{0}kg 에서 나옴':'derived from -{0}kg per week',
+'소비 <b>{0}</b> = <em class="e">섭취 {1}</em> + <em class="c">적자 {2}</em>':'Burn <b>{0}</b> = <em class="e">eat {1}</em> + <em class="c">deficit {2}</em>',
+'한 주로는 <b>{0}kcal</b> — 지방 <b>{1}kg</b> 어치':'Over a week <b>{0} kcal</b> — about <b>{1}kg</b> of fat',
+/* ── 설정 ── */
+'말':'Language','화면에 쓰는 언어':'language used on screen'
+};
+function L(k){
+  if(LANG!=='en')return k;
+  var v=EN[k];
+  return (typeof v==='string')?v:k;
+}
+/* 숫자가 낀 문장. 조각으로 자르면 어순이 다른 언어에서 못 맞춘다 —
+   한국어 '목표 1,805 를' 과 영어 'Target of 1,805' 는 토막 순서가 뒤집힌다.
+   틀 하나를 통째로 옮기고 자리만 채운다. */
+function L1(k){
+  var t=L(k),i;
+  for(i=1;i<arguments.length;i++)
+    t=t.split('{'+(i-1)+'}').join(String(arguments[i]));
+  return t;
+}
+function langSet(v){
+  if(v!=='en'&&v!=='ko')return;
+  LANG=v;
+  if(canLS){try{localStorage.setItem(KEY+'.lang',v);}catch(e){}}
+  document.documentElement.setAttribute('lang',v);
+  render();
+}
 var MEAL_END={breakfast:11,lunch:16,dinner:24};
 /* 목표를 '지켰다' 고 볼 폭. 100 고정이던 것을 목표에 비례시킨다 —
    목표 2,208 인 사람에게 100 은 4.5% 라 식사 기록 자체의 오차보다 좁다.
@@ -7641,7 +7769,7 @@ function vzRing(name,kind,cur,goal,unit){
   var fill=Math.max(0,Math.min(1,rate))*C;
   var pct=goal>0?Math.round(rate*100):null;
   var h='<div class="ring"><div class="rgn">'+esc(name)
-    +'<i>'+(kind==='opt'?'적정':'최소')+'</i></div>'
+    +'<i>'+(kind==='opt'?L('적정'):L('최소'))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
@@ -7653,7 +7781,7 @@ function vzRing(name,kind,cur,goal,unit){
     /* 58% 는 상태고 '67g 더' 는 할 일이다. 감량기에 필요한 것은
        상태가 아니라 다음 끼니에 뭘 먹느냐다. */
     +'<div class="rgd'+(met?' met':'')+'">'
-    +(goal<=0?'—':(met?'충족':(goal-cur).toLocaleString()+esc(unit)+' 더'))+'</div>'
+    +(goal<=0?'—':(met?L('충족'):L1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit))))+'</div>'
     +'</div>';
   return h;
 }
@@ -7668,7 +7796,7 @@ function vzTotal(label,cur,goal){
    그 까닭에 안 걸린다 — 바꿀 수 있는 것만 그린다. */
 function mealPlan(bm,miss,left,goal){
   var ORD=['breakfast','lunch','dinner','snack'],
-      NM={breakfast:'아침',lunch:'점심',dinner:'저녁',snack:'간식'};
+      NM={breakfast:L('아침'),lunch:L('점심'),dinner:L('저녁'),snack:L('간식')};
   var segs=[],i,mv;
   for(i=0;i<ORD.length;i++){
     mv=bm&&bm[ORD[i]];
@@ -7677,8 +7805,8 @@ function mealPlan(bm,miss,left,goal){
   /* 끼니 구분이 안 온 날은 먹은 것을 한 칸으로. 못 가른다고 안 그릴 일은 아니다 */
   var done=0;for(i=0;i<segs.length;i++)done+=segs[i].v;
   var ate=Math.max(0,Math.round(goal-left));
-  if(!segs.length&&ate>0)segs.push({n:'먹음',v:ate,on:true});
-  else if(segs.length&&ate-done>1)segs.push({n:'그 밖',v:ate-done,on:true});
+  if(!segs.length&&ate>0)segs.push({n:L('먹음'),v:ate,on:true});
+  else if(segs.length&&ate-done>1)segs.push({n:L('그 밖'),v:ate-done,on:true});
   var per=(miss.length&&left>0)?Math.round(left/miss.length):0;
   if(per>0)for(i=0;i<miss.length;i++)segs.push({n:NM[miss[i]]||miss[i],v:per,on:false});
   if(segs.length<2)return '';
@@ -7687,7 +7815,7 @@ function mealPlan(bm,miss,left,goal){
     if(segs[i].v<=0)continue;
     h+='<div class="mslot'+(segs[i].on?' on':'')+'" style="flex:'+segs[i].v+' 1 0">'
       +'<b>'+esc(segs[i].n)+'</b><em>'+segs[i].v.toLocaleString()
-      +(segs[i].on?' 먹음':' 남음')+'</em></div>';
+      +(segs[i].on?' '+L('먹음'):' '+L('남음'))+'</em></div>';
   }
   return h+'</div>';
 }
@@ -7700,13 +7828,12 @@ function deficitBars(tdee,goal){
   if(!(tdee>0&&goal>0&&goal<tdee))return '';
   var cut=tdee-goal;
   return '<div class="dfb">'
-    +'<div class="dfh">소비 <b>'+tdee.toLocaleString()+'</b> = '
-    +'<em class="e">섭취 '+goal.toLocaleString()+'</em> + '
-    +'<em class="c">적자 '+cut.toLocaleString()+'</em></div>'
+    +'<div class="dfh">'+L1('소비 <b>{0}</b> = <em class="e">섭취 {1}</em> + <em class="c">적자 {2}</em>',
+        tdee.toLocaleString(),goal.toLocaleString(),cut.toLocaleString())+'</div>'
     +'<div class="dfbar"><i class="eat" style="flex:'+goal+' 1 0"></i>'
     +'<i class="cut" style="flex:'+cut+' 1 0"></i></div>'
-    +'<div class="sbf">한 주로는 <b>'+(cut*7).toLocaleString()+'kcal</b>'
-    +' — 지방 <b>'+(Math.round(cut*7/7700*100)/100)+'kg</b> 어치</div>'
+    +'<div class="sbf">'+L1('한 주로는 <b>{0}kcal</b> — 지방 <b>{1}kg</b> 어치',
+        (cut*7).toLocaleString(),(Math.round(cut*7/7700*100)/100))+'</div>'
     +'</div>';
 }
 /* ── 평균 탭 · 요일 격자 ───────────────────────────────────────────
@@ -7729,25 +7856,25 @@ function dgHead(nf){
   var ppk=(typeof nf.completedDaysProteinPerKg==='number')?nf.completedDaysProteinPerKg:null;
   var pgoal=nf.proteinPerKgGoal||PRO_PER_KG;
   var cls=avD>bnd?'dgh-ov':(avD<-bnd?'dgh-un':'dgh-ok');
-  var vt=avD>bnd?'목표 초과':(avD<-bnd?'목표 미달':'목표 안');
+  var vt=avD>bnd?L('목표 초과'):(avD<-bnd?L('목표 미달'):L('목표 안'));
   /* '±100 기준' 이라는 꼬리말을 뺐다. 밑의 격자가 그 밴드를 띠로 그려 놓았고,
      그림이 제 일을 하면 설명이 필요 없다. */
   return '<div class="dgh '+cls+'">'
-    +'<span class="dgk">평균 섭취</span><span class="dgcp">'+vt+'</span>'
+    +'<span class="dgk">'+L('평균 섭취')+'</span><span class="dgcp">'+vt+'</span>'
     +'<span class="dgv">'+Math.round(nf.completedDaysAvgIntake).toLocaleString()+'</span>'
     +'<span class="dgun">kcal</span></div>'
     /* 창(21일)과 기록이 들어온 날 수는 다른 값이다. '13일' 만 적으면
        최근 열사흘로 읽힌다 — 그건 기간이 아니라 표본 크기다. */
-    +'<div class="dgsb">목표 '+Math.round(nf.completedDaysAvgTarget).toLocaleString()
-    +' · 차이 <b>'+(avD>0?'+':'')+avD.toLocaleString()+'</b>'
+    +'<div class="dgsb">'+L1('목표 {0}',Math.round(nf.completedDaysAvgTarget).toLocaleString())
+    +L1(' · 차이 <b>{0}</b>',(avD>0?'+':'')+avD.toLocaleString())
     /* 감량기에 무너지는 것은 열량보다 단백질인데 이 갈래엔 한 글자도 없었다.
        값은 이미 nutriFacts 가 내고 있었고 아무도 안 읽고 있었다.
        자리는 '최근 21일 중 N일 기록' 을 '21일 중 N일' 로 줄여 만든다.
        판정 색에 .dgh 의 dgh-un 을 쓰면 안 된다 — 그건 열량 판정이라 덮어쓴다.
        체중이 없으면 값이 null 이라 그때는 조각을 통째로 뺀다. */
-    +(ppk!==null?(' · 단백질 <b class="dgpr'+(ppk<pgoal?' lo':'')+'">'
-      +ppk.toFixed(1)+'</b> g/kg'):'')
-    +' · 21일 중 <b>'+nf.completedDaysCount+'일</b></div>';
+    +(ppk!==null?L1(' · 단백질 <b class="dgpr{0}">{1}</b> g/kg',
+        (ppk<pgoal?' lo':''),ppk.toFixed(1)):'')
+    +L1(' · 21일 중 <b>{0}일</b>',nf.completedDaysCount)+'</div>';
 }
 
 /* 최근 21일을 요일 격자로. 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못
@@ -7760,7 +7887,7 @@ function dgHead(nf){
    농도로도 값을 안 싣는다. 회색 두 칸의 진하기를 견주는 일은 사람이 못 한다. */
 function dgWeekGrid(nf){
   var W=320,GL=30,CW=(W-GL-2)/7,HH=10,RH=18;
-  var WD=['월','화','수','목','금','토','일'];
+  var WD=L('월,화,수,목,금,토,일').split(',');
   var now=new Date();
   /* nutriFacts 의 21일 창과 같은 식이라 격자의 표식 수와 daysOnTarget/
      Over/Under 의 합이 정확히 맞는다. 창을 따로 잡으면 두 수가 갈라진다. */
@@ -7835,20 +7962,20 @@ function dgWeekGrid(nf){
     g+=mk;   /* 표식을 띠보다 뒤에 그려야 띠에 안 먹힌다 */
   }
   var h='<svg class="dggrid" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'
-    +'최근 21일을 요일별로 놓은 격자. 그날 목표 언저리에 든 날은 띠 위의 점, '
-    +'더 먹은 날은 띠 위로 솟은 칸, 덜 먹은 날은 띠 아래로 내린 칸">'+g+'</svg>';
+    +esc(L('최근 21일을 요일별로 놓은 격자. 그날 목표 언저리에 든 날은 띠 위의 점, '
+      +'더 먹은 날은 띠 위로 솟은 칸, 덜 먹은 날은 띠 아래로 내린 칸'))+'">'+g+'</svg>';
   /* 세는 줄이 곧 격자 읽는 법이다 — 표식이 격자 속 표식과 같은 그림이라
      범례를 따로 안 둔다. 어차피 읽을 수를 읽으면 읽는 법이 따라 붙는다.
      수는 앱이 이미 센 것을 쓴다. 여기서 또 세면 두 수가 갈라질 자리가 생긴다. */
   var on=nf.daysOnTarget||0,ov=nf.daysOverTarget||0,un=nf.daysUnderTarget||0;
   var tot=on+ov+un;
   h+='<div class="dgtal">'
-    +'<span><i class="dgi dgi-on"></i>지킴 <b>'+on+'</b>일</span>'
-    +'<span><i class="dgi dgi-up"></i>초과 <b>'+ov+'</b>일</span>'
-    +'<span><i class="dgi dgi-dn"></i>부족 <b>'+un+'</b>일</span>'
+    +'<span><i class="dgi dgi-on"></i>'+L1('지킴 <b>{0}</b>일',on)+'</span>'
+    +'<span><i class="dgi dgi-up"></i>'+L1('초과 <b>{0}</b>일',ov)+'</span>'
+    +'<span><i class="dgi dgi-dn"></i>'+L1('부족 <b>{0}</b>일',un)+'</span>'
     /* 폭이 이제 사람마다 다르다. '지킴' 이라는 낱말이 있는 자리라야
        그 뜻을 적을 자리다 — 머리줄에 적으면 낱말과 떨어진다. */
-    +'<span class="dgbd">±'+okBand(nf.completedDaysAvgTarget).toLocaleString()+' 안</span>'
+    +'<span class="dgbd">'+L1('±{0} 안',okBand(nf.completedDaysAvgTarget).toLocaleString())+'</span>'
     +'</div>';
   /* 노트는 그림 뜻을 푸는 각주가 아니라 그림에서 나온 판정이다.
      없는데 '무늬 없음' 이라 적으면 칸만 먹고 판단은 못 준다 — 없으면 안 적는다.
@@ -7862,25 +7989,25 @@ function dgWeekGrid(nf){
     /* '세 주 내내' 라 적었는데 문턱은 5일이다. 월~금만 기록한 한 주짜리
        자료가 3주로 둔갑한다. 셈이 아는 만큼만 말한다. 일수는 안 적는다 —
        두 줄 위 밑줄이 이미 '21일 중 N일' 을 적고 있다. */
-    nt='기록한 날 <b>모두 목표 위</b> · 하루 평균 '
-      +dgSgn(Math.round(nf.completedDaysAvgDiff||0))+' kcal';ntc=' dgnt-up';
+    nt=L1('기록한 날 <b>모두 목표 위</b> · 하루 평균 {0} kcal',
+      dgSgn(Math.round(nf.completedDaysAvgDiff||0)));ntc=' dgnt-up';
   }else if(tot>=5&&un===tot){
-    nt='기록한 날 <b>모두 목표 아래</b> · 하루 평균 '
-      +dgSgn(Math.round(nf.completedDaysAvgDiff||0))+' kcal';
+    nt=L1('기록한 날 <b>모두 목표 아래</b> · 하루 평균 {0} kcal',
+      dgSgn(Math.round(nf.completedDaysAvgDiff||0)));
   }else{
     /* 초과 무늬와 부족 무늬를 대등하게 겨루게 한다. 초과를 늘 앞세우면
        감량기 만성 저섭취가 영영 안 보인다 — 근손실 쪽이 더 비싸다. */
-    var bi=-1,bs=-1,bd='';
+    var bi=-1,bs=-1,bd='',over=false;
     for(q=0;q<7;q++){
       if(wN[q]<3)continue;
       mAv=Math.abs(Math.round(wS[q]/wN[q]));
-      if(wO[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd='초과';}
-      else if(wU[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd='부족';}
+      if(wO[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd=L('초과');over=true;}
+      else if(wU[q]===wN[q]&&mAv>bs){bs=mAv;bi=q;bd=L('부족');over=false;}
     }
     if(bi>=0){
-      nt='<b>'+WD[bi]+'요일</b>은 세 주 내리 '+bd+' · 평균 '
-        +dgSgn(Math.round(wS[bi]/wN[bi]))+' kcal';
-      if(bd==='초과')ntc=' dgnt-up';
+      nt=L1('<b>{0}요일</b>은 세 주 내리 {1} · 평균 {2} kcal',
+        WD[bi],bd,dgSgn(Math.round(wS[bi]/wN[bi])));
+      if(over)ntc=' dgnt-up';
     }
   }
   if(nt)h+='<div class="dgnt'+ntc+'">'+nt+'</div>';
@@ -8537,6 +8664,7 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
+    case 'lang':langSet(v);break;
     case 'godata':UI.dtab='data';UI.sheet='data';render();break;
     case 'htb':UI.htab=v;renderSheet();break;
     case 'snapld':
