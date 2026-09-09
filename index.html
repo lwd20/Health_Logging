@@ -2091,21 +2091,45 @@ function saveDraft(){
   if(!canLS)return;
   try{localStorage.setItem(KEY+'.d',JSON.stringify({t:today(),w:UI.wd,d:UI.draft,y:UI.dirty}));}catch(e){}
 }
+/* 어제 남은 초안. 버리지 않고 잡아 두었다가 알린다 — 되살릴지는 사람이 정한다 */
+var DRAFTLOST=null;
 function loadDraft(){
   if(!canLS)return;
   try{
     var o=JSON.parse(localStorage.getItem(KEY+'.d'));
-    if(o&&o.t===today()){
+    if(!o)return;
+    if(o.t===today()){
       UI.draft=o.d||{};UI.dirty=o.y||{};
       if(o.w&&o.w!==today()&&anyDirty())UI.wd=o.w;
+      return;
     }
+    /* 예전엔 여기서 그냥 빠져나왔다. 토스트도 흔적도 없이 사라지니 없어진
+       줄도 몰랐다. 자료는 아직 있다 — KEY+'.d' 는 다음 saveDraft 까지 남는다.
+       openRow 가 저장된 세션을 dirty 없이 draft 에 씨앗 복사하므로 draft 에
+       있다고 다 손댄 것이 아니다. dirty 인 종목만 센다 — 안 그러면 어제
+       기록이 오늘 칸으로 복제된다. */
+    var y=o.y||{},dd=o.d||{},k,n=0;
+    for(k in y)if(y[k]&&dd[k]&&dd[k].length)n++;
+    if(n)DRAFTLOST={w:o.w||o.t,d:dd,y:y,n:n};
   }catch(e){}
+}
+/* 첫 그림이 끝난 뒤에 알린다 — 부팅 중에는 토스트 자리가 아직 없다 */
+function draftNotice(){
+  if(!DRAFTLOST)return;
+  var n=DRAFTLOST.n,w=DRAFTLOST.w;
+  setTimeout(function(){
+    try{toast(TX1('저장 안 한 세트가 {0}종목 남아 있음 · {1}',n,md(w))
+      +' <button class="tundo" data-act="dfrs">'+TX('되살리기')+'</button>',15000);}catch(e){}
+  },700);
 }
 /* 백업 시점 기록 */
 function getBk(){if(!canLS)return null;try{return localStorage.getItem(KEY+'.bk');}catch(e){return null;}}
 function setBk(){if(!canLS)return;try{localStorage.setItem(KEY+'.bk',today());}catch(e){}}
 /* 마지막 백업 이후 경과일 — 기록이 없으면 첫 기록일 기준 */
 function bkAge(){
+  /* 데모는 69일 전부터 깔리므로, 안 거르면 앱을 깐 첫날 '백업 68일 경과' 가
+     붉게 뜬다 — 만든 적 없는 기록으로 두 달 치 재촉을 받는 셈이다. */
+  if(DEMO)return 0;
   var b=getBk();
   if(!b){
     var oldest='';
@@ -4314,7 +4338,11 @@ function bkText(){
   var S2=DEMO?{m:S.m,l:demoStrip(S.l)}:S;
   return JSON.stringify({v:2,S:S2,cfg:{
     wt:WTGT,hrm:HRM,bw:BW,bf:BF,gf:GF,act:ACT,iv:IVs,wr:WR,
-    st:{v:2,t:STG},rd:RD,off:OFF,bh:bhLoad(),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
+    /* 훈련 기록은 demoStrip 으로 거르면서 인바디는 안 걸렀다. bhLoad 는
+       DEMO 일 때 가짜 6건을 돌려주므로(4622행), 그대로 담으면 자기 기록은
+       없이 남의 감량 곡선만 든 파일이 나온다 — 되돌리면 그것이 실측이 되어
+       체중·기초대사·단백질 목표가 전부 거기서 나온다. */
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
@@ -4491,10 +4519,16 @@ function dayExKcal(ds){
         continue;
       }
       /* 마지막 세트 뒤의 휴식은 세션에 안 들어간다. 세트마다 수행+휴식을
-         더하면 종목마다 휴식 한 번이 유령으로 붙는다. */
+         더하면 종목마다 휴식 한 번이 유령으로 붙는다.
+         칸이 한 자리 밀려 있었다. 쓰는 쪽(3821행)은 타이머가 돌고 앞선 세트가
+         있을 때만 담으므로 st[k][3] 은 '세트 k 앞의 휴식' 이고 st[0][3] 은
+         구조적으로 안 생긴다. 그런데 여기서는 '세트 q 뒤' 로 읽어 첫 칸(빈 값)
+         은 기본 휴식으로 떨어지고 마지막 실측은 버려졌다 — 개수만 맞고 값이
+         밀린 것이다. 그래서 알림 간격을 바꾸면 지난 날의 '하루 소비' 가
+         소급해 움직였다. q>0 으로 고치면 세트 사이 N-1 번이 그대로 맞는다. */
       var met=SMET[S.m[i].p]||4.5;
       for(q=0;q<st.length;q++){
-        var sm=setWorkMin(st[q][1])+(q<st.length-1?setRestMin(st[q][3]):0);
+        var sm=setWorkMin(st[q][1])+(q>0?setRestMin(st[q][3]):0);
         k+=met*3.5*BW/200*sm;
         mn+=sm;
       }
@@ -4633,6 +4667,11 @@ function bwSrc(){
   return null;
 }
 function bhSync(){
+  /* 데모 중에는 굳히지 않는다. bhLoad 가 DEMO 일 때 가짜 인바디를 돌려주므로
+     bwSrc 가 그 값을 물어 오고, 여기서 .bw/.bf 에 써 버리면 데모를 끈 뒤에도
+     남는다 — 실제로 체지방 19.7 이 굳어 있었다. 그 값은 기초대사를 거쳐
+     '먹어도 되는 양' 까지 흘러간다. 보여 주는 것과 굳히는 것은 다른 일이다. */
+  if(DEMO)return;
   var r=bwSrc();
   /* 체중계가 780kg 을 보내도 그대로 받던 자리 — 손으로 넣는 길(bhCommit)은
      이미 30~200 으로 묶여 있는데 자동으로 들어오는 길만 뚫려 있었다 */
@@ -6707,7 +6746,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 12:32';
+var BUILD='2026-09-09 12:43';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7496,6 +7535,10 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+/* ── 초안 되살리기 ── */
+'저장 안 한 세트가 {0}종목 남아 있음 · {1}':'{0} exercises have unsaved sets · {1}',
+'되살리기':'Restore',
+'{0}종목 되살림 · {1} — 종목을 열어 Save 를 눌러야 기록됨':'{0} restored · {1} — open each and press Save to log them',
 /* ── 근육 짧은 꼴(설정에서 고친 이름용) ── */
 '측면':'Side',
 '전면':'Front',
@@ -9294,6 +9337,20 @@ document.addEventListener('click',function(e){
     case 'r+':if(HOLD.skip){HOLD.skip=false;break;}step('r',1);break;
     case 'i-':if(HOLD.skip){HOLD.skip=false;break;}step('i',-1);break;
     case 'i+':if(HOLD.skip){HOLD.skip=false;break;}step('i',1);break;
+    case 'dfrs':
+      /* dirty 인 종목만 되살린다. 날짜도 원래 날로 되돌린다 —
+         오늘 칸에 얹으면 어제 한 운동이 오늘 한 것이 된다. */
+      if(DRAFTLOST){
+        var dl=DRAFTLOST,dk,dn=0;
+        UI.draft={};UI.dirty={};
+        for(dk in dl.y)if(dl.y[dk]&&dl.d[dk]&&dl.d[dk].length){
+          UI.draft[dk]=dl.d[dk];UI.dirty[dk]=true;dn++;
+        }
+        UI.wd=dl.w;DRAFTLOST=null;
+        saveDraft();render();
+        toast(TX1('{0}종목 되살림 · {1} — 종목을 열어 Save 를 눌러야 기록됨',dn,md(dl.w)),6000);
+      }
+      break;
     case 'as':addSet();break;
     case 'ds':
       if(UI.arm!=='ds'+v){UI.arm='ds'+v;render();break;}
@@ -10063,6 +10120,8 @@ render();
 mirrorPush(true);
 if(restored)setTimeout(function(){try{toast(TX('<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림'));}catch(e){}},700);
 if(DEMO)setTimeout(function(){try{toast(TX('샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐'));}catch(e){}},600);
+/* 어제 저장 안 한 세트가 있으면 알린다. 데모 안내와 겹치지 않게 뒤에 세운다 */
+if(!DEMO&&!restored)draftNotice();
 tmrDraw();
 widgetSync();
 setTimeout(autoBackup,1500);
