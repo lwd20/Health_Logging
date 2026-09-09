@@ -4125,13 +4125,16 @@ var SUBRX={};
 (function(){for(var i=0;i<SUBS.length;i++)SUBRX[SUBS[i].k]=SUBS[i].r;})();
 /* 사용자가 고친 것. 원본 SUBS 는 안 건드리고 덧칠만 담는다 — 앱이
    판올림되어 기본 목록이 바뀌어도 고친 것이 남는다. */
-var SUBX={ren:{},hide:{},add:[]};
+/* ren 은 한국어 이름, renEn 은 영어 이름. 고쳐 놓은 이름은 그 말에서만
+   쓴다 — '가슴 상부' 라고 적어 둔 것을 영어 화면에 그대로 두면 뜻이 없다. */
+var SUBX={ren:{},renEn:{},hide:{},add:[]};
 (function(){
   if(!canLS)return;
   try{
     var x=JSON.parse(localStorage.getItem(KEY+'.subx')||'null');
     if(x&&typeof x==='object'){
-      SUBX.ren=x.ren||{};SUBX.hide=x.hide||{};SUBX.add=Array.isArray(x.add)?x.add:[];
+      SUBX.ren=x.ren||{};SUBX.renEn=x.renEn||{};
+      SUBX.hide=x.hide||{};SUBX.add=Array.isArray(x.add)?x.add:[];
     }
   }catch(e){}
 })();
@@ -4170,12 +4173,13 @@ function subValid(k){
   return false;
 }
 function subLabel(e){
-  /* 직접 고친 이름도 사전을 태운다. 표준 이름으로 고쳐 놓았으면 옮겨지고,
-     손으로 지은 이름은 사전에 없어 원문 그대로 나온다 — 안 다친다. */
-  if(SUBX.ren[e.k])return TX(SUBX.ren[e.k]);
+  /* 고쳐 놓은 이름은 그 말에서만 쓴다. '가슴 상부' 라고 적어 둔 것을 영어
+     화면에 그대로 두면 뜻이 없고, 사전에 더하는 것으로는 못 푼다 —
+     사용자가 무엇으로 고칠지 알 수 없기 때문이다. 칸을 따로 둔다. */
+  var own=(LANG==='en')?SUBX.renEn[e.k]:SUBX.ren[e.k];
+  if(own)return own;
   var s=e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);
-  /* 사용자가 더한 근육의 이름은 손으로 지은 것이라 옮기지 않는다.
-     붙인 이름(SUBX.ren)은 위에서 이미 그대로 나간다. */
+  /* 사용자가 더한 근육은 이름 자체가 손으로 지은 것이라 사전에 있을 리 없다 */
   return e.user?s:TX(s);
 }
 (function(){for(var i=0;i<SUBS.length;i++)if(!SUBRX[SUBS[i].k])SUBRX[SUBS[i].k]=SUBS[i].r;})();
@@ -4316,7 +4320,7 @@ function bkText(){
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
-    subx:{ren:SUBX.ren,hide:SUBX.hide,add:SUBX.add}
+    subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add}
   }});
 }
 function applyBackup(o){
@@ -4371,7 +4375,8 @@ function applyBackup(o){
         dotSave();
       }
       if(c.subx&&typeof c.subx==='object'){
-        SUBX.ren=c.subx.ren||{};SUBX.hide=c.subx.hide||{};
+        SUBX.ren=c.subx.ren||{};SUBX.renEn=c.subx.renEn||{};
+        SUBX.hide=c.subx.hide||{};
         SUBX.add=Array.isArray(c.subx.add)?c.subx.add:[];
         /* 켤 때와 같은 길로 등록한다 — SUBS 에 넣는 것만으로는 못 쓴다 */
         subxApply();subxSave();
@@ -6681,7 +6686,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 08:59';
+var BUILD='2026-09-09 10:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9664,7 +9669,7 @@ document.addEventListener('click',function(e){
       /* 내가 더한 것만 지운다. 기본 항목을 지우면 다음 판올림 때 되살아나
          헷갈리므로 그쪽은 숨김만 된다. */
       SUBX.add=SUBX.add.filter(function(x){return x.k!==v;});
-      delete SUBX.ren[v];delete SUBX.hide[v];
+      delete SUBX.ren[v];delete SUBX.renEn[v];delete SUBX.hide[v];
       for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
       delete SUBRX[v];delete LMK[v];delete STG[v];
       /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
@@ -9971,7 +9976,10 @@ document.addEventListener('input',function(e){
   if(e.target.id&&e.target.id.indexOf('subn-')===0){
     /* 긴 이름은 알약이 화면을 넘는다. 12자에서 끊는다 */
     var sk2=e.target.id.slice(5),vv=e.target.value.trim().slice(0,12);
-    if(vv)SUBX.ren[sk2]=vv;else delete SUBX.ren[sk2];
+    /* 지금 보고 있는 말의 칸에 넣는다. 영어 화면에서 고친 이름이 한국어
+       이름을 덮어쓰면, 말을 되돌렸을 때 원래 이름이 사라진다. */
+    var box=(LANG==='en')?SUBX.renEn:SUBX.ren;
+    if(vv)box[sk2]=vv;else delete box[sk2];
     var ad=SUBX.add.filter(function(x){return x.k===sk2;})[0];
     if(ad&&vv)ad.n=vv;
     subxSave();
