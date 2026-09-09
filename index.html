@@ -288,7 +288,6 @@ i,em,u{font-style:normal;text-decoration:none}
 .kbar i{display:block;width:100%}
 .kex{background:var(--acc-sf)}
 /* 평균선 — 막대 위로 지나가되 막대를 가리지 않게 얇고 흐리게 */
-.kav{position:absolute;left:0;right:0;height:1px;background:rgba(var(--tx-rgb),.42)}
 .kwd b{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.04em}
 .kwd u{font-family:var(--mono);font-size:9px;color:var(--dim);text-decoration:none;font-variant-numeric:tabular-nums}
 .kwd.now b{color:var(--acc-br)}
@@ -600,6 +599,11 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 #subchips::-webkit-scrollbar{display:none}
 #subchips:empty{display:none}
+/* 부위 칩도 넘치면 옆으로 밀리게. #subchips 에는 있는데 여기만 없어서
+   큰 글꼴 설정에서 마지막 부위(CARDIO)가 잘린 채 손에 안 닿았다. */
+#chips{overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none}
+#chips::-webkit-scrollbar{display:none}
 .schip{flex:0 0 auto;display:inline-flex;align-items:baseline;gap:4px;
   padding:6px 11px;border-radius:100px;background:var(--inset);
   border:var(--bw) solid rgba(var(--tx-rgb),.07);color:var(--mut);
@@ -2157,14 +2161,42 @@ function snapInfo(){
    감량목표·주간목표세트가 통째로 빠진 채 굳는다 — 복원하면 기본값으로 돌아간다.
    설정이 올라온 뒤에만 찍는다. */
 var cfgReady=false;
+/* 기록이 들어 있는 날 수 — 스냅샷이 뒷걸음질하는지 재는 자다 */
+function snapDays(st){
+  var n=0,k,a,i;
+  if(!st||!st.l)return 0;
+  for(k in st.l){a=st.l[k];for(i=0;i<a.length;i++)if(a[i].s&&a[i].s.length)n++;}
+  return n;
+}
 function autoSnap(){
   if(!canLS||!cfgReady)return;
   try{
     var td=today();
     if(localStorage.getItem(KEY+'.snapd')===td)return;
+    /* 가드가 '오늘 찍었나' 하나뿐이라 뒷걸음질을 못 막았다. 본 자료가 깨져
+       씨앗으로 떨어진 그 부팅에서 하나뿐인 슬롯이 빈 값으로 굳고, 그러고 나면
+       화면은 '자동 스냅샷 오늘' 이라 적어 가장 신선해 보일 때가 가장 비어
+       있는 때가 된다. 지금이 더 적으면 덮지 않는다.
+       슬롯을 늘리지는 않는다 — 전문 사본이 세 벌이면 저장 공간이 위험해진다. */
+    var now=snapDays(S);
+    var old=localStorage.getItem(KEY+'.snap');
+    if(old){
+      try{
+        var po=JSON.parse(old);
+        var ps=(po&&po.v===2&&po.S)?po.S:po;
+        if(snapDays(ps)>now)return;
+      }catch(eP){}
+    }
     localStorage.setItem(KEY+'.snap',bkText());
     localStorage.setItem(KEY+'.snapd',td);
   }catch(e){}
+}
+/* 파싱에 실패해 따로 보관해 둔 원본이 있나. 있으면 꺼낼 길을 준다 —
+   2083행이 보관하고 2084행 토스트가 '원본은 따로 보관됨' 이라 약속하는데
+   파일 전체에서 읽는 코드가 하나도 없었다. */
+function corruptSize(){
+  if(!canLS)return 0;
+  try{var c=localStorage.getItem(KEY+'.corrupt');return c?c.length:0;}catch(e){return 0;}
 }
 
 var LMAP={'시그넘':'SYGNUM','퓨어크래프트 스트롱':'PURE KRAFT STRONG','퓨어크래프트':'PURE KRAFT','80 애슬레틱스':'80 ATHLETICS','애슬레틱스':'80 ATHLETICS','프리시전':'PRECISION','뉴 모션':'NATURAL MOTION','내추럴 모션':'NATURAL MOTION','프로':'PRO','파워':'POWER','듀얼스':'DUALS','멀티스테이션':'MULTI-STATION','애니멀':'ANIMAL','플레이트 로디드':'PLATE LOADED','셀렉터라이즈드':'SELECTORISED','모노리스':'MONOLITH','핏에보':'FIT EVO','핏 에보':'FIT EVO','셀렉션':'SEC','프리웨이트 HP':'FREEWEIGHT HP','프리웨이트 스페셜':'FREEWEIGHT SPECIAL','프리웨이트 원':'FREEWEIGHT ONE','프리웨이트':'FREEWEIGHT HP','에볼루션':'EVOLUTION','에볼브':'EVOLUTION','프로디지':'PRODIGY','오라':'AURA','울트라':'ULTRA','울티마':'ULTRA','버사':'VERSA','매그넘':'MAGNUM','바시티':'VARSITY','제네시스':'GENESIS','에픽':'EPIC','클래식':'','짐 라인':''};
@@ -2203,6 +2235,15 @@ function migrateLines(st){
     else if(nn==='오라 시티드 로우'){st.m[i].n='Seated Row';if(!st.m[i].ln)st.m[i].ln='AURA';}
     else if(nn!=null&&Object.prototype.hasOwnProperty.call(NMAP,nn))st.m[i].n=NMAP[nn];
   }
+  /* 세션에 종류(c)를 채운다. 지금 부위로 넣는다 — 아직 안 바꾼 사람에게는
+     그것이 맞는 값이고, 이미 바꾼 사람은 어차피 지금이 유일하게 아는 값이다.
+     한 번 적히면 그 뒤로는 부위를 바꿔도 과거가 안 흔들린다. */
+  if(st.l)for(var mi=0;mi<st.m.length;mi++){
+    var ml=st.l[st.m[mi].i];
+    if(!ml)continue;
+    var mc=(st.m[mi].p==='CARDIO')?1:0;
+    for(var mj=0;mj<ml.length;mj++)if(ml[mj].c==null)ml[mj].c=mc;
+  }
   return st;
 }
 /* 바로 아래 save() 가 씨앗을 기기에 쓴다. 그래서 그 뒤에 "기기가 비어
@@ -2229,13 +2270,18 @@ function fmtW(w){return String(Math.round(w*10)/10);}
 function sess(id){return S.l[id]||[];}
 function latest(id){var a=sess(id);return a.length?a[0]:null;}
 function sessOn(id,ds){var a=sess(id);for(var i=0;i<a.length;i++){if(a[i].d===ds)return a[i];if(a[i].d<ds)return null;}return null;}
+/* 세션마다 종류를 같이 적는다. 안 적으면 읽을 때 종목의 '지금' 부위로
+   역산해야 하고, 그러면 부위를 CARDIO 로 바꾸는 순간 과거 근력 세트가
+   [무게,반복,RIR,휴식] 에서 [분,속도,경사] 로 통째로 재해석된다 —
+   ACSM 식으로 한 세트가 1,300kcal 짜리 달리기가 되어 하루 소비가 부푼다. */
+function sessKind(id){var m=machById(id);return (m&&m.p==='CARDIO')?1:0;}
 function upsertSess(id,ds,copy){
-  var a=S.l[id]||(S.l[id]=[]),i;
+  var a=S.l[id]||(S.l[id]=[]),i,c=sessKind(id);
   for(i=0;i<a.length;i++){
-    if(a[i].d===ds){a[i].s=copy;return;}
-    if(a[i].d<ds){a.splice(i,0,{d:ds,s:copy});return;}
+    if(a[i].d===ds){a[i].s=copy;a[i].c=c;return;}
+    if(a[i].d<ds){a.splice(i,0,{d:ds,s:copy,c:c});return;}
   }
-  a.push({d:ds,s:copy});
+  a.push({d:ds,s:copy,c:c});
 }
 function topOf(s){var t=0;for(var i=0;i<s.length;i++)if((+s[i][0]||0)>(+t||0))t=s[i][0];return t;}
 /* 어시스트 머신 — 설정 무게만큼 체중을 덜어주므로 실부하는 체중에서 뺀 값임 */
@@ -3534,6 +3580,11 @@ function renderSheet(){
       +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">Copy</button>'
       +'<button class="okbtn" data-act="ap">Apply Input</button></div>'
       +(snapInfo()?'<div class="note" style="margin-top:8px">'+TX1('자동 스냅샷 {0} — 본 데이터가 깨졌을 때 <b class="xlink" data-act="snapld">불러오기</b>',snapInfo())+'</div>':'')
+      /* 손상 원본은 파싱이 안 되는 문자열이라 바로 적용하지 않는다. 입력칸에
+         꽂아 주기만 한다 — 들여다보고 살릴 수 있는 만큼 살리라는 뜻이다. */
+      +(corruptSize()?'<div class="note" style="margin-top:6px">'
+        +TX1('읽지 못한 원본이 보관돼 있음 ({0}자) — <b class="xlink" data-act="corruptld">위 칸에 꺼내기</b>',
+             corruptSize().toLocaleString())+'</div>':'')
       +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +(function(){var mi=mirrorInfo();return mi?'<div class="note" style="margin-top:6px">앱 저장소 사본 '+esc(mi)+' \u2014 캐시를 지워도 이 사본으로 자동 복구됨</div>':'';})()
@@ -3725,7 +3776,13 @@ function renderSheet(){
     }
     h+='</div></div>';
   }
+  /* innerHTML 을 통째로 갈아끼우면 자식이 사라져 scrollTop 이 0 으로 눌린다.
+     손수 복원이 세 군데 달려 있었는데 근본은 이 한 자리다 — 시트나 종목이
+     바뀔 때만 위로 보내고, 같은 화면을 다시 그릴 때는 있던 자리를 지킨다. */
+  var _sy=sh.scrollTop,_k=UI.sheet+':'+(UI.open||''),_same=(sh.getAttribute('data-k')===_k);
   sh.innerHTML=h;ov.classList.add('on');sh.classList.add('on');
+  sh.setAttribute('data-k',_k);
+  if(_same&&_sy>0)sh.scrollTop=_sy;
   sh.classList.toggle('tall',UI.sheet==='ai'||UI.sheet==='data'||UI.sheet==='help');
   sh.style.height='';sh.style.transform='';
   grabBind();
@@ -3863,14 +3920,19 @@ function delSet(i){
   UI.draft[id].splice(i,1);
   UI.dirty[id]=true;
   if(!UI.draft[id].length){
-    var a=S.l[id]||[],hit=false;
-    for(var q=0;q<a.length;q++)if(a[q].d===UI.wd){a.splice(q,1);hit=true;break;}
+    var a=S.l[id]||[],hit=false,rm=null,rp=0;
+    for(var q=0;q<a.length;q++)if(a[q].d===UI.wd){rm=a[q];rp=q;a.splice(q,1);hit=true;break;}
     if(hit){
       if(!a.length)delete S.l[id];
       delete UI.draft[id];delete UI.dirty[id];
       save();saveDraft();
       var m0=machById(id);
-      buzz(15);toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)+' session');
+      /* 세션이 통째로 날아가는데 되돌릴 길이 없었다. UNDO 틀은 이미 있으니
+         여기서도 잡아 둔다 — 지운 것이 마지막 세트 하나였어도 결과는 세션 하나다. */
+      UNDO={kind:'sess',id:id,pos:rp,e:rm,wd:UI.wd};
+      buzz(15);
+      toast('<em>Deleted</em> '+esc(m0?m0.n:'')+' · '+md(UI.wd)
+        +' session <button class="tundo" data-act="un">UNDO</button>',6000);
       render();return;
     }
     delete UI.draft[id];delete UI.dirty[id];
@@ -4513,7 +4575,11 @@ function dayExKcal(ds){
     for(j=0;j<a.length;j++){
       if(a[j].d!==ds||!a[j].s.length)continue;
       var st=a[j].s;
-      if(isCard(S.m[i].p)){
+      /* 종목의 지금 부위가 아니라 그 세션에 적힌 종류를 본다. 안 그러면
+         부위를 바꾸는 순간 과거가 다른 뜻이 된다. c 가 없는 옛 기록은
+         migrateLines 가 채우지만, 거기 못 닿은 것은 지금 부위로 떨어뜨린다. */
+      var isC=(a[j].c!=null)?(a[j].c===1):isCard(S.m[i].p);
+      if(isC){
         k+=kcalSess(st,S.m[i]);
         for(q=0;q<st.length;q++)mn+=Math.min(+st[q][0]||0,CARDIO_LIM.minMax);
         continue;
@@ -4606,7 +4672,7 @@ function kcalHtml(){
     var d=w.days[i],pc=d.future?0:Math.max(d.ex>0?4:0,d.ex/mx*100);
     h+='<div class="kwd'+(d.future?' fut':'')+(d.today?' now':'')+(!d.future&&d.ex<=0?' rest':'')+'">'
       +'<span class="kbar">'+(d.future||d.ex<=0?'':'<i class="kex" style="height:'+pc.toFixed(1)+'%"></i>')
-      +(avp?'<i class="kav" style="bottom:'+avp.toFixed(1)+'%"></i>':'')+'</span>'
+      +'</span>'
       +'<b>'+DN[i]+'</b>'
       +'<u>'+(d.future?'':(d.ex>0?d.ex:'—'))+'</u></div>';
   }
@@ -6317,7 +6383,10 @@ function vzTrain(tab){
            vzVerdict(wc.z2,ctg),false);
   /* '수행 3일' 만 적으면 계획이 5일인데 셋만 한 것인지, 이틀을 쉬기로 해서
      셋이 계획이자 실적인지가 안 보인다 */
-  h+=vzTotal(TX1('TOTAL · 훈련 {0}/{1}일',wkTrainDays(),(computedFacts()||{}).trainDaysPerWeek||0),tot,tgt);
+  /* 카드 머리(catCtx)가 이미 '훈련 3/5일' 을 적는다. 여기까지 적으면 한 줄
+     안에서 라벨이 '3/5', 숫자칸이 '84/110' 이라 서로 다른 분수 둘을 나란히
+     내민다 — 단순 중복보다 이쪽이 해롭다. 세트만 말하게 둔다. */
+  h+=vzTotal(TX('주 합계'),tot,tgt);
   }
   if(tab==='sub'){
   /* 열네 줄이 한 덩어리면 어디를 봐야 할지 눈이 헤맨다. 판정은 vzZone 이
@@ -6746,7 +6815,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 12:43';
+var BUILD='2026-09-09 15:19';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7535,6 +7604,10 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+/* ── 손상 원본 ── */
+'읽지 못한 원본이 보관돼 있음 ({0}자) — <b class="xlink" data-act="corruptld">위 칸에 꾼내기</b>':'Unreadable original kept ({0} chars) — <b class="xlink" data-act="corruptld">pull it into the box above</b>',
+'보관된 원본이 없음':'No original kept',
+'원본을 꾼냈음 — 그대로는 안 읽히니 손으로 살펴볼 것':'Pulled it out — it will not parse as is, so inspect it by hand',
 /* ── 초안 되살리기 ── */
 '저장 안 한 세트가 {0}종목 남아 있음 · {1}':'{0} exercises have unsaved sets · {1}',
 '되살리기':'Restore',
@@ -8582,8 +8655,10 @@ function deficitBars(tdee,goal){
         tdee.toLocaleString(),goal.toLocaleString(),cut.toLocaleString())+'</div>'
     +'<div class="dfbar"><i class="eat" style="flex:'+goal+' 1 0"></i>'
     +'<i class="cut" style="flex:'+cut+' 1 0"></i></div>'
-    +'<div class="sbf">'+TX1('한 주로는 <b>{0}kcal</b> — 지방 <b>{1}kg</b> 어치',
-        (cut*7).toLocaleString(),(Math.round(cut*7/7700*100)/100))+'</div>'
+    /* '한 주로는 3,850kcal — 지방 0.5kg 어치' 를 적었었다. 가드 때문에 cut 은
+       늘 정확히 dfc 이고 cut*7/7700 은 반올림 없이 WR 그대로라, 설정에서 본인이
+       정한 주당 -0.5kg 이 두 단계를 돌아 되돌아온 것이다. 바로 윗줄
+       '주당 -0.5kg 에서 나옴' 이 이미 하는 말이다. */
     +'</div>';
 }
 /* ── 평균 탭 · 요일 격자 ───────────────────────────────────────────
@@ -9397,6 +9472,12 @@ document.addEventListener('click',function(e){
       if(UNDO&&UNDO.kind==='sess'){
         var la=S.l[UNDO.id]||(S.l[UNDO.id]=[]);
         la.splice(Math.min(UNDO.pos,la.length),0,UNDO.e);
+        /* 판을 연 채로 지웠으면 draft 도 같이 되살린다. 안 그러면 'Restored'
+           만 뜨고 화면은 빈 채로 남아, 다음 Save 가 방금 되살린 세션을 덮는다. */
+        if(UNDO.wd&&UNDO.wd===UI.wd&&UNDO.e&&UNDO.e.s&&UI.open===UNDO.id){
+          var rc=[];for(var ri=0;ri<UNDO.e.s.length;ri++)rc.push(UNDO.e.s[ri].slice(0,4));
+          UI.draft[UNDO.id]=rc;delete UI.dirty[UNDO.id];saveDraft();
+        }
         UNDO=null;save();render();toast('<em>Restored</em>');
       }
       else if(UNDO&&UNDO.kind==='machine'){
@@ -9453,6 +9534,15 @@ document.addEventListener('click',function(e){
       if(setWd(v)){UI.sheet=null;render();}
       break;
     case 'mn':UI.sheet='data';render();break;
+    case 'corruptld':
+      (function(){
+        var ta=document.getElementById('ioTa');if(!ta)return;
+        var c='';try{c=localStorage.getItem(KEY+'.corrupt')||'';}catch(e){}
+        if(!c){toast(TX('보관된 원본이 없음'));return;}
+        ta.value=c;ta.focus();
+        toast(TX('원본을 꺼냈음 — 그대로는 안 읽히니 손으로 살펴볼 것'),6000);
+      })();
+      break;
     case 'lang':langSet(v);break;
     case 'godata':UI.dtab='data';UI.sheet='data';render();break;
     case 'htb':UI.htab=v;renderSheet();break;
