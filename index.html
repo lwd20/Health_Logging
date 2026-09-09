@@ -4320,7 +4320,13 @@ function bkText(){
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
-    subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add}
+    subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add},
+    /* 섭취와 체중계. 본 키가 아니라 'tl_hc' 에 살아서 통째로 빠져 있었다 —
+       앱이 세 군데서 백업하라고 재촉하는데 그 백업에 식단이 없었다.
+       안드로이드는 삼성헬스에서 다시 당겨 오지만, 손으로 넣은 값과 되메우기
+       범위 밖의 과거는 영영 못 찾고 아이폰은 상류가 없어 그것뿐이다.
+       at(읽은 때)·why(못 읽은 까닭)는 그 기기 사정이라 안 담는다. */
+    hc:{days:(HC&&HC.days)||{},w:(HC&&HC.w)||{},back:(HC&&HC.back)||14}
   }});
 }
 function applyBackup(o){
@@ -4384,6 +4390,18 @@ function applyBackup(o){
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
+      /* 지금 기기에 값이 없는 날짜만 채운다. 묵은 백업을 되돌렸다고 오늘
+         먹은 것이 사라지면 안 된다 — 새 기기에는 아무것도 없어 전부 들어오고,
+         쓰던 기기에는 빈 칸만 메워진다. */
+      if(c.hc&&typeof c.hc==='object'){
+        HC=HC||{days:{},at:0,why:''};
+        HC.days=HC.days||{};HC.w=HC.w||{};
+        var hk,hd=c.hc.days||{},hw=c.hc.w||{};
+        for(hk in hd)if(!HC.days[hk])HC.days[hk]=hd[hk];
+        for(hk in hw)if(!HC.w[hk])HC.w[hk]=hw[hk];
+        if(+c.hc.back>0&&+c.hc.back<=120)HC.back=Math.max(HC.back||14,+c.hc.back);
+        try{hcSave();}catch(eH){}
+      }
       if(c.gm&&GMN[c.gm])GM=c.gm;
       if(c.lm&&KS[c.lm]!==undefined)LM=c.lm;
       if(canLS){
@@ -5351,7 +5369,10 @@ function pgWhy(m,a,cx,sc){
   if(fw.length>=2)return {c:'회복 부족',w:fw.slice(0,2).join(' · '),drop:false};
 
   /* 세트 수만으로 과다를 선언하지 않는다 — RIR 상승을 AND 로 건다 */
-  if(L&&mrv>0&&av>mrv&&v0!==null&&v2!==null&&v2-v0>=1)
+  /* 여기만 L 로 남아 있었다. 5303 에서 지역 이름을 LM 으로 바꾸면서 빠뜨렸고,
+     전역 L(옛 번역 함수)은 TX 로 개명해 없앤 뒤라 아무것도 안 가리켰다 —
+     이 줄에 닿는 순간 ReferenceError 로 pgWhy 가 통째로 터진다. */
+  if(LM&&mrv>0&&av>mrv&&v0!==null&&v2!==null&&v2-v0>=1)
     return {c:'볼륨 과다',w:TX1('{0} 주 {1}세트 · 보정 MRV {2} 초과',TX(subName(sk)),av,mrv),drop:false};
 
   /* 실패까지 가면 비례하는 이득 없이 피로만 크게 는다 */
@@ -6686,7 +6707,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 10:45';
+var BUILD='2026-09-09 12:32';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
