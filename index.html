@@ -878,6 +878,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 
 .inzone{margin-top:14px;padding:0;border:0;background:none}
 .izl{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 2px 8px}
+/* 지시가 들어오는 자리. 읽으라고 두는 줄이라 라벨보다 크고 진하다 —
+   9px 대문자 자간으로는 숫자가 안 읽힌다 */
+.izl.nx{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:0;
+  text-transform:none;color:var(--mut)}
+.izl.nx b{color:var(--acc-br);font-weight:800;font-size:10.5px;letter-spacing:.04em}
 .inzone .inrow{margin-top:0}
 .inzone .inrow+.inrow{margin-top:8px}
 .btnrow{display:flex;gap:8px;margin-top:12px}
@@ -2965,7 +2970,16 @@ function panelHtml(m){
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
   var cd=isCardId(UI.open);
   h+='<div class="inzone">'
-    +'<div class="izl">'+(isAssist(m)?TX('보조 무게 · 낮을수록 고강도'):TX('입력'))+'</div>'
+    /* '입력' 은 바로 밑 KG ±2.5 / REPS 가 이미 하는 말이라 아무것도 안
+       알려 주던 줄이었다. 그 자리에 지시를 놓는다 — 줄 수는 안 는다.
+       지시를 못 낼 때(첫 기록)만 원래 문구가 나온다. */
+    +(function(){
+       var rx=(UI.esIdx===null)?nextRx(id,(draft||[]).length):null;
+       if(!rx)return '<div class="izl">'
+         +(isAssist(m)?TX('보조 무게 · 낮을수록 고강도'):TX('입력'))+'</div>';
+       return '<div class="izl nx">'+fmtW(rx.w)+' \u00d7 '+rx.r
+         +(rx.up?'<b> \u2191 '+TX('증량')+'</b>':'')+'</div>';
+     })()
     +'<div class="inrow">'
     +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
     +'<div class="ctr"><button data-act="w-">−</button><input id="inW" inputmode="decimal" placeholder="0" value="'+esc(UI.w)+'"><button data-act="w+">＋</button></div></div>'
@@ -3844,6 +3858,37 @@ function shiftDay(n){
   var s=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
   if(setWd(s))render();
 }
+/* 다음 세트 지시. 지난 세션의 '같은 자리' 세트를 보고 무게와 반복을 정한다.
+   같은 자리인 까닭: 1세트와 4세트는 피로가 달라 견줄 값이 아니다.
+   돌려주는 것 — {w:무게, r:반복, up:올렸나} · 낼 수 없으면 null. */
+function nextRx(id,n){
+  if(isCardId(id))return null;                 /* 유산소는 증량 개념이 없다 */
+  var m=machById(id);
+  if(!m)return null;
+  var all=sess(id),prev=null,i;
+  for(i=0;i<all.length;i++){if(all[i].d<UI.wd&&all[i].s.length){prev=all[i];break;}}
+  if(!prev)return null;
+  /* 지난 세션에 그 자리가 없으면 마지막 세트로 떨어뜨린다 — 세트를 늘리는 날은
+     기준이 없으니 가장 무거웠던 자리를 이어받는 게 맞다. */
+  var src=prev.s[Math.min(n,prev.s.length-1)];
+  var w=+src[0]||0,r=+src[1]||0,rir=src[2];
+  if(!(w>0)||!(r>0))return null;
+  var rx=(m.rx>0)?m.rx:12;
+  var st=machStep(id);
+  /* 어시스트는 설정 무게가 클수록 가벼워진다 — 진전은 빼는 쪽이다.
+     안 뒤집으면 앱이 약해지라고 시킨다. */
+  var dir=isAssist(m)?-1:1;
+  if(r>=rx){
+    /* 상한을 채웠으면 무게를 올리고 반복은 하한으로 되돌린다 */
+    var jump=1;
+    /* RIR 은 자주 비어 있다. 있고 4 이상일 때만 한 칸 더 — 덤이지 기준이 아니다 */
+    if((rir===0||rir>0)&&rir>=4)jump=2;
+    var nw=w+dir*st*jump;
+    if(nw<=0)nw=w;                              /* 어시스트가 0 밑으로 못 가게 */
+    return {w:Math.round(nw*10)/10,r:Math.max(6,Math.round(rx*0.7)),up:true};
+  }
+  return {w:w,r:r+1,up:false};
+}
 function openRow(id){
   UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
   if(!UI.draft[id]){
@@ -3859,6 +3904,19 @@ function openRow(id){
   }
   UI.w=src?fmtW(src[0]):'';UI.r=src?String(src[1]):'';
   UI.ci=(src&&src[2]>0)?fmtW(src[2]):'';
+  /* 지시가 나오면 그것으로 채운다. 지난 세트를 그대로 베끼면 '지난번과
+     똑같이' 가 앱의 답이 되는데, 그건 답이 아니라 회피다. */
+  var rx0=nextRx(id,d.length);
+  if(rx0){UI.w=fmtW(rx0.w);UI.r=String(rx0.r);}
+}
+/* 세트를 넣거나 무른 뒤 다음 자리의 지시로 칸을 다시 채운다.
+   세트를 고치는 중이면 절대 안 건드린다 — 라벨은 62.5x8 인데 칸에는 60/10 이
+   들어 있는 화면이 나온다. */
+function fillNext(){
+  if(UI.esIdx!==null)return;
+  var d=UI.draft[UI.open]||[];
+  var r=nextRx(UI.open,d.length);
+  if(r){UI.w=fmtW(r.w);UI.r=String(r.r);}
 }
 function addSet(){
   var cd=isCardId(UI.open);
@@ -3896,6 +3954,10 @@ function addSet(){
     if(!cd){TMR.b=0;TMR.ts=Date.now();tmrMark=0;tmrSave();tmrDraw();restNotify();}
   }
   UI.dirty[UI.open]=true;
+  /* 칸에 방금 넣은 값이 그대로 남아 다음 세트도 같은 값으로 들어가기 쉬웠다.
+     다음 자리의 지시로 채운다 — 세션 안에서도 '지난번과 똑같이' 가 반복되지
+     않게. 고치는 중이면 fillNext 가 스스로 빠진다. */
+  fillNext();
   saveDraft();render();
 }
 function brandGroups(list){
@@ -6843,7 +6905,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-09 22:47';
+var BUILD='2026-09-10 19:24';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7636,6 +7698,8 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+/* ── 다음 세트 지시 ── */
+'증량':'up',
 /* ── 강도 부족 ── */
 '강도 부족':'Too light',
 /* ── 손상 원본 ── */
