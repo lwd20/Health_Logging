@@ -931,6 +931,16 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .dInO{fill:none;stroke:var(--acc-br);stroke-width:2}
 .trg .dOutO{fill:none;stroke:var(--mut);stroke-width:1.6}
 .trg .tdy{opacity:.42}
+/* 주간 수지 띠 — 0 을 가운데 둔 아래쪽 칸 */
+/* 섭취(강조색 실선)·소비(흐린 점선)와 셋이 갈려야 한다 — 같은 색으로 그으면
+   범례에 같은 표식이 둘 뜨고 이름만 달라진다 */
+.trg .lRl{fill:none;stroke:var(--tx);stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}
+.trg .dRl{fill:var(--tx)}
+.trg .lTg{fill:none;stroke:var(--mut);stroke-width:1.4;stroke-dasharray:4 3;opacity:.85}
+.trg .zr{stroke:var(--line);stroke-width:1.4}
+.trg .sfOK{fill:var(--acc-br);opacity:.11}
+.trg .sfNG{fill:var(--sig);opacity:.16}
+.trg .sl{font-size:8px;opacity:.85}
 /* 감량 구성. 막대는 준 만큼을 지방/제지방으로 쪼갠다 — 둘을 더하면 체중이라
    길이가 그대로 뜻이 된다. 판정 낱말은 오른쪽 끝에 */
 .lbs{margin:6px 2px 2px}
@@ -951,6 +961,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trgl i{display:inline-flex;align-items:center;gap:4px;font-style:normal}
 .trgl i::before{content:'';width:12px;height:0;border-top:2px dashed var(--mut)}
 .trgl i.k1::before{border-top:2.2px solid var(--acc-br)}
+.trgl i.k2::before{border-top:2px solid var(--tx)}
 .trgl b{color:var(--tx);font-weight:600}
 .trgl u{text-decoration:none;opacity:.7;font-size:10px}
 /* 요약. 표식이 붙으면 안 되므로 범례와 다른 칸이다 */
@@ -6556,6 +6567,79 @@ function chartEat(days){
   if(tdD.part)
     g+='<circle class="dOutO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.base+tdD.ex).toFixed(1)+'" r="2.8"/>'
       +'<circle class="dInO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.ate).toFixed(1)+'" r="3.2"/>';
+  /* ── 주간 수지 띠 ──
+     하루치 적자는 두 선 사이의 틈이라 눈대중이 필요하고, 하루 튀는 날이
+     있으면 그 주가 어느 쪽인지가 안 보인다. 7일 이동평균을 따로 긋는다.
+     같은 축에는 못 올린다 — 축이 2,000~3,000 인데 수지는 ±600 이라 바닥에
+     눌러붙는다. viewBox 를 늘려 아래 칸에 그리되 X() 를 그대로 써서 날짜가
+     저절로 맞게 한다. 그림을 둘로 나누면 가로 위치를 눈으로 맞춰야 한다. */
+  var RW=7,RMIN=4;          /* 창 7일, 그 안에 끝난 날이 넷은 있어야 찍는다 */
+  var roll=[],ri,rj;
+  for(ri=0;ri<fin.length;ri++){
+    var t=new Date(fin[ri].d).getTime(),sum=0,cnt=0;
+    for(rj=0;rj<=ri;rj++){
+      var gap=Math.round((t-new Date(fin[rj].d).getTime())/86400000);
+      if(gap<0||gap>RW-1)continue;
+      /* 섭취 − 소비. 음수가 적자다 — 위 그림에서도 섭취 선이 아래면 적자라
+         부호를 그쪽에 맞춘다. 아래가 좋은 쪽. */
+      sum+=fin[rj].ate-(fin[rj].base+fin[rj].ex);cnt++;
+    }
+    if(cnt>=RMIN)roll.push({d:fin[ri].d,v:sum/cnt});
+  }
+  if(roll.length>=2){
+    /* 그릴 칸이 넉넉해야 한다. 축은 0 부터 목표(보통 -550)까지 최소 550 을
+       담아야 하는데, 여백을 크게 주면 자료가 170 움직여도 화면에서 몇 픽셀이
+       안 되어 선이 멈춰 있는 것처럼 보인다. */
+    var SB=H+9,SH=50,SP=7;               /* 띠 시작 y · 높이 · 위아래 여백 */
+    var dfc=0;
+    try{var nf2=nutriFacts();if(nf2&&nf2.dailyDeficitTarget>0)dfc=Math.round(nf2.dailyDeficitTarget);}catch(e2){}
+    var slo=0,shi=0;
+    for(ri=0;ri<roll.length;ri++){if(roll[ri].v<slo)slo=roll[ri].v;if(roll[ri].v>shi)shi=roll[ri].v;}
+    if(dfc>0&&-dfc<slo)slo=-dfc;         /* 목표선이 칸 밖으로 나가면 뜻이 없다 */
+    /* 볼 것이 아래(적자)에 몰려 있다. 위쪽 여백을 더 주면 그 칸이 통째로 빈다. */
+    var sp=Math.max(70,(shi-slo)*0.10);
+    slo-=sp;shi+=sp*0.45;
+    function SY(v){return SB+SP+(shi-v)/(shi-slo)*(SH-SP*2);}
+    var z=SY(0);
+    /* 0 아래로 칠한다 — 적자 쪽이 얼마나 두꺼운지가 곧 답이다 */
+    var pr=[],pz=[];
+    for(ri=0;ri<roll.length;ri++){
+      pr.push(X(roll[ri].d).toFixed(1)+','+SY(roll[ri].v).toFixed(1));
+      pz.push(X(roll[ri].d).toFixed(1)+','+z.toFixed(1));
+    }
+    for(ri=1;ri<roll.length;ri++){
+      var q0=roll[ri-1],q1=roll[ri];
+      g+='<polygon class="'+((q0.v+q1.v)<=0?'sfOK':'sfNG')+'" points="'
+        +X(q0.d).toFixed(1)+','+z.toFixed(1)+' '+X(q0.d).toFixed(1)+','+SY(q0.v).toFixed(1)+' '
+        +X(q1.d).toFixed(1)+','+SY(q1.v).toFixed(1)+' '+X(q1.d).toFixed(1)+','+z.toFixed(1)+'"/>';
+    }
+    g+='<line class="zr" x1="'+L+'" y1="'+z.toFixed(1)+'" x2="'+(W-R)+'" y2="'+z.toFixed(1)+'"/>';
+    /* 목표선. 수 하나만 보면 '-358 이 큰 건가' 를 알 수가 없는데, 주당
+       -0.5kg 에서 나온 하루 목표와 나란히 두면 자리로 읽힌다. */
+    if(dfc>0&&-dfc>slo&&-dfc<shi){
+      var yt=SY(-dfc);
+      g+='<line class="lTg" x1="'+L+'" y1="'+yt.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yt.toFixed(1)+'"/>'
+        +'<text class="sl" x="'+(L-4)+'" y="'+(yt+3).toFixed(1)+'" text-anchor="end">'+TX('목표')+'</text>';
+    }
+    g+='<polyline class="lRl" points="'+pr.join(' ')+'"/>';
+    /* 0 위아래 중 어느 쪽이 좋은 쪽인지는 눈금만 봐서는 안 나온다 */
+    g+='<text class="sl" x="'+(L-4)+'" y="'+(SB+SP-2).toFixed(1)+'" text-anchor="end">'+TX('초과')+'</text>'
+      +'<text class="sl" x="'+(L-4)+'" y="'+(SB+SH-SP+6).toFixed(1)+'" text-anchor="end">'+TX('적자')+'</text>';
+    /* 마지막 값은 숫자로 적는다 — 이 띠를 보는 까닭이 그 수다 */
+    var lastR=roll[roll.length-1],lv=Math.round(lastR.v);
+    var lx=X(lastR.d),lan='end';
+    if(lx>W-R-2)lx=W-R;
+    /* 끝값을 선 아래에 놓았더니 목표 점선 위에 겹쳐 앉았다. 둘이 가까우면
+       목표선 반대쪽으로 민다 — 목표선이 이 띠에서 제일 중요한 눈금이라
+       그것을 글자로 덮으면 안 된다. */
+    var loff=(lastR.v<=0?12:-6);
+    if(dfc>0){var ddy=SY(lastR.v)-SY(-dfc);if(Math.abs(ddy)<12)loff=(ddy<=0?-6:12);}
+    g+='<circle class="dRl" cx="'+X(lastR.d).toFixed(1)+'" cy="'+SY(lastR.v).toFixed(1)+'" r="2.6"/>'
+      +'<text class="gv '+(lv<=0?'gvOK':'gvNG')+'" x="'+lx.toFixed(1)+'" y="'
+      +(SY(lastR.v)+loff).toFixed(1)+'" text-anchor="'+lan+'">'
+      +(lv<=0?'-':'+')+Math.abs(lv).toLocaleString()+'</text>';
+    H=SB+SH;
+  }
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
     +'aria-label="'+TX('날마다 먹은 열량과 태운 열량')+'">'+g+'</svg>';
 }
@@ -6654,7 +6738,8 @@ function vzBody(tab){
         /* 요약을 범례 칸에 넣었더니 표식(점선)이 자동으로 붙어, 그림에 없는
            세 번째 선처럼 보였다. 범례가 거짓말을 한 셈이다.
            범례는 '어느 선이 무엇인가' 만, 요약은 딴 줄에 말로 적는다. */
-        +'<div class="trgl"><i class="k1">'+TX('섭취')+'</i><i>'+TX('소비 <u>운동 포함</u>')+'</i></div>'
+        +'<div class="trgl"><i class="k1">'+TX('섭취')+'</i><i>'+TX('소비 <u>운동 포함</u>')+'</i>'
+        +'<i class="k2">'+TX('7일 평균 <u>아래 칸</u>')+'</i></div>'
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
            주간도 월간도 아니고 '기록이 있는 날들' 이므로 그렇게 적는다 —
            창은 35일이지만 그중 먹은 것이 적힌 날만 센다.
@@ -7419,7 +7504,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-11 17:40';
+var BUILD='2026-09-11 23:11';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8213,6 +8298,10 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'목표':'goal',
+'적자':'under',
+'7일 평균 <u>아래 칸</u>':'7-day avg <u>lower band</u>',
+
 '오늘 루트':'Today’s route',
 '루트':'Route',
 '보유 기구 {0}':'{0} machines',
