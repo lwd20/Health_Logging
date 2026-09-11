@@ -1237,6 +1237,11 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .lmg .zn{position:absolute;top:1px;bottom:1px;background:rgba(var(--acc-rgb),.18);border-radius:1px}
 .lmg .zn.hi{background:rgba(var(--acc-rgb),.36)}
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(var(--sig-rgb),.7)}
+/* 내가 정한 목표. 보정 MRV(얇은 빨강, '넘지 마라')와 성격이 반대라 굵기와
+   색을 갈라 둔다 — 같은 모양이면 두 선이 같은 뜻으로 읽힌다. */
+.lmg .gt{position:absolute;top:-3.5px;bottom:-3.5px;width:2px;border-radius:1px;
+  background:rgba(var(--tx-rgb),.55)}
+.lmlg .s4{width:2px;height:10px;background:rgba(var(--tx-rgb),.55)}
 .lmg .cd{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--acc-br);transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(227,185,90,.5)}
 /* 이름을 ov 로 하면 안 된다 — 시트 뒤 오버레이(.ov)가 position:fixed 와
    opacity:0 을 얹어 표식이 통째로 사라진다. */
@@ -1323,6 +1328,20 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
   font-size:9px;color:var(--dim)}
 .lmlg i{display:inline-block;width:9px;height:6px;border-radius:1px;margin-right:4px;vertical-align:0}
 .lmlg .s1{background:rgba(var(--acc-rgb),.18)}.lmlg .s2{background:rgba(var(--acc-rgb),.36)}.lmlg .s3{width:2px;height:9px;background:rgba(var(--sig-rgb),.7)}
+/* ── 오늘 루트 ── */
+.rtx{padding:8px 2px;border-top:1px solid rgba(var(--tx-rgb),.06)}
+.rtx:first-of-type{border-top:0}
+.rth{display:flex;align-items:baseline;gap:8px}
+.rth b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12.5px;font-weight:600;color:var(--tx)}
+.rth em{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--dim)}
+.rth u{margin-left:auto;flex:0 0 auto;text-decoration:none;font-family:var(--mono);
+  font-size:11.5px;color:var(--acc-br);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rtb{margin-top:3px;font-family:var(--mono);font-size:10.5px;color:var(--dim);
+  font-variant-numeric:tabular-nums}
+.rtb i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.1em;
+  color:var(--dim);font-family:var(--sans,inherit);margin-right:5px;opacity:.8}
+.rtn{margin:7px 2px 0;font-size:10px;color:var(--dim);line-height:1.45}
 .sttrow{display:flex;gap:7px}
 .stt{flex:1;text-align:center;background:var(--inset);border:1px solid var(--line);border-radius:var(--rad-s);padding:9px 4px}
 .stt b{display:block;font-family:var(--mono);font-size:17px;font-weight:700;color:var(--mut)}
@@ -2273,7 +2292,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'set',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -3429,6 +3448,20 @@ function renderSheet(){
         +CATS[cgi].k+'">'+TX(CATS[cgi].n)+'</button>';
     h+='</div>';
     var vlist=catTabs(ANLC),vcur=catCur(ANLC);
+    /* 훈련 카드의 다섯 갈래는 전부 '어디까지 왔나' 다. 루트는 '이제 무엇을
+       하나' 라 종류가 다르고, 헬스장 문을 열고 제일 먼저 볼 것이다.
+       여섯째 갈래로 넣지 않은 까닭은 폭이다 — 320px 에서 탭이 여섯이면 칸이
+       41.7px 인데 'Recovery' 가 48.9px 라 영어 화면에서 넷이 넘친다. */
+    if(ANLC==='train'&&hasLogs())
+      /* nextRx 는 UI.wd 기준으로 지난 세션을 고른다(3902). 날짜를 넘겨 놓고
+         열면 그 날 기준으로 그려지므로 머리글도 그 날짜를 적는다 — 수는 안
+         바꾼다. 입력존과의 일치가 어느 날에서도 성립해야 한다. */
+      h+='<section class="zsec"><div class="zhd">'
+        +'<b>'+(UI.wd===todayISO()?TX('오늘 루트'):TX('루트'))+'</b>'
+        +'<i>'+esc(UI.wd===todayISO()
+            ?TX1('보유 기구 {0}',S.m.filter(function(m){return !isCard(m.p);}).length)
+            :md(UI.wd))+'</i></div>'
+        +vzRoute()+'</section>';
     h+='<section class="zsec"><div class="zhd"><b>'+TX('현황')+'</b><i>'+esc(catCtx(ANLC))+'</i></div>'
       +vzTabs(vlist,vcur,catAct(ANLC))
       +anlViz(ANL,vcur)
@@ -3725,6 +3758,30 @@ function renderSheet(){
       })();
     }
     if(tb==='goals'){
+    /* 열여덟 칸을 손으로 채우는 것이 목표를 정하는 유일한 길이었다. 무엇을
+       적어야 하는지는 아무 데도 안 쓰여 있고, 적어 넣은 수가 서로 맞는지도
+       알 길이 없다(세부 합이 부위 예산을 넘는 조합이 대부분이다).
+       한 벌로 고르게 두고, 낱개 수정은 그대로 남긴다 — 색 고르는 자리가
+       이미 같은 꼴이다(시안 → 낱개). */
+    h+=(function(){
+      var cur=UI.gpre||gpNow(),gi,hh='';
+      hh+='<div class="sh-l" style="margin-top:2px">Goal</div><div class="psets">';
+      for(gi=0;gi<GPRE.length;gi++){
+        var G=GPRE[gi];
+        hh+='<button class="pset'+(cur===G.k?' on':'')+'" data-act="gppick" data-v="'+G.k+'"'
+          +' aria-pressed="'+(cur===G.k?'true':'false')+'">'
+          +'<b>'+TX(G.n)+'</b><i>'+TX(G.d)+'</i></button>';
+      }
+      hh+='</div>';
+      /* 눌렀을 때 무슨 일이 벌어졌는지가 안 보이면 사람은 한 번 더 누른다.
+         칸만 채웠다는 것과, 총량은 안 는다는 것 둘 다 여기서만 말한다. */
+      hh+='<div class="note" style="margin-top:7px">'
+        +(UI.gpre?TX('<b>아래 칸을 채워 놓음 · Save goals 를 눌러야 바뀜</b>')
+                 :(cur?TX('부위별 총량은 넷 다 같음 · 자리만 옮김')
+                      :TX('직접 맞춘 목표임 · 한 벌로 바꾸려면 위에서 고름')))
+        +'</div>';
+      return hh;
+    })();
     h+=(function(){
       var pcNow=partCnt();
       var ROWS=[
@@ -3737,7 +3794,9 @@ function renderSheet(){
       ];
       var hh='<div class="sh-l" style="margin-top:2px">Weekly targets</div>',ri;
       for(ri=0;ri<ROWS.length;ri++){
-        var rw=ROWS[ri],goal=WTGT[rw[1]],cur=pcNow[rw[1]];
+        /* 고른 프리셋이 있으면 그 값을 그린다. STG·WTGT 는 아직 안 바뀌었고
+           저장 핸들러가 이 칸을 읽으므로, 저장을 눌러야 적용된다. */
+        var rw=ROWS[ri],goal=gpWt(rw[1]),cur=pcNow[rw[1]];
         hh+='<div class="strow"><b class="stnm">'+TX(rw[2])+'</b>'
           +'<div class="strest"></div>'
           +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
@@ -3757,7 +3816,7 @@ function renderSheet(){
           for(si4=0;si4<SUBS.length;si4++){
             var e2=SUBS[si4];
             if(e2.p!==PO[gi])continue;
-            var goal=STG[e2.k],cur=sc[e2.k];
+            var goal=gpStg(e2.k),cur=sc[e2.k];
             var mid;
             if(goal===0){
               mid='<div class="stband'+(cur>0?' viol':'')+'">'+(cur>0?TX1('회피 위반 +{0}',cur):TX('회피'))+'</div>';
@@ -4403,6 +4462,60 @@ function subName(k){
   for(var i=0;i<SUBS.length;i++)if(SUBS[i].k===k)return subLabel(SUBS[i]);
   return '';
 }
+/* ── 목표 ──
+   강조 근육 두엇에 명시값, 회피 하나, 나머지는 미추적(−1). 열여덟을 다
+   채우지 않는다 — 세부 MEV 합(176)이 부위 예산(77)의 두 배를 넘어서,
+   다 채우면 앱이 스스로 '초과' 를 찍는 목표가 된다.
+   wt 합은 넷 다 78 이다. 감량기에 총량은 안 늘리고 자리만 옮긴다. */
+var GPRE=[
+ /* 출고값 그대로다 — SUBS.d 의 sd 18 · lt 16 · hm 10 과 ut 회피, WTGT 4273.
+    이 앱은 처음부터 V테이퍼였고 이름만 없었다. 값을 달리 잡으면 아무것도
+    안 건드린 사람이 '직접 맞춘 목표' 로 나온다. */
+ {k:'vt',n:'V 테이퍼',d:'측면어깨 · 광배',
+  stg:{sd:18,lt:16,hm:10,ut:0},
+  wt:{'SHOULDERS':20,'BACK':17,'CHEST':15,'LEGS':15,'ARMS\u00b7ETC':10}},
+ {k:'push',n:'밀기 중심',d:'가슴 · 삼두',
+  stg:{mc:10,uc:5,sd:16,tri:10},
+  wt:{'SHOULDERS':19,'BACK':14,'CHEST':15,'LEGS':15,'ARMS\u00b7ETC':14}},
+ {k:'pull',n:'당기기 중심',d:'광배 · 이두',
+  stg:{lt:14,bi:14,sd:16},
+  wt:{'SHOULDERS':18,'BACK':17,'CHEST':12,'LEGS':15,'ARMS\u00b7ETC':15}},
+ {k:'even',n:'강조 없음',d:'고르게 · 회피도 없음',
+  stg:{},
+  wt:{'SHOULDERS':20,'BACK':17,'CHEST':15,'LEGS':15,'ARMS\u00b7ETC':10}}
+];
+function gpOf(k){for(var i=0;i<GPRE.length;i++)if(GPRE[i].k===k)return GPRE[i];return null;}
+/* 목표 하나가 앱 자신의 상한을 넘는지. vzZone 8803 이 보정MRV 의 90% 부터
+   이미 over 라, 그 선에 닿는 목표를 주면 목표를 정확히 채운 주에 '초과' 가
+   뜬다. 표를 손으로 고칠 때 조용히 깨지는 자리라 켤 때 한 번 잰다. */
+function gpCap(k){var L=LMK[k];if(!L)return 30;return Math.round(Math.round(L[3]*0.8)*0.9)-1;}
+/* 지금 목표가 어느 프리셋인가. 저장하지 않고 STG 에서 되읽는다 — 값을
+   따로 들고 다니면 손으로 고친 순간 이름과 내용이 어긋난다. */
+function gpNow(){
+  var i,q,g,ok;
+  for(i=0;i<GPRE.length;i++){
+    g=GPRE[i];ok=true;
+    for(q=0;q<SUBS.length;q++){
+      var kk=SUBS[q].k,want=(g.stg[kk]===undefined)?-1:g.stg[kk];
+      if(STG[kk]!==want){ok=false;break;}
+    }
+    if(ok)return g.k;
+  }
+  return '';
+}
+/* 프리셋이 그리려는 값. 아직 STG 에 안 쓴다 — 고르기만 해서는 아무것도
+   안 바뀌고 Save goals 를 눌러야 바뀐다. 손으로 맞춰 둔 값을 누르자마자
+   날리면 되돌릴 방법이 없다. */
+function gpStg(k){
+  var g=UI.gpre?gpOf(UI.gpre):null;
+  if(!g)return STG[k];
+  return (g.stg[k]===undefined)?-1:g.stg[k];
+}
+function gpWt(p){
+  var g=UI.gpre?gpOf(UI.gpre):null;
+  if(!g||g.wt[p]===undefined)return WTGT[p];
+  return g.wt[p];
+}
 var RD=[1,4]; /* 휴식요일 getDay 기준: 월=1, 목=4 */
 /* 날짜별 휴식. RD 는 '보통 무슨 요일에 쉬나' 이고 이것은 '그 날 실제로
    쉬었나' 다. 둘을 구분하지 못하면 기록이 없는 날이 전부 한 가지로 보여
@@ -4607,7 +4720,10 @@ function applyBackup(o){
           localStorage.setItem(KEY+'.act',String(ACT));
           localStorage.setItem(KEY+'.iv',String(IVs));
           localStorage.setItem(KEY+'.wr',String(WR));
-          localStorage.setItem(KEY+'.st',JSON.stringify(STG));
+          /* 형식을 맞춘다. 맨 객체로 쓰면 다음 실행의 로더(4471)가 구형으로
+             읽어 회피(0)를 미추적(−1)로 바꾼다 — 백업을 되돌리고 앱을 다시
+             켜는 것만으로 회피 목표가 조용히 사라지던 자리다. */
+          localStorage.setItem(KEY+'.st',JSON.stringify({v:2,t:STG}));
           localStorage.setItem(KEY+'.rd',JSON.stringify(RD));
           localStorage.setItem(KEY+'.off',JSON.stringify(OFF));
           localStorage.setItem(KEY+'.pr',PR);
@@ -5901,7 +6017,8 @@ var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'L
 /* hideVd — 묶음 머리가 이미 그 판정을 말하고 있으면 줄마다 또 적지 않는다.
    묶음 안에 판정이 둘 이상 섞여 있을 때만 줄에 붙인다. */
 /* 셋째 인자 이름이 L 이라 이 함수 안에서 번역 함수 TX() 이 가려져 있었다 — LM 으로 바꾼다 */
-function lmRow(nm,cur,LM,hideVd,easy){
+/* goal — 사용자가 정한 주간 세트 목표. 없으면(미추적·회피) 안 그린다. */
+function lmRow(nm,cur,LM,hideVd,easy,goal){
   var mrv=Math.round(LM[3]*0.8);
   /* 감량 보정을 MRV 에만 걸고 존에는 안 걸면, 가슴 19~20세트가 'MAV 존 안'
      이면서 동시에 '보정 MRV 초과' 가 된다. 존을 보정 MRV 에서 끊는다 —
@@ -5924,6 +6041,10 @@ function lmRow(nm,cur,LM,hideVd,easy){
     +'<i class="zn" style="left:'+px(LM[0])+'%;width:'+Math.max(0,px(z1)-px(LM[0]))+'%"></i>'
     +'<i class="zn hi" style="left:'+px(z1)+'%;width:'+Math.max(0,px(z2)-px(z1))+'%"></i>'
     +'<i class="mrv" style="left:'+px(mrv)+'%"></i>'
+    /* 목표를 자리로 말한다. 숫자로 또 적으면 오른쪽 값 칸과 겹치고, 이 줄은
+       이미 이름·판정·눈금·값 넷을 이고 있다. 축을 벗어난 목표는 안 그린다 —
+       끝에 붙이면 보정 MRV 선과 겹쳐 어느 쪽 선인지 알 수 없게 된다. */
+    +((goal>0&&goal<=mx)?'<i class="gt" style="left:'+px(goal)+'%"></i>':'')
     +'<i class="cd'+(cur>mrv?' over':'')+(out?' out':'')+'" style="left:'+cp.toFixed(1)+'%"></i>'
     +'</span><span class="bv'+(cur>mrv?' over':'')+'">'+cur+'</span></div>';
 }
@@ -6583,6 +6704,169 @@ function vzBody(tab){
   }
   return '<div class="anlviz">'+h+'</div>';
 }
+/* 균형 목표. 박아 둔 수(55·58·50)는 앱 자신의 기본 목표와 어긋나 있었다 —
+   측면 18 을 시켜 놓고 측면:전면후면 50% 를 요구하면 그 목표를 지킨 주가
+   반드시 빨강이 된다. 목표값끼리의 비를 쓰면 그 일이 구조적으로 안 생긴다.
+   미추적(−1)은 MV 로 친다: '안 노린다' 이지 '0' 이 아니다. 회피(0)만 0. */
+function gvOf(k){
+  var v=STG[k];
+  if(v===0)return 0;
+  if(v>0)return v;
+  var L=LMK[k];
+  return L?L[0]:0;
+}
+function balTgt(){
+  function pc(a,b){var t=a+b;return t?Math.round(a*100/t):50;}
+  var pull=gvOf('lt')+gvOf('tm')+gvOf('ut')+gvOf('bi');
+  var push=gvOf('uc')+gvOf('mc')+gvOf('ad')+gvOf('tri');
+  /* 상체:하체 는 67 로 둔다. 목표에서 유도하는 까닭은 '프리셋이 바꾼 것을
+     판정이 따라가야 한다' 인데, 네 프리셋 모두 하체 16 으로 같다 — 목표가
+     아무 말도 안 하는 자리에서 판정만 바꾸면 근거 없이 화면이 달라진다.
+     (WTGT 로 유도하면 81% 가 나오는데, 이건 부위가 넷 대 하나여서 나오는
+      수이지 상하체 배분에 대한 의견이 아니다.) */
+  return {pp:pc(pull,push),qh:pc(gvOf('qd'),gvOf('hm')),
+          sr:pc(gvOf('sd'),gvOf('ad')+gvOf('pd')),ul:67};
+}
+/* ── 오늘 루트 ──
+   보유 기구 · 목표 · 이번 주 실적 · 회복을 한 줄씩으로 접는다. */
+var RT_MAXEX=5;   /* 한 세션에 그릴 종목 수 상한 — 넘으면 화면이 목록이 된다 */
+
+/* 그 근육을 마지막으로 친 날. 세션 배열은 최신순이라 첫 유효 세션만 본다 */
+function rtLast(k){
+  var best=null,i,j;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(isCard(m.p)||subOf(m)!==k)continue;
+    var a=S.l[m.i]||[];
+    for(j=0;j<a.length;j++){if(a[j].s.length){if(!best||a[j].d>best)best=a[j].d;break;}}
+  }
+  return best;
+}
+/* 예열 램프. seen = 이 세션에 그 근육이 이미 몇 번 나왔나. */
+function rtWarm(m,W,rx,seen){
+  var st=machStep(m.i),as=isAssist(m),out=[],i,prev=null;
+  if(!(W>0)||!(st>0))return out;
+  var n=(rx<=6)?3:(rx<=12?2:1);
+  n-=seen;                                  /* 두 번째 종목부터 한 단계씩 */
+  /* 스냅할 칸이 서넛뿐이면 램프가 뜻이 없다 — 50% 와 75% 가 같은 칸에 떨어진다 */
+  if(W<=st*3)n=Math.min(n,1);
+  if(n<1)return out;
+  var PCT=(n>=3)?[[0.5,8],[0.7,4],[0.85,2]]:(n===2?[[0.5,6],[0.75,3]]:[[0.6,5]]);
+  for(i=0;i<PCT.length;i++){
+    var w=Math.round(W*PCT[i][0]/st)*st;
+    /* 보조머신은 무게가 클수록 가볍다 — 본셋에서 멀어지는 쪽으로 뒤집는다 */
+    if(as)w=Math.round((W+(W-w))/st)*st;
+    if(!as&&!(w<W))continue;                /* 스냅하고 나니 본셋과 같거나 무겁다 */
+    if(as&&!(w>W))continue;
+    if(prev!==null&&w===prev)continue;      /* 반올림으로 앞 램프와 겹쳤다 */
+    if(w<=0)continue;
+    out.push([w,PCT[i][1]]);prev=w;
+  }
+  return out;
+}
+/* 오늘의 차례. 셈은 전부 이미 있는 것을 쓴다 — 새로 내는 판단은 '순서' 뿐이다. */
+function routeToday(){
+  var cf=computedFacts()||{},td=todayISO();
+  var rest=(RD.indexOf(new Date().getDay())>=0)||isOff(td);
+  if(rest)return {rest:true};
+  var sc=subCnt(),left=Math.max(1,cf.remainTrainDays||1),cand=[],i,j;
+  var gap=[],noGear=[];
+  for(i=0;i<SUBS.length;i++){
+    var sb=SUBS[i],k=sb.k;
+    if(subHidden(k)||STG[k]===0)continue;   /* 숨긴 것과 회피는 애초에 안 온다 */
+    /* 미추적(−1)은 LMK 의 MV(유지 최소)를 목표로 친다 — '안 노린다' 이지
+       '0 으로 만든다' 가 아니다. 균형 목표(gvOf)와 같은 규칙을 쓴다. */
+    var goal=gvOf(k),expl=(STG[k]>0)?1:0;
+    if(!(goal>0))continue;
+    var need=goal-(sc[k]||0);
+    if(need<=0)continue;                    /* 이번 주 몫은 이미 채웠다 */
+    var gear=[];
+    for(j=0;j<S.m.length;j++)if(!isCard(S.m[j].p)&&subOf(S.m[j])===k)gear.push(S.m[j]);
+    /* 기구가 없다고 말할 것은 사용자가 실제로 건 목표뿐이다. MV 를 채워 준
+       것까지 세면 목표를 건 적 없는 근육 다섯이 '없는 목표' 로 실린다. */
+    if(!gear.length){if(expl)noGear.push(subName(k));continue;}
+    var ld=rtLast(k);
+    /* 어제 친 근육은 오늘 안 넣는다. 회복 갈래(partGap48)가 '같은 부위 이틀'
+       을 간격 부족이라 적고 있으므로, 루트가 그걸 시키면 두 갈래가 싸운다. */
+    if(ld&&daysAgo(ld)<2){gap.push(subName(k));continue;}
+    /* 기구가 여럿이면 오래 안 한 것. 기록이 아예 없는 것은 무게를 못 내므로
+       뒤로 민다 — 첫 기록은 직접 정해야 한다. */
+    gear.sort(function(x,y){
+      var ax=sess(x.i),ay=sess(y.i);
+      var dx=ax.length?daysAgo(ax[0].d):-1,dy=ay.length?daysAgo(ay[0].d):-1;
+      return dy-dx;
+    });
+    /* 오늘 이미 칸에 넣어 둔 세트는 뺀다. 안 빼면 넷이라 적어 놓고 그중
+       둘을 이미 한 화면이 되어, 사람이 세다가 틀린다. 다 했으면 줄을 뺀다. */
+    var dn=(UI.draft[gear[0].i]||[]).length;
+    var sets=Math.max(0,Math.min(4,Math.max(2,Math.ceil(need/left)))-dn);
+    if(!sets)continue;
+    cand.push({k:k,n:subName(k),m:gear[0],need:need,expl:expl,dn:dn,
+               log:sess(gear[0].i).length?1:0,sets:sets,goal:goal});
+  }
+  /* 차례. 먼저 한 종목의 근력이 더 는다는 것은 순서 규칙 중 근거가 선 몇
+     안 되는 것이라, 그 앞자리를 가장 값진 곳에 쓴다.
+     1) 사용자가 실제로 건 목표가 유지(MV)보다 앞
+     2) 기록이 있는 것이 앞 — 첫 기록은 무게를 못 내므로 세션 첫 종목으로
+        가장 나쁘다. 안 가르면 한 번도 안 쓴 기구가 100% 모자람으로 맨 앞에 선다
+     3) 같은 칸에서는 목표 대비 모자란 비율이 큰 것부터 */
+  cand.sort(function(x,y){
+    if(x.expl!==y.expl)return y.expl-x.expl;
+    if(x.log!==y.log)return y.log-x.log;
+    return (y.need/y.goal)-(x.need/x.goal);
+  });
+  cand=cand.slice(0,RT_MAXEX);
+  var seen={},out=[];
+  for(i=0;i<cand.length;i++){
+    /* 입력존(3005)·openRow(3993)와 같은 자리를 본다. nextRx 는 지난 세션의
+       그 자리 세트를 보므로(3903), 자리가 다르면 같은 종목에 두 수가 나온다. */
+    var c=cand[i],rx=nextRx(c.m.i,c.dn);
+    var W=rx?rx.w:0,rp=rx?rx.r:0;
+    /* 이미 데워졌는지는 부위로 센다. 근육 열쇠로 세면 근육마다 기구를 하나만
+       고르므로 늘 0 이라 이 규칙이 아예 안 돈다. 그리고 예열의 검증된 몫인
+       근온은 근육 한 가닥이 아니라 그 언저리가 같이 올라간다 — 인클라인
+       프레스 뒤의 케이블 플라이는 이미 데워진 가슴이다. */
+    out.push({n:pgName(c.m),id:c.m.i,sub:c.n,sets:c.sets,w:W,r:rp,up:!!(rx&&rx.up),
+              hold:!c.expl,warm:W?rtWarm(c.m,W,rp,seen[c.m.p]||0):[]});
+    seen[c.m.p]=(seen[c.m.p]||0)+1;
+  }
+  return {rest:false,list:out,gap:gap,noGear:noGear,left:left};
+}
+function vzRoute(){
+  var R=routeToday(),h='',i;
+  if(R.rest)return '<div class="rtn" style="margin-top:0">'+TX('오늘은 쉬기로 한 날 — 루트 없음')+'</div>';
+  if(!R.list.length){
+    /* 아무것도 안 남았을 때 무엇이 그렇게 만들었는지는 세 가지로 갈린다.
+       'ㅡ' 한 줄만 그리면 목표를 채운 것인지 기구가 없는 것인지 모른다. */
+    if(R.noGear.length)return '<div class="rtn" style="margin-top:0">'
+      +TX1('목표는 있는데 칠 기구가 없음 — {0}',R.noGear.join(', '))+'</div>';
+    if(R.gap.length)return '<div class="rtn" style="margin-top:0">'
+      +TX1('어제 친 근육뿐임 — 하루 비움 · {0}',R.gap.join(', '))+'</div>';
+    return '<div class="rtn" style="margin-top:0">'+TX('이번 주 목표를 다 채움')+'</div>';
+  }
+  for(i=0;i<R.list.length;i++){
+    var x=R.list[i];
+    /* 헬스장에서 필요한 것은 '무엇을 몇 kg 으로 몇 번 몇 세트' 다 — 그것을
+       이름 줄에 끝낸다. 예열을 앞에 두었더니 긴 문자열이 줄을 먹고 정작
+       핀을 꽂을 수가 그 뒤에 붙어 뒤늦게 읽혔다. */
+    h+='<div class="rtx"><div class="rth"><b>'+esc(x.n)+'</b>'
+      +'<em>'+esc(x.sub)+(x.hold?' \u00b7 '+TX('최소'):'')+'</em>'
+      +'<u>'+(x.w?fmtW(x.w)+'\u00d7'+x.r+(x.up?' \u2191':'')+' \u00b7 ':'')
+      +TX1('{0}세트',x.sets)+'</u></div>';
+    h+='<div class="rtb">'
+      +(x.warm.length
+        ?'<i>'+TX('예열')+'</i>'+x.warm.map(function(q){return fmtW(q[0])+'\u00d7'+q[1];}).join(' \u2192 ')
+        /* 첫 기록이면 무게를 못 낸다. 지어내지 않고 그렇게 적는다. */
+        :(x.w?'<i>'+TX('예열')+'</i>'+TX('필요 없음'):TX('첫 기록 — 무게는 직접 정함')))
+      +'</div></div>';
+  }
+  /* 예열을 기록에 넣으면 세트 수·e1RM·다음 처방이 한꺼번에 어긋난다.
+     그중 e1RM 오염은 S.l 에 영구히 남아 되돌릴 방법이 없다. 한 번만 말한다. */
+  h+='<div class="rtn">'+TX('예열은 기록에 넣지 않음 — 넣으면 세트 수와 e1RM 이 어긋남')+'</div>';
+  if(R.noGear.length)h+='<div class="rtn">'+TX1('칠 기구가 없는 목표 · {0}',R.noGear.join(', '))+'</div>';
+  if(R.gap.length)h+='<div class="rtn">'+TX1('어제 쳐서 오늘은 뺌 · {0}',R.gap.join(', '))+'</div>';
+  return h;
+}
 function vzTrain(tab){
   tab=tab||'set';
   var h='',ws=wkSets(),sc=subCnt(),i,k;
@@ -6601,11 +6885,11 @@ function vzTrain(tab){
        캡션이 '부위 · MEV~MRV' 라 적어 두므로 줄에는 안 붙인다.
        근육 갈래는 다르다: 거기는 초과·적당·미만으로 묶여 판정이 묶음 머리에
        있고 줄에 붙는 것은 한 묶음에 판정이 섞였을 때뿐이다. */
-    ph2+=LMKP[k]?lmRow(TX(PN_KO[k]),c,LMKP[k],true):'';
+    ph2+=LMKP[k]?lmRow(TX(PN_KO[k]),c,LMKP[k],true,0,g):'';
   }
   if(ph2)h+='<div class="lmsec">'+ph2
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
-    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV')+'</div></div>';
+    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV')+'</div></div>';
   /* 눈금과 숫자 줄을 둘 다 그리면 같은 것을 두 번 본다 — 눈금이 자리로
      보여 주므로 목표 대비는 총계 한 줄이면 된다 */
   var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
@@ -6634,7 +6918,7 @@ function vzTrain(tab){
     /* 8535 주석이 '글자로 견주면 이름을 바꾸는 순간 조용히 깨진다' 고 적어
        놨는데 여기가 그랬다. 안 바뀌는 열쇠로 가른다 — 낱말은 화면용이다. */
     var g=(vz2.z==='over')?'초과':(vz2.z==='under'?'미만':'적당');
-    (gb[g]||(gb[g]=[])).push([subLabel(sb),cur,L,vz2.t,se[sb.k]||0]);gn[g]++;
+    (gb[g]||(gb[g]=[])).push([subLabel(sb),cur,L,vz2.t,se[sb.k]||0,STG[sb.k]]);gn[g]++;
   }
   /* 묶음이 하나뿐이면 머리를 안 단다 — 한 덩어리에 이름표는 군더더기다 */
   var gk=['초과','적당','미만'].filter(function(x){return gn[x];});
@@ -6646,11 +6930,11 @@ function vzTrain(tab){
     if(gk.length>1)hs+='<div class="pgh"><span>'+TX(gk[i])+'</span><i>'+gn[gk[i]]+'</i></div>';
     /* easy 를 같이 넘긴다. 안 넘기면 묶음 제목은 '강도 부족' 인데 그 안의
        줄은 'MEV 미만' 이라 한 묶음이 두 말을 한다. */
-    for(j=0;j<rows.length;j++)hs+=lmRow(rows[j][0],rows[j][1],rows[j][2],one,rows[j][4]);
+    for(j=0;j<rows.length;j++)hs+=lmRow(rows[j][0],rows[j][1],rows[j][2],one,rows[j][4],rows[j][5]);
   }
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
-    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV')+'</div></div>';
+    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV')+'</div></div>';
   var uk=unkWeek();
   if(uk>0)h+='<div class="lmunk">'
     +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨',uk)+'</div>';
@@ -6800,9 +7084,10 @@ function vzTrain(tab){
   }
   var pull=(sc.lt||0)+(sc.tm||0)+(sc.ut||0)+(sc.bi||0),push=(sc.uc||0)+(sc.mc||0)+(sc.ad||0)+(sc.tri||0);
   var upper=(ws['CHEST']||0)+(ws['BACK']||0)+(ws['SHOULDERS']||0)+(ws['ARMS·ETC']||0),lower=ws['LEGS']||0;
-  var bh=db('당기기 : 밀기',pull,push,55)+db('사두 : 햄',sc.qd||0,sc.hm||0,58)
-    +db('측면 : 전면+후면',sc.sd||0,(sc.ad||0)+(sc.pd||0),50)
-    +db('상체 : 하체',upper,lower,67);
+  var bt=balTgt();
+  var bh=db('당기기 : 밀기',pull,push,bt.pp)+db('사두 : 햄',sc.qd||0,sc.hm||0,bt.qh)
+    +db('측면 : 전면+후면',sc.sd||0,(sc.ad||0)+(sc.pd||0),bt.sr)
+    +db('상체 : 하체',upper,lower,bt.ul);
   if(bh)h+=vzCap(TX('균형'))+bh;
   /* 빈도·강도 */
   h+=vzCap(TX('빈도 · 강도'));
@@ -7055,7 +7340,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-11 15:07';
+var BUILD='2026-09-11 17:04';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7849,6 +8134,33 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'오늘 루트':'Today’s route',
+'루트':'Route',
+'보유 기구 {0}':'{0} machines',
+'예열':'Warm-up',
+'본셋':'Working',
+'필요 없음':'not needed',
+'첫 기록 — 무게는 직접 정함':'First log — pick the weight yourself',
+'예열은 기록에 넣지 않음 — 넣으면 세트 수와 e1RM 이 어긋남':'Do not log warm-ups — they skew set counts and e1RM',
+'칠 기구가 없는 목표 · {0}':'Goal with no machine · {0}',
+'어제 쳐서 오늘은 뺌 · {0}':'Trained yesterday, left out today · {0}',
+'오늘은 쉬기로 한 날 — 루트 없음':'Rest day you set — no route',
+'목표는 있는데 칠 기구가 없음 — {0}':'Goals with no machine — {0}',
+'어제 친 근육뿐임 — 하루 비움 · {0}':'Only muscles trained yesterday — take the day · {0}',
+'이번 주 목표를 다 채움':'Weekly goals all met',
+
+'V 테이퍼':'V-taper',
+'측면어깨 · 광배':'Side delts · lats',
+'밀기 중심':'Push focus',
+'가슴 · 삼두':'Chest · triceps',
+'당기기 중심':'Pull focus',
+'광배 · 이두':'Lats · biceps',
+'강조 없음':'No emphasis',
+'고르게 · 회피도 없음':'Even · nothing avoided',
+'<b>아래 칸을 채워 놓음 · Save goals 를 눌러야 바뀜</b>':'<b>Boxes filled below · press Save goals to apply</b>',
+'부위별 총량은 넷 다 같음 · 자리만 옮김':'Same total across all four · only the split moves',
+'직접 맞춘 목표임 · 한 벌로 바꾸려면 위에서 고름':'Hand-tuned goals · pick above to swap the whole set',
+
 '{0}/4':'{0} of 4',
 /* ── 여유 줄어듦 ── */
 '여유 줄어듦':'Less in reserve',
@@ -8120,7 +8432,7 @@ var EN={
 '<b>차이 미미</b> 그 종목이 실제로 보인 흔들림 폭 안이라 움직였다고 못 함':'<b>too small</b> inside the swing that exercise actually shows, so it cannot be called movement',
 '<em class="bvd neg">{0} 부족</em>':'<em class="bvd neg">{0} low</em>',
 '<em class="bvd pos">균형</em>':'<em class="bvd pos">Balanced</em>',
-'<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s3"></i>보정 MRV':'<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV zone <i class="s3"></i>adj MRV',
+'<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV':'<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV zone <i class="s4"></i>goal <i class="s3"></i>adj MRV',
 'MAV 안':'in MAV',
 'MEV 미만':'under MEV',
 'MRV 근접':'near MRV',
@@ -10037,6 +10349,11 @@ document.addEventListener('click',function(e){
         if(off<0||off>se.clientHeight-60)se.scrollTop=sy+off-90;
       })();
       break;
+    case 'gppick':
+      /* 다시 누르면 접는다 — 잘못 눌렀을 때 되돌릴 길이 그것뿐이다.
+         STG 를 안 건드리므로 취소가 곧 원상복구다. */
+      UI.gpre=(UI.gpre===v)?'':v;buzz();renderSheet();
+      break;
     case 'dsub':
       UI.dsub=v;render();
       /* 이름줄을 없앤 대신 지금 고른 것을 보이는 자리로 데려온다 — 40개 목록
@@ -10179,6 +10496,7 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'dtb':
+      UI.gpre='';
       UI.dtab=v;render();
       (function(){var se=document.getElementById('sheet');if(se)se.scrollTop=0;})();
       break;
@@ -10321,6 +10639,9 @@ document.addEventListener('click',function(e){
           try{localStorage.setItem(KEY+'.wt',JSON.stringify(WTGT));}catch(e2){}
           try{localStorage.setItem(KEY+'.iv',String(IVs));}catch(e3){}
         }
+        /* 칸의 값이 STG·WTGT 로 들어갔으므로 대기 상태는 뜻을 잃는다.
+           안 털면 저장 뒤에 손으로 고쳐도 칸이 도로 프리셋 값으로 그려진다. */
+        UI.gpre='';
         widgetSync();restNotify();
         toast('<em>Settings saved</em>');
         render();
