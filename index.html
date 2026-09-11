@@ -3452,16 +3452,20 @@ function renderSheet(){
        하나' 라 종류가 다르고, 헬스장 문을 열고 제일 먼저 볼 것이다.
        여섯째 갈래로 넣지 않은 까닭은 폭이다 — 320px 에서 탭이 여섯이면 칸이
        41.7px 인데 'Recovery' 가 48.9px 라 영어 화면에서 넷이 넘친다. */
-    if(ANLC==='train'&&hasLogs())
+    if(ANLC==='train'&&hasLogs()){
       /* nextRx 는 UI.wd 기준으로 지난 세션을 고른다(3902). 날짜를 넘겨 놓고
          열면 그 날 기준으로 그려지므로 머리글도 그 날짜를 적는다 — 수는 안
          바꾼다. 입력존과의 일치가 어느 날에서도 성립해야 한다. */
+      /* 한 번만 셈해서 머리글과 본문이 나눠 쓴다 */
+      var RT=routeToday();
       h+='<section class="zsec"><div class="zhd">'
         +'<b>'+(UI.wd===todayISO()?TX('오늘 루트'):TX('루트'))+'</b>'
-        +'<i>'+esc(UI.wd===todayISO()
-            ?TX1('보유 기구 {0}',S.m.filter(function(m){return !isCard(m.p);}).length)
-            :md(UI.wd))+'</i></div>'
-        +vzRoute()+'</section>';
+        /* '보유 기구 5' 는 설정에서 이미 아는 수였다. 루트가 예산을 지킨다는
+           말을 믿으려면 오늘 시킨 합이 보여야 한다 — 그 자리를 그것에 준다. */
+        +'<i>'+esc((UI.wd===todayISO()?'':md(UI.wd)+' \u00b7 ')
+            +(RT.tot>0?TX1('{0}세트',RT.tot):''))+'</i></div>'
+        +vzRoute(RT)+'</section>';
+    }
     h+='<section class="zsec"><div class="zhd"><b>'+TX('현황')+'</b><i>'+esc(catCtx(ANLC))+'</i></div>'
       +vzTabs(vlist,vcur,catAct(ANLC))
       +anlViz(ANL,vcur)
@@ -6742,6 +6746,14 @@ function rtLast(k){
   }
   return best;
 }
+/* 그 기구로 오늘 이미 한 세트. 저장한 것과 아직 칸에 있는 것 둘 다.
+   subCnt 와 같은 자(hardOf)로 세야 한쪽만 어긋나지 않는다. */
+function rtDone(id,ds){
+  var a=sessOn(id,ds),n=0;
+  if(a&&a.s)n+=hardOf(a.s).n;
+  if(UI.draft[id])n+=hardOf(UI.draft[id]).n;
+  return n;
+}
 /* 예열 램프. seen = 이 세션에 그 근육이 이미 몇 번 나왔나. */
 function rtWarm(m,W,rx,seen){
   var st=machStep(m.i),as=isAssist(m),out=[],i,prev=null;
@@ -6752,12 +6764,24 @@ function rtWarm(m,W,rx,seen){
   if(W<=st*3)n=Math.min(n,1);
   if(n<1)return out;
   var PCT=(n>=3)?[[0.5,8],[0.7,4],[0.85,2]]:(n===2?[[0.5,6],[0.75,3]]:[[0.6,5]]);
+  /* 보조는 설정 무게가 클수록 가볍고, 실부하는 effOf 가 체중−설정으로 낸다.
+     본셋 기준 대칭 반사로 잡으면 그 사실을 안 보므로 반사값이 체중을 넘을 수
+     있고, 넘으면 실부하가 0 이라 '앉아 있으라' 는 지시가 된다.
+     실부하 위에서 램프를 잡고 설정값으로 되돌린다. */
+  var bw=as?bwOn(UI.wd):0,eff=as?Math.max(0,bw-W):0;
+  if(as&&!(eff>st))return out;              /* 실부하가 한 스텝도 안 되면 램프가 없다 */
   for(i=0;i<PCT.length;i++){
-    var w=Math.round(W*PCT[i][0]/st)*st;
-    /* 보조머신은 무게가 클수록 가볍다 — 본셋에서 멀어지는 쪽으로 뒤집는다 */
-    if(as)w=Math.round((W+(W-w))/st)*st;
-    if(!as&&!(w<W))continue;                /* 스냅하고 나니 본셋과 같거나 무겁다 */
-    if(as&&!(w>W))continue;
+    var w;
+    if(as){
+      var e2=Math.round(eff*PCT[i][0]/st)*st;
+      if(!(e2>0))continue;
+      w=Math.round((bw-e2)/st)*st;
+      if(!(w>W))continue;                   /* 본셋보다 보조가 더 많아야 가볍다 */
+      if(!(bw-w>=st))continue;              /* 실부하가 한 스텝은 남아야 한다 */
+    }else{
+      w=Math.round(W*PCT[i][0]/st)*st;
+      if(!(w<W))continue;                   /* 스냅하고 나니 본셋과 같거나 무겁다 */
+    }
     if(prev!==null&&w===prev)continue;      /* 반올림으로 앞 램프와 겹쳤다 */
     if(w<=0)continue;
     out.push([w,PCT[i][1]]);prev=w;
@@ -6769,7 +6793,10 @@ function routeToday(){
   var cf=computedFacts()||{},td=todayISO();
   var rest=(RD.indexOf(new Date().getDay())>=0)||isOff(td);
   if(rest)return {rest:true};
-  var sc=subCnt(),left=Math.max(1,cf.remainTrainDays||1),cand=[],i,j;
+  /* computedFacts 는 오늘 근력 기록이 생기면 오늘을 지난 훈련일로 넘긴다
+     (8800). 루트는 오늘 것을 내는 화면이라 그 하루를 도로 세운다 — 안 그러면
+     세트를 저장할 때마다 분모가 줄어 오늘 할 일이 늘어난다. */
+  var sc=subCnt(),left=Math.max(1,(cf.remainTrainDays||0)+(hasTodayStrength()?1:0)),cand=[],i,j;
   var gap=[],noGear=[];
   for(i=0;i<SUBS.length;i++){
     var sb=SUBS[i],k=sb.k;
@@ -6786,9 +6813,14 @@ function routeToday(){
        것까지 세면 목표를 건 적 없는 근육 다섯이 '없는 목표' 로 실린다. */
     if(!gear.length){if(expl)noGear.push(subName(k));continue;}
     var ld=rtLast(k);
-    /* 어제 친 근육은 오늘 안 넣는다. 회복 갈래(partGap48)가 '같은 부위 이틀'
-       을 간격 부족이라 적고 있으므로, 루트가 그걸 시키면 두 갈래가 싸운다. */
-    if(ld&&daysAgo(ld)<2){gap.push(subName(k));continue;}
+    /* 어제 친 근육만 뺀다. 회복 갈래(partGap48)가 '같은 부위 이틀' 을 간격
+       부족이라 적으므로 루트가 그걸 시키면 두 갈래가 싸운다.
+       예전에는 daysAgo<2 라 오늘도 걸렸다 — 한 세트만 저장해도 그 근육이
+       통째로 빠지고 slice(0,5)가 다음 순위 다섯을 끌어올려, 세션 도중에
+       계획에 없던 부위가 새로 떴다. 게다가 오늘 친 것을 '어제 쳐서' 라고
+       적었다. 오늘 한 것은 배제가 아니라 차감이다 — subCnt 가 이미 세고
+       있어 need 에서 저절로 빠진다. */
+    if(ld&&daysAgo(ld)===1){gap.push(subName(k));continue;}
     /* 기구가 여럿이면 오래 안 한 것. 기록이 아예 없는 것은 무게를 못 내므로
        뒤로 민다 — 첫 기록은 직접 정해야 한다. */
     gear.sort(function(x,y){
@@ -6796,13 +6828,10 @@ function routeToday(){
       var dx=ax.length?daysAgo(ax[0].d):-1,dy=ay.length?daysAgo(ay[0].d):-1;
       return dy-dx;
     });
-    /* 오늘 이미 칸에 넣어 둔 세트는 뺀다. 안 빼면 넷이라 적어 놓고 그중
-       둘을 이미 한 화면이 되어, 사람이 세다가 틀린다. 다 했으면 줄을 뺀다. */
-    var dn=(UI.draft[gear[0].i]||[]).length;
-    var sets=Math.max(0,Math.min(4,Math.max(2,Math.ceil(need/left)))-dn);
-    if(!sets)continue;
+    /* 오늘 그 기구로 이미 한 세트 — 저장한 것과 칸에 있는 것 둘 다 */
+    var dn=rtDone(gear[0].i,td);
     cand.push({k:k,n:subName(k),m:gear[0],need:need,expl:expl,dn:dn,
-               log:sess(gear[0].i).length?1:0,sets:sets,goal:goal});
+               log:sess(gear[0].i).length?1:0,sets:0,goal:goal});
   }
   /* 차례. 먼저 한 종목의 근력이 더 는다는 것은 순서 규칙 중 근거가 선 몇
      안 되는 것이라, 그 앞자리를 가장 값진 곳에 쓴다.
@@ -6815,8 +6844,36 @@ function routeToday(){
     if(x.log!==y.log)return y.log-x.log;
     return (y.need/y.goal)-(x.need/x.goal);
   });
-  cand=cand.slice(0,RT_MAXEX);
-  var seen={},out=[];
+  /* 부위 예산. 루트가 이걸 안 보고 있었다 — 목표를 gvOf(명시 STG 없으면 MV)
+     로만 내면 열여덟 합이 V테이퍼에서 96 인데 그 사람이 적어 둔 WTGT 합은
+     77 이다. 하체는 26 대 15 로 앱이 스스로 빨강을 찍는 선을 넘었다.
+     '총량은 안 늘리고 자리만 옮긴다' 는 이 앱의 전제라, 루트가 그걸 어기면
+     감량 중에 회복만 깎인다. 이번 주 남은 몫을 남은 훈련일로 나눠 상한을 둔다. */
+  /* 부위 예산도 오늘 아침 기준으로 잡는다 — 오늘 한 것을 도로 더해 놓고
+     배분한 뒤 다시 뺀다. 남은 것만 보고 나누면 세트를 넣을 때마다 분자와
+     분모가 같이 움직여 오늘 몫이 흔들린다. */
+  var pc=partCnt(),share={},pk,dpart={};
+  for(i=0;i<cand.length;i++)dpart[cand[i].m.p]=(dpart[cand[i].m.p]||0)+cand[i].dn;
+  for(pk in WTGT){
+    if(pk==='CARDIO')continue;
+    share[pk]=Math.max(0,Math.ceil((Math.max(0,(WTGT[pk]||0)-(pc[pk]||0))+(dpart[pk]||0))/left));
+  }
+  var seen={},out=[],tot=0;
+  for(i=0;i<cand.length;i++){
+    var cc=cand[i],pp=cc.m.p;
+    /* 오늘 총 몫을 오늘 아침 상태에서 내고, 거기서 오늘 한 것을 뺀다.
+       need 가 이미 오늘 한 것을 뺀 수라 도로 더해야 아침이 된다.
+       남은 몫보다 많이 시키지도 않는다 — 예전 max(2,…)는 남은 몫이 1세트여도
+       2세트를 시켜 MV 로 깔린 근육 열셋에 체계적 초과를 얹었다. */
+    var am=cc.need+cc.dn;                   /* 오늘 아침의 남은 몫 */
+    var day=Math.min(am,Math.ceil(am/left),4,share[pp]||0);
+    var want=day-cc.dn;
+    if(want<1){share[pp]=Math.max(0,(share[pp]||0)-cc.dn);continue;}
+    share[pp]-=day;cc.sets=want;tot+=want;
+    out.push(cc);
+    if(out.length>=RT_MAXEX)break;
+  }
+  cand=out;out=[];
   for(i=0;i<cand.length;i++){
     /* 입력존(3005)·openRow(3993)와 같은 자리를 본다. nextRx 는 지난 세션의
        그 자리 세트를 보므로(3903), 자리가 다르면 같은 종목에 두 수가 나온다. */
@@ -6830,10 +6887,13 @@ function routeToday(){
               hold:!c.expl,warm:W?rtWarm(c.m,W,rp,seen[c.m.p]||0):[]});
     seen[c.m.p]=(seen[c.m.p]||0)+1;
   }
-  return {rest:false,list:out,gap:gap,noGear:noGear,left:left};
+  return {rest:false,list:out,gap:gap,noGear:noGear,left:left,tot:tot};
 }
-function vzRoute(){
-  var R=routeToday(),h='',i;
+/* R 은 부르는 쪽이 셈해서 넘긴다 — 머리글이 합계를 적어야 하는데 그것이
+   이 함수보다 먼저 그려진다. 안 넘기면 한 렌더에 두 번 돈다. */
+function vzRoute(R){
+  var h='',i;
+  if(!R)R=routeToday();
   if(R.rest)return '<div class="rtn" style="margin-top:0">'+TX('오늘은 쉬기로 한 날 — 루트 없음')+'</div>';
   if(!R.list.length){
     /* 아무것도 안 남았을 때 무엇이 그렇게 만들었는지는 세 가지로 갈린다.
@@ -6853,12 +6913,15 @@ function vzRoute(){
       +'<em>'+esc(x.sub)+(x.hold?' \u00b7 '+TX('최소'):'')+'</em>'
       +'<u>'+(x.w?fmtW(x.w)+'\u00d7'+x.r+(x.up?' \u2191':'')+' \u00b7 ':'')
       +TX1('{0}세트',x.sets)+'</u></div>';
-    h+='<div class="rtb">'
-      +(x.warm.length
-        ?'<i>'+TX('예열')+'</i>'+x.warm.map(function(q){return fmtW(q[0])+'\u00d7'+q[1];}).join(' \u2192 ')
-        /* 첫 기록이면 무게를 못 낸다. 지어내지 않고 그렇게 적는다. */
-        :(x.w?'<i>'+TX('예열')+'</i>'+TX('필요 없음'):TX('첫 기록 — 무게는 직접 정함')))
-      +'</div></div>';
+    /* 램프가 반올림으로 뭉개졌을 때 '필요 없음' 이라 적고 있었다. 그건
+       '이 무게에서는 칸이 없다' 이지 '예열이 필요 없다' 가 아니라, 근거가
+       말할 수 있는 것을 넘는다. 아무 말도 안 하고 줄을 뺀다. */
+    if(x.warm.length)
+      h+='<div class="rtb"><i>'+TX('예열')+'</i>'
+        +x.warm.map(function(q){return fmtW(q[0])+'\u00d7'+q[1];}).join(' \u2192 ')+'</div>';
+    /* 첫 기록이면 무게를 못 낸다. 지어내지 않고 그렇게 적는다. */
+    else if(!x.w)h+='<div class="rtb">'+TX('첫 기록 — 무게는 직접 정함')+'</div>';
+    h+='</div>';
   }
   /* 예열을 기록에 넣으면 세트 수·e1RM·다음 처방이 한꺼번에 어긋난다.
      그중 e1RM 오염은 S.l 에 영구히 남아 되돌릴 방법이 없다. 한 번만 말한다. */
@@ -7340,7 +7403,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-11 17:04';
+var BUILD='2026-09-11 17:28';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
