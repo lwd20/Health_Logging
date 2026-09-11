@@ -6442,6 +6442,24 @@ function trendRows(days){
   }
   return out;
 }
+/* 두 그림이 함께 쓰는 가로 창. 따로 잡으면 위는 9/2~오늘, 아래는 6/13~8/1
+   처럼 되어 세로로 나란한 같은 가로 위치가 서로 다른 날을 가리킨다 —
+   나란히 두는 뜻이 없어진다.
+   오른쪽 끝은 오늘로 못박고, 왼쪽 끝은 오늘-13일로 두되 자료가 그보다 늦게
+   시작하면 자료 쪽으로 당긴다(빈 칸을 그리지 않기 위해). 당길 때 두 그림의
+   자료를 함께 보는 것이 핵심이다 — 한쪽만 보면 둘이 다시 어긋난다. */
+var TRW=14;
+function trWin(){
+  var t1=new Date(today()).getTime(),lim=t1-(TRW-1)*86400000,e=null,i;
+  function see(ds){var t=new Date(ds).getTime();if(t>=lim&&t<=t1&&(e===null||t<e))e=t;}
+  var tr=trendRows(TRW);
+  for(i=0;i<tr.length;i++)if(tr[i].ate!=null)see(tr[i].d);
+  var bh=bhLoad();
+  for(i=0;i<bh.length;i++)if(bh[i].w>0&&bh[i].f>0)see(bh[i].d);
+  var t0=(e===null)?lim:e;
+  if(!(t1>t0))t0=t1-86400000;
+  return {t0:t0,t1:t1,span:Math.max(1,Math.round((t1-t0)/86400000))};
+}
 /* 어림수 눈금. 자료에서 그냥 뽑은 2,339 는 눈금이 아니다 — 사이를
    눈으로 나눌 수 없다. */
 function niceStep(range,want){
@@ -6456,19 +6474,19 @@ function niceStep(range,want){
    날이 어느 쪽인지 세지 않아도 보이게 한다.
    운동은 소비 선을 밀어 올린다. 운동한 날 선이 볼록해지는 것이 곧 운동이
    만든 몫이라 따로 막대를 쌓지 않아도 눈에 들어온다. */
-function chartEat(days){
-  var a=trendRows(days).filter(function(r){return r.ate!=null;});
+function chartEat(win){
+  var a=trendRows(TRW).filter(function(r){return r.ate!=null;});
   /* 기준은 '끝난 날 둘' 이다. 오늘까지 세면 끝난 날 하나 + 오늘로 그림이
      서서, 흐린 도막 하나만 덩그러니 남는다. */
   var fin=a.filter(function(r){return !r.part;});
   if(fin.length<2)return '';
   var W=320,H=126,L=36,R=7,T=14,B=19,i,lo=null,hi=null;
+  /* 창은 밖에서 받는다 — 몸 그림과 같은 것을 써야 한다 */
+  if(!win)win=trWin();
   function see(v){if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
   for(i=0;i<a.length;i++){see(a[i].ate);see(a[i].base+a[i].ex);}
   var pad=(hi-lo)*0.18||200;lo=Math.max(0,lo-pad);hi=hi+pad;
-  var t0=new Date(a[0].d).getTime(),t1=new Date(a[a.length-1].d).getTime();
-  if(!(t1>t0))t1=t0+86400000;
-  var span=Math.max(1,Math.round((t1-t0)/86400000));
+  var t0=win.t0,t1=win.t1,span=win.span;
   function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
   function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
   var g='';
@@ -6491,13 +6509,17 @@ function chartEat(days){
   for(i=0;i<=span;i++){
     var x=L+(W-L-R)*i/span;
     if(i%lab!==0&&i!==span)continue;
-    if(i===span&&span%lab!==0&&span%lab<lab*0.5)continue;
+    /* 오른쪽 끝은 늘 오늘이다 — 창에서 제일 중요한 날짜라 반드시 그린다.
+       예전에는 끝이 앞엣것과 가까우면 끝을 뺐는데, 창이 자료에 맞춰
+       늘어나던 시절의 규칙이다. 겹치면 그 앞엣것을 뺀다. */
+    if(i!==span&&span-i<lab*0.5)continue;
     if(i!==0&&i!==span)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+(H-B)+'"/>';
     g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
     var dd=new Date(t0+i*86400000);
     /* 마지막 점이 오늘이면 날짜 대신 '오늘' 이라 적는다. 범례를 안 읽어도
        어디가 오늘인지 알 수 있다 — 표식보다 이게 세다. */
-    var xl=(i===span&&a[a.length-1].part)?TX('오늘'):((dd.getMonth()+1)+'/'+dd.getDate());
+    /* 오른쪽 끝이 오늘로 못박혔으므로 마지막 눈금은 늘 오늘이다 */
+    var xl=(i===span)?TX('오늘'):((dd.getMonth()+1)+'/'+dd.getDate());
     g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
       +(i===0?'start':(i===span?'end':'middle'))+'">'+xl+'</text>';
   }
@@ -6653,10 +6675,24 @@ function chartEat(days){
    감량기에 진짜 물어야 할 것은 '빠진 게 지방이었나 근육이었나' 이고,
    세 선이 갈라지는 모양이 그 답이다.
    인바디 기록만 쓴다 — 체중계를 섞으면 체중만 촘촘해져 날짜가 어긋난다. */
-function chartBody(){
-  var a=bhLoad().filter(function(x){return x.w>0&&x.f>0;});
+/* win — 위 그림과 같은 창. 여기서 따로 잡으면 두 그림의 같은 가로 위치가
+   서로 다른 날을 가리킨다. L 도 34 였는데 36 으로 맞췄다: 축을 맞춰 놓고
+   여백이 2px 다르면 같은 날이 2px 어긋나 그려진다. */
+/* 창 안에 든 인바디 기록. 그림·캡션·요약이 다 이것을 써야 한 화면이
+   한 창을 말한다. */
+function bhBox(win){
+  if(!win)win=trWin();
+  return bhLoad().filter(function(x){
+    if(!(x.w>0&&x.f>0))return false;
+    var t=new Date(x.d).getTime();
+    return t>=win.t0&&t<=win.t1;
+  });
+}
+function chartBody(win){
+  if(!win)win=trWin();
+  var a=bhBox(win);
   if(a.length<2)return '';
-  var W=320,H=126,L=34,R=7,T=14,B=19,i;
+  var W=320,H=126,L=36,R=7,T=14,B=19,i;
   var w0=a[0].w,f0=a[0].f;
   var mFirst=null;
   for(i=0;i<a.length;i++)if(a[i].m>0){mFirst=a[i].m;break;}
@@ -6667,9 +6703,7 @@ function chartBody(){
     if(mFirst!==null&&a[i].m>0)see(a[i].m-mFirst);
   }
   var pd=Math.max(0.3,(hi-lo)*0.18);lo-=pd;hi+=pd;
-  var t0=new Date(a[0].d).getTime(),t1=new Date(a[a.length-1].d).getTime();
-  if(!(t1>t0))t1=t0+86400000;
-  var span=Math.max(1,Math.round((t1-t0)/86400000));
+  var t0=win.t0,t1=win.t1,span=win.span;
   function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
   function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
   var g='',st=niceStep(hi-lo,3),v=Math.ceil(lo/st)*st,gi=0;
@@ -6681,15 +6715,21 @@ function chartBody(){
   }
   /* 0 선은 시작점이다 — 위면 늘었고 아래면 줄었다 */
   g+='<line class="zr" x1="'+L+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(0).toFixed(1)+'"/>';
-  var lab=(span<=10?1:(span<=24?3:(span<=45?7:14)));
+  /* 위 그림과 같은 식이어야 눈금이 같은 자리에 선다 */
+  var lab=(span<=10?1:(span<=24?3:7));
   for(i=0;i<=span;i++){
     var x=L+(W-L-R)*i/span;
     if(i%lab!==0&&i!==span)continue;
-    if(i===span&&span%lab!==0&&span%lab<lab*0.5)continue;
+    /* 오른쪽 끝은 늘 오늘이다 — 창에서 제일 중요한 날짜라 반드시 그린다.
+       예전에는 끝이 앞엣것과 가까우면 끝을 뺐는데, 창이 자료에 맞춰
+       늘어나던 시절의 규칙이다. 겹치면 그 앞엣것을 뺀다. */
+    if(i!==span&&span-i<lab*0.5)continue;
     g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
     var dd=new Date(t0+i*86400000);
+    /* 위 그림과 같은 창·같은 자리이므로 끝 낱말도 같아야 한다 */
     g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
-      +(i===0?'start':(i===span?'end':'middle'))+'">'+(dd.getMonth()+1)+'/'+dd.getDate()+'</text>';
+      +(i===0?'start':(i===span?'end':'middle'))+'">'
+      +(i===span?TX('오늘'):((dd.getMonth()+1)+'/'+dd.getDate()))+'</text>';
   }
   /* 점 모양도 셋을 가른다 — 꽉 찬 동그라미·네모·빈 동그라미.
      모든 측정점에 찍는다: 인바디는 띄엄띄엄 재므로 점이 곧 언제 쟀나 다. */
@@ -6723,11 +6763,13 @@ function vzBody(tab){
   if(tab==='chg'){
     /* 요청은 '매일 먹는 음식, 매일 하는 운동의 추이' 였다. 그것부터 그린다 —
        체중을 언제 쟀는지와 무관하게 날마다 있는 자료다. */
-    var et=chartEat(35);
+    /* 창을 한 번 잡아 두 그림과 요약이 나눠 쓴다 */
+    var WIN=trWin();
+    var et=chartEat(WIN);
     if(et){
       /* 평균은 끝난 날들의 값이라야 한다. 진행 중인 오늘을 섞으면 반쪽
          값이 평균 적자를 부풀린다 — 그림에는 넣되 평균에서는 뺀다. */
-      var er=trendRows(35).filter(function(r){return r.ate!=null&&!r.part;});
+      var er=trendRows(TRW).filter(function(r){return r.ate!=null&&!r.part;});
       var sI=0,sO=0,sX=0,ng=0;
       er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
       var n2=er.length;
@@ -6744,7 +6786,7 @@ function vzBody(tab){
         +'<i class="k2">'+TX('7일 평균 <u>기록된 날</u>')+'</i></div>'
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
            주간도 월간도 아니고 '기록이 있는 날들' 이므로 그렇게 적는다 —
-           창은 35일이지만 그중 먹은 것이 적힌 날만 센다.
+           창은 2주지만 그중 먹은 것이 적힌 날만 센다.
            꼬리말은 섞였을 때만 붙인다. 전부 넘겼거나 하나도 안 넘겼으면
            앞의 '더 먹음/더 씀' 이 이미 그 말을 하고 있다. */
         /* '더 씀' 은 쉽게 쓰려다 오히려 어색해진 말이다. 적자·초과가 이 바닥에서
@@ -6762,9 +6804,9 @@ function vzBody(tab){
           })()+'</div>';
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
-    var bd2=chartBody();
+    var bd2=chartBody(WIN);
     if(bd2){
-      var ba=bhLoad().filter(function(x){return x.w>0&&x.f>0;});
+      var ba=bhBox(WIN);
       var b0=ba[0],b1=ba[ba.length-1];
       function dlt(x,y,u2){return (x>y?'+':'')+(Math.round((x-y)*10)/10)+u2;}
       h+=vzCap(TX1('몸 — {0} 대비 변화 · {1}회 측정',md(b0.d),ba.length))+bd2
@@ -6778,9 +6820,16 @@ function vzBody(tab){
         +'<i class="kF">'+TX1('체지방 <b>{0}</b>%',Math.round(b1.f*10)/10)+'</i>'
         +(b1.m>0&&b0.m>0?'<i class="kM">'+TX1('골격근 <b>{0}</b>kg',fmtW(b1.m))+'</i>':'')
         +'</div>';
-    }else h+=vzLine(TX('몸 변화'),TX('기록 부족'),
-      TX('인바디를 두 번 이상 재면 체중·체지방률·골격근량이 한 그림에 나옴'),
-      {t:'',c:''});
+    }else{
+      /* '기록 부족' 만 적으면 인바디를 아예 안 잰 사람과 2주 전에 잰 사람이
+         같은 화면을 본다. 창 안에 몇 번 쟀는지를 적는다 — 창을 2주로 끊은
+         것이 이 칸이 빈 까닭이므로 그 사실이 보여야 한다. */
+      var nb=bhBox(WIN).length,nAll=bhLoad().filter(function(x){return x.w>0&&x.f>0;}).length;
+      h+=vzLine(TX('몸 변화'),TX1('2주 안 {0}회',nb),
+        nAll>nb?TX('두 번부터 그려짐 · 그 전 기록은 창 밖이라 안 들어옴')
+               :TX('인바디를 두 번 이상 재면 체중·체지방률·골격근량이 한 그림에 나옴'),
+        {t:'',c:''});
+    }
   }
   if(tab==='burn'){
     var kh=kcalHtml();
@@ -7506,7 +7555,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-11 23:51';
+var BUILD='2026-09-12 00:54';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8300,6 +8349,9 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'2주 안 {0}회':'{0} in 2 weeks',
+'두 번부터 그려짐 · 그 전 기록은 창 밖이라 안 들어옴':'Drawn from two on · earlier records fall outside the window',
+
 '목표':'goal',
 '적자':'under',
 '7일 평균 <u>기록된 날</u>':'7-day avg <u>days logged</u>',
