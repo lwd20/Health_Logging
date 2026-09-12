@@ -931,10 +931,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .dInO{fill:none;stroke:var(--acc-br);stroke-width:2}
 .trg .dOutO{fill:none;stroke:var(--mut);stroke-width:1.6}
 .trg .tdy{opacity:.42}
-/* zr 은 몸 그림의 0선, sl 은 '오늘 기록 아직 없음' 이 쓴다 */
-.trg .zr{stroke:var(--line);stroke-width:1.4}
+/* sl 은 '오늘 기록 아직 없음' 과 축 보조 글자가 쓴다 */
 .trg .sl{font-size:8px;opacity:.85}
-/* 주간 누적 — 섭취(강조색 실선)·소비(흐린 점선)와 갈리게 흰 실선 */
+/* 직전 7일 누적 — 섭취(강조색 실선)·소비(흐린 점선)와 갈리게 흰 실선 */
 .trg .lCum{fill:none;stroke:var(--tx);stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}
 .trg .dCum{fill:var(--tx)}
 .trg .lRamp{fill:none;stroke:var(--mut);stroke-width:1.3;stroke-dasharray:4 3;opacity:.8}
@@ -1048,7 +1047,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .dW{fill:var(--acc-br)}
 .trg .dF{fill:var(--sig)}
 .trg .dM{fill:var(--plate);stroke:var(--mut);stroke-width:1.6}
-.trg .zr{stroke:var(--mut);stroke-width:1;opacity:.55}
+/* 한 번만 선언한다 — 위쪽에 같은 규칙이 또 있어 이쪽이 이기고 있었다.
+   몸 그림의 0선과 누적 칸의 0선이 같이 쓴다. */
+.trg .zr{stroke:var(--line);stroke-width:1.3;opacity:.9}
 /* 범례 표식을 그림과 같은 모양으로. 범례가 실선인데 그림이 파선이면
    범례가 거짓말이 된다 */
 .trgl i.kW::before{border-top:2.4px solid var(--acc-br);width:13px}
@@ -6472,38 +6473,38 @@ function niceStep(range,want){
    날이 어느 쪽인지 세지 않아도 보이게 한다.
    운동은 소비 선을 밀어 올린다. 운동한 날 선이 볼록해지는 것이 곧 운동이
    만든 몫이라 따로 막대를 쌓지 않아도 눈에 들어온다. */
-/* 그 날이 속한 주의 월요일 */
-function monOf(ds){
-  var d=new Date(ds),k=(d.getDay()+6)%7;
-  d.setDate(d.getDate()-k);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-/* 주별 누적 적자(소비−섭취). 적자가 양수다 — 요약 줄이 쓰는 말과 같은 부호라야
-   한 화면이 한 말을 한다. 월요일에 0 으로 되돌린다.
-   tgt 는 그때까지 '기록된 날 수 x 하루 목표' 다. 기록이 없는 날은 얼마 먹었는지
-   모르므로 누적을 안 올리는데, 목표만 올리면 안 적은 날마다 목표에서 멀어진다 —
-   기록을 빼먹은 벌을 적자 판정으로 주는 꼴이다. 둘이 같은 날을 센다. */
-function weekCum(days){
-  var a=trendRows(days||TRW).filter(function(r){return r.ate!=null&&!r.part;});
+/* 직전 7일 누적 적자(소비−섭취). 적자가 양수다 — 요약 줄이 쓰는 말과 같은
+   부호라야 한 화면이 한 말을 한다.
+   월요일 리셋을 쓰지 않는다. 2주 창은 월요일에 안 맞아 묶음이 둘이 됐다 셋이
+   됐다 하고, 각 도막이 0 이 아니라 첫날 적자값에서 시작해 공중에 떴다.
+   직전 7일이면 선이 하나로 이어지고, '1주간 총 얼마나' 라는 물음에 어느
+   시점에서든 답이 된다.
+   tgt 는 '그 창 안에 기록된 날 수 x 하루 목표' 다. 기록이 없는 날은 얼마
+   먹었는지 모르므로 합에 안 넣는데, 목표만 7일치로 두면 안 적은 날마다
+   목표에서 멀어진다 — 기록을 빼먹은 벌을 적자 판정으로 주는 꼴이다. */
+function cum7(){
+  var RW=7,RMIN=2;
+  var ext=trendRows(TRW+RW-1).filter(function(r){return r.ate!=null&&!r.part;});
   var dfc=0;
   try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)dfc=Math.round(nf.dailyDeficitTarget);}catch(e){}
-  var out=[],cur=null,mk='',i;
-  for(i=0;i<a.length;i++){
-    var m=monOf(a[i].d);
-    if(m!==mk){mk=m;cur={mon:m,pts:[]};out.push(cur);}
-    var prev=cur.pts.length?cur.pts[cur.pts.length-1]:null;
-    var v=(prev?prev.v:0)+((a[i].base+a[i].ex)-a[i].ate);
-    cur.pts.push({d:a[i].d,v:Math.round(v),n:(prev?prev.n:0)+1});
+  var pts=[],i,j;
+  for(i=0;i<ext.length;i++){
+    var t=new Date(ext[i].d).getTime(),sum=0,cnt=0;
+    for(j=0;j<=i;j++){
+      var gap=Math.round((t-new Date(ext[j].d).getTime())/86400000);
+      if(gap<0||gap>RW-1)continue;
+      sum+=(ext[j].base+ext[j].ex)-ext[j].ate;cnt++;
+    }
+    if(cnt>=RMIN)pts.push({d:ext[i].d,v:Math.round(sum),n:cnt});
   }
-  return {weeks:out,dfc:dfc};
+  return {pts:pts,dfc:dfc};
 }
-/* 이번 주 누적 — 줄에 적을 값 */
+/* 줄에 적을 값 — 그림의 마지막 점과 같아야 한다 */
 function cumNow(){
-  var w=weekCum(TRW),last=w.weeks.length?w.weeks[w.weeks.length-1]:null;
-  if(!last||!last.pts.length)return null;
-  var p=last.pts[last.pts.length-1];
-  if(monOf(todayISO())!==last.mon)return null;   /* 이번 주 기록이 없다 */
-  return {v:p.v,n:p.n,goal:w.dfc*p.n,dfc:w.dfc,d:p.d};
+  var c=cum7();
+  if(!c.pts.length)return null;
+  var p=c.pts[c.pts.length-1];
+  return {v:p.v,n:p.n,goal:c.dfc*p.n,dfc:c.dfc,d:p.d};
 }
 function chartEat(win){
   var a=trendRows(TRW).filter(function(r){return r.ate!=null;});
@@ -6514,6 +6515,12 @@ function chartEat(win){
   var W=320,H=126,L=36,R=7,T=14,B=19,i,lo=null,hi=null;
   /* 창은 밖에서 받는다 — 몸 그림과 같은 것을 써야 한다 */
   if(!win)win=trWin();
+  /* 두 칸의 세로 자리를 여기서 못박는다. 아래 칸이 있을 때만 쓰이고,
+     없으면 CBOT 이 위 패널 바닥이라 예전과 같은 그림이 된다.
+     H 는 절대 다시 대입하지 않는다 — Y() 가 H 를 클로저로 잡는다. */
+  var CTOP=119,CBOT=107,VH=H;
+  var C7=cum7();
+  if(C7.pts.length>=2){CBOT=166;VH=183;}
   function see(v){if(lo===null||v<lo)lo=v;if(hi===null||v>hi)hi=v;}
   for(i=0;i<a.length;i++){see(a[i].ate);see(a[i].base+a[i].ex);}
   var pad=(hi-lo)*0.18||200;lo=Math.max(0,lo-pad);hi=hi+pad;
@@ -6544,14 +6551,17 @@ function chartEat(win){
        예전에는 끝이 앞엣것과 가까우면 끝을 뺐는데, 창이 자료에 맞춰
        늘어나던 시절의 규칙이다. 겹치면 그 앞엣것을 뺀다. */
     if(i!==span&&span-i<lab*0.5)continue;
-    if(i!==0&&i!==span)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+(H-B)+'"/>';
-    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
+    /* 격자와 눈금과 날짜를 누적 칸 아래로 내린다. 예전에는 위 패널 바로 밑에
+       있어서(축선 107 · 눈금 110 · 날짜 122) '그래프가 여기서 끝났다' 는 신호가
+       거기 다 모였고, 그 아래 누적 칸은 아무 표식 없는 딴 그림으로 읽혔다.
+       세로 격자도 107 에서 끊겨 두 칸을 맞춰 볼 단서가 없었다. */
+    if(i!==0&&i!==span)g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+CBOT+'"/>';
+    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+CBOT+'" x2="'+x.toFixed(1)+'" y2="'+(CBOT+3)+'"/>';
     var dd=new Date(t0+i*86400000);
-    /* 마지막 점이 오늘이면 날짜 대신 '오늘' 이라 적는다. 범례를 안 읽어도
-       어디가 오늘인지 알 수 있다 — 표식보다 이게 세다. */
-    /* 오른쪽 끝이 오늘로 못박혔으므로 마지막 눈금은 늘 오늘이다 */
+    /* 오른쪽 끝이 오늘로 못박혔으므로 마지막 눈금은 늘 오늘이다. 범례를 안
+       읽어도 어디가 오늘인지 알 수 있다 — 표식보다 이게 세다. */
     var xl=(i===span)?TX('오늘'):((dd.getMonth()+1)+'/'+dd.getDate());
-    g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
+    g+='<text x="'+x.toFixed(1)+'" y="'+(CBOT+14)+'" text-anchor="'
       +(i===0?'start':(i===span?'end':'middle'))+'">'+xl+'</text>';
   }
   /* 구간마다 칠하고 긋는다 */
@@ -6647,57 +6657,57 @@ function chartEat(win){
   if(tdD.part)
     g+='<circle class="dOutO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.base+tdD.ex).toFixed(1)+'" r="2.8"/>'
       +'<circle class="dInO" cx="'+X(tdD.d).toFixed(1)+'" cy="'+Y(tdD.ate).toFixed(1)+'" r="3.2"/>';
-  /* ── 주간 누적 적자 ──
-     하루치 적자는 두 선 사이의 틈이라 '이번 주 얼마나 모았나' 가 안 나온다.
-     누적을 따로 긋는다. 0 에서 시작해 올라가기만 하므로 축이 0 하나뿐이고
-     부호가 없다 — 읽는 데 드는 것이 '점선보다 위인가' 하나다.
-     x 를 위 그림과 공유하니 어느 날인지도 바로 맞는다. */
-  var WC=weekCum(TRW);
-  var wk=[],wi,wj;
-  for(wi=0;wi<WC.weeks.length;wi++)if(WC.weeks[wi].pts.length>=2)wk.push(WC.weeks[wi]);
-  if(wk.length){
-    var CB=H+9,CH=48,CP=7;
-    var chi=0;
-    for(wi=0;wi<wk.length;wi++)for(wj=0;wj<wk[wi].pts.length;wj++){
-      if(wk[wi].pts[wj].v>chi)chi=wk[wi].pts[wj].v;
-      if(WC.dfc*wk[wi].pts[wj].n>chi)chi=WC.dfc*wk[wi].pts[wj].n;
+  /* ── 직전 7일 누적 적자 ──
+     하루치 적자는 두 선 사이의 틈이라 '1주간 총 얼마나 모았나' 가 안 나온다.
+     아래 칸에 따로 긋는다. 위 패널과 x 를 공유하고 날짜 라벨도 맨 아래 하나를
+     같이 쓰므로, 둘이 한 그림의 위아래 칸으로 읽힌다. */
+  if(C7.pts.length>=2){
+    var cp=C7.pts,ci,chi=0,clo=0;
+    for(ci=0;ci<cp.length;ci++){
+      if(cp[ci].v>chi)chi=cp[ci].v;
+      if(cp[ci].v<clo)clo=cp[ci].v;
+      if(C7.dfc*cp[ci].n>chi)chi=C7.dfc*cp[ci].n;
     }
-    var clo=0;
-    for(wi=0;wi<wk.length;wi++)for(wj=0;wj<wk[wi].pts.length;wj++)
-      if(wk[wi].pts[wj].v<clo)clo=wk[wi].pts[wj].v;
     if(!(chi>clo))chi=clo+100;
-    var cpad=(chi-clo)*0.12;chi+=cpad;clo-=cpad*0.5;
-    function CY(v){return CB+CP+(chi-v)/(chi-clo)*(CH-CP*2);}
+    var cpad=(chi-clo)*0.14;chi+=cpad;clo-=cpad*0.4;
+    function CY(v){return CTOP+(chi-v)/(chi-clo)*(CBOT-CTOP);}
+    /* 눈금을 준다. 예전에는 '0' 하나뿐이라 칸 꼭대기가 2,000인지 5,000인지
+       알 길이 없었다 — 위 패널과 같은 식(niceStep)으로 뽑는다. */
     var cz=CY(0);
-    g+='<line class="zr" x1="'+L+'" y1="'+cz.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cz.toFixed(1)+'"/>'
-      +'<text class="sl" x="'+(L-4)+'" y="'+(cz+3).toFixed(1)+'" text-anchor="end">0</text>';
-    for(wi=0;wi<wk.length;wi++){
-      var pc=[],pg=[],ps=wk[wi].pts;
-      for(wj=0;wj<ps.length;wj++){
-        pc.push(X(ps[wj].d).toFixed(1)+','+CY(ps[wj].v).toFixed(1));
-        pg.push(X(ps[wj].d).toFixed(1)+','+CY(WC.dfc*ps[wj].n).toFixed(1));
-      }
-      /* 0 과 누적 사이를 칠한다 — 두께가 곧 모은 양이다 */
-      g+='<polygon class="cFill" points="'+X(ps[0].d).toFixed(1)+','+cz.toFixed(1)+' '
-        +pc.join(' ')+' '+X(ps[ps.length-1].d).toFixed(1)+','+cz.toFixed(1)+'"/>';
-      if(WC.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
-      g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
+    var cst=niceStep(chi-clo,3),cv=Math.ceil(clo/cst)*cst,cgi=0;
+    while(cv<=chi+1e-9&&cgi<8){
+      var cyy=CY(cv),crv=Math.round(cv);
+      /* 0 자리에는 0선(zr)이 이미 있다 — 격자를 겹쳐 그으면 같은 자리에 선이 둘이다.
+         그리고 Math.round 는 아주 작은 음수를 -0 으로 만든다(축 라벨이 '-0' 이 됐다). */
+      if(Math.abs(crv)>=1)
+        g+='<line class="gr" x1="'+L+'" y1="'+cyy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cyy.toFixed(1)+'"/>';
+      g+='<text x="'+(L-4)+'" y="'+(cyy+3).toFixed(1)+'" text-anchor="end">'
+        +(crv===0?'0':crv.toLocaleString())+'</text>';
+      cv+=cst;cgi++;
     }
-    /* 끝값이 곧 답이다 — '이번 주 이만큼 모았다' */
-    var lw=wk[wk.length-1],lp=lw.pts[lw.pts.length-1];
-    var cx2=X(lp.d),cAn='end';
+    g+='<line class="zr" x1="'+L+'" y1="'+cz.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cz.toFixed(1)+'"/>';
+    var pc=[],pg=[];
+    for(ci=0;ci<cp.length;ci++){
+      pc.push(X(cp[ci].d).toFixed(1)+','+CY(cp[ci].v).toFixed(1));
+      pg.push(X(cp[ci].d).toFixed(1)+','+CY(C7.dfc*cp[ci].n).toFixed(1));
+    }
+    /* 0 과 선 사이를 칠한다 — 두께가 곧 모은 양이다 */
+    g+='<polygon class="cFill" points="'+X(cp[0].d).toFixed(1)+','+cz.toFixed(1)+' '
+      +pc.join(' ')+' '+X(cp[cp.length-1].d).toFixed(1)+','+cz.toFixed(1)+'"/>';
+    if(C7.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
+    g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
+    /* 끝값이 곧 답이다 — '직전 7일에 이만큼 모았다' */
+    var lp=cp[cp.length-1],cx2=X(lp.d);
     if(cx2>W-R-2)cx2=W-R;
-    /* 목표에 못 미치면 점 아래에 적는데, 누적이 작으면 그 자리가 0선이다.
-       0선을 넘어갈 것 같으면 점 위로 올린다 — 실측 여유가 1.3px 뿐이었다. */
-    var cOff=(lp.v>=WC.dfc*lp.n)?-6:12;
-    if(cOff>0&&CY(lp.v)+cOff+2>cz)cOff=-6;
+    var cGoal=C7.dfc*lp.n;
+    var cOff=(lp.v>=cGoal)?-6:12;
+    if(cOff>0&&CY(lp.v)+cOff+2>CBOT)cOff=-6;
     g+='<circle class="dCum" cx="'+X(lp.d).toFixed(1)+'" cy="'+CY(lp.v).toFixed(1)+'" r="2.6"/>'
-      +'<text class="gv '+(lp.v>=WC.dfc*lp.n?'gvOK':'gvNG')+'" x="'+cx2.toFixed(1)+'" y="'
-      +(CY(lp.v)+cOff).toFixed(1)+'" text-anchor="'+cAn+'">'
+      +'<text class="gv '+(lp.v>=cGoal?'gvOK':'gvNG')+'" x="'+cx2.toFixed(1)+'" y="'
+      +(CY(lp.v)+cOff).toFixed(1)+'" text-anchor="end">'
       +md(lp.d)+' '+(lp.v<0?'-':'')+Math.abs(Math.round(lp.v)).toLocaleString()+'</text>';
-    H=CB+CH;
   }
-  return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
+  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" '
     +'aria-label="'+TX('날마다 먹은 열량과 태운 열량')+'">'+g+'</svg>';
 }
 /* 체중·체지방률·골격근량을 한 그림에. 셋은 단위가 달라(kg·%·kg) 절대값을
@@ -6759,8 +6769,9 @@ function chartBody(win){
     if(i!==span&&span-i<lab*0.5)continue;
     g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+(H-B)+'" x2="'+x.toFixed(1)+'" y2="'+(H-B+3)+'"/>';
     var dd=new Date(t0+i*86400000);
-    /* 위 그림과 같은 창·같은 자리이므로 끝 낱말도 같아야 한다 */
-    g+='<text x="'+x.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'
+    /* 위 그림과 같은 창·같은 자리이므로 끝 낱말도 자리도 같아야 한다.
+       위 그림은 눈금 바닥에서 +14 로 적는다 — 같은 식을 쓴다. */
+    g+='<text x="'+x.toFixed(1)+'" y="'+((H-B)+14)+'" text-anchor="'
       +(i===0?'start':(i===span?'end':'middle'))+'">'
       +(i===span?TX('오늘'):((dd.getMonth()+1)+'/'+dd.getDate()))+'</text>';
   }
@@ -6816,7 +6827,7 @@ function vzBody(tab){
            세 번째 선처럼 보였다. 범례가 거짓말을 한 셈이다.
            범례는 '어느 선이 무엇인가' 만, 요약은 딴 줄에 말로 적는다. */
         +'<div class="trgl"><i class="k1">'+TX('섭취')+'</i><i>'+TX('소비 <u>운동 포함</u>')+'</i>'
-        +'<i class="k2">'+TX('주간 누적 적자 <u>점선은 목표</u>')+'</i></div>'
+        +'<i class="k2">'+TX('직전 7일 누적 <u>점선은 목표</u>')+'</i></div>'
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
            주간도 월간도 아니고 '기록이 있는 날들' 이므로 그렇게 적는다 —
            창은 2주지만 그중 먹은 것이 적힌 날만 센다.
@@ -6846,12 +6857,14 @@ function vzBody(tab){
         /* 지켰다고 볼 폭은 okBand 를 쓴다 — 식단이 쓰는 바로 그 자다.
            누적이므로 폭도 날수만큼 늘어난다. */
         var bndC=okBand(cn.dfc)*Math.sqrt(cn.n);
-        var vdC=(cn.v<=0)?{t:TX('초과'),c:'neg'}
+        /* 0 은 넘긴 것이 아니라 못 판 것이다. <=0 으로 두면 딱 0 인 날에
+           '초과' 라 적으면서 부제는 초과량을 안 적어 한 줄이 두 말을 한다. */
+        var vdC=(cn.v<0)?{t:TX('초과'),c:'neg'}
                :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
                :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
-        h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
-          (cn.v<0?TX1('월~오늘 {0}일 기록 · {1}kcal 초과',cn.n,Math.abs(cn.v).toLocaleString())
-                 :TX1('월~오늘 {0}일 기록 · 하루 목표 {1}',cn.n,cn.dfc.toLocaleString())),vdC,false);
+        h+=vzBar(TX('1주간 적자'),(cn.v<0?0:cn.v),cn.goal,
+          (cn.v<0?TX1('직전 7일 중 {0}일 기록 · {1}kcal 초과',cn.n,Math.abs(cn.v).toLocaleString())
+                 :TX1('직전 7일 중 {0}일 기록 · 하루 목표 {1}',cn.n,cn.dfc.toLocaleString())),vdC,false);
       }
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
@@ -7606,7 +7619,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 13:09';
+var BUILD='2026-09-12 13:32';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8400,10 +8413,11 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
-'주간 누적 적자 <u>점선은 목표</u>':'Weekly cumulative <u>dashed is goal</u>',
-'이번 주 적자':'This week’s deficit',
-'월~오늘 {0}일 기록 · 하루 목표 {1}':'{0} days logged since Mon · {1} per day',
-'월~오늘 {0}일 기록 · {1}kcal 초과':'{0} days logged since Mon · {1} kcal over',
+'직전 7일 누적 <u>점선은 목표</u>':'Last 7 days <u>dashed is goal</u>',
+'1주간 적자':'7-day deficit',
+'직전 7일 중 {0}일 기록 · 하루 목표 {1}':'{0} of the last 7 days logged · {1} per day',
+'직전 7일 중 {0}일 기록 · {1}kcal 초과':'{0} of the last 7 days logged · {1} kcal over',
+
 
 
 /* 같은 줄에 뜨는 '목표 미달' 이 UNDER TARGET 이라 대문자다(식단 탭의 세 짝).
