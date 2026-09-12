@@ -6607,22 +6607,28 @@ function chartCum(win){
       pg.push(X(fin[k].d).toFixed(1)+','+CY(fin[k].g).toFixed(1));
     }
     if(fin.length>=2){
-      /* 0 과 선 사이를 칠한다 — 두께가 곧 그 주에 쌓은 양이다.
-         부호가 바뀌는 구간(초과로 0 밑까지 내려간 주)은 교차점에서 자른다. */
+      /* 선과 점선 사이를 칠한다. 예전에는 0 에서 선까지 칠했는데, '얼마나
+         쌓았나' 는 선의 높이가 이미 y축으로 말하므로 같은 말을 두 번 하는
+         셈이었다. 정작 묻는 것은 '목표에 얼마나 못 미치나' 이고 그건 두 선
+         사이 간격이라 눈대중을 해야 했다 — 그 넓이를 칠한다.
+         부호가 바뀌는 구간은 교차점에서 자른다(위 그림과 같은 규칙). */
       for(k=1;k<fin.length;k++){
         var f0=fin[k-1],f1=fin[k];
-        var fx0=X(f0.d),fx1=X(f1.d),fy0=CY(f0.v),fy1=CY(f1.v);
-        function fq(cl,xa,ya,xb,yb){
-          g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+cz.toFixed(1)+' '
+        var fx0=X(f0.d),fx1=X(f1.d);
+        var fy0=CY(f0.v),fy1=CY(f1.v),gy0=CY(f0.g),gy1=CY(f1.g);
+        var e0=f0.v-f0.g,e1=f1.v-f1.g;      /* 목표와의 차이 */
+        function fq(cl,xa,ya,ga,xb,yb,gb){
+          g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+ga.toFixed(1)+' '
             +xa.toFixed(1)+','+ya.toFixed(1)+' '+xb.toFixed(1)+','+yb.toFixed(1)+' '
-            +xb.toFixed(1)+','+cz.toFixed(1)+'"/>';
+            +xb.toFixed(1)+','+gb.toFixed(1)+'"/>';
         }
-        if(f0.v===0||f1.v===0||(f0.v>0)===(f1.v>0)){
-          fq(((f0.v+f1.v)>=0?'cFill':'cFillN'),fx0,fy0,fx1,fy1);
+        if(e0===0||e1===0||(e0>0)===(e1>0)){
+          fq(((e0+e1)>=0?'cFill':'cFillN'),fx0,fy0,gy0,fx1,fy1,gy1);
         }else{
-          var ft=f0.v/(f0.v-f1.v),fxc=fx0+(fx1-fx0)*ft;
-          fq((f0.v>=0?'cFill':'cFillN'),fx0,fy0,fxc,cz);
-          fq((f1.v>=0?'cFill':'cFillN'),fxc,cz,fx1,fy1);
+          var ft=e0/(e0-e1),fxc=fx0+(fx1-fx0)*ft;
+          var fyc=fy0+(fy1-fy0)*ft;          /* 만나는 자리 — 둘의 y 가 같다 */
+          fq((e0>=0?'cFill':'cFillN'),fx0,fy0,gy0,fxc,fyc,fyc);
+          fq((e1>=0?'cFill':'cFillN'),fxc,fyc,fyc,fx1,fy1,gy1);
         }
       }
       /* 목표 점선을 나란히. 선과 점선 사이 간격이 곧 '기대치와의 차이' 다 */
@@ -6995,9 +7001,14 @@ function vzBody(tab){
                :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
                :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
         /* 끝값이 창 전체 누적이므로 '1주간' 이라 적을 수 없다 — 창을 적는다 */
+        /* kcal 은 몸으로 안 와닿는다 — 1,650 이 큰지 작은지는 7,700 으로 나눠
+           봐야 안다. 그 셈을 해서 적는다. 감량기에 사람이 실제로 보는 단위다.
+           '하루 목표 550' 은 뺐다: 위 칸 점선이 이미 그 기울기이고 분모가
+           그것의 날수 배라 두 번 말하는 셈이다. */
+        function kgOf(v){var r=v/7700;return (r>=0?'-':'+')+Math.abs(r).toFixed(2)+'kg';}
         h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
-          (cn.v<0?TX1('월~오늘 {0}일 기록 · {1}kcal 초과',cn.n,Math.abs(cn.v).toLocaleString())
-                 :TX1('월~오늘 {0}일 기록 · 하루 목표 {1}',cn.n,cn.dfc.toLocaleString())),vdC,false);
+          (cn.v<0?TX1('월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}',cn.n,Math.abs(cn.v).toLocaleString(),kgOf(cn.v))
+                 :TX1('월~오늘 {0}일 · 체중 {1} (목표 {2})',cn.n,kgOf(cn.v),kgOf(cn.goal))),vdC,false);
       }
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
@@ -7752,7 +7763,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 18:44';
+var BUILD='2026-09-12 23:34';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8546,13 +8557,13 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}':'{0} days since Mon · {1} kcal over · weight {2}',
+'월~오늘 {0}일 · 체중 {1} (목표 {2})':'{0} days since Mon · weight {1} (goal {2})',
 '주간 누적 적자 <u>점선은 목표</u>':'Weekly cumulative deficit <u>dashed is goal</u>',
 
 '주간 누적 적자 · 월요일에 0 부터':'Weekly cumulative deficit · resets Monday',
 
 '이번 주 적자':'This week’s deficit',
-'월~오늘 {0}일 기록 · 하루 목표 {1}':'{0} days logged since Mon · {1} per day',
-'월~오늘 {0}일 기록 · {1}kcal 초과':'{0} days logged since Mon · {1} kcal over',
 
 '목표':'Goal',
 
