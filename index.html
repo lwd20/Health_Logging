@@ -6547,16 +6547,30 @@ function chartEat(win){
         +' '+X(tail.d).toFixed(1)+','+Y(tail.ate).toFixed(1)+'"/></g>';
     }
     if(rn.length<2)continue;
-    /* 하루하루 사다리꼴로 칠해야 부호가 바뀌는 날도 제 색이 난다 */
+    /* 하루하루 사다리꼴로 칠한다. 다만 두 끝의 부호가 다르면 그 구간은
+       중간에서 뒤집히므로 색 하나로는 한쪽이 거짓이 된다 — 큰 초과 하루가
+       양옆 하루를 통째로 물들이던 자리다(9/6 초과 하나가 9/5·9/7 을 삼켰다).
+       두 선이 만나는 자리에서 잘라 조각 둘로 칠한다. 만나는 곳은 적자 d 가
+       0 이 되는 데라 t=d0/(d0-d1) 이고, Y 가 선형이라 그 t 에서 두 선의 y 가
+       같다 — 조각은 삼각형 둘이 된다. */
     for(k=1;k<rn.length;k++){
       var p0=rn[k-1],p1=rn[k];
       var d0=(p0.base+p0.ex)-p0.ate,d1=(p1.base+p1.ex)-p1.ate;
-      var cls=((d0+d1)>=0?'bOK':'bNG');
-      g+='<polygon class="'+cls+'" points="'
-        +X(p0.d).toFixed(1)+','+Y(p0.ate).toFixed(1)+' '
-        +X(p1.d).toFixed(1)+','+Y(p1.ate).toFixed(1)+' '
-        +X(p1.d).toFixed(1)+','+Y(p1.base+p1.ex).toFixed(1)+' '
-        +X(p0.d).toFixed(1)+','+Y(p0.base+p0.ex).toFixed(1)+'"/>';
+      var x0=X(p0.d),x1=X(p1.d);
+      var a0=Y(p0.ate),o0=Y(p0.base+p0.ex),a1=Y(p1.ate),o1=Y(p1.base+p1.ex);
+      function quad(cl,xa,ya,oa,xb,yb,ob){
+        g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+ya.toFixed(1)+' '
+          +xb.toFixed(1)+','+yb.toFixed(1)+' '+xb.toFixed(1)+','+ob.toFixed(1)+' '
+          +xa.toFixed(1)+','+oa.toFixed(1)+'"/>';
+      }
+      if(d0===0||d1===0||(d0>0)===(d1>0)){
+        quad(((d0+d1)>=0?'bOK':'bNG'),x0,a0,o0,x1,a1,o1);
+      }else{
+        var t=d0/(d0-d1);
+        var xc=x0+(x1-x0)*t,yc=a0+(a1-a0)*t;
+        quad((d0>=0?'bOK':'bNG'),x0,a0,o0,xc,yc,yc);
+        quad((d1>=0?'bOK':'bNG'),xc,yc,yc,x1,a1,o1);
+      }
     }
     g+='<polyline class="lOut" points="'+pOut.join(' ')+'"/>'
       +'<polyline class="lIn" points="'+pIn.join(' ')+'"/>';
@@ -6578,9 +6592,13 @@ function chartEat(win){
     if(xx>W-R-14){an='end';xx=W-R;}
     else if(xx<L+14){an='start';xx=L;}
     g+='<text class="gv '+(df>=0?'gvOK':'gvNG')+'" x="'+xx.toFixed(1)+'" y="'+yy.toFixed(1)
-      /* 부호를 df>=0 으로 가르면 0 이 음수 쪽에 붙어 '-0' 이 된다 */
+      /* 부호를 df>=0 으로 가르면 0 이 음수 쪽에 붙어 '-0' 이 된다.
+         날마다 안 적을 때는 x축 눈금이 사흘 간격이라 이 값이 어느 날 것인지
+         세어야 안다 — 그때만 날짜를 붙인다. 날마다 적을 때는 눈금도 날마다
+         찍히므로 같은 말이 두 번 된다. */
       +'" text-anchor="'+an+'">'+(function(){var rv=Math.round(df);
-          return (rv===0?'':(rv>0?'-':'+'))+Math.abs(rv).toLocaleString();})()+'</text>';
+          return (everyDay?'':md(rr.d)+' ')
+            +(rv===0?'':(rv>0?'-':'+'))+Math.abs(rv).toLocaleString();})()+'</text>';
   }
   /* 오른쪽 끝을 오늘로 못박은 뒤로, 삼성헬스가 아직 오늘 것을 안 넘긴
      아침에는 끝이 통째로 빈다. 기록이 오면 흐린 도막과 빈 원이 그려지므로
@@ -6675,7 +6693,7 @@ function chartEat(win){
     g+='<circle class="dRl" cx="'+X(lastR.d).toFixed(1)+'" cy="'+SY(lastR.v).toFixed(1)+'" r="2.6"/>'
       +'<text class="gv '+(lv<=0?'gvOK':'gvNG')+'" x="'+lx.toFixed(1)+'" y="'
       +(SY(lastR.v)+loff).toFixed(1)+'" text-anchor="'+lan+'">'
-      +(lv===0?'':(lv<0?'-':'+'))+Math.abs(lv).toLocaleString()+'</text>';
+      +md(lastR.d)+' '+(lv===0?'':(lv<0?'-':'+'))+Math.abs(lv).toLocaleString()+'</text>';
     H=SB+SH;
   }
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
@@ -7569,7 +7587,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 10:09';
+var BUILD='2026-09-12 11:27';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
