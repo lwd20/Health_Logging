@@ -940,6 +940,8 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .trg .dCumO{fill:none;stroke:var(--tx);stroke-width:2}
 .trg .lRamp{fill:none;stroke:var(--mut);stroke-width:1.3;stroke-dasharray:4 3;opacity:.8}
 .trg .cFill{fill:var(--acc-br);opacity:.10}
+/* 주가 바뀌는 자리. 끊긴 것이 아니라 새로 시작한 것이라는 표시다 */
+.trg .wkd{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3;opacity:.9}
 .trgl i.k2::before{border-top:2px solid var(--tx)}
 /* 감량 구성. 막대는 준 만큼을 지방/제지방으로 쪼갠다 — 둘을 더하면 체중이라
    길이가 그대로 뜻이 된다. 판정 낱말은 오른쪽 끝에 */
@@ -6486,6 +6488,12 @@ function niceStep(range,want){
    n 은 그때까지 기록된 날 수다. 목표선이 그것에 비례해 오른다: 기록이 없는
    날은 얼마 먹었는지 모르므로 합에 안 넣는데 목표만 올리면 안 적은 날마다
    목표에서 멀어진다 — 기록 빼먹은 벌을 적자 판정으로 주는 꼴이다. */
+/* 그 날이 속한 주의 월요일 */
+function monOf(ds){
+  var d=new Date(ds),k=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-k);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function cumWin(win){
   /* 창을 받아 그 안으로 자른다. trendRows(TRW) 는 dsAgo(14) 즉 오늘-14 부터
      주는데 창은 오늘-13 부터라, 그냥 쓰면 하루가 더 딸려 와 축 왼쪽 밖
@@ -6502,16 +6510,26 @@ function cumWin(win){
   });
   var dfc=0;
   try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)dfc=Math.round(nf.dailyDeficitTarget);}catch(e){}
-  var pts=[],sum=0,i;
+  /* 주마다 0 으로 되돌린다. 2주를 내리 쌓으면 창이 미는 만큼 가장 오래된
+     날이 빠져 새로 먹은 것이 없어도 총액이 내려간다(실측 7,635 -> 7,126).
+     주 경계에서 끊으면 한 주 안에서는 쌓이기만 한다. */
+  var wk=[],cur=null,mk='',sum=0,cnt=0,i;
   for(i=0;i<a.length;i++){
-    sum+=(a[i].base+a[i].ex)-a[i].ate;
-    pts.push({d:a[i].d,v:Math.round(sum),n:i+1,part:!!a[i].part});
+    var m=monOf(a[i].d);
+    if(m!==mk){mk=m;sum=0;cnt=0;cur={mon:m,pts:[]};wk.push(cur);}
+    sum+=(a[i].base+a[i].ex)-a[i].ate;cnt++;
+    cur.pts.push({d:a[i].d,v:Math.round(sum),n:cnt,part:!!a[i].part});
   }
-  return {pts:pts,dfc:dfc};
+  return {weeks:wk,dfc:dfc};
 }
 /* 줄에 적을 값 — 그림의 마지막 점과 같아야 한다 */
 function cumNow(){
-  var c=cumWin(trWin()),fin=c.pts.filter(function(p){return !p.part;});
+  var c=cumWin(trWin());
+  if(!c.weeks.length)return null;
+  /* 이번 주 것만 적는다 — 끝값이 이번 주 누적이므로 */
+  var w=c.weeks[c.weeks.length-1];
+  if(monOf(todayISO())!==w.mon)return null;
+  var fin=w.pts.filter(function(p){return !p.part;});
   if(!fin.length)return null;
   /* 끝난 날 기준이다. 반쪽 값을 수로 내보이면 아침마다 '목표 이상' 이 떴다가
      저녁에 '미달' 로 바뀐다. */
@@ -6525,20 +6543,19 @@ function cumNow(){
 function chartCum(win){
   if(!win)win=trWin();
   var C=cumWin(win);
-  if(C.pts.length<2)return '';
+  /* 점이 몇 개인지는 주로 갈린 뒤에 센다(아래 nPt) — C.pts 는 없다 */
   var W=320,L=36,R=7,T=8,CBOT=96,VH=110,i;
   var t0=win.t0,t1=win.t1,span=win.span;
   function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
-  /* 끝난 날과 오늘을 가른다. 오늘은 흐린 도막과 빈 원으로만 — 위 그림과
-     같은 표식이라 두 그림이 같은 말을 쓴다. */
-  var cAll=C.pts,cTail=null;
-  if(cAll.length&&cAll[cAll.length-1].part)cTail=cAll[cAll.length-1];
-  var cp=cAll.filter(function(p){return !p.part;}),chi=0,clo=0;
-  if(cp.length<2)return '';
-  for(i=0;i<cAll.length;i++){
-    if(cAll[i].v>chi)chi=cAll[i].v;
-    if(cAll[i].v<clo)clo=cAll[i].v;
-    if(C.dfc*cAll[i].n>chi)chi=C.dfc*cAll[i].n;
+  var WK=C.weeks,chi=0,clo=0,wi,wj;
+  var nPt=0;
+  for(wi=0;wi<WK.length;wi++)nPt+=WK[wi].pts.length;
+  if(nPt<2)return '';
+  for(wi=0;wi<WK.length;wi++)for(wj=0;wj<WK[wi].pts.length;wj++){
+    var q=WK[wi].pts[wj];
+    if(q.v>chi)chi=q.v;
+    if(q.v<clo)clo=q.v;
+    if(C.dfc*q.n>chi)chi=C.dfc*q.n;
   }
   if(!(chi>clo))chi=clo+100;
   /* 위쪽 여백을 잘게 준다. 목표선 끝이 그 자체로 위 끝이라 그 위에 빈 칸을
@@ -6572,29 +6589,51 @@ function chartCum(win){
       +(i===0?'start':(i===span?'end':'middle'))+'">'+xl+'</text>';
   }
   g+='<line class="zr" x1="'+L+'" y1="'+cz.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cz.toFixed(1)+'"/>';
-  var pc=[],pg=[];
-  for(i=0;i<cp.length;i++){
-    pc.push(X(cp[i].d).toFixed(1)+','+CY(cp[i].v).toFixed(1));
-    pg.push(X(cp[i].d).toFixed(1)+','+CY(C.dfc*cp[i].n).toFixed(1));
+  /* 주가 바뀌는 자리에 세로 선. 도막이 나뉘는 것을 그냥 두면 '왜 끊겼나' 가
+     남는다 — 끊긴 것이 아니라 0 에서 새로 시작한 것이라는 표시다. */
+  for(wi=1;wi<WK.length;wi++){
+    var wx=X(WK[wi].pts[0].d);
+    if(wx>L+2&&wx<W-R-2)
+      g+='<line class="wkd" x1="'+wx.toFixed(1)+'" y1="'+T+'" x2="'+wx.toFixed(1)+'" y2="'+CBOT+'"/>';
   }
-  /* 0 과 선 사이를 칠한다 — 두께가 곧 모은 양이다 */
-  g+='<polygon class="cFill" points="'+X(cp[0].d).toFixed(1)+','+cz.toFixed(1)+' '
-    +pc.join(' ')+' '+X(cp[cp.length-1].d).toFixed(1)+','+cz.toFixed(1)+'"/>';
-  if(C.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
-  g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
-  /* 마지막 끝난 날에서 오늘까지 — 흐리게. 목표선도 같이 잇는다. 한쪽만 이으면
-     그 사이 간격이 거짓이 된다. */
-  if(cTail){
-    var pv=cp[cp.length-1];
-    g+='<g class="tdy">'
-      +(C.dfc>0?'<polyline class="lRamp" points="'+X(pv.d).toFixed(1)+','+CY(C.dfc*pv.n).toFixed(1)
-        +' '+X(cTail.d).toFixed(1)+','+CY(C.dfc*cTail.n).toFixed(1)+'"/>':'')
-      +'<polyline class="lCum" points="'+X(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
-      +' '+X(cTail.d).toFixed(1)+','+CY(cTail.v).toFixed(1)+'"/></g>'
-      +'<circle class="dCumO" cx="'+X(cTail.d).toFixed(1)+'" cy="'+CY(cTail.v).toFixed(1)+'" r="3"/>';
+  var lp=null;
+  for(wi=0;wi<WK.length;wi++){
+    var ps=WK[wi].pts,fin=[],tail=null,k;
+    for(k=0;k<ps.length;k++){if(ps[k].part)tail=ps[k];else fin.push(ps[k]);}
+    if(fin.length)lp=fin[fin.length-1];
+    var pc=[],pg=[];
+    for(k=0;k<fin.length;k++){
+      pc.push(X(fin[k].d).toFixed(1)+','+CY(fin[k].v).toFixed(1));
+      pg.push(X(fin[k].d).toFixed(1)+','+CY(C.dfc*fin[k].n).toFixed(1));
+    }
+    if(fin.length>=2){
+      /* 0 과 선 사이를 칠한다 — 두께가 곧 모은 양이다 */
+      g+='<polygon class="cFill" points="'+X(fin[0].d).toFixed(1)+','+cz.toFixed(1)+' '
+        +pc.join(' ')+' '+X(fin[fin.length-1].d).toFixed(1)+','+cz.toFixed(1)+'"/>';
+      if(C.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
+      g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
+    }else if(fin.length===1){
+      /* 한 점짜리 주. 선은 못 긋지만 점은 찍는다 — 버리면 그 날이 사라진다 */
+      g+='<circle class="dCum" cx="'+X(fin[0].d).toFixed(1)+'" cy="'+CY(fin[0].v).toFixed(1)+'" r="2"/>';
+    }
+    /* 마지막 끝난 날에서 오늘까지 — 흐리게. 목표선도 같이 잇는다.
+       한쪽만 이으면 그 사이 간격이 거짓이 된다. */
+    if(tail){
+      if(fin.length){
+        var pv=fin[fin.length-1];
+        g+='<g class="tdy">'
+          +(C.dfc>0?'<polyline class="lRamp" points="'+X(pv.d).toFixed(1)+','+CY(C.dfc*pv.n).toFixed(1)
+            +' '+X(tail.d).toFixed(1)+','+CY(C.dfc*tail.n).toFixed(1)+'"/>':'')
+          +'<polyline class="lCum" points="'+X(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
+          +' '+X(tail.d).toFixed(1)+','+CY(tail.v).toFixed(1)+'"/></g>';
+      }
+      g+='<circle class="dCumO" cx="'+X(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
+    }
   }
   /* 끝값이 곧 답이다 */
-  var lp=cp[cp.length-1],cx2=X(lp.d);
+  if(!lp)return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" '
+    +'aria-label="'+TX('누적 적자')+'">'+g+'</svg>';
+  var cx2=X(lp.d);
   if(cx2>W-R-2)cx2=W-R;
   var cGoal=C.dfc*lp.n;
   var cOff=(lp.v>=cGoal)?-6:12;
@@ -6886,7 +6925,7 @@ function vzBody(tab){
         +(function(){
             var cu=chartCum(WIN);
             if(!cu)return '';
-            return vzCap(TX('누적 적자'))+cu
+            return vzCap(TX('누적 적자 · 주마다 0 부터'))+cu
               +'<div class="trgl"><i class="k2">'+TX('누적 적자')+'</i><i>'+TX('목표')+'</i></div>';
           })()
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
@@ -6924,9 +6963,9 @@ function vzBody(tab){
                :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
                :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
         /* 끝값이 창 전체 누적이므로 '1주간' 이라 적을 수 없다 — 창을 적는다 */
-        h+=vzBar(TX('누적 적자'),(cn.v<0?0:cn.v),cn.goal,
-          (cn.v<0?TX1('2주 창 · {0}일 기록 · {1}kcal 초과',cn.n,Math.abs(cn.v).toLocaleString())
-                 :TX1('2주 창 · {0}일 기록 · 하루 목표 {1}',cn.n,cn.dfc.toLocaleString())),vdC,false);
+        h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
+          (cn.v<0?TX1('월~오늘 {0}일 기록 · {1}kcal 초과',cn.n,Math.abs(cn.v).toLocaleString())
+                 :TX1('월~오늘 {0}일 기록 · 하루 목표 {1}',cn.n,cn.dfc.toLocaleString())),vdC,false);
       }
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
@@ -7681,7 +7720,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 15:05';
+var BUILD='2026-09-12 15:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8475,11 +8514,13 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'누적 적자 · 주마다 0 부터':'Cumulative deficit · resets each Monday',
+'이번 주 적자':'This week’s deficit',
+'월~오늘 {0}일 기록 · 하루 목표 {1}':'{0} days logged since Mon · {1} per day',
+'월~오늘 {0}일 기록 · {1}kcal 초과':'{0} days logged since Mon · {1} kcal over',
+
 '목표':'Goal',
 
-'누적 적자':'Cumulative deficit',
-'2주 창 · {0}일 기록 · 하루 목표 {1}':'2-week window · {0} days logged · {1} per day',
-'2주 창 · {0}일 기록 · {1}kcal 초과':'2-week window · {0} days logged · {1} kcal over',
 
 
 
