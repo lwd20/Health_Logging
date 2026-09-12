@@ -6636,9 +6636,13 @@ function chartEat(win){
     for(rj=0;rj<=ri;rj++){
       var gap=Math.round((t-new Date(ext[rj].d).getTime())/86400000);
       if(gap<0||gap>RW-1)continue;
-      /* 섭취 − 소비. 음수가 적자다 — 위 그림에서도 섭취 선이 아래면 적자라
-         부호를 그쪽에 맞춘다. 아래가 좋은 쪽. */
-      sum+=ext[rj].ate-(ext[rj].base+ext[rj].ex);cnt++;
+      /* 소비 − 섭취. 적자가 양수다.
+         예전에는 반대로 잡아 적자가 아래로 갔는데, 바로 아래 요약 줄이
+         '하루 평균 358kcal 적자' 라고 적자를 양수로 부른다 — 한 화면에서
+         같은 것을 그림은 음수로, 글은 양수로 말했다. 게다가 목표선이
+         아래에 있으니 목표를 지킬수록 선이 내려가, 목표를 향해 올라간다는
+         상식과 반대로 움직였다. */
+      sum+=(ext[rj].base+ext[rj].ex)-ext[rj].ate;cnt++;
     }
     if(cnt>=RMIN)roll.push({d:ext[ri].d,v:sum/cnt});
   }
@@ -6651,36 +6655,55 @@ function chartEat(win){
     try{var nf2=nutriFacts();if(nf2&&nf2.dailyDeficitTarget>0)dfc=Math.round(nf2.dailyDeficitTarget);}catch(e2){}
     var slo=0,shi=0;
     for(ri=0;ri<roll.length;ri++){if(roll[ri].v<slo)slo=roll[ri].v;if(roll[ri].v>shi)shi=roll[ri].v;}
-    if(dfc>0&&-dfc<slo)slo=-dfc;         /* 목표선이 칸 밖으로 나가면 뜻이 없다 */
-    /* 볼 것이 아래(적자)에 몰려 있다. 위쪽 여백을 더 주면 그 칸이 통째로 빈다. */
+    if(dfc>0&&dfc>shi)shi=dfc;           /* 목표선이 칸 밖으로 나가면 뜻이 없다 */
+    /* 볼 것이 위(적자)에 몰려 있다. 아래쪽 여백을 더 주면 그 칸이 통째로 빈다. */
     var sp=Math.max(70,(shi-slo)*0.10);
-    slo-=sp;shi+=sp*0.45;
+    shi+=sp;slo-=sp*0.45;
     function SY(v){return SB+SP+(shi-v)/(shi-slo)*(SH-SP*2);}
     var z=SY(0);
-    /* 0 아래로 칠한다 — 적자 쪽이 얼마나 두꺼운지가 곧 답이다 */
-    var pr=[],pz=[];
-    for(ri=0;ri<roll.length;ri++){
-      pr.push(X(roll[ri].d).toFixed(1)+','+SY(roll[ri].v).toFixed(1));
-      pz.push(X(roll[ri].d).toFixed(1)+','+z.toFixed(1));
+    /* 0 과 선 사이를 칠한다 — 적자 쪽이 얼마나 두꺼운지가 곧 답이다.
+       위 그림과 같은 이유로 부호가 바뀌는 구간은 교차점에서 자른다.
+       안 자르면 초과 하루가 양옆 하루를 통째로 물들인다. */
+    var pr=[],ri2;
+    for(ri=0;ri<roll.length;ri++)pr.push(X(roll[ri].d).toFixed(1)+','+SY(roll[ri].v).toFixed(1));
+    function sq(cl,xa,ya,xb,yb){
+      g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+z.toFixed(1)+' '
+        +xa.toFixed(1)+','+ya.toFixed(1)+' '+xb.toFixed(1)+','+yb.toFixed(1)+' '
+        +xb.toFixed(1)+','+z.toFixed(1)+'"/>';
     }
-    for(ri=1;ri<roll.length;ri++){
-      var q0=roll[ri-1],q1=roll[ri];
-      g+='<polygon class="'+((q0.v+q1.v)<=0?'sfOK':'sfNG')+'" points="'
-        +X(q0.d).toFixed(1)+','+z.toFixed(1)+' '+X(q0.d).toFixed(1)+','+SY(q0.v).toFixed(1)+' '
-        +X(q1.d).toFixed(1)+','+SY(q1.v).toFixed(1)+' '+X(q1.d).toFixed(1)+','+z.toFixed(1)+'"/>';
+    for(ri2=1;ri2<roll.length;ri2++){
+      var q0=roll[ri2-1],q1=roll[ri2];
+      var qx0=X(q0.d),qx1=X(q1.d),qy0=SY(q0.v),qy1=SY(q1.v);
+      if(q0.v===0||q1.v===0||(q0.v>0)===(q1.v>0)){
+        sq(((q0.v+q1.v)>=0?'sfOK':'sfNG'),qx0,qy0,qx1,qy1);
+      }else{
+        var qt=q0.v/(q0.v-q1.v),qxc=qx0+(qx1-qx0)*qt;
+        sq((q0.v>=0?'sfOK':'sfNG'),qx0,qy0,qxc,z);
+        sq((q1.v>=0?'sfOK':'sfNG'),qxc,z,qx1,qy1);
+      }
     }
     g+='<line class="zr" x1="'+L+'" y1="'+z.toFixed(1)+'" x2="'+(W-R)+'" y2="'+z.toFixed(1)+'"/>';
-    /* 목표선. 수 하나만 보면 '-358 이 큰 건가' 를 알 수가 없는데, 주당
-       -0.5kg 에서 나온 하루 목표와 나란히 두면 자리로 읽힌다. */
-    if(dfc>0&&-dfc>slo&&-dfc<shi){
-      var yt=SY(-dfc);
+    /* 목표선. 수 하나만 보면 '303 이 큰 건가' 를 알 수가 없는데, 주당
+       -0.5kg 에서 나온 하루 목표와 나란히 두면 자리로 읽힌다.
+       이제 목표가 0 보다 위라, 선이 목표선을 넘으면 목표만큼 판 것이다. */
+    if(dfc>0&&dfc>slo&&dfc<shi){
+      var yt=SY(dfc);
       g+='<line class="lTg" x1="'+L+'" y1="'+yt.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yt.toFixed(1)+'"/>'
         +'<text class="sl" x="'+(L-4)+'" y="'+(yt+3).toFixed(1)+'" text-anchor="end">'+TX('목표')+'</text>';
     }
     g+='<polyline class="lRl" points="'+pr.join(' ')+'"/>';
-    /* 0 위아래 중 어느 쪽이 좋은 쪽인지는 눈금만 봐서는 안 나온다 */
-    g+='<text class="sl" x="'+(L-4)+'" y="'+(SB+SP-2).toFixed(1)+'" text-anchor="end">'+TX('초과')+'</text>'
-      +'<text class="sl" x="'+(L-4)+'" y="'+(SB+SH-SP+6).toFixed(1)+'" text-anchor="end">'+TX('적자')+'</text>';
+    /* 낱말을 선에 붙인다. 초과와 적자를 가르는 것은 0선인데, 예전에는 띠의
+       위아래 테두리에 박아 놨다 — 자료가 전부 적자면 0선이 맨 아래로 붙는데
+       낱말은 테두리에 있으니, 적자를 내고 있는데도 적자 칸 밖에 있는 것처럼
+       보였다. 0 은 0선에 적고, 초과는 실제로 0 아래로 내려갔을 때만 적는다. */
+    g+='<text class="sl" x="'+(L-4)+'" y="'+(z+3).toFixed(1)+'" text-anchor="end">0</text>';
+    /* 목표가 0 보다 한참 위라 0선은 띠 바닥에 붙는다 — 거기에 '초과' 까지
+       적으면 0 과 두 글자가 겹친다. 실제로 0 아래로 내려간 적이 있을 때만
+       적는다. 그때는 축이 아래로 늘어나 자리가 생긴다. */
+    var anyNg=false;
+    for(ri=0;ri<roll.length;ri++)if(roll[ri].v<0)anyNg=true;
+    if(anyNg)g+='<text class="sl" x="'+(L-4)+'" y="'+(SB+SH-2).toFixed(1)+'" text-anchor="end">'
+      +TX('초과')+'</text>';
     /* 마지막 값은 숫자로 적는다 — 이 띠를 보는 까닭이 그 수다 */
     var lastR=roll[roll.length-1],lv=Math.round(lastR.v);
     var lx=X(lastR.d),lan='end';
@@ -6688,12 +6711,14 @@ function chartEat(win){
     /* 끝값을 선 아래에 놓았더니 목표 점선 위에 겹쳐 앉았다. 둘이 가까우면
        목표선 반대쪽으로 민다 — 목표선이 이 띠에서 제일 중요한 눈금이라
        그것을 글자로 덮으면 안 된다. */
-    var loff=(lastR.v<=0?12:-6);
-    if(dfc>0){var ddy=SY(lastR.v)-SY(-dfc);if(Math.abs(ddy)<12)loff=(ddy<=0?-6:12);}
+    var loff=(lastR.v>=0?-6:12);
+    if(dfc>0){var ddy=SY(lastR.v)-SY(dfc);if(Math.abs(ddy)<12)loff=(ddy<=0?-6:12);}
     g+='<circle class="dRl" cx="'+X(lastR.d).toFixed(1)+'" cy="'+SY(lastR.v).toFixed(1)+'" r="2.6"/>'
-      +'<text class="gv '+(lv<=0?'gvOK':'gvNG')+'" x="'+lx.toFixed(1)+'" y="'
+      /* 적자가 양수다. 부호를 또 붙이면 '+303 적자' 가 되어 되레 헷갈린다 —
+         0 아래로 내려갔을 때만 '초과' 라는 뜻으로 -를 붙인다. */
+      +'<text class="gv '+(lv>=0?'gvOK':'gvNG')+'" x="'+lx.toFixed(1)+'" y="'
       +(SY(lastR.v)+loff).toFixed(1)+'" text-anchor="'+lan+'">'
-      +md(lastR.d)+' '+(lv===0?'':(lv<0?'-':'+'))+Math.abs(lv).toLocaleString()+'</text>';
+      +md(lastR.d)+' '+(lv<0?'-':'')+Math.abs(lv).toLocaleString()+'</text>';
     H=SB+SH;
   }
   return '<svg class="trg" viewBox="0 0 '+W+' '+H+'" role="img" '
@@ -7587,7 +7612,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 11:27';
+var BUILD='2026-09-12 12:52';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
