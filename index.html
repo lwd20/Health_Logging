@@ -6945,8 +6945,11 @@ function vzBody(tab){
         +(function(){
             var cu=chartCum(WIN);
             if(!cu)return '';
+            /* 선이 내려가는 것을 '살이 쪘다' 로 읽는 일이 실제로 났다. 내려가는 것은
+               적자가 준 것이 아니라 목표만큼 못 판 것이다 — 적자는 여전히 나고 있다.
+               낱말로 못박는다: 아래는 '덜 팜' 이지 '쪘다' 가 아니다. */
             return vzCap(TX('목표와의 차이 · 주마다 0 부터'))+cu
-              +'<div class="trgl"><i class="k2">'+TX('목표 대비 <u>0 이면 딱 맞음</u>')+'</i></div>';
+              +'<div class="trgl"><i class="k2">'+TX('목표 대비 <u>위면 더 팜 · 아래면 덜 팜</u>')+'</i></div>';
           })()
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
            주간도 월간도 아니고 '기록이 있는 날들' 이므로 그렇게 적는다 —
@@ -7740,7 +7743,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 15:57';
+var BUILD='2026-09-12 16:21';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8534,8 +8537,9 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'목표 대비 <u>위면 더 팜 · 아래면 덜 팜</u>':'Vs goal <u>above = dug deeper · below = less than planned</u>',
+
 '목표와의 차이 · 주마다 0 부터':'Gap to goal · resets each Monday',
-'목표 대비 <u>0 이면 딱 맞음</u>':'Vs goal <u>0 is on target</u>',
 
 '이번 주 적자':'This week’s deficit',
 '월~오늘 {0}일 기록 · 하루 목표 {1}':'{0} days logged since Mon · {1} per day',
