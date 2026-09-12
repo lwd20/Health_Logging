@@ -3464,24 +3464,10 @@ function renderSheet(){
         +CATS[cgi].k+'">'+TX(CATS[cgi].n)+'</button>';
     h+='</div>';
     var vlist=catTabs(ANLC),vcur=catCur(ANLC);
-    /* 훈련 카드의 다섯 갈래는 전부 '어디까지 왔나' 다. 루트는 '이제 무엇을
-       하나' 라 종류가 다르고, 헬스장 문을 열고 제일 먼저 볼 것이다.
-       여섯째 갈래로 넣지 않은 까닭은 폭이다 — 320px 에서 탭이 여섯이면 칸이
-       41.7px 인데 'Recovery' 가 48.9px 라 영어 화면에서 넷이 넘친다. */
-    if(ANLC==='train'&&hasLogs()){
-      /* nextRx 는 UI.wd 기준으로 지난 세션을 고른다(3902). 날짜를 넘겨 놓고
-         열면 그 날 기준으로 그려지므로 머리글도 그 날짜를 적는다 — 수는 안
-         바꾼다. 입력존과의 일치가 어느 날에서도 성립해야 한다. */
-      /* 한 번만 셈해서 머리글과 본문이 나눠 쓴다 */
-      var RT=routeToday();
-      h+='<section class="zsec"><div class="zhd">'
-        +'<b>'+(UI.wd===todayISO()?TX('오늘 루트'):TX('루트'))+'</b>'
-        /* '보유 기구 5' 는 설정에서 이미 아는 수였다. 루트가 예산을 지킨다는
-           말을 믿으려면 오늘 시킨 합이 보여야 한다 — 그 자리를 그것에 준다. */
-        +'<i>'+esc((UI.wd===todayISO()?'':md(UI.wd)+' \u00b7 ')
-            +(RT.tot>0?TX1('{0}세트',RT.tot):''))+'</i></div>'
-        +vzRoute(RT)+'</section>';
-    }
+    /* '오늘 루트' 카드를 뺐다(지우라는 요청). 셈(routeToday·vzRoute·rtWarm·
+       rtLast·rtDone)과 CSS 는 남겨 둔다 — 지우면 되살릴 때 다시 짜야 하고,
+       안 부르면 화면에 아무 값도 안 든다. 되살리려면 여기 한 덩이만 도로 넣으면
+       된다:  if(ANLC==='train'&&hasLogs()){ var RT=routeToday(); ... vzRoute(RT) } */
     h+='<section class="zsec"><div class="zhd"><b>'+TX('현황')+'</b><i>'+esc(catCtx(ANLC))+'</i></div>'
       +vzTabs(vlist,vcur,catAct(ANLC))
       +anlViz(ANL,vcur)
@@ -6646,6 +6632,18 @@ function chartCum(win){
       /* 한 점짜리 주. 선은 못 긋지만 점은 찍는다 — 버리면 그 날이 사라진다 */
       g+='<circle class="dCum" cx="'+X(fin[0].d).toFixed(1)+'" cy="'+CY(fin[0].v).toFixed(1)+'" r="2"/>';
     }
+    /* 끝난 주는 그 주가 얼마로 끝났는지를 적는다. 예전에는 창 전체의 마지막
+       점 하나에만 값이 붙어서, 지난주 도막은 그려만 지고 끝이 얼마인지
+       눈대중해야 했다 — '지난주에 결국 얼마나 팠나' 가 이 그림에서 제일 값진
+       수 중 하나다. 라벨은 점 왼쪽으로 뺀다: 오른쪽은 주 경계선과 다음 주
+       첫 점이 있어 겹친다. */
+    if(wi<WK.length-1&&fin.length){
+      var we=fin[fin.length-1];
+      g+='<circle class="dCum" cx="'+X(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>'
+        +'<text class="gv '+(we.v>=we.g?'gvOK':'gvNG')+'" x="'+(X(we.d)-5).toFixed(1)+'" y="'
+        +(CY(we.v)+(we.v>=we.g?-6:12)).toFixed(1)+'" text-anchor="end">'
+        +(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString()+'</text>';
+    }
     /* 마지막 끝난 날에서 오늘까지 — 흐리게. 목표선도 같이 잇는다.
        한쪽만 이으면 그 사이 간격이 거짓이 된다. */
     if(tail){
@@ -7754,7 +7752,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 16:24';
+var BUILD='2026-09-12 18:44';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
