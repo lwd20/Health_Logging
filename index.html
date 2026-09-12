@@ -926,6 +926,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 적자 날까지 색을 주면 여섯 개가 다 소리친다. 적자는 조용히 */
 .trg .gvOK{fill:var(--mut)}
 .trg .gvNG{fill:var(--sig)}
+/* 비켜 앉을 자리가 정말 없을 때만 까는 바탕. 수가 선에 먹히면 그림에 적은
+   뜻이 없다 — 선 한 토막을 가리는 쪽이 낫다. */
+.trg .gvbg{fill:var(--sheet-bg);opacity:.9}
 .trg .dIn{fill:var(--acc-br)}
 /* 오늘은 아직 안 끝났다 — 속을 비워 끝난 날의 채운 점과 가른다 */
 .trg .dInO{fill:none;stroke:var(--acc-br);stroke-width:2}
@@ -3480,8 +3483,10 @@ function renderSheet(){
        펴게 하면 안 된다. */
     var aif=(AIFOLD&&!AIFRESH);
     h+='<section class="zsec ai'+(aif?' fold':'')+'">'
-      +'<div class="zhd" data-act="aifold" role="button" aria-expanded="'+(aif?'false':'true')+'"><b>AI 분석</b>'
-      +'<i>하루 '+used+'/20<em class="fchv">'+(aif?'\u25BE':'\u25B4')+'</em></i></div>';
+      /* 영어 화면에 한국어로 남아 있던 두 낱말. 사전에는 옮긴 말이 둘 다
+         있는데 부르는 쪽에 TX 를 안 걸어 열쇠가 죽어 있었다. */
+      +'<div class="zhd" data-act="aifold" role="button" aria-expanded="'+(aif?'false':'true')+'"><b>'+TX('AI 분석')+'</b>'
+      +'<i>'+TX1('하루 {0}/20',used)+'<em class="fchv">'+(aif?'\u25BE':'\u25B4')+'</em></i></div>';
     if(aif){h+='</section>';}else{
     /* 세부 고르는 줄. 갈래 줄과 생김새를 일부러 다르게 둔다 — 같아 보이면
        한 화면에 똑같은 줄이 둘이라 무엇이 무엇을 바꾸는지 헷갈린다.
@@ -6531,6 +6536,91 @@ function cumNow(){
   /* 줄은 절대값을 맡는다 — 그림은 차이만 말하므로 겹치지 않는다 */
   return {v:p.a,n:p.n,goal:p.g,dfc:c.dfc,d:p.d};
 }
+/* 전 주가 얼마로 끝났는지. 이번 주 수 하나만으로는 좋은지 나쁜지가 안
+   정해진다 — 바로 앞 주가 그 잣대다. 창이 2주라 전 주가 통째로 안 들어올
+   수 있으므로 며칠치인지와 그 날짜를 같이 내보낸다. */
+function cumPrev(){
+  var c=cumWin(trWin()),tm=monOf(todayISO()),i;
+  for(i=c.weeks.length-1;i>=0;i--){
+    if(c.weeks[i].mon===tm)continue;
+    var fin=c.weeks[i].pts.filter(function(p){return !p.part;});
+    if(!fin.length)return null;
+    return {v:fin[fin.length-1].a,n:fin[fin.length-1].n,goal:fin[fin.length-1].g,
+            dfc:c.dfc,d0:fin[0].d,d:fin[fin.length-1].d};
+  }
+  return null;
+}
+/* kcal 은 몸으로 안 와닿는다 — 1,650 이 큰지 작은지는 7,700 으로 나눠 봐야
+   안다. 감량기에 사람이 실제로 보는 단위로 옮긴다. */
+function kgOf(v){var r=v/7700;return (r>=0?'-':'+')+Math.abs(r).toFixed(2)+'kg';}
+
+/* ── 그림 안의 수를 선이 안 가리게 ────────────────────────────────
+   지금까지 위/아래는 '목표보다 위냐 아래냐' 로 골랐다. 그건 선이 어디
+   있느냐와 상관없는 기준이라, 올라오는 끝점에서는 아래가 곧 선이 지나온
+   자리였다 — 거기 적은 수 위로 실선이 얹혔다.
+   선을 다 그은 뒤에 수를 앉힌다. 글자 네모를 지나는 선분이 없는 자리를
+   가까운 데부터 고르고, 그런 자리가 정말 없을 때만 바탕을 깐다. */
+var GVW=4.7,GVA=7.4,GVD=1.4;   /* 실측: 8.5px 모노 숫자 폭 4.59, 기준선 위 7.2 */
+function gvRect(x,y,txt,an){
+  var w=txt.length*GVW,x0=(an==='end')?x-w:(an==='middle'?x-w/2:x);
+  return [x0-1.5,y-GVA,x0+w+1.5,y+GVD];
+}
+/* 선분이 네모를 지나는가(Liang-Barsky). 선 굵기만큼 네모를 부풀린다 */
+function gvHit(sg,r){
+  var x0=sg[0],y0=sg[1],dx=sg[2]-sg[0],dy=sg[3]-sg[1];
+  var a=r[0]-1.2,b=r[1]-1.2,c=r[2]+1.2,d=r[3]+1.2;
+  var P=[-dx,dx,-dy,dy],Q=[x0-a,c-x0,y0-b,d-y0],t0=0,t1=1,i,p,q,t;
+  for(i=0;i<4;i++){
+    p=P[i];q=Q[i];
+    if(p===0){if(q<0)return false;continue;}
+    t=q/p;
+    if(p<0){if(t>t1)return false;if(t>t0)t0=t;}
+    else{if(t<t0)return false;if(t<t1)t1=t;}
+  }
+  return true;
+}
+/* 글자 상자를 그림 안으로 민다. 왼쪽 끝 주가 점 하나뿐이면 라벨이 y축
+   눈금 자리로 밀려 들어가 눈금처럼 읽혔다(8/30 주의 '900'). */
+function gvClampX(x,txt,an,xmin,xmax){
+  var r=gvRect(x,0,txt,an);
+  if(r[0]<xmin)return x+(xmin-r[0]);
+  if(r[2]>xmax)return x-(r[2]-xmax);
+  return x;
+}
+/* 점에서 위·아래로 번갈아 물러난다. 가까운 자리부터 본다.
+   칸 밖으로 나가는 후보는 gvPick 이 버리므로 넉넉히 놓아도 된다. */
+function gvCands(y){
+  var a=[y-7,y+12],i;
+  for(i=1;i<=4;i++){a.push(y-7-i*10);a.push(y+12+i*10);}
+  return a;
+}
+/* 후보 가운데 선과 안 겹치는 첫 자리. 없으면 제일 덜 겹치는 자리 */
+function gvPick(x,txt,an,cands,segs,top,bot){
+  var best=cands[0],bc=1e9,i,j,n,r;
+  for(i=0;i<cands.length;i++){
+    r=gvRect(x,cands[i],txt,an);
+    if(r[1]<top||r[3]>bot)continue;
+    n=0;
+    for(j=0;j<segs.length;j++)if(gvHit(segs[j],r))n++;
+    if(n===0)return {y:cands[i],hit:0};
+    if(n<bc){bc=n;best=cands[i];}
+  }
+  return {y:best,hit:(bc===1e9?1:bc)};
+}
+function gvText(x,txt,an,cls,cands,segs,top,bot){
+  var pk=gvPick(x,txt,an,cands,segs,top,bot),r=gvRect(x,pk.y,txt,an),out='';
+  /* 놓은 자리도 선분 목록에 넣는다 — 다음 수가 이 수를 피한다.
+     가운뎃줄까지 넣는 까닭: 테두리만 넣으면 다음 네모가 이 네모를 통째로
+     품을 때 아무 선분과도 안 만나 그냥 겹쳐 앉는다. */
+  segs.push([r[0],r[1],r[2],r[1]],[r[0],r[3],r[2],r[3]],
+            [r[0],r[1],r[0],r[3]],[r[2],r[1],r[2],r[3]],
+            [r[0],(r[1]+r[3])/2,r[2],(r[1]+r[3])/2]);
+  if(pk.hit>0)
+    out+='<rect class="gvbg" x="'+r[0].toFixed(1)+'" y="'+r[1].toFixed(1)+'" width="'
+      +(r[2]-r[0]).toFixed(1)+'" height="'+(r[3]-r[1]).toFixed(1)+'" rx="2"/>';
+  return out+'<text class="gv '+cls+'" x="'+x.toFixed(1)+'" y="'+pk.y.toFixed(1)
+    +'" text-anchor="'+an+'">'+txt+'</text>';
+}
 /* 누적 그림. chartEat 와 x 자(L·R·W·t0·t1)를 똑같이 써서 같은 날이 같은
    가로 자리에 선다 — 갈라 놓고도 위아래가 맞는 까닭이다.
    날짜 라벨은 이 그림이 갖는다. 위 그림 밑에 날짜를 두면 거기서 끝난 것으로
@@ -6561,6 +6651,8 @@ function chartCum(win){
   var cpd=Math.max(100,(chi-clo)*0.10);chi+=cpd*0.5;clo-=cpd*0.5;
   function CY(v){return T+(chi-v)/(chi-clo)*(CBOT-T);}
   var g='',cz=CY(0);
+  /* 수가 피해 갈 선분과, 선을 다 그은 뒤에 앉힐 수들 */
+  var CSEG=[],CLBL=[];
   /* 눈금 — 위 그림과 같은 식(niceStep) */
   var cst=niceStep(chi-clo,3),cv=Math.ceil(clo/cst)*cst,cgi=0;
   while(cv<=chi+1e-9&&cgi<8){
@@ -6617,6 +6709,8 @@ function chartCum(win){
         var fx0=X(f0.d),fx1=X(f1.d);
         var fy0=CY(f0.v),fy1=CY(f1.v),gy0=CY(f0.g),gy1=CY(f1.g);
         var e0=f0.v-f0.g,e1=f1.v-f1.g;      /* 목표와의 차이 */
+        CSEG.push([fx0,fy0,fx1,fy1]);
+        if(C.dfc>0)CSEG.push([fx0,gy0,fx1,gy1]);
         function fq(cl,xa,ya,ga,xb,yb,gb){
           g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+ga.toFixed(1)+' '
             +xa.toFixed(1)+','+ya.toFixed(1)+' '+xb.toFixed(1)+','+yb.toFixed(1)+' '
@@ -6645,10 +6739,10 @@ function chartCum(win){
        첫 점이 있어 겹친다. */
     if(wi<WK.length-1&&fin.length){
       var we=fin[fin.length-1];
-      g+='<circle class="dCum" cx="'+X(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>'
-        +'<text class="gv '+(we.v>=we.g?'gvOK':'gvNG')+'" x="'+(X(we.d)-5).toFixed(1)+'" y="'
-        +(CY(we.v)+(we.v>=we.g?-6:12)).toFixed(1)+'" text-anchor="end">'
-        +(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString()+'</text>';
+      g+='<circle class="dCum" cx="'+X(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>';
+      var wt=(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString();
+      CLBL.push({x:gvClampX(X(we.d)-5,wt,'end',L,W-R),y:CY(we.v),an:'end',
+        c:(we.v>=we.g?'gvOK':'gvNG'),t:wt});
     }
     /* 마지막 끝난 날에서 오늘까지 — 흐리게. 목표선도 같이 잇는다.
        한쪽만 이으면 그 사이 간격이 거짓이 된다. */
@@ -6660,6 +6754,8 @@ function chartCum(win){
             +' '+X(tail.d).toFixed(1)+','+CY(tail.g).toFixed(1)+'"/>':'')
           +'<polyline class="lCum" points="'+X(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
           +' '+X(tail.d).toFixed(1)+','+CY(tail.v).toFixed(1)+'"/></g>';
+        CSEG.push([X(pv.d),CY(pv.v),X(tail.d),CY(tail.v)]);
+        if(C.dfc>0)CSEG.push([X(pv.d),CY(pv.g),X(tail.d),CY(tail.g)]);
       }
       g+='<circle class="dCumO" cx="'+X(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
     }
@@ -6669,14 +6765,14 @@ function chartCum(win){
     +'aria-label="'+TX('누적 적자')+'">'+g+'</svg>';
   var cx2=X(lp.d);
   if(cx2>W-R-2)cx2=W-R;
-  /* 목표보다 위면 초록, 아래면 빨강 — 수 자체는 쌓은 적자다 */
-  var lpG=lp.g;
-  var cOff=(lp.v>=lpG)?-6:12;
-  if(cOff>0&&CY(lp.v)+cOff+2>CBOT)cOff=-6;
-  g+='<circle class="dCum" cx="'+X(lp.d).toFixed(1)+'" cy="'+CY(lp.v).toFixed(1)+'" r="2.6"/>'
-    +'<text class="gv '+(lp.v>=lpG?'gvOK':'gvNG')+'" x="'+cx2.toFixed(1)+'" y="'
-    +(CY(lp.v)+cOff).toFixed(1)+'" text-anchor="end">'
-    +md(lp.d)+' '+(lp.v<0?'-':'')+Math.abs(Math.round(lp.v)).toLocaleString()+'</text>';
+  /* 목표보다 위면 흐린 글씨, 아래면 빨강 — 수 자체는 쌓은 적자다 */
+  g+='<circle class="dCum" cx="'+X(lp.d).toFixed(1)+'" cy="'+CY(lp.v).toFixed(1)+'" r="2.6"/>';
+  var lt=md(lp.d)+' '+(lp.v<0?'-':'')+Math.abs(Math.round(lp.v)).toLocaleString();
+  CLBL.push({x:gvClampX(cx2,lt,'end',L,W-R),y:CY(lp.v),an:'end',
+    c:(lp.v>=lp.g?'gvOK':'gvNG'),t:lt});
+  /* 선이 다 그려졌다 — 이제 그 자리를 피해 수를 앉힌다 */
+  for(i=0;i<CLBL.length;i++)
+    g+=gvText(CLBL[i].x,CLBL[i].t,CLBL[i].an,CLBL[i].c,gvCands(CLBL[i].y),CSEG,T,CBOT);
   return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" '
     +'aria-label="'+TX('누적 적자')+'">'+g+'</svg>';
 }
@@ -6707,6 +6803,8 @@ function chartEat(win){
   function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
   function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
   var g='';
+  /* 수가 피해 갈 선분 — 아래 그림과 같은 자를 쓴다 */
+  var ESEG=[];
   /* 사흘 넘게 벌어지면 끊는다 — 이어 버리면 안 먹은 날을 지어내는 셈이다 */
   var runs=[],cur=[a[0]];
   for(i=1;i<a.length;i++){
@@ -6754,6 +6852,8 @@ function chartEat(win){
     for(k=0;k<rn.length;k++){
       pIn.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].ate).toFixed(1));
       pOut.push(X(rn[k].d).toFixed(1)+','+Y(rn[k].base+rn[k].ex).toFixed(1));
+      if(k)ESEG.push([X(rn[k-1].d),Y(rn[k-1].ate),X(rn[k].d),Y(rn[k].ate)],
+        [X(rn[k-1].d),Y(rn[k-1].base+rn[k-1].ex),X(rn[k].d),Y(rn[k].base+rn[k].ex)]);
     }
     if(tail&&rn.length){
       var pv=rn[rn.length-1];
@@ -6762,6 +6862,8 @@ function chartEat(win){
         +' '+X(tail.d).toFixed(1)+','+Y(tail.base+tail.ex).toFixed(1)+'"/>'
         +'<polyline class="lIn" points="'+X(pv.d).toFixed(1)+','+Y(pv.ate).toFixed(1)
         +' '+X(tail.d).toFixed(1)+','+Y(tail.ate).toFixed(1)+'"/></g>';
+      ESEG.push([X(pv.d),Y(pv.ate),X(tail.d),Y(tail.ate)],
+        [X(pv.d),Y(pv.base+pv.ex),X(tail.d),Y(tail.base+tail.ex)]);
     }
     if(rn.length<2)continue;
     /* 하루하루 사다리꼴로 칠한다. 다만 두 끝의 부호가 다르면 그 구간은
@@ -6796,6 +6898,15 @@ function chartEat(win){
      그림의 요점이므로 안에 적는다. 점이 여덟 이하면 날마다, 그보다 많으면
      마지막 날만 — 서른 개에 다 적으면 숫자가 겹쳐 못 읽는다. */
   var everyDay=(a.length<=8);
+  /* 오른쪽 위 '오늘 기록 아직 없음' 은 아래에서 그려진다 — 수가 그 자리를
+     모르고 앉아 겹치던 데다(무작위 200판 중 12번). 자리를 미리 막아 둔다.
+     글자 폭은 말에 따라 다르므로(한글 9자 · 영문 20자) 넉넉히 잡고,
+     가로선 셋으로 채운다: 테두리만 두면 라벨이 그 안에 통째로 들어간다. */
+  if(!a[a.length-1].part){
+    var nx0=W-R-96,nx1=W-R;
+    ESEG.push([nx0,T-1,nx1,T-1],[nx0,T+1.5,nx1,T+1.5],[nx0,T+4,nx1,T+4],
+              [nx0,T+6.5,nx1,T+6.5],[nx0,T+9,nx1,T+9]);
+  }
   for(i=0;i<a.length;i++){
     /* 오늘은 반쪽 값이다. 사이값을 적으면 진행 중인 것을 하루치 적자로
        읽게 되므로 안 적는다. */
@@ -6808,14 +6919,19 @@ function chartEat(win){
     /* 양끝에서는 글자가 그림 밖으로 나간다 */
     if(xx>W-R-14){an='end';xx=W-R;}
     else if(xx<L+14){an='start';xx=L;}
-    g+='<text class="gv '+(df>=0?'gvOK':'gvNG')+'" x="'+xx.toFixed(1)+'" y="'+yy.toFixed(1)
-      /* 부호를 df>=0 으로 가르면 0 이 음수 쪽에 붙어 '-0' 이 된다.
-         날마다 안 적을 때는 x축 눈금이 사흘 간격이라 이 값이 어느 날 것인지
-         세어야 안다 — 그때만 날짜를 붙인다. 날마다 적을 때는 눈금도 날마다
-         찍히므로 같은 말이 두 번 된다. */
-      +'" text-anchor="'+an+'">'+(function(){var rv=Math.round(df);
-          return (everyDay?'':md(rr.d)+' ')
-            +(rv===0?'':(rv>0?'-':'+'))+Math.abs(rv).toLocaleString();})()+'</text>';
+    /* 부호를 df>=0 으로 가르면 0 이 음수 쪽에 붙어 '-0' 이 된다.
+       날마다 안 적을 때는 x축 눈금이 사흘 간격이라 이 값이 어느 날 것인지
+       세어야 안다 — 그때만 날짜를 붙인다. 날마다 적을 때는 눈금도 날마다
+       찍히므로 같은 말이 두 번 된다. */
+    var rv=Math.round(df);
+    var tx2=(everyDay?'':md(rr.d)+' ')+(rv===0?'':(rv>0?'-':'+'))+Math.abs(rv).toLocaleString();
+    /* 두 선 사이가 첫 자리다 — 그 간격이 곧 이 수다. 거기가 막히면 두 선
+       바깥으로 물러난다. 9/11 값 위로 섭취선이 지나던 자리다. */
+    /* 좌우 끝 처리가 14px 로 박혀 있었다 — 날짜가 붙은 긴 라벨은 그것으로는
+       안 막힌다. 글자 폭으로 민다. */
+    var eC=[yy],eq;
+    for(eq=0;eq<5;eq++){eC.push(Math.min(yI,yO)-6-eq*10);eC.push(Math.max(yI,yO)+12+eq*10);}
+    g+=gvText(gvClampX(xx,tx2,an,L,W-R),tx2,an,(df>=0?'gvOK':'gvNG'),eC,ESEG,T,CBOT);
   }
   /* 오른쪽 끝을 오늘로 못박은 뒤로, 삼성헬스가 아직 오늘 것을 안 넘긴
      아침에는 끝이 통째로 빈다. 기록이 오면 흐린 도막과 빈 원이 그려지므로
@@ -7001,14 +7117,26 @@ function vzBody(tab){
                :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
                :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
         /* 끝값이 창 전체 누적이므로 '1주간' 이라 적을 수 없다 — 창을 적는다 */
-        /* kcal 은 몸으로 안 와닿는다 — 1,650 이 큰지 작은지는 7,700 으로 나눠
-           봐야 안다. 그 셈을 해서 적는다. 감량기에 사람이 실제로 보는 단위다.
-           '하루 목표 550' 은 뺐다: 위 칸 점선이 이미 그 기울기이고 분모가
-           그것의 날수 배라 두 번 말하는 셈이다. */
-        function kgOf(v){var r=v/7700;return (r>=0?'-':'+')+Math.abs(r).toFixed(2)+'kg';}
+        /* kcal 을 kg 으로 옮겨 적는다(kgOf). '하루 목표 550' 은 뺐다:
+           위 칸 점선이 이미 그 기울기이고 분모가 그것의 날수 배다. */
         h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
           (cn.v<0?TX1('월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}',cn.n,Math.abs(cn.v).toLocaleString(),kgOf(cn.v))
                  :TX1('월~오늘 {0}일 · 체중 {1} (목표 {2})',cn.n,kgOf(cn.v),kgOf(cn.goal))),vdC,false);
+      }
+      /* 전 주가 얼마로 끝났는지를 바로 밑에 붙인다. 이번 주 수 하나만으로는
+         좋은지 나쁜지가 안 정해진다 — 바로 앞 주가 그 잣대다. 그림 왼쪽
+         도막이 그 주인데, 거기서 눈으로 읽던 끝값을 수로 내린다.
+         창이 2주라 전 주가 통째로는 안 들어올 수 있다 — 며칠치인지 날짜로
+         적고 목표도 그 날수로 잡는다(이번 주 줄과 같은 규칙). */
+      var cp=cumPrev();
+      if(cp&&cp.dfc>0){
+        var bndP=okBand(cp.dfc)*Math.sqrt(cp.n);
+        var vdP=(cp.v<0)?{t:TX('초과'),c:'neg'}
+               :(cp.v>=cp.goal+bndP?{t:TX('목표 이상'),c:'pos'}
+               :(cp.v>=cp.goal-bndP?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
+        h+=vzBar(TX('전 주 적자'),(cp.v<0?0:cp.v),cp.goal,
+          (cp.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cp.d0),md(cp.d),cp.n,Math.abs(cp.v).toLocaleString(),kgOf(cp.v))
+                 :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cp.d0),md(cp.d),cp.n,kgOf(cp.v),kgOf(cp.goal))),vdP,false);
       }
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
@@ -7028,16 +7156,9 @@ function vzBody(tab){
         +'<i class="kF">'+TX1('체지방 <b>{0}</b>%',Math.round(b1.f*10)/10)+'</i>'
         +(b1.m>0&&b0.m>0?'<i class="kM">'+TX1('골격근 <b>{0}</b>kg',fmtW(b1.m))+'</i>':'')
         +'</div>';
-    }else{
-      /* '기록 부족' 만 적으면 인바디를 아예 안 잰 사람과 2주 전에 잰 사람이
-         같은 화면을 본다. 창 안에 몇 번 쟀는지를 적는다 — 창을 2주로 끊은
-         것이 이 칸이 빈 까닭이므로 그 사실이 보여야 한다. */
-      var nb=bhBox(WIN).length,nAll=bhLoad().filter(function(x){return x.w>0&&x.f>0;}).length;
-      h+=vzLine(TX('몸 변화'),TX1('2주 안 {0}회',nb),
-        nAll>nb?TX('두 번부터 그려짐 · 그 전 기록은 창 밖이라 안 들어옴')
-               :TX('인바디를 두 번 이상 재면 체중·체지방률·골격근량이 한 그림에 나옴'),
-        {t:'',c:''});
     }
+    /* 인바디가 창 안에 없을 때 '몸 변화 · 2주 안 0회' 줄을 두었던 자리다.
+       그 줄은 '없다' 만 말했다 — 대신 위에 전 주 적자를 넣었다. */
   }
   if(tab==='burn'){
     var kh=kcalHtml();
@@ -7763,7 +7884,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 23:34';
+var BUILD='2026-09-13 01:12';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8564,6 +8685,9 @@ var EN={
 '주간 누적 적자 · 월요일에 0 부터':'Weekly cumulative deficit · resets Monday',
 
 '이번 주 적자':'This week’s deficit',
+'전 주 적자':'Last week’s deficit',
+'{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}':'{0}–{1} · {2} days · {3} kcal over · weight {4}',
+'{0}~{1} {2}일 · 체중 {3} (목표 {4})':'{0}–{1} · {2} days · weight {3} (goal {4})',
 
 '목표':'Goal',
 
@@ -8577,8 +8701,6 @@ var EN={
 
 '오늘 기록 아직 없음':'no log for today yet',
 
-'2주 안 {0}회':'{0} in 2 weeks',
-'두 번부터 그려짐 · 그 전 기록은 창 밖이라 안 들어옴':'Drawn from two on · earlier records fall outside the window',
 
 
 '오늘 루트':'Today’s route',
@@ -8997,7 +9119,6 @@ var EN={
 '날마다 · 섭취와 소비':'Daily · intake and burn',
 '날마다 먹은 열량과 태운 열량':'Calories eaten and burned each day',
 '몸 — {0} 대비 변화 · {1}회 측정':'Body — change since {0} · {1} measurements',
-'몸 변화':'Body change',
 '섭취':'Intake',
 '섭취와 소비':'Intake and burn',
 '소비 <u>운동 포함</u>':'Burn <u>incl. exercise</u>',
@@ -9005,7 +9126,6 @@ var EN={
 '오늘 소비':"Today's burn",
 '운동 소비':'Exercise burn',
 '운동일':'workout day',
-'인바디를 두 번 이상 재면 체중·체지방률·골격근량이 한 그림에 나옴':'Two or more InBody records put weight, fat %, and muscle on one chart',
 '제지방 {0}kg · Katch-McArdle':'Lean mass {0}kg · Katch-McArdle',
 '체중 <b>{0}</b>kg {1}':'Weight <b>{0}</b>kg {1}',
 '체중 체지방률 골격근량의 시작 대비 변화':'Change in weight, body fat %, and muscle since the start',
