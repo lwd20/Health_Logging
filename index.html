@@ -6486,11 +6486,20 @@ function niceStep(range,want){
    n 은 그때까지 기록된 날 수다. 목표선이 그것에 비례해 오른다: 기록이 없는
    날은 얼마 먹었는지 모르므로 합에 안 넣는데 목표만 올리면 안 적은 날마다
    목표에서 멀어진다 — 기록 빼먹은 벌을 적자 판정으로 주는 꼴이다. */
-function cumWin(){
-  /* 오늘도 들인다. 다만 part 로 표시해 둔다 — base 는 하루치 소비 전부인데
+function cumWin(win){
+  /* 창을 받아 그 안으로 자른다. trendRows(TRW) 는 dsAgo(14) 즉 오늘-14 부터
+     주는데 창은 오늘-13 부터라, 그냥 쓰면 하루가 더 딸려 와 축 왼쪽 밖
+     (x=14.7, 축 시작 36)에 점이 찍혔다 — y축 라벨 위로 삐져나갔다.
+     창이 기준이다.
+     오늘도 들인다. 다만 part 로 표시해 둔다 — base 는 하루치 소비 전부인데
      ate 는 그때까지 먹은 것뿐이라 아침에는 적자가 부풀어 있다(실측 2,009 대
      진짜 하루치 509). 그리는 쪽이 흐리게 갈라 그리고, 수로 내보이는 쪽은 뺀다. */
-  var a=trendRows(TRW).filter(function(r){return r.ate!=null;});
+  if(!win)win=trWin();
+  var a=trendRows(TRW).filter(function(r){
+    if(r.ate==null)return false;
+    var t=new Date(r.d).getTime();
+    return t>=win.t0&&t<=win.t1;
+  });
   var dfc=0;
   try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)dfc=Math.round(nf.dailyDeficitTarget);}catch(e){}
   var pts=[],sum=0,i;
@@ -6502,7 +6511,7 @@ function cumWin(){
 }
 /* 줄에 적을 값 — 그림의 마지막 점과 같아야 한다 */
 function cumNow(){
-  var c=cumWin(),fin=c.pts.filter(function(p){return !p.part;});
+  var c=cumWin(trWin()),fin=c.pts.filter(function(p){return !p.part;});
   if(!fin.length)return null;
   /* 끝난 날 기준이다. 반쪽 값을 수로 내보이면 아침마다 '목표 이상' 이 떴다가
      저녁에 '미달' 로 바뀐다. */
@@ -6515,7 +6524,7 @@ function cumNow(){
    읽히고, 둘 다에 두면 같은 축을 두 번 적는 꼴이다. */
 function chartCum(win){
   if(!win)win=trWin();
-  var C=cumWin();
+  var C=cumWin(win);
   if(C.pts.length<2)return '';
   var W=320,L=36,R=7,T=8,CBOT=96,VH=110,i;
   var t0=win.t0,t1=win.t1,span=win.span;
@@ -6598,14 +6607,19 @@ function chartCum(win){
     +'aria-label="'+TX('누적 적자')+'">'+g+'</svg>';
 }
 function chartEat(win){
-  var a=trendRows(TRW).filter(function(r){return r.ate!=null;});
+  if(!win)win=trWin();
+  /* 창 안으로 자른다. trendRows(TRW) 는 오늘-14 부터 주는데 창은 오늘-13
+     부터라, 안 자르면 하루가 더 딸려 와 축 왼쪽 밖에 그려진다. */
+  var a=trendRows(TRW).filter(function(r){
+    if(r.ate==null)return false;
+    var t=new Date(r.d).getTime();
+    return t>=win.t0&&t<=win.t1;
+  });
   /* 기준은 '끝난 날 둘' 이다. 오늘까지 세면 끝난 날 하나 + 오늘로 그림이
      서서, 흐린 도막 하나만 덩그러니 남는다. */
   var fin=a.filter(function(r){return !r.part;});
   if(fin.length<2)return '';
   var W=320,H=126,L=36,R=7,T=14,B=19,i,lo=null,hi=null;
-  /* 창은 밖에서 받는다 — 몸 그림과 같은 것을 써야 한다 */
-  if(!win)win=trWin();
   /* 누적은 따로 그린다(chartCum). 여기는 위 칸만 맡는다.
      범례를 각자 그림 밑에 두었으므로 그림도 각자 완결돼야 한다 — y축·x축·범례가
      한 벌이다. 날짜를 아래 그림에만 두면 위 그림은 가로가 무엇인지 모르는 그림이
@@ -7667,7 +7681,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 14:54';
+var BUILD='2026-09-12 15:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
