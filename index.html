@@ -6670,6 +6670,11 @@ function chartEat(win){
     function CY(v){return CTOP+(chi-v)/(chi-clo)*(CBOT-CTOP);}
     /* 눈금을 준다. 예전에는 '0' 하나뿐이라 칸 꼭대기가 2,000인지 5,000인지
        알 길이 없었다 — 위 패널과 같은 식(niceStep)으로 뽑는다. */
+    /* 아래 칸에 이름을 붙인다. 위 칸은 바깥 캡션('날마다 · 섭취와 소비')이
+       그 몫을 하는데 아래 칸만 이름이 없어, 범례를 봐도 어느 칸 얘기인지
+       짚이지 않았다. 그림 안에 있으니 눈이 옮겨 가지 않는다. */
+    g+='<text class="sl" x="'+L+'" y="'+(CTOP-4)+'" text-anchor="start">'
+      +TX('누적 적자')+'</text>';
     var cz=CY(0);
     var cst=niceStep(chi-clo,3),cv=Math.ceil(clo/cst)*cst,cgi=0;
     while(cv<=chi+1e-9&&cgi<8){
@@ -6823,8 +6828,14 @@ function vzBody(tab){
         /* 요약을 범례 칸에 넣었더니 표식(점선)이 자동으로 붙어, 그림에 없는
            세 번째 선처럼 보였다. 범례가 거짓말을 한 셈이다.
            범례는 '어느 선이 무엇인가' 만, 요약은 딴 줄에 말로 적는다. */
-        +'<div class="trgl"><i class="k1">'+TX('섭취')+'</i><i>'+TX('소비 <u>운동 포함</u>')+'</i>'
-        +'<i class="k2">'+TX('누적 적자 <u>점선은 목표</u>')+'</i></div>'
+        /* 칸마다 한 줄. 차례가 칸 차례와 같다 — 첫 줄이 위, 둘째 줄이 아래.
+           예전에는 한 줄에 셋을 몰아넣고 그중 하나가 '누적 적자 · 점선은 목표'
+           라고 두 선을 겸했다. 실선 표식을 달고 점선을 설명하니 넷으로 읽히고,
+           정작 목표 점선은 제 표식이 없었다. */
+        +'<div class="trgl"><i class="k1">'+TX('섭취')+'</i><i>'+TX('소비 <u>운동 포함</u>')+'</i></div>'
+        +(et.indexOf('lCum')>=0
+          ?'<div class="trgl" style="margin-top:-8px"><i class="k2">'+TX('누적 적자')+'</i>'
+           +'<i>'+TX('목표')+'</i></div>':'')
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
            주간도 월간도 아니고 '기록이 있는 날들' 이므로 그렇게 적는다 —
            창은 2주지만 그중 먹은 것이 적힌 날만 센다.
@@ -7617,7 +7628,7 @@ function aiDayTag(d){
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-12 14:00';
+var BUILD='2026-09-12 14:29';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8411,7 +8422,8 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
-'누적 적자 <u>점선은 목표</u>':'Cumulative deficit <u>dashed is goal</u>',
+'목표':'Goal',
+
 '누적 적자':'Cumulative deficit',
 '2주 창 · {0}일 기록 · 하루 목표 {1}':'2-week window · {0} days logged · {1} per day',
 '2주 창 · {0}일 기록 · {1}kcal 초과':'2-week window · {0} days logged · {1} kcal over',
