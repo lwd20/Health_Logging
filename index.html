@@ -6404,95 +6404,114 @@ function trAxis(t0,span,L,W,R,T,CBOT){
    읽히고, 둘 다에 두면 같은 축을 두 번 적는 꼴이다. */
 function chartCum(win){
   if(!win)win=trWin();
-  var C=cumWin(win);
-  /* 점이 몇 개인지는 주로 갈린 뒤에 센다(아래 nPt) — C.pts 는 없다 */
-  var W=320,L=36,R=7,T=8,CBOT=96,VH=110,i;
-  var t0=win.t0,t1=win.t1,span=win.span;
-  function X(d){return L+(W-L-R)*(new Date(d).getTime()-t0)/(t1-t0);}
-  var WK=C.weeks,chi=0,clo=0,wi,wj;
-  var nPt=0;
-  for(wi=0;wi<WK.length;wi++)nPt+=WK[wi].pts.length;
+  var C=cumWin(win),WK=C.weeks,i,k,q;
+  /* 칸 둘. 왼쪽은 지난주(월~일), 오른쪽은 이번 주(월~오늘).
+     한 축에 두 주를 이어 그리면 어디까지가 한 주인지 눈으로 따라가야 했다.
+     칸을 나누면 그 물음이 없어진다. 두 칸의 가로 자는 이레로 같아 기울기를
+     그대로 견줄 수 있고, 세로 자는 하나를 같이 쓴다 — 따로 잡으면 높이가
+     뜻을 잃는다. 오른쪽 칸의 빈 오른쪽이 곧 이번 주에 남은 날이다. */
+  var W=320,L=36,R=7,T=18,CBOT=100,VH=122,GAP=14;
+  var td=today(),tMon=monOf(td);
+  var pMon=(function(){var d=new Date(tMon);d.setUTCDate(d.getUTCDate()-7);
+    return d.toISOString().slice(0,10);})();
+  function wkOf(m){var z;for(z=0;z<WK.length;z++)if(WK[z].mon===m)return WK[z];return null;}
+  var PA=wkOf(pMon),PB=wkOf(tMon);
+  var nPt=(PA?PA.pts.length:0)+(PB?PB.pts.length:0);
   if(nPt<2)return '';
-  for(wi=0;wi<WK.length;wi++)for(wj=0;wj<WK[wi].pts.length;wj++){
-    var q=WK[wi].pts[wj];
-    if(q.v>chi)chi=q.v;
-    if(q.v<clo)clo=q.v;
-    if(q.g>chi)chi=q.g;        /* 목표 점선도 칸 안에 들어와야 한다 */
+  /* 지난주가 통째로 비면 칸 하나로 이번 주만 넓게 */
+  var PN=[];
+  if(PA)PN.push({mon:pMon,w:PA,t:TX('지난주')});
+  PN.push({mon:tMon,w:PB,t:TX('이번 주')});
+  var PW=(PN.length>1)?((W-L-R-GAP)/2):(W-L-R);
+  /* 세로 자 — 두 칸이 같이 쓴다 */
+  var chi=0,clo=0;
+  for(i=0;i<PN.length;i++){
+    var ps0=PN[i].w?PN[i].w.pts:[];
+    for(k=0;k<ps0.length;k++){q=ps0[k];
+      if(q.v>chi)chi=q.v;if(q.v<clo)clo=q.v;if(q.g>chi)chi=q.g;}
   }
   if(!(chi>clo))chi=clo+100;
-  /* 0 은 늘 축 안에 있어야 한다 — 주가 거기서 시작한다 */
   if(chi<0)chi=0;
   if(clo>0)clo=0;
-  /* 위쪽 여백은 잘게. 목표 점선 끝이 그 자체로 위 끝이라 그 위에 빈 칸을
-     크게 두면 선이 아래쪽에 눌려 기울기가 죽는다. */
   var cpd=Math.max(100,(chi-clo)*0.10);chi+=cpd*0.5;clo-=cpd*0.5;
   function CY(v){return T+(chi-v)/(chi-clo)*(CBOT-T);}
   var g='',cz=CY(0);
-  /* 수가 피해 갈 선분과, 선을 다 그은 뒤에 앉힐 수들 */
-  var CSEG=[],CLBL=[],wkL=null;
-  /* 주를 덩어리로. 달력 주(월~일)를 범위로 잡아 옅은 바탕을 깔고 사이를
-     띄운다 — 창에 잘린 주는 잘린 채로 보여야 한 주가 다 안 들어온 것이
-     보인다. 오늘이 월요일이면 새 주가 오른쪽 끝에 손톱만큼만 선다. */
-  for(wi=0;wi<WK.length;wi++){
-    var wm=new Date(WK[wi].mon).getTime();
-    /* 한 주는 일요일 '끝' 까지다. 점에서 점까지만 칠하면 일요일과 다음
-       월요일 사이 하루치가 어느 주에도 안 든 빈 띠로 남는다 — 양쪽으로
-       반나절씩 넓혀 두 주가 가운데서 만나게 한다. */
-    var half=(W-L-R)/span/2;
-    var bx0=Math.max(L,X(new Date(wm))-half)+1.5;
-    var bx1=Math.min(W-R,X(new Date(wm+6*86400000))+half)-1.5;
-    if(bx1-bx0<5)bx0=Math.max(L,bx1-5);
-    if(bx1-bx0<2)continue;
-    g+='<rect class="wkbg" x="'+bx0.toFixed(1)+'" y="'+T+'" width="'+(bx1-bx0).toFixed(1)
-      +'" height="'+(CBOT-T)+'" rx="3"/>';
-  }
-  /* 눈금 — 위 그림과 같은 식(niceStep) */
-  var cst=niceStep(chi-clo,3),cv=Math.ceil(clo/cst)*cst,cgi=0;
+  var CSEG=[],CLBL=[];
+  /* 세로 눈금은 왼쪽에 한 번만 — 자가 하나이므로 두 번 적을 이유가 없다.
+     0 자리에는 0선이 따로 있고, Math.round 는 아주 작은 음수를 -0 으로
+     만든다(축 라벨이 '-0' 이 됐다). */
+  var cst=niceStep(chi-clo,3),cv=Math.ceil(clo/cst)*cst,cgi=0,ticks=[];
   while(cv<=chi+1e-9&&cgi<8){
     var cyy=CY(cv),crv=Math.round(cv);
-    /* 0 자리에는 0선이 따로 있다. 그리고 Math.round 는 아주 작은 음수를
-       -0 으로 만든다(축 라벨이 '-0' 이 됐다). */
-    if(Math.abs(crv)>=1)
-      g+='<line class="gr" x1="'+L+'" y1="'+cyy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cyy.toFixed(1)+'"/>';
+    ticks.push({y:cyy,v:crv});
     g+='<text x="'+(L-4)+'" y="'+(cyy+3).toFixed(1)+'" text-anchor="end">'
       +(crv===0?'0':crv.toLocaleString())+'</text>';
     cv+=cst;cgi++;
   }
-  /* 세로 격자와 날짜 — 위 그림과 같은 자리에 선다 */
-  g+=trAxis(t0,span,L,W,R,T,CBOT);
-  /* 0선이 곧 목표다. 낱말은 왼쪽 눈금 자리에 적는다(위 y 눈금 루프) —
-     오른쪽 끝에 적었더니 오늘 빈 원과 겹쳤다(실측 297~313 대 cx 313). */
-  g+='<line class="zr" x1="'+L+'" y1="'+cz.toFixed(1)+'" x2="'+(W-R)+'" y2="'+cz.toFixed(1)+'"/>';
-  /* 주가 바뀌는 자리에 세로 선. 도막이 나뉘는 것을 그냥 두면 '왜 끊겼나' 가
-     남는다 — 끊긴 것이 아니라 0 에서 새로 시작한 것이라는 표시다. */
-  for(wi=1;wi<WK.length;wi++){
-    var wx=X(WK[wi].pts[0].d);
-    if(wx>L+2&&wx<W-R-2)
-      g+='<line class="wkd" x1="'+wx.toFixed(1)+'" y1="'+T+'" x2="'+wx.toFixed(1)+'" y2="'+CBOT+'"/>';
-  }
-  var lp=null;
-  for(wi=0;wi<WK.length;wi++){
-    var ps=WK[wi].pts,fin=[],tail=null,k;
-    for(k=0;k<ps.length;k++){if(ps[k].part)tail=ps[k];else fin.push(ps[k]);}
-    if(fin.length)lp=fin[fin.length-1];
+  for(i=0;i<PN.length;i++){
+    var x0=L+i*(PW+GAP),x1=x0+PW;
+    var P=PN[i],mon=P.mon,pts=P.w?P.w.pts:[];
+    /* 점을 칸 테두리에 붙이면 월요일·일요일 점이 테두리에 반쯤 걸친다.
+       안쪽으로 조금 들여 그린다 — 눈금도 같은 자리에 선다. */
+    var PAD=5,IW=PW-2*PAD;
+    function PX(d){return x0+PAD+IW*Math.round((new Date(d)-new Date(mon))/86400000)/6;}
+    /* 칸 바탕 — 두 칸이 각자 한 주라는 것을 자리로 말한다 */
+    g+='<rect class="wkbg" x="'+x0.toFixed(1)+'" y="'+T+'" width="'+PW.toFixed(1)
+      +'" height="'+(CBOT-T)+'" rx="3"/>';
+    g+='<text class="sl" x="'+((x0+x1)/2).toFixed(1)+'" y="'+(T-7)+'" text-anchor="middle">'
+      +P.t+'</text>';
+    for(k=0;k<ticks.length;k++)
+      if(Math.abs(ticks[k].v)>=1)
+        g+='<line class="gr" x1="'+x0.toFixed(1)+'" y1="'+ticks[k].y.toFixed(1)
+          +'" x2="'+x1.toFixed(1)+'" y2="'+ticks[k].y.toFixed(1)+'"/>';
+    g+='<line class="zr" x1="'+x0.toFixed(1)+'" y1="'+cz.toFixed(1)+'" x2="'+x1.toFixed(1)
+      +'" y2="'+cz.toFixed(1)+'"/>';
+    /* 날짜 — 그 주의 이레를 적는다. 이번 주는 오늘까지만(안 온 날을 적으면
+       기록이 빠진 날처럼 읽힌다). */
+    var lastOff=6;
+    if(mon===tMon)lastOff=Math.round((new Date(td)-new Date(mon))/86400000);
+    /* 날짜를 먼저 재 둔다. 달은 맨 왼쪽 칸의 첫날과 달이 바뀌는 날에만
+       붙인다 — 'M/D'(18px)는 칸 간격(20.3px)보다 커서 옆 날짜와 닿는다.
+       닿는 것은 뺀다. 양끝은 그 주가 언제부터 언제까지인지를 말하므로 남긴다. */
+    var dl2=[];
+    for(k=0;k<=lastOff;k++){
+      var dd=new Date(new Date(mon).getTime()+k*86400000),xx=x0+PAD+IW*k/6;
+      g+='<line class="tk" x1="'+xx.toFixed(1)+'" y1="'+CBOT+'" x2="'+xx.toFixed(1)
+        +'" y2="'+(CBOT+3)+'"/>';
+      var dt=((i===0&&k===0)||dd.getUTCDate()===1)
+        ?((dd.getUTCMonth()+1)+'/'+dd.getUTCDate()):String(dd.getUTCDate());
+      var an2=(k===0?'start':(k===lastOff&&lastOff===6?'end':'middle'));
+      var dw2=dt.length*4.9;
+      var dx0=(an2==='start')?xx:((an2==='end')?xx-dw2:xx-dw2/2);
+      dl2.push({x:xx,t:dt,an:an2,x0:dx0,x1:dx0+dw2,on:true});
+    }
+    var prevR=dl2[0];
+    for(k=1;k<dl2.length-1;k++){
+      if(dl2[k].x0<prevR.x1+2){dl2[k].on=false;continue;}
+      if(k===dl2.length-2&&dl2[k].x1+2>dl2[dl2.length-1].x0){dl2[k].on=false;continue;}
+      prevR=dl2[k];
+    }
+    for(k=0;k<dl2.length;k++)if(dl2[k].on)
+      g+='<text x="'+dl2[k].x.toFixed(1)+'" y="'+(CBOT+13)+'" text-anchor="'
+        +dl2[k].an+'">'+dl2[k].t+'</text>';
+    /* 선 · 칠 · 점선 */
+    var fin=[],tail=null;
+    for(k=0;k<pts.length;k++){if(pts[k].part)tail=pts[k];else fin.push(pts[k]);}
     var pc=[],pg=[];
     for(k=0;k<fin.length;k++){
-      pc.push(X(fin[k].d).toFixed(1)+','+CY(fin[k].v).toFixed(1));
-      pg.push(X(fin[k].d).toFixed(1)+','+CY(fin[k].g).toFixed(1));
+      pc.push(PX(fin[k].d).toFixed(1)+','+CY(fin[k].v).toFixed(1));
+      pg.push(PX(fin[k].d).toFixed(1)+','+CY(fin[k].g).toFixed(1));
     }
     if(fin.length>=2){
-      /* 선과 점선 사이를 칠한다. 예전에는 0 에서 선까지 칠했는데, '얼마나
-         쌓았나' 는 선의 높이가 이미 y축으로 말하므로 같은 말을 두 번 하는
-         셈이었다. 정작 묻는 것은 '목표에 얼마나 못 미치나' 이고 그건 두 선
-         사이 간격이라 눈대중을 해야 했다 — 그 넓이를 칠한다.
-         부호가 바뀌는 구간은 교차점에서 자른다(위 그림과 같은 규칙). */
       for(k=1;k<fin.length;k++){
         var f0=fin[k-1],f1=fin[k];
-        var fx0=X(f0.d),fx1=X(f1.d);
+        var fx0=PX(f0.d),fx1=PX(f1.d);
         var fy0=CY(f0.v),fy1=CY(f1.v),gy0=CY(f0.g),gy1=CY(f1.g);
         var e0=f0.v-f0.g,e1=f1.v-f1.g;      /* 목표와의 차이 */
         CSEG.push([fx0,fy0,fx1,fy1]);
         if(C.dfc>0)CSEG.push([fx0,gy0,fx1,gy1]);
+        /* 선과 점선 사이를 칠한다 — 그 넓이가 곧 목표에 모자란 양이다.
+           부호가 바뀌는 구간은 교차점에서 자른다. */
         function fq(cl,xa,ya,ga,xb,yb,gb){
           g+='<polygon class="'+cl+'" points="'+xa.toFixed(1)+','+ga.toFixed(1)+' '
             +xa.toFixed(1)+','+ya.toFixed(1)+' '+xb.toFixed(1)+','+yb.toFixed(1)+' '
@@ -6502,65 +6521,43 @@ function chartCum(win){
           fq(((e0+e1)>=0?'cFill':'cFillN'),fx0,fy0,gy0,fx1,fy1,gy1);
         }else{
           var ft=e0/(e0-e1),fxc=fx0+(fx1-fx0)*ft;
-          var fyc=fy0+(fy1-fy0)*ft;          /* 만나는 자리 — 둘의 y 가 같다 */
+          var fyc=fy0+(fy1-fy0)*ft;
           fq((e0>=0?'cFill':'cFillN'),fx0,fy0,gy0,fxc,fyc,fyc);
           fq((e1>=0?'cFill':'cFillN'),fxc,fyc,fyc,fx1,fy1,gy1);
         }
       }
-      /* 목표 점선을 나란히. 선과 점선 사이 간격이 곧 '기대치와의 차이' 다 */
       if(C.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
       g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
     }else if(fin.length===1){
-      /* 한 점짜리 주. 선은 못 긋지만 점은 찍는다 — 버리면 그 날이 사라진다 */
-      g+='<circle class="dCum" cx="'+X(fin[0].d).toFixed(1)+'" cy="'+CY(fin[0].v).toFixed(1)+'" r="2"/>';
+      g+='<circle class="dCum" cx="'+PX(fin[0].d).toFixed(1)+'" cy="'+CY(fin[0].v).toFixed(1)+'" r="2"/>';
     }
-    /* 끝난 주는 그 주가 얼마로 끝났는지를 적는다. 예전에는 창 전체의 마지막
-       점 하나에만 값이 붙어서, 지난주 도막은 그려만 지고 끝이 얼마인지
-       눈대중해야 했다 — '지난주에 결국 얼마나 팠나' 가 이 그림에서 제일 값진
-       수 중 하나다. 라벨은 점 왼쪽으로 뺀다: 오른쪽은 주 경계선과 다음 주
-       첫 점이 있어 겹친다. */
-    if(wi<WK.length-1&&fin.length){
-      var we=fin[fin.length-1];
-      g+='<circle class="dCum" cx="'+X(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>';
-      var wt=(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString();
-      wkL={x:gvClampX(X(we.d)-5,wt,'end',L,W-R),y:CY(we.v),an:'end',
-        c:(we.v>=we.g?'gvOK':'gvNG'),t:wt,d:we.d};
-      CLBL.push(wkL);
-    }
-    /* 마지막 끝난 날에서 오늘까지 — 흐리게. 목표선도 같이 잇는다.
-       한쪽만 이으면 그 사이 간격이 거짓이 된다. */
+    /* 오늘까지 — 흐리게. 목표선도 같이 잇는다: 한쪽만 이으면 사이 간격이
+       거짓이 된다. */
     if(tail){
       if(fin.length){
         var pv=fin[fin.length-1];
         g+='<g class="tdy">'
-          +(C.dfc>0?'<polyline class="lRamp" points="'+X(pv.d).toFixed(1)+','+CY(pv.g).toFixed(1)
-            +' '+X(tail.d).toFixed(1)+','+CY(tail.g).toFixed(1)+'"/>':'')
-          +'<polyline class="lCum" points="'+X(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
-          +' '+X(tail.d).toFixed(1)+','+CY(tail.v).toFixed(1)+'"/></g>';
-        CSEG.push([X(pv.d),CY(pv.v),X(tail.d),CY(tail.v)]);
-        if(C.dfc>0)CSEG.push([X(pv.d),CY(pv.g),X(tail.d),CY(tail.g)]);
+          +(C.dfc>0?'<polyline class="lRamp" points="'+PX(pv.d).toFixed(1)+','+CY(pv.g).toFixed(1)
+            +' '+PX(tail.d).toFixed(1)+','+CY(tail.g).toFixed(1)+'"/>':'')
+          +'<polyline class="lCum" points="'+PX(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
+          +' '+PX(tail.d).toFixed(1)+','+CY(tail.v).toFixed(1)+'"/></g>';
+        CSEG.push([PX(pv.d),CY(pv.v),PX(tail.d),CY(tail.v)]);
+        if(C.dfc>0)CSEG.push([PX(pv.d),CY(pv.g),PX(tail.d),CY(tail.g)]);
       }
-      g+='<circle class="dCumO" cx="'+X(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
+      g+='<circle class="dCumO" cx="'+PX(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
     }
-  }
-  /* 끝값이 곧 답이다 */
-  if(!lp)return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" '
-    +'aria-label="'+TX('누적 적자')+'">'+g+'</svg>';
-  var cx2=X(lp.d);
-  if(cx2>W-R-2)cx2=W-R;
-  var lt=md(lp.d)+' '+(lp.v<0?'-':'')+Math.abs(Math.round(lp.v)).toLocaleString();
-  /* 오늘이 새 주의 첫날이면 마지막 주 도막에 끝난 점이 없어, lp 가 그 앞 주의
-     끝점이 된다 — 그 점은 이미 주 끝값으로 적혀 있다. 같은 자리에 수를 둘
-     적지 않고 적혀 있던 것에 날짜만 붙인다(2,593 과 '9/13 2,593' 이 나란히
-     찍히던 자리). */
-  if(wkL&&wkL.d===lp.d){
-    wkL.t=lt;
-    wkL.x=gvClampX(cx2,lt,'end',L,W-R);
-  }else{
-    /* 목표보다 위면 흐린 글씨, 아래면 빨강 — 수 자체는 쌓은 적자다 */
-    g+='<circle class="dCum" cx="'+X(lp.d).toFixed(1)+'" cy="'+CY(lp.v).toFixed(1)+'" r="2.6"/>';
-    CLBL.push({x:gvClampX(cx2,lt,'end',L,W-R),y:CY(lp.v),an:'end',
-      c:(lp.v>=lp.g?'gvOK':'gvNG'),t:lt});
+    /* 칸마다 그 주가 얼마로 끝났는지(이번 주는 어디까지 왔는지) */
+    if(fin.length){
+      var we=fin[fin.length-1];
+      g+='<circle class="dCum" cx="'+PX(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>';
+      var wt=(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString();
+      /* 끝점이 칸 오른쪽에 있으면 라벨을 왼쪽으로, 왼쪽에 있으면 오른쪽으로
+         뺀다 — 어느 쪽이든 칸 밖으로 안 나가게 */
+      var rt=(PX(we.d)>x0+PW*0.6);
+      CLBL.push({x:gvClampX(PX(we.d)+(rt?-5:5),wt,rt?'end':'start',x0,x1),
+        y:CY(we.v),an:rt?'end':'start',
+        c:(we.v>=we.g?'gvOK':'gvNG'),t:wt});
+    }
   }
   /* 선이 다 그려졌다 — 이제 그 자리를 피해 수를 앉힌다 */
   for(i=0;i<CLBL.length;i++)
@@ -6855,7 +6852,7 @@ function vzBody(tab){
             /* 선이 내려가는 것을 '살이 쪘다' 로 읽는 일이 실제로 났다. 내려가는 것은
                적자가 준 것이 아니라 목표만큼 못 판 것이다 — 적자는 여전히 나고 있다.
                낱말로 못박는다: 아래는 '덜 팜' 이지 '쪘다' 가 아니다. */
-            return vzCap(TX('주간 누적 적자 · 지난주와 이번 주'))+cu
+            return vzCap(TX('주간 누적 적자 · 월요일에 0 부터'))+cu
               +'<div class="trgl"><i class="k2">'+TX('주간 누적 적자 <u>점선은 목표</u>')+'</i></div>';
           })()
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
@@ -7653,7 +7650,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-14 18:05';
+var BUILD='2026-09-14 19:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8253,7 +8250,9 @@ var EN={
 '월~오늘 {0}일 · 체중 {1} (목표 {2})':'{0} days since Mon · weight {1} (goal {2})',
 '주간 누적 적자 <u>점선은 목표</u>':'Weekly cumulative deficit <u>dashed is goal</u>',
 
-'주간 누적 적자 · 지난주와 이번 주':'Weekly cumulative deficit · last week and this week',
+'주간 누적 적자 · 월요일에 0 부터':'Weekly cumulative deficit · resets Monday',
+'지난주':'Last week',
+'이번 주':'This week',
 
 '이번 주 적자':'This week’s deficit',
 '전 주 적자':'Last week’s deficit',
