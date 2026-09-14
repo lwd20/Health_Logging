@@ -6259,20 +6259,19 @@ function cumWin(win){
   }
   return {weeks:wk,dfc:dfc};
 }
-/* 줄에 적을 값 — 그림의 마지막 점과 같아야 한다 */
+/* 줄에 적을 값 — 그림 '이번 주' 칸의 마지막 점과 같은 점이어야 한다.
+   오늘을 넣는다. 예전에는 끝난 날만 셌는데, 그러면 월요일에는 이번 주에
+   끝난 날이 없어 수가 통째로 안 나왔다 — 정작 물을 것이 '지금 적자냐' 인데.
+   대신 반쪽 하루라는 것은 part 로 알려, 부르는 쪽이 판정을 안 박게 한다:
+   소비는 하루치 전부인데 섭취는 먹은 데까지라 아침에는 부풀어 있다. */
 function cumNow(){
   var c=cumWin(trWin());
   if(!c.weeks.length)return null;
-  /* 이번 주 것만 적는다 — 끝값이 이번 주 누적이므로 */
   var w=c.weeks[c.weeks.length-1];
   if(monOf(todayISO())!==w.mon)return null;
-  var fin=w.pts.filter(function(p){return !p.part;});
-  if(!fin.length)return null;
-  /* 끝난 날 기준이다. 반쪽 값을 수로 내보이면 아침마다 '목표 이상' 이 떴다가
-     저녁에 '미달' 로 바뀐다. */
-  var p=fin[fin.length-1];
-  /* 줄은 절대값을 맡는다 — 그림은 차이만 말하므로 겹치지 않는다 */
-  return {v:p.a,n:p.n,goal:p.g,dfc:c.dfc,d:p.d};
+  if(!w.pts.length)return null;
+  var p=w.pts[w.pts.length-1];
+  return {v:p.a,n:p.n,goal:p.g,dfc:c.dfc,d:p.d,part:!!p.part};
 }
 /* 전 주가 얼마로 끝났는지. 이번 주 수 하나만으로는 좋은지 나쁜지가 안
    정해진다 — 바로 앞 주가 그 잣대다. 창이 2주라 전 주가 통째로 안 들어올
@@ -6546,10 +6545,13 @@ function chartCum(win){
       }
       g+='<circle class="dCumO" cx="'+PX(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
     }
-    /* 칸마다 그 주가 얼마로 끝났는지(이번 주는 어디까지 왔는지) */
-    if(fin.length){
-      var we=fin[fin.length-1];
-      g+='<circle class="dCum" cx="'+PX(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>';
+    /* 칸마다 마지막 점에 값을 적는다. 지난주 칸이면 그 주가 얼마로 끝났는지,
+       이번 주 칸이면 지금까지 얼마나 팠는지 — 오늘이 그 점이다.
+       오늘은 속 빈 원이 이미 '아직 진행 중' 을 말하므로 채운 점은 안 찍는다. */
+    if(pts.length){
+      var we=pts[pts.length-1];
+      if(!we.part)
+        g+='<circle class="dCum" cx="'+PX(we.d).toFixed(1)+'" cy="'+CY(we.v).toFixed(1)+'" r="2.6"/>';
       var wt=(we.v<0?'-':'')+Math.abs(Math.round(we.v)).toLocaleString();
       /* 끝점이 칸 오른쪽에 있으면 라벨을 왼쪽으로, 왼쪽에 있으면 오른쪽으로
          뺀다 — 어느 쪽이든 칸 밖으로 안 나가게 */
@@ -6884,14 +6886,20 @@ function vzBody(tab){
         /* 지켰다고 볼 폭은 okBand 를 쓴다 — 식단이 쓰는 바로 그 자다.
            누적이므로 폭도 날수만큼 늘어난다. */
         var bndC=okBand(cn.dfc)*Math.sqrt(cn.n);
-        /* 0 은 넘긴 것이 아니라 못 판 것이다. <=0 으로 두면 딱 0 인 날에
+        /* 오늘이 아직 안 끝났으면 판정 낱말을 안 박는다. 소비는 하루치
+           전부인데 섭취는 먹은 데까지라 아침에는 부풀어 있어, 박아 두면
+           아침엔 '목표 이상' 이었다가 저녁엔 '미달' 로 뒤집힌다.
+           0 은 넘긴 것이 아니라 못 판 것이다. <=0 으로 두면 딱 0 인 날에
            '초과' 라 적으면서 부제는 초과량을 안 적어 한 줄이 두 말을 한다. */
-        var vdC=(cn.v<0)?{t:TX('초과'),c:'neg'}
+        var vdC=cn.part?{t:TX('진행 중'),c:''}
+               :((cn.v<0)?{t:TX('초과'),c:'neg'}
                :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
-               :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
+               :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'})));
         /* 끝값이 창 전체 누적이므로 '1주간' 이라 적을 수 없다 — 창을 적는다 */
         /* kcal 을 kg 으로 옮겨 적는다(kgOf). '하루 목표 550' 은 뺐다:
            위 칸 점선이 이미 그 기울기이고 분모가 그것의 날수 배다. */
+        /* 오늘이 들었다는 말은 판정 칩('진행 중')이 이미 한다 — 부제에 또
+           적었더니 한 줄에 같은 말이 두 번 나오고 줄이 두 줄로 감겼다. */
         h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
           (cn.v<0?TX1('월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}',cn.n,Math.abs(cn.v).toLocaleString(),kgOf(cn.v))
                  :TX1('월~오늘 {0}일 · 체중 {1} (목표 {2})',cn.n,kgOf(cn.v),kgOf(cn.goal))),vdC,false);
@@ -7650,7 +7658,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-14 19:30';
+var BUILD='2026-09-14 21:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8233,6 +8241,7 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'진행 중':'In progress',
 '분석 화면':'Analyze view',
 '현황 갈래 보는 법':'Reading the views',
 '사진 판독용 키 만들기':'A key for photo reading',
