@@ -6350,21 +6350,39 @@ function gvText(x,txt,an,cls,cands,segs,top,bot){
 /* 가로축 — 두 그림이 나눠 쓴다. 날마다 눈금을 찍고 날짜를 적는다.
    'M/D' 를 열다섯 번 적으면 칸(21px)보다 글자(18px)가 커 서로 닿는다 —
    날짜만 적고 달은 맨 왼쪽과 달 바뀌는 자리에만 붙인다.
+   마지막 칸에 '오늘' 이라 적던 것을 뺐다. 그 낱말이 18px 에 오른쪽 끝
+   정렬이라 바로 왼쪽 날짜와 겹쳐, 끝의 이틀이 통째로 안 보였다. 오른쪽
+   끝이 늘 오늘인 것은 창이 오늘에 못박혀 있어 그렇고, 오늘 점은 속 빈
+   원으로 이미 갈려 있다.
    세로 격자는 월요일에만. 날마다 그으면 열다섯 줄이 그림을 덮고, 주로 끊어
    보는 그림에서 격자가 말해야 할 것은 주 경계다. */
 function trAxis(t0,span,L,W,R,T,CBOT){
-  var g='',i;
+  var g='',i,lab=[];
+  /* 먼저 무엇을 어디에 적을지 재 둔다 — 달 바뀌는 자리는 '10/1' 처럼
+     넓어져 이웃과 닿을 수 있다. 상자를 재서 닿는 것만 뺀다. */
   for(i=0;i<=span;i++){
-    var x=L+(W-L-R)*i/span,dd=new Date(t0+i*86400000);
-    if(dd.getDay()===1&&i!==0&&i!==span)
-      g+='<line class="vg" x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+CBOT+'"/>';
-    g+='<line class="tk" x1="'+x.toFixed(1)+'" y1="'+CBOT+'" x2="'+x.toFixed(1)+'" y2="'+(CBOT+3)+'"/>';
-    /* 끝에서 두 번째는 비운다 — '오늘' 이 오른쪽 끝 정렬이라 그 자리를 먹는다 */
-    if(i===span-1&&span>=3)continue;
-    var xl=(i===span)?TX('오늘')
-      :((i===0||dd.getDate()===1)?((dd.getMonth()+1)+'/'+dd.getDate()):String(dd.getDate()));
-    g+='<text x="'+x.toFixed(1)+'" y="'+(CBOT+14)+'" text-anchor="'
-      +(i===0?'start':(i===span?'end':'middle'))+'">'+xl+'</text>';
+    var dd=new Date(t0+i*86400000);
+    var t=(i===0||dd.getDate()===1)?((dd.getMonth()+1)+'/'+dd.getDate()):String(dd.getDate());
+    var x=L+(W-L-R)*i/span,w=t.length*4.9;
+    var an=(i===0?'start':(i===span?'end':'middle'));
+    var x0=(an==='start')?x:((an==='end')?x-w:x-w/2);
+    lab.push({i:i,x:x,t:t,an:an,x0:x0,x1:x0+w,on:true});
+  }
+  /* 양끝은 창을 읽는 기준이라 늘 남긴다. 가운데는 왼쪽부터 훑으며 앞엣것과
+     닿으면 뺀다. 끝에서 두 번째는 마지막 것과도 견준다. */
+  var last=lab[0];
+  for(i=1;i<lab.length-1;i++){
+    if(lab[i].x0<last.x1+2){lab[i].on=false;continue;}
+    if(i===lab.length-2&&lab[i].x1+2>lab[lab.length-1].x0){lab[i].on=false;continue;}
+    last=lab[i];
+  }
+  for(i=0;i<lab.length;i++){
+    var q=lab[i],dw=new Date(t0+q.i*86400000);
+    if(dw.getDay()===1&&q.i!==0&&q.i!==span)
+      g+='<line class="vg" x1="'+q.x.toFixed(1)+'" y1="'+T+'" x2="'+q.x.toFixed(1)+'" y2="'+CBOT+'"/>';
+    g+='<line class="tk" x1="'+q.x.toFixed(1)+'" y1="'+CBOT+'" x2="'+q.x.toFixed(1)+'" y2="'+(CBOT+3)+'"/>';
+    if(!q.on)continue;
+    g+='<text x="'+q.x.toFixed(1)+'" y="'+(CBOT+14)+'" text-anchor="'+q.an+'">'+q.t+'</text>';
   }
   return g;
 }
@@ -7623,7 +7641,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-14 16:40';
+var BUILD='2026-09-14 17:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
