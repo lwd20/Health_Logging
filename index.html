@@ -6164,21 +6164,33 @@ function trendRows(days){
   }
   return out;
 }
-/* 두 그림이 함께 쓰는 가로 창. 따로 잡으면 위는 9/2~오늘, 아래는 6/13~8/1
-   처럼 되어 세로로 나란한 같은 가로 위치가 서로 다른 날을 가리킨다 —
-   나란히 두는 뜻이 없어진다.
-   오른쪽 끝은 오늘로 못박고, 왼쪽 끝은 오늘-13일로 두되 자료가 그보다 늦게
-   시작하면 자료 쪽으로 당긴다(빈 칸을 그리지 않기 위해). 당길 때 두 그림의
-   자료를 함께 보는 것이 핵심이다 — 한쪽만 보면 둘이 다시 어긋난다. */
+/* 두 그림이 함께 쓰는 가로 창. 따로 잡으면 세로로 나란한 같은 가로 위치가
+   서로 다른 날을 가리켜 나란히 두는 뜻이 없어진다.
+   창을 '최근 14일' 로 잡던 것을 주로 바꿨다. 날수로 자르면 왼쪽 끝이 주
+   한복판에서 잘려, 한 주가 아닌 도막(닷새)이 온전한 한 주 옆에 같은 꼴로
+   그려진다. 그 도막의 끝값은 바로 밑 '전 주 적자' 줄의 수와도 달라서,
+   그림과 글이 서로 다른 주를 가리켰다.
+     왼쪽 끝 = 지난주 월요일 · 오른쪽 끝 = 오늘
+   덩이는 늘 둘이고 왼쪽은 언제나 온전한 한 주다. 길이는 오늘이 월요일이면
+   8일, 일요일이면 14일 — '최대 2주' 안에 든다.
+   지난주에 기록이 하나도 없으면 이번 주 월요일부터만 그린다: 빈 주를 반쪽
+   그려 놓으면 자리만 먹는다. */
 var TRW=14;
 function trWin(){
-  var t1=new Date(today()).getTime(),lim=t1-(TRW-1)*86400000,e=null,i;
-  function see(ds){var t=new Date(ds).getTime();if(t>=lim&&t<=t1&&(e===null||t<e))e=t;}
+  var td=today(),t1=new Date(td).getTime(),i;
+  /* 자료 점은 전부 new Date('2026-09-07') 즉 UTC 자정으로 놓인다. 여기서
+     현지 자정으로 월요일을 만들면 한국에서 아홉 시간 어긋나, 눈금은
+     제자리인데 점만 8px 밀린다 — 같은 자를 쓰는 monOf 로 낸다. */
+  var thisMon=new Date(monOf(td)).getTime(),prevMon=thisMon-7*86400000;
+  /* 지난주에 읽을 것이 하나라도 있나 — 섭취와 인바디 둘 다 본다.
+     한쪽만 보면 두 그림의 창이 다시 어긋난다. */
+  var had=false;
+  function see(ds){var t=new Date(ds).getTime();if(t>=prevMon&&t<thisMon)had=true;}
   var tr=trendRows(TRW);
   for(i=0;i<tr.length;i++)if(tr[i].ate!=null)see(tr[i].d);
   var bh=bhLoad();
   for(i=0;i<bh.length;i++)if(bh[i].w>0&&bh[i].f>0)see(bh[i].d);
-  var t0=(e===null)?lim:e;
+  var t0=had?prevMon:thisMon;
   if(!(t1>t0))t0=t1-86400000;
   return {t0:t0,t1:t1,span:Math.max(1,Math.round((t1-t0)/86400000))};
 }
@@ -6843,7 +6855,7 @@ function vzBody(tab){
             /* 선이 내려가는 것을 '살이 쪘다' 로 읽는 일이 실제로 났다. 내려가는 것은
                적자가 준 것이 아니라 목표만큼 못 판 것이다 — 적자는 여전히 나고 있다.
                낱말로 못박는다: 아래는 '덜 팜' 이지 '쪘다' 가 아니다. */
-            return vzCap(TX('주간 누적 적자 · 월요일에 0 부터'))+cu
+            return vzCap(TX('주간 누적 적자 · 지난주와 이번 주'))+cu
               +'<div class="trgl"><i class="k2">'+TX('주간 누적 적자 <u>점선은 목표</u>')+'</i></div>';
           })()
         /* '하루 466kcal 더 씀' 만 적으면 며칠을 평균 낸 값인지 알 수 없다.
@@ -7641,7 +7653,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-14 17:20';
+var BUILD='2026-09-14 18:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8241,7 +8253,7 @@ var EN={
 '월~오늘 {0}일 · 체중 {1} (목표 {2})':'{0} days since Mon · weight {1} (goal {2})',
 '주간 누적 적자 <u>점선은 목표</u>':'Weekly cumulative deficit <u>dashed is goal</u>',
 
-'주간 누적 적자 · 월요일에 0 부터':'Weekly cumulative deficit · resets Monday',
+'주간 누적 적자 · 지난주와 이번 주':'Weekly cumulative deficit · last week and this week',
 
 '이번 주 적자':'This week’s deficit',
 '전 주 적자':'Last week’s deficit',
