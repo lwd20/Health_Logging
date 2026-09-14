@@ -1118,10 +1118,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .e1r s.dn{color:var(--sig)}
 .sh-l{font-size:10px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
 .wrapchips{display:flex;flex-wrap:wrap;gap:5px}
-/* 배경이 시트와 같은 색이라 테두리와 그림자만 남아 있었고, 안의 셋이 이미
-   각자 상자라 겹겹이 두를 이유가 없다. 같은 높이·테두리·모서리로 맞추면
-   그 자체가 한 덩어리로 읽힌다. */
-.console{margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .gmwrap{position:relative}
 /* 분석칸·엔진칩·실행버튼을 같은 높이·테두리·모서리로 맞춘다.
    면은 깔지 않는다 — --btn-bg 는 5% 밝기 덧칠이라 어두운 팔레트에서 바탕을
@@ -1146,42 +1142,6 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   border-right:1.6px solid var(--mut);border-bottom:1.6px solid var(--mut);
   transform:rotate(45deg);transition:transform .18s}
 .gmbtn.open::after{transform:rotate(-135deg);margin-bottom:-2px}
-/* 엔진칸과 실행버튼이 한 줄을 나눠 쓴다. 목록은 이 줄 전체 폭으로 편다. */
-.runrow{position:relative;display:flex;align-items:stretch;gap:8px}
-/* 래퍼가 내용 크기인데 안의 버튼이 width:100% 라 서로를 참조해 폭이 0 으로
-   무너졌다. 래퍼는 상자를 만들지 않게 하고 버튼을 직접 항목으로 놓는다. */
-.runrow .gmwrap{display:contents}
-/* 칩은 내용만큼만 차지하고 남는 폭은 실행 버튼이 가져간다 */
-.runrow .gmbtn{flex:0 1 auto;width:auto;max-width:55%;padding:0 10px;justify-content:center;gap:5px}
-.runrow .cval{flex:0 1 auto;min-width:0;margin-left:0;font-size:10.5px;
-  color:var(--mut);letter-spacing:0}
-.runrow .gmbtn::after{width:5px;height:5px;border-width:1.5px;margin:0 0 2px 0}
-/* 화면 맨 아래 줄이라 아래로 펴면 접힌 부분이 안 보인다 */
-.runrow .gmpop{top:auto;bottom:calc(100% + 7px)}
-/* 예전에는 오른쪽 끝에 띄워 뒀는데, 좁은 화면에서 'Gemini Latest' 를 고르고
-   19회를 쓰면 가운데 글자와 겹쳤다. 흐름 안에 두면 겹칠 수가 없다. */
-.anlbtn u{flex:0 0 auto;text-decoration:none;font-family:var(--mono);font-size:9.5px;
-  font-weight:700;letter-spacing:.02em;opacity:.72}
-.anlbtn span{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.anlbtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 9px;
-  flex:1 1 auto;min-width:0;height:44px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);border:var(--bw) solid transparent;color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,244,214,.35),0 1px 3px rgba(0,0,0,.4)}
-.aihero{display:flex;gap:13px;align-items:center;padding:2px 1px 12px;border-bottom:1px solid var(--line)}
-.aircol{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px}
-/* 링 아래에 분자·분모를 적어 둔다 — 퍼센트만 있으면 무엇의 82% 인지 모른다 */
-.rcap{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.02em;font-variant-numeric:tabular-nums}
-.airing{width:64px;height:64px;flex:0 0 auto;position:relative}
-.airing svg{transform:rotate(-90deg);display:block}
-.airing .pc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono)}
-.airing .pc b{font-size:15px;color:var(--acc-br);font-weight:700}
-.airing .pc.done b{color:var(--pos)}
-.airing .pc i{font-style:normal;font-size:9px;color:var(--dim);letter-spacing:.14em}
-.sigline{flex:1;min-width:0}
-.sigtag{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.16em;padding:2px 7px;border-radius:2px;background:rgba(var(--sig-rgb),.14);border:1px solid rgba(var(--sig-rgb),.5);color:var(--neg)}
-.sigtag.warn2{background:rgba(var(--acc-rgb),.1);border-color:rgba(var(--acc-rgb),.5);color:var(--acc-sf)}
-.sigtag.ok{background:rgba(var(--pos-rgb),.12);border-color:rgba(var(--pos-rgb),.45);color:var(--pos)}
-.sigtxt{font-family:var(--mono);font-size:12px;font-weight:600;margin-top:6px;line-height:1.5;color:var(--mut);font-variant-numeric:tabular-nums}
-.sigrec{display:inline-flex;align-items:center;min-height:34px;margin-top:7px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--chrome);border:var(--bw) solid rgba(var(--acc-rgb),.45);border-radius:var(--rad-s);padding:0 12px;background:rgba(var(--acc-rgb),.07)}
-.sigrec:active{opacity:.6}
 .gbrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-family:var(--mono)}
 .gbrow .bn{flex:0 0 52px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
 /* 52px 은 한글 두세 자에 맞춘 칸이다. 영어는 'Mid/Low Chest' 처럼 길어져
@@ -1194,20 +1154,12 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .gbrow .gmg b.r{background:rgba(var(--sig-rgb),.72)}
 .gbrow .gmg i{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(var(--tx-rgb),.45)}
 .gbrow .bv{flex:0 0 auto;font-size:11px;color:var(--acc-br);font-variant-numeric:tabular-nums}
-.anlbtn:active{background:var(--acc-dk);box-shadow:none}
-.anlbtn.dis{background:rgba(var(--tx-rgb),.05);color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.08);box-shadow:none}
 .gmpop{position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:6;background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-m);box-shadow:0 16px 38px rgba(0,0,0,.32);overflow:hidden}
 .gmpop button{width:100%;display:flex;align-items:center;padding:13px 14px;background:none;border:0;border-top:1px solid rgba(var(--tx-rgb),.055);color:var(--tx);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.05em;text-align:left}
 .gmpop .grp{padding:13px 14px 6px;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--chrome);opacity:.75;background:transparent;border-top:1px solid rgba(var(--tx-rgb),.08)}
 .gmpop .grp:first-child{border-top:0}
 .gmpop button{padding-left:18px}
-/* 고르는 자리에서만 두 줄 — 용어 아래에 무엇을 보는지 */
-.gmpop button.anlopt{flex-direction:column;align-items:flex-start;gap:2px;padding-top:9px;padding-bottom:9px}
-.gmpop button.anlopt b{font-weight:700;line-height:1.15}
-.gmpop button.anlopt em{font-family:var(--sans);font-style:normal;font-size:9.5px;font-weight:600;
-  letter-spacing:0;color:var(--dim);line-height:1.2}
 .gmpop button.on{color:var(--acc-br);background:rgba(var(--acc-rgb),.08)}
-.gmpop button.anlopt.on em{color:var(--mut)}
 .gmpop button.on::after{content:'';margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--chrome);box-shadow:0 0 6px rgba(var(--acc-rgb),.6)}
 .namerow{display:flex;gap:8px;margin-top:2px}
 .namein{flex:1;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-size:17px}
@@ -1215,39 +1167,13 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .okbtn{flex:0 0 auto;min-height:42px;padding:0 18px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);font-weight:700;font-size:11px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
 .okbtn.rdy{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .akin{width:100%;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-s);padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);margin:8px 0}
-#aiOut{line-height:1.65;font-size:13px;color:var(--tx);margin-top:6px;display:none;max-height:calc(88dvh - 172px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 2px 10px}
-.ai-h{margin:18px 0 9px;padding-top:13px;border-top:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
-.ai-h:first-child{margin-top:6px;padding-top:0;border-top:0}
-.ai-p{margin:4px 0;font-variant-numeric:tabular-nums}
-.ai-row{margin:11px 0}
-.ai-row .t{display:flex;align-items:baseline}
-.ai-row .nm{font-weight:800;font-size:13px}
-/* 판정 칩. 여백이 없어 '등' + '초과' 가 '등초과' 한 단어로 읽혔다.
-   배경을 깔면 --sig 가 밀려 올라가 어두운 팔레트에서 대비가 무너지므로
-   (경고 배지에서 이미 겪었다) 색만 쓴다. */
-.ai-row .st{margin-left:8px;font-size:9px;font-weight:800;letter-spacing:.08em;
-  white-space:nowrap;color:var(--dim)}
-.ai-row .st.pos{color:var(--pos)}
-.ai-row .st.neg{color:var(--sig)}
-.ai-row .st.warn{color:var(--acc-br)}
-.ai-row .num{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--acc-br);font-weight:700}
-.ai-row .num em{font-style:normal;color:var(--dim);font-weight:400}
 .ai-bar{position:relative;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.1);margin-top:7px}
 .ai-bar b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--acc-dk),var(--acc-br));transition:width .7s cubic-bezier(.2,.75,.25,1)}
 .ai-bar .mk{position:absolute;top:-2.5px;bottom:-2.5px;width:1px;background:rgba(var(--tx-rgb),.5);opacity:.5}
-.ai-mast{display:flex;align-items:baseline;gap:10px;margin:14px 1px 4px;padding-bottom:10px;border-bottom:1px solid var(--line);position:relative}
-.ai-mast::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:1px;background:var(--line)}
-.ai-mast .tt{font-size:11px;font-weight:900;letter-spacing:.3em;color:var(--acc-sf)}
-.ai-mast .mt{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.ai-mast .nav{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;background:var(--plate2);color:var(--mut);font-size:10px;line-height:1}
-.ai-mast .nav:disabled{opacity:.3}
-/* AI 상자의 머리줄이 상자를 접었다 폈다 하는 손잡이다 */
-.zsec.ai .zhd{cursor:pointer}
-.zsec.ai .zhd:active{opacity:.6}
-.zsec.ai.fold{padding-bottom:12px}
-.zsec.ai .zhd .fchv{font-style:normal;font-size:8px;margin-left:6px}
-.hl{font-family:var(--mono);color:var(--acc-br);font-weight:700}
 .anlviz{padding:10px 1px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+/* AI 상자가 뒤에 따라오던 시절의 칸막이다. 이제 이것이 상자의 끝이라
+   밑줄만 덩그러니 남는다 */
+.anlviz:last-child{border-bottom:0;margin-bottom:0;padding-bottom:2px}
 /* 다섯 줄이 위아래 8px 씩 벌어져 카드가 필요 이상으로 높았다 */
 .lmrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-family:var(--mono)}
 .lmrow .bn{flex:0 0 52px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
@@ -1391,26 +1317,6 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 /* box-shadow 가 브론즈 강조색 리터럴이었다 — 나머지 스물일곱 팔레트에서
    엉뚱한 색이 번진다 */
 .db2 .tg{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--acc-br);box-shadow:0 0 4px rgba(var(--acc-rgb),.5)}
-.ai-ck{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;padding:7px 2px;font-size:13px;line-height:1.5;color:var(--tx)}
-.ai-ck i{flex:0 0 16px;height:16px;margin-top:1px;border:1px solid rgba(var(--acc-rgb),.5);border-radius:3px;background:var(--inset);font-style:normal;font-size:11px;line-height:15px;text-align:center;color:var(--on-acc)}
-.ai-ck.done i{background:var(--acc-sf);border-color:transparent}
-.ai-ck.done span{color:var(--dim);text-decoration:line-through;text-decoration-color:rgba(var(--acc-rgb),.4)}
-.ai-ck:active{opacity:.7}
-.ai-ck .bh{color:var(--acc-br);font-weight:700}
-.ai-ck .bd2{font-style:normal;color:var(--dim);margin:0 6px}
-.ai-tr{margin:8px 0;padding:10px 12px;border:var(--bw) solid rgba(var(--tx-rgb),.07);border-left:2px solid var(--chrome);border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.04);box-shadow:var(--elev-p)}
-.ai-tr.neg{border-left-color:var(--sig)}
-.ai-tr.pos{border-left-color:var(--pos)}
-.ai-tr .kr{display:flex;align-items:center;gap:8px}
-.ai-tr .k{font-weight:800;font-size:13px;color:var(--tx);letter-spacing:.02em}
-.ai-tr .st{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.12em;padding:2px 7px;border-radius:2px;border:1px solid rgba(var(--acc-rgb),.4);color:var(--acc-br);background:rgba(var(--acc-rgb),.1);white-space:nowrap}
-.ai-tr.neg .st{color:var(--neg);border-color:rgba(var(--sig-rgb),.5);background:rgba(var(--sig-rgb),.12)}
-.ai-tr.pos .st{color:var(--pos);border-color:rgba(var(--pos-rgb),.45);background:rgba(var(--pos-rgb),.1)}
-.ai-tr .v{display:block;margin-top:5px;font-size:11px;line-height:1.5;color:var(--mut)}
-.ai-tr .mini{margin-top:7px;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.1)}
-.ai-tr .mini b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--acc-dk),var(--acc-br))}
-.ai-tr.neg .mini b{background:linear-gradient(90deg,rgba(var(--sig-rgb),.65),var(--sig))}
-.ai-tr.pos .mini b{background:var(--pos)}
 .ckrow{display:flex;align-items:center;gap:8px;padding:7px 9px;border:var(--bw) solid rgba(var(--tx-rgb),.07);border-radius:var(--rad-s);margin-bottom:5px;background:rgba(var(--tx-rgb),.045);font-size:11px}
 .ckrow.bad{border-color:rgba(var(--sig-rgb),.5);background:rgba(var(--sig-rgb),.09)}
 .ckrow .nm2{flex:1 1 auto;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx);font-weight:700}
@@ -1453,10 +1359,6 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .skhd{display:flex;align-items:baseline;gap:6px}
 .sxadd{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:800;
   border:var(--bw) dashed rgba(var(--tx-rgb),.25);background:none;color:var(--dim)}
-.ai-sub{margin-top:5px;font-size:11px;color:var(--dim)}
-.ai-total{display:flex;align-items:baseline;margin:14px 0 2px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--mut)}
-.ai-total .num{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--acc-br)}
-.ai-total .num em{font-style:normal;color:var(--dim);font-weight:400}
 .cdcard{background:var(--sheet-bg);border:1px solid var(--line);border-radius:var(--rad-s);padding:13px 14px 14px;margin-top:10px;box-shadow:inset 0 1px 0 var(--edge),0 2px 8px rgba(0,0,0,.45)}
 .cdcard .t{display:flex;align-items:baseline}
 .cdcard .lb{font-size:10px;font-weight:800;letter-spacing:.22em;color:var(--mut);text-transform:uppercase}
@@ -1468,19 +1370,10 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .cdcard .sub2 b{color:var(--mut);font-weight:700}
 .pacehint{margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em;min-height:14px}
 .pacehint b{color:var(--mut)}
-.ai-empty{margin:26px 0 14px;text-align:center;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:700}
-/* 넘쳤을 때 — 축 끝을 실적에 맞추고 목표 자리에 선을 긋는다.
-   예전에는 100% 로 잘려 24/21 과 21/21 이 같은 꽉 찬 막대였다 */
-.ai-bar.ov b{background:linear-gradient(90deg,var(--acc-dk),var(--sig))}
-.ai-bar .gl{position:absolute;top:-2px;bottom:-2px;width:2px;border-radius:1px;
-  background:var(--tx);opacity:.75;transform:translateX(-1px)}
-/* 막대가 뜻을 갖지 않는 줄 */
-.ai-row.nb .ai-bar{display:none}
 /* 두 덩어리. 평평하게 늘어놓으면 어디까지가 '지금 바로' 이고 어디부터가
    'AI' 인지 알 수 없다 — 눈이 먼저 덩어리를 보고 그 다음 안을 본다. */
 .zsec{margin-top:12px;padding:12px 13px 13px;border-radius:var(--rad-card);
   border:var(--bw) solid rgba(var(--tx-rgb),.1)}
-.zsec.ai{border-color:rgba(var(--acc-rgb),.34);background:rgba(var(--acc-rgb),.045)}
 .zhd{display:flex;align-items:baseline;margin:0 0 10px}
 .zhd b{font-size:10.5px;font-weight:800;letter-spacing:.16em;color:var(--tx)}
 .zsec.ai .zhd b{color:var(--acc-br)}
@@ -1497,17 +1390,6 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
   font-size:13.5px;font-weight:700;letter-spacing:.02em}
 .catb:active{opacity:.6}
 .catb.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc);font-weight:800}
-/* AI 세부 — 갈래 줄과 일부러 다르게 생겼다. 갈래는 보는 것을 바꾸고
-   이것은 눌렀을 때 시킬 것을 바꾼다. */
-.aitb{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 7px}
-.aitp{flex:0 1 auto;min-height:44px;padding:0 13px;
-  border:1px solid rgba(var(--tx-rgb),.18);border-radius:999px;background:none;
-  color:var(--mut);font-size:11.5px;font-weight:700}
-.aitp:active{opacity:.6}
-.aitp.on{border-color:var(--acc-br);color:var(--acc-br);font-weight:800}
-/* --dim 은 밝은 팔레트에서 4.24 로 AA 를 못 넘겼다. 이 줄은 고른 세부가
-   무엇을 하는지 말하는 유일한 자리라 읽혀야 한다. */
-.aidsc{margin:-2px 2px 9px;font-size:10.5px;line-height:1.4;color:var(--mut)}
 /* 갈래 — 눈금이 아니라 보기 전환이므로 가볍게 */
 .vzts{display:flex;gap:2px;margin:0 0 4px}
 .vzt{flex:1 1 0;min-width:0;height:30px;border:0;border-radius:var(--rad-s);
@@ -1704,12 +1586,6 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .ztot .num{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
   letter-spacing:0;color:var(--tx)}
 .ztot .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
-/* 지난 리포트를 볼 때만 붙는 그때 그림 — 맨 위 대시보드와 구별되게 */
-.vzold{margin-top:10px;padding-top:10px;border-top:1px solid rgba(var(--tx-rgb),.09);opacity:.85}
-.ai-load{margin:11px 1px 0;font-size:10px;font-weight:800;letter-spacing:.26em;color:var(--acc-sf)}
-.ai-load::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:aidots 1.2s steps(4,end) infinite}
-@keyframes aidots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
-#aiOut.show{display:block}
 /* 말 고르기. 두 칸뿐이라 격자가 아니라 좌우로 가른다 */
 .lgsw{display:flex;gap:7px;margin:9px 0 4px}
 .lgb{flex:1;padding:12px 0;border:var(--bw) solid rgba(var(--tx-rgb),.12);
@@ -1797,7 +1673,6 @@ html{color-scheme:dark}
 #bhD{letter-spacing:.05em}
 .strow{display:flex;align-items:center;gap:9px;margin:8px 0}
 .strow .stnm{flex:0 0 58px;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
-.strow .ai-bar{flex:1;margin:0}
 .strow .stv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--acc-br);min-width:18px;text-align:right}
 .strow .stsl{color:var(--dim);font-size:11px}
 .ctrow{display:flex;gap:10px;align-items:baseline;margin:6px 0;color:var(--mut);font-size:11px}
@@ -3287,8 +3162,8 @@ var HTABS=[
   {k:'log',   n:'훈련 기록',   t:'세트 입력하는 법'},
   {k:'num',   n:'숫자 읽기',   t:'화면의 수치가 뜻하는 것'},
   {k:'goal',  n:'목표 설정',   t:'얼마나 해야 하는가'},
-  {k:'rep',   n:'AI 분석',    t:'리포트 뽑고 읽는 법'},
-  {k:'key',   n:'AI 키 발급',  t:'API 키 만들어 넣기'},
+  {k:'rep',   n:'분석 화면',   t:'현황 갈래 보는 법'},
+  {k:'key',   n:'AI 키 발급',  t:'사진 판독용 키 만들기'},
   {k:'back',  n:'데이터 백업', t:'기록을 잃지 않으려면'},
   {k:'look',  n:'화면 테마',   t:'색과 질감 바꾸기'}
 ];
@@ -3311,7 +3186,7 @@ function helpHtml(){
       +hStep(3,TX('어시스트 머신 지정'),TX('친업·딥 어시스트처럼 무게가 클수록 가벼워지는 머신은 같은 화면에서 <em>어시스트</em>로 지정함. 안 하면 성장이 퇴행으로 뒤집혀 계산됨.'))
       +hStep(4,TX('인바디 등록'),TX('설정 · DIET에서 결과지 사진을 올리면 체중과 체지방을 읽어 하루 소비와 목표 칼로리를 계산함. 직접 입력도 됨.'))
       +hStep(5,TX('주간 목표'),TX('설정 · GOALS에서 부위별·세부별 주간 세트 수와 휴식 요일을 정함.'))
-      +hStep(6,TX('AI 키'),TX('설정 · AI에 키를 넣으면 리포트를 쓸 수 있음. 발급 방법은 <em>AI 키</em> 패널에 있음.'));
+      +hStep(6,TX('AI 키'),TX('설정 · AI에 키를 넣으면 인바디 사진 판독을 쓸 수 있음. 발급 방법은 <em>AI 키</em> 패널에 있음.'));
   }
   if(t==='log'){
     h+=hStep(1,TX('종목 누르기'),TX('아래에서 입력 시트가 올라옴. 제목 밑에 지난 세션 기록이 보임.'))
@@ -3366,29 +3241,18 @@ function helpHtml(){
       +hRow(TX('세로선'),TX('보정 MRV'));
     h+=hNote(TX('감량기에는 회복 여력이 줄기 때문에 MRV를 원래 값의 <b>80퍼센트</b>로 낮춰 표시함.'));
     h+=hCap(TX('총량만큼 빈도도 중요'))
-      +hNote(TX('같은 18세트라도 하루에 몰아친 것과 사흘에 나눈 것은 효과가 다름. 옷맵시 분석에 <b>측면과 광배의 주간 수행 횟수</b>가 함께 나오므로 세트 총량과 같이 볼 것.'));
+      +hNote(TX('같은 18세트라도 하루에 몰아친 것과 사흘에 나눈 것은 효과가 다름. 분석 · 훈련 · <b>회복</b> 갈래에 부위별 수행 요일이 나오므로 세트 총량과 같이 볼 것.'));
   }
   if(t==='rep'){
-    h+=hStep(1,TX('카테고리 고르기'),TX('맨 위에서 감량·훈련·식단 중 하나를 고름. 아래 두 상자가 함께 바뀜.'))
-      +hStep(2,TX('현황 보기'),TX('갈래를 눌러 앱이 직접 계산한 값을 봄. AI 없이 늘 보이고 기다림도 없음.'))
-      +hStep(3,TX('AI 분석'),TX('무엇을 정하게 할지 고르고 RE-ANALYZE를 누름. 하루 20회까지.'));
+    h+=hStep(1,TX('카테고리 고르기'),TX('맨 위에서 감량·훈련·식단 중 하나를 고름. 아래 상자가 함께 바뀜.'))
+      +hStep(2,TX('갈래 보기'),TX('갈래를 눌러 앱이 직접 계산한 값을 봄. 기다림 없이 바로 나옴.'));
     h+=hCap(TX('현황 갈래'))
       +hRow(TX('감량'),TX('추세 — 주당 체중과 골격근 / 소비 — 기초대사와 주간 운동 소비'))
       +hRow(TX('훈련'),TX('부위 · 근육 — MEV~MRV 눈금 / 종목 — 손댈 것과 그 까닭 / 회복 / 균형'))
       +hRow(TX('식단'),TX('오늘 — 남은 몫과 끼니 / 평균 — 끝난 날 평균'));
-    h+=hCap(TX('AI 세부 6종'))
-      +hRow(TX('세트 처방'),TX('남은 세션에 세트를 어디에 넣고 뺄지'))
-      +hRow(TX('주간 마감'),TX('이번 주 결산과 다음 주 요일 배치'))
-      +hRow(TX('종목 교체'),TX('어떤 종목을 무엇으로 바꿀지 — 동작 자체를 바꿈'))
-      +hRow(TX('페이스 점검'),TX('감량 페이스가 맞는지, 적자를 얼마나 조정할지'))
-      +hRow(TX('다음 끼니'),TX('지금 한 끼에 무엇을 먹을지'))
-      +hRow(TX('하루 설계'),TX('남은 몫을 남은 끼니에 어떻게 나눌지'));
-    h+=hNote(TX('세부 근육 세트, 수행 횟수, 경과·잔여 훈련일, 연속 수행일, 정체·퇴행 종목 수는 <b>앱이 계산해서 넘겨줌.</b> AI는 그 값을 인용만 하므로 화면 그래프와 리포트 숫자가 어긋나지 않음.'));
-    h+=hCap(TX('체크 표시'))
-      +hNote(TX('[방향] 항목은 눌러서 완료 표시를 할 수 있음. 운동 전에 뽑은 리포트에서만 나타남.'));
   }
   if(t==='key'){
-    h+=hNote(TX('리포트를 쓰려면 AI 제공사의 키가 하나 필요함. <b>Gemini가 무료 한도가 넓어</b> 시작하기에 적합함.'));
+    h+=hNote(TX('인바디 결과지 사진을 읽으려면 AI 제공사의 키가 하나 필요함. <b>Gemini가 무료 한도가 넓어</b> 시작하기에 적합함.'));
     h+=hCap(TX('Gemini · 권장'))
       +hStep(1,'aistudio.google.com',TX('구글 계정으로 로그인함.'))
       +hStep(2,'Get API key',TX('좌측 메뉴에서 키 만들기를 누름.'))
@@ -3403,7 +3267,7 @@ function helpHtml(){
     h+=hCap(TX('앱에 넣기'))
       +hStep(1,TX('설정 · AI'),TX('우측 상단 <em>···</em>를 누르고 AI 탭으로 감.'))
       +hStep(2,TX('붙여넣기'),TX('제공사에 맞는 칸에 넣으면 자동으로 저장됨.'))
-      +hStep(3,TX('엔진 고르기'),TX('ANALYZE 의 실행 버튼 왼쪽 칸에서 쓸 엔진을 선택함.'));
+      +hStep(3,TX('엔진 고르기'),TX('같은 화면 아래 <em>판독 엔진</em> 칸에서 고름. 고른 제공사에 키가 없으면 키가 있는 쪽으로 넘어감.'));
     h+=hNote(TX('키는 이 기기에만 저장되고 다른 곳으로 보내지 않음. <b>백업 파일에는 들어가지 않으므로</b> 기기를 옮기면 다시 넣어야 함.'));
   }
   if(t==='back'){
@@ -3457,7 +3321,6 @@ function renderSheet(){
     h+='<div class="sh-t">Analyze</div>';
     /* 메인 화면 카드(heroHtml·cutHtml)는 대시보드가 같은 것을 판정까지 붙여
        더 낫게 그리게 되면서 부르는 데가 없어졌고, 이번에 통째로 뺐다. */
-    var td=todayISO(),used=(AIC.d===td?AIC.n:0);
     /* 큰 카테고리. 셋뿐인데 접어 두면 무엇을 고를 수 있는지가 안 보이고,
        이 칸이 아래 두 상자를 다 바꾸므로 늘 떠 있어야 한다. */
     var cgi;
@@ -3473,82 +3336,8 @@ function renderSheet(){
        된다:  if(ANLC==='train'&&hasLogs()){ var RT=routeToday(); ... vzRoute(RT) } */
     h+='<section class="zsec"><div class="zhd"><b>'+TX('현황')+'</b><i>'+esc(catCtx(ANLC))+'</i></div>'
       +vzTabs(vlist,vcur,catAct(ANLC))
-      +anlViz(ANL,vcur)
+      +anlViz(ANLC,vcur)
       +'</section>';
-    /* AI 것은 조작부부터 리포트까지 한 덩어리로 — 예전에는 버튼이 맨 위,
-       머리글이 중간, 결과가 아래여서 무엇이 AI 인지 알 수 없었다 */
-    /* 상자째 접는다. 시트를 열면 '현황' 만 보이고 AI 는 머리줄 한 줄로
-       남는다 — 어제 뽑은 글이 화면의 절반을 먹을 이유가 없다.
-       방금 뽑은 것(AIFRESH)은 펴서 보여 준다: 눌러서 만든 것을 다시 눌러
-       펴게 하면 안 된다. */
-    var aif=(AIFOLD&&!AIFRESH);
-    h+='<section class="zsec ai'+(aif?' fold':'')+'">'
-      /* 영어 화면에 한국어로 남아 있던 두 낱말. 사전에는 옮긴 말이 둘 다
-         있는데 부르는 쪽에 TX 를 안 걸어 열쇠가 죽어 있었다. */
-      +'<div class="zhd" data-act="aifold" role="button" aria-expanded="'+(aif?'false':'true')+'"><b>'+TX('AI 분석')+'</b>'
-      +'<i>'+TX1('하루 {0}/20',used)+'<em class="fchv">'+(aif?'\u25BE':'\u25B4')+'</em></i></div>';
-    if(aif){h+='</section>';}else{
-    /* 세부 고르는 줄. 갈래 줄과 생김새를 일부러 다르게 둔다 — 같아 보이면
-       한 화면에 똑같은 줄이 둘이라 무엇이 무엇을 바꾸는지 헷갈린다.
-       갈래는 보는 것을, 이것은 눌렀을 때 시킬 것을 바꾼다. */
-    var sub=CATAI[ANLC]||[],sgi;
-    if(sub.length>1){
-      h+='<div class="aitb">';
-      for(sgi=0;sgi<sub.length;sgi++)
-        h+='<button class="aitp'+(ANL===sub[sgi]?' on':'')+'" data-act="anlpick" data-v="'
-          +sub[sgi]+'">'+TX(ANLN[sub[sgi]])+'</button>';
-      h+='</div>';
-    }
-    if(ANLD[ANL])h+='<div class="aidsc">'+esc(TX(ANLD[ANL]))+'</div>';
-    h+='<div class="console">';
-    if(aiBgPending())h+='<div class="note" style="margin-top:10px">'+TX('백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b>')+'</div>';
-    /* 엔진은 한 번 정하면 잘 안 바꾸는데 분석 종류와 같은 크기의 줄을 차지했다.
-       작은 글씨 한 줄로 내리면 누를 자리가 20px 밖에 안 나오므로, 버튼과 한 줄을
-       나눠 쓴다 — 높이를 버튼에서 빌려 44px 이 그대로 지켜지고 줄은 없어진다. */
-    h+='<div class="runrow">';
-    h+='<div class="gmwrap eng">';
-    h+='<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
-      +'<span class="cval">'+engShort()+'</span></button>';
-    if(GMOPEN){
-      h+='<div class="gmpop">';
-      var grps=engGroups(),gi,ii;
-      var cur=(LM==='gem'?'gem|'+GM:LM+'|');
-      for(gi=0;gi<grps.length;gi++){
-        h+='<div class="grp">'+grps[gi].name+'</div>';
-        for(ii=0;ii<grps[gi].items.length;ii++){
-          var it=grps[gi].items[ii];
-          h+='<button class="'+(cur===it.v?'on':'')+'" data-act="gmpick" data-v="'+it.v+'">'+it.label+'</button>';
-        }
-      }
-      h+='</div>';
-    }
-    h+='</div>';
-    h+='<button class="anlbtn'+((AIRUN||aiBgPending())?' dis':'')+'" data-act="airun"'+((AIRUN||aiBgPending())?' disabled':'')+'>'
-      +'<span>'+(AIRUN?'Analyzing':(AIOUT?'Re-analyze':'Analyze'))+'</span>'
-      /* 한 번도 안 돌린 날의 '0/20' 은 알려 주는 것이 없다 */
-      +(used>0?'<u>'+used+'/20</u>':'')+'</button>';
-    h+='</div>';
-    if(AIRUN)h+='<div class="ai-load">COMPILING REPORT</div>';
-    h+='</div>';
-    var cur=AIH[AIVIEW]||(AIOUT?{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}:null);
-    h+='<div id="aiOut" class="show">';
-
-    if(cur){
-      h+='<div class="ai-mast"><span class="tt">'+(ANLL[cur.k]||'TRAINING PLAN')+'</span>'
-        +'<span class="mt">'
-        +'<button class="nav" data-act="aiprev"'+(AIVIEW+1<AIH.length?'':' disabled')+'>&#9664;</button>'
-        +'<span>'+(cur.d?cur.d+' · ':'')+(cur.by||'')+(cur.at?' · '+cur.at:'')+(aiDayTag(cur.d)?' <i class="stale">'+aiDayTag(cur.d)+'</i>':'')+'</span>'
-        +'<button class="nav" data-act="ainext"'+(AIVIEW>0?'':' disabled')+'>&#9654;</button>'
-        +'</span></div>';
-      /* 지난 리포트를 넘겨 볼 때만 그때 그림을 덧붙인다 — 맨 위 대시보드는
-         늘 지금 값이라, 옛 글과 나란히 두면 다른 주를 말하게 된다. */
-      if(AIVIEW>0&&cur.vz)h+='<div class="vzold">'+vzCap(TX('그때 기록'))+cur.vz+'</div>';
-      h+=aiFmt(cur.o,cur.ck||[],cur.ph);
-    }else if(!AIRUN){
-      h+='<div class="ai-empty">'+TX('아직 없음 — 위 숫자는 눌러 보지 않아도 나옴')+'</div>';
-    }
-    h+='</div></section>';
-    }
   }
   if(UI.sheet==='add'){
     h+='<div class="sh-t">Add Exercise</div>'+exFormHtml(false);
@@ -3878,15 +3667,34 @@ function renderSheet(){
       +'<button class="okbtn" data-act="wg" style="width:100%;margin-top:12px">Save goals</button>';
     }
     if(tb==='ai'){
+    /* 리포트를 걷어낸 뒤로 키가 하는 일은 하나다 — 결과지 사진에서 체중·
+       체지방을 읽는 것. 그러니 그 말을 여기 적는다. */
     h+='<div class="sh-l" style="margin-top:2px">API keys</div>'
+      +'<div class="note" style="margin:0 0 4px">'+TX('인바디 결과지 사진 판독에 씀. 하나만 넣으면 됨.')+'</div>'
       +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
       +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
       +'<input id="aka" type="password" class="akin" placeholder="Claude key (sk-ant-...)" value="'+KS.ant.replace(/"/g,'')+'">'
       +'<button class="okbtn" data-act="aksv" style="width:100%">Save keys</button>'
-      +'<div class="sh-l" style="margin-top:16px">AI prompt</div>'
-      +'<div class="note" style="margin:0 0 8px">'+TX('훈련 · <b>세트 처방</b> 지시문만 고침. 나머지 다섯 세부는 기본값을 씀.')+'</div>'
-      +'<textarea id="pr" class="akin" style="min-height:150px;resize:vertical;font-size:11px;line-height:1.5;font-family:var(--mono)">'+(PR||DEFPR).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>'
-      +'<div style="display:flex;gap:8px"><button class="okbtn" data-act="prsv" style="flex:1">Save prompt</button><button class="okbtn" data-act="prrs" style="flex:1;opacity:.65">Reset default</button></div>';
+      /* 엔진 고르개는 ANALYZE 의 실행줄에 붙어 있었다. 그 줄이 사라졌으므로
+         키 옆으로 옮긴다 — 키와 엔진은 같은 것을 정하는 한 쌍이다. */
+      +'<div class="sh-l" style="margin-top:16px">'+TX('판독 엔진')+'</div>'
+      +'<div class="gmwrap">'
+      +'<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
+      +'<span class="cval">'+engShort()+'</span></button>';
+    if(GMOPEN){
+      h+='<div class="gmpop">';
+      var grps=engGroups(),gi,ii,curE=(LM==='gem'?'gem|'+GM:LM+'|');
+      for(gi=0;gi<grps.length;gi++){
+        h+='<div class="grp">'+grps[gi].name+'</div>';
+        for(ii=0;ii<grps[gi].items.length;ii++){
+          var eit=grps[gi].items[ii];
+          h+='<button class="'+(curE===eit.v?'on':'')+'" data-act="gmpick" data-v="'+eit.v+'">'+eit.label+'</button>';
+        }
+      }
+      h+='</div>';
+    }
+    h+='</div>'
+      +'<div class="note" style="margin-top:8px">'+TX('고른 제공사에 키가 없으면 키가 있는 쪽으로 넘어감.')+'</div>';
     }
     if(tb==='data'){
     h+='<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
@@ -3904,16 +3712,6 @@ function renderSheet(){
   sh.classList.toggle('tall',UI.sheet==='ai'||UI.sheet==='data'||UI.sheet==='help');
   sh.style.height='';sh.style.transform='';
   grabBind();
-  if(UI.sheet==='ai'&&AIFRESH){
-    (function(){
-      var bars=sh.querySelectorAll('.ai-bar b');
-      requestAnimationFrame(function(){requestAnimationFrame(function(){
-        var i2;
-        for(i2=0;i2<bars.length;i2++)bars[i2].style.width=bars[i2].getAttribute('data-w')+'%';
-      });});
-      AIFRESH=false;
-    })();
-  }
 }
 
 /* ── 동작 ── */
@@ -5323,35 +5121,15 @@ function wkCardio(){
   var d=0;for(k in dset)d++;
   return {z2:Math.round(z2),neat:Math.round(nt),days:d,kcal:Math.round(kc),km:Math.round(km*10)/10};
 }
-var AK='',AIOUT='',PR='',LM='gem',AIAT='',AIBY='',AIRUN=false;
-var AIH=[],AIVIEW=0,AIFRESH=false,AIDT='';
-/* 시트를 열면 지난 리포트가 통째로 펼쳐져 어제 뽑은 글이 화면의 절반을
-   먹었다. 접어 두고 머리줄만 남긴다 — 무엇이 있는지는 알리되 읽을지는
-   고르게 한다. 저장하지 않는다: 열 때마다 접힌 채로 시작하는 것이
-   '바로 안 보이게' 라는 말의 뜻이다. */
-var AIFOLD=true;
-/* 요청을 보낼 때의 모드·시점. 도착 시점 전역값을 쓰면 기다리는 사이 바뀐다 */
-var AIREQ=null;
-/* ── 분석론 선택 ── */
-var ANL='plan';
-/* 큰 카테고리. 갈래(보는 것)와 AI 세부(정하는 것)를 각각 거느린다.
-   예전에는 ANL 한 값이 셋을 겸해서, 표를 바꾸려면 AI 모드까지 바뀌었다. */
+/* PR 은 이제 쓰는 데가 없지만 백업 꾸러미가 담고 있다(bkText) — 모양을
+   깨지 않으려고 남긴다. LM 은 인바디 사진 판독의 제공사 선택이다. */
+var PR='',LM='gem';
+/* ── 분석 화면이 보고 있는 카테고리 ── */
 var ANLC='train';
 /* '몸' 은 앱 전부가 몸 얘기라 아무것도 가려내지 못했다. 이 탭이 실제로
    답하는 물음은 '감량이 제대로 가고 있나' 이고, 이 앱은 전부 감량기
    전제로 짜여 있다 — 주당 -0.5kg, MRV 감량 보정, 프롬프트도 감량기 코치. */
 var CATS=[{k:'body',n:'감량'},{k:'train',n:'훈련'},{k:'diet',n:'식단'}];
-var CATAI={body:['pace'],train:['plan','wkclose','swap'],diet:['meal','dayplan']};
-/* AI 세부 → 그것이 속한 카테고리. 옛 리포트의 키도 여기서 받는다.
-   옛 키(wk·vol·cut 등)와 새 키가 겹치면 ANLMAP 이 먼저 걸려 새 모드를
-   못 고르므로, 새 모드에는 쓰인 적 없는 이름을 붙였다. */
-var MCAT={plan:'train',wkclose:'train',swap:'train',pace:'body',meal:'diet',dayplan:'diet',
-  /* 옛 리포트(AIH)가 든 아홉 키. 지난 것을 넘겨 볼 때 그때 그림을 어느
-     대시보드로 그릴지 여기서 정해진다 — 빠뜨리면 식단 리포트에 훈련 표가
-     붙는다. 한 곳에 다 적어 둔다: 두 곳을 보게 하면 그 사이로 샌다. */
-  cut:'diet',mac:'diet',wk:'train',vol:'train',prog:'train',recov:'train',
-  acsm:'train',bal:'train',vt:'train'};
-function catOf(k){return MCAT[k]||'train';}
 /* 상자 오른쪽에 붙일 맥락. 예전에는 '앱이 냄' 이라는 앱 내부 설명이
    붙어 있었다 — 사용자가 알 바 아니다. 지금 무엇을 보고 있는지를 적는다. */
 function catCtx(c){
@@ -5369,51 +5147,6 @@ function catCtx(c){
 function catTabs(c){return c==='body'?VZB:(c==='diet'?VZD:VZT);}
 function catCur(c){return (c==='body'?UI.vzb:(c==='diet'?UI.vzd:UI.vzt))||catTabs(c)[0][0];}
 function catAct(c){return c==='body'?'vzb':(c==='diet'?'vzd':'vzt');}
-/* 아홉은 '앱이 계산해 둔 것을 무엇에 관해 받아적을까' 로 갈려 있었다.
-   받아적기가 없어지니 그 수가 뜻을 잃는다 — 결정 단위로 둘만 남긴다.
-   주제 아홉은 사라지지 않고 대시보드가 되어 즉시·무료로 늘 보인다. */
-var ANLL={plan:'TRAINING PLAN',wkclose:'WEEK CLOSE',swap:'EXERCISE SWAP',
-  pace:'CUT PACE',meal:'NEXT MEAL',dayplan:'DAY PLAN',
-  /* 지난 리포트에 저장된 옛 아홉 키. 없으면 폴백이 걸려 식단 리포트에도
-     TRAINING PLAN 이 붙는다 — 제목만 쓰이므로 여기 적어 두면 끝난다. */
-  wk:'WEEKLY',vol:'VOLUME',prog:'PROGRESS',recov:'RECOVERY',acsm:'ACSM',
-  bal:'BALANCE',vt:'V-TAPER',cut:'CUT',mac:'MACROS'};
-var ANLN={plan:'세트 처방',wkclose:'주간 마감',swap:'종목 교체',
-  pace:'페이스 점검',meal:'다음 끼니',dayplan:'하루 설계'};
-/* 용어만 두면 안 읽히고 용어를 빼면 없어 보인다 — 고르는 자리에서만 둘 다 보인다 */
-var ANLD={
- plan:'남은 세션에 세트를 어디에 넣고 뺄지',
- wkclose:'이번 주 결산과 다음 주 배치',
- swap:'어떤 종목을 무엇으로 바꿀지',
- pace:'감량이 제대로 가고 있는지',
- meal:'지금 무엇을 먹을지',
- dayplan:'오늘 남은 끼니를 어떻게 나눌지'
-};
-var ANLDEF={
- plan:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 이미 끝낸 값이다. 숫자와 판정은 화면이 그리고 있으므로 다시 나열하지 말고 결정만 내려라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[평가]\n- vd 가 \"강도 부족\" 인 세부는 세트를 늘리지 말 것. 세트는 이미 했고 RIR 4 이상이라 안 세어진 것이므로, 처방은 그 종목의 무게를 올리는 것으로 씀.\n- 목표 미달 부위 중 간접 기여 세트로 메워지는 곳은 부족이라 쓰지 말고 제외한 이유를 한 줄로 씀.\n- 계획 요일과 실제 수행 요일이 어긋난 부위가 있으면 한 줄. 없으면 생략함.\n- 이번주쉰날은 본인이 쉬기로 정한 날이라 잔여훈련일에서 이미 빠져 있음. 빠진 훈련으로 세지 않음.\n- 잘한 점 한 줄. 개선 후보 중 이번 주에 가장 값진 것 하나만 고름.\n\n[처방]\n- 넣고 뺄 것을 "종목명 ±N세트 · 까닭" 형식으로 최대 3줄. 부위 이름만 쓰지 않고 반드시 종목 필드의 이름을 그대로 씀.\n- 뺄 종목은 종목 필드에서 세트가 많은 것부터 고름. 넣을 종목도 그 목록 안에 있는 것으로 함.\n- 늘릴 곳을 정하면 줄일 곳도 함께 씀 — 감량기에는 총량을 늘리지 않음.\n- 정체·퇴행 종목은 무게 유지 / 5% 재빌드 / 반복 상향 중 하나를 골라 한 줄씩, 최대 2종목. 옷맵시 핵심 종목을 먼저 다룸.\n- 이미 수행한 볼륨을 줄이라고 쓰지 않음.\n\n[한 줄]\n- 이번 주 가장 먼저 손댈 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 부위·세부·주단계·경과일 같은 값은 화면이 이미 그리므로 그것만으로 이루어진 줄은 쓰지 않음 — 모든 줄에 종목 이름이나 결정이 들어가야 함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- wkclose:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 끝낸 값이다. 이번 주를 닫고 다음 주를 연다.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[이행]\n- 직전처방의 각 줄을 이행·미이행으로 가르고 근거는 짝지어 온 실측 하나만 듦. 직전처방이 비었으면 이 섹션을 통째로 생략함.\n\n[결산]\n- 목표 대비 남거나 넘친 부위를 최대 2줄. 간접 기여로 메워지는 곳은 부족이라 쓰지 않고 제외한 이유를 함께 씀.\n- 체성분이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 간격일을 근거로 듦. 체성분이 null 이면 이 줄을 생략함.\n- 주단계가 막바지·마지막날이 아니면 아직 닫을 주가 아니므로 이 섹션 대신 남은 훈련일로 무엇을 채울지 한 줄만 씀.\n\n[다음 주]\n- 옮길 것을 "종목명 ±N세트 · 까닭" 형식으로 최대 4줄. 종목 필드의 이름을 그대로 씀. 총량은 이번 주와 같게 두고 자리만 옮김.\n- 넘친 부위에서 빼서 모자란 부위로 넣음. 휴식요일에는 아무것도 배치하지 않음.\n\n[한 줄]\n- 다음 주에 한 가지만 바꾼다면 무엇인가.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- swap:'당신은 감량기 근비대 코치다. 아래는 앱이 판정을 끝낸 값이다. 세트 수가 아니라 종목 자체를 바꿀 것만 정하라.\n전제: 감량기(주당 -0.5kg), 주 5일 분할, 옷맵시(측면 어깨·광배) 1순위, 승모 상부 자극 회피.\n\n[바꿀 것]\n- 정체·퇴행에 든 종목 중 교체가 답인 것만 최대 3줄. "지금 종목 → 대신할 종목 · 까닭" 형식.\n- 대신할 종목은 반드시 보유종목 목록에 있는 이름을 그대로 씀. 목록에 없는 기구는 쓸 수 없으므로 후보가 없으면 그 종목은 건너뜀.\n- 무게나 반복 조정으로 풀리는 것은 여기 쓰지 않음 — 그것은 처방 몫임.\n- 대신할 종목은 같은 세부 근육을 치되 관절 각도나 저항 곡선이 다른 것으로 고름. 보유종목은 세부 근육별로 묶여 있으므로 같은 묶음 안에서 고름.\n- 회피세부를 건드리는 종목으로는 바꾸지 않음.\n\n[그대로 둘 것]\n- 정체·퇴행이어도 종목을 바꾸면 안 되는 것을 최대 2줄과 까닭 한 마디. 없으면 이 섹션을 통째로 생략함.\n\n[한 줄]\n- 이번에 딱 하나만 바꾼다면 무엇인가.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- pace:'당신은 감량기 코치다. 체중·체성분 수치와 판정은 화면이 이미 그린다. 감량이 제대로 가고 있는지만 가르고 조정할 것을 정하라.\n전제: 목표 주당 -0.5kg, 근손실 방지 최우선, 훈련량은 건드리지 않음.\n\n[판정]\n- 지금 페이스가 목표에 맞는지 한 줄. 근거는 주당변화와 그것을 낸 창(근거 필드)임.\n- 창을넓힘이 참이면 최근 자료가 모자란 값이므로 단정하지 말고 그렇게 씀.\n- 체성분이 내렸으면 근손실·측정 노이즈·판단 보류 중 하나로 가르고 간격일을 근거로 듦.\n\n[조정]\n- 적자를 늘릴지 줄일지 유지할지 한 줄과 그 폭을 kcal 로 씀. 맞으면 유지라고 씀.\n- 섭취로만 조정함. 감량기에 훈련 볼륨을 깎으면 근손실이 먼저 온다.\n- 인바디건수가 2 미만이면 조정하지 말고 무엇을 더 재야 하는지 한 줄만 씀.\n\n[한 줄]\n- 다음 인바디까지 지킬 것 한 문장.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 데이터에 있는 값만 쓰고 없는 것은 추정하지 않음. 화면이 그린 수치를 옮겨 적지 않고 판정을 뒤집거나 순위를 매길 때만 인용함. 한 줄 30자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- dayplan:'당신은 감량기 식단 코치다. 남은 몫과 끼니 소계는 화면이 이미 그린다. 오늘 남은 끼니에 그 몫을 어떻게 나눌지만 정하라.\n전제: 감량기, 근손실 방지 최우선, 한국에서 흔히 구할 수 있는 음식.\n\n[배분]\n- 안먹은끼니마다 한 줄로 (끼니, 열량, 단백질g) 를 정함. 합이 남은열량과 남은단백질을 넘지 않게 함.\n- 남은열량이 0 이하면 열량을 배분하지 말고, 남은 끼니를 단백질 위주로만 채우게 씀.\n- 오늘운동이 참이면 훈련 앞뒤 끼니에 탄수를 몰아 줌.\n- 안먹은끼니가 비었으면 이 섹션 대신 내일 아침 기준으로 한 줄만 씀.\n\n[끼니별]\n- 배분한 끼니마다 무엇을 먹을지 한 줄씩. 1인분 그램과 대략 열량을 씀.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 기록에 없는 것을 먹었다고 가정하지 않음. 훈련 부위·종목은 언급하지 않음. 한 줄 25자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n',
- meal:'당신은 감량기 식단 코치다. 남은 몫과 끼니 소계는 화면이 이미 그린다. 무엇을 먹을지만 정하라.\n전제: 감량기, 근손실 방지 최우선, 한국에서 흔히 구할 수 있는 음식.\n\n[다음 끼니]\n- 단백질 반찬 하나, 밥·면 하나, 채소 하나를 1인분 그램과 대략 열량으로 씀. 최대 3줄.\n- 남은 단백질이 많으면 단백질 위주, 남은 열량이 적으면 부피 큰 저열량 위주, 오늘 훈련했으면 탄수를 앞에 둠.\n- 안 먹은 끼니가 없거나 지금이 그 끼니를 먹을 때가 아니면 이 섹션을 통째로 생략함.\n\n[줄일 곳]\n- 오늘 목표를 넘겼을 때만 씀. 초과를 밀어올린 끼니를 짚고 무엇을 얼마나 덜었으면 됐는지 한 줄씩 최대 2줄. 넘기지 않았으면 이 섹션을 통째로 생략함.\n\n규칙: 섹션 제목은 대괄호 그대로 한 줄, 섹션 안의 각 줄은 "- "로 시작함. 기록에 없는 것을 먹었다고 가정하지 않음. 훈련 부위·종목은 언급하지 않음. 한 줄 25자 이내, -함/-됨/-요망 종결. 마크다운·인사말·맺음말 금지.\n\n'
-};
-/* 프롬프트는 여러 줄짜리라 EN 표(한 줄 열쇠)에 못 들어간다 — 같은 규칙으로
-   따로 둔다: 영어판이 없으면 한국어가 그대로 나가 프롬프트가 안 깨진다.
-   페이로드 열쇠(종목·안먹은끼니·잔여훈련일 …)는 영어판에서도 한국어 그대로다.
-   그것은 화면 글이 아니라 JSON 안의 이름이라, 옮기면 프롬프트와 자료가 어긋난다. */
-var ANLEN={
- plan:'You are a hypertrophy coach for a cut. Below are values the app has already judged. The screen draws the numbers and the verdicts, so do not list them again — decide only.\nContext: cut (-0.5kg per week), 5-day split, look first (side delts, lats), avoid upper-trap stimulus.\n\n[Review]\n- For parts under goal that indirect sets already cover, do not call them short; one line on why they were excluded.\n- One line if the planned day and the actual day of a part diverged. Skip if none.\n- 이번주쉰날 are days chosen as rest, already removed from 잔여훈련일. Do not count them as missed training.\n- One line on what went well. Of the fixes on the table, pick the single most valuable one this week.\n\n[Prescribe]\n- Up to 3 lines of what to add and drop, as "exercise ±N sets · why". Never a body part alone — use the name exactly as it stands in the 종목 field.\n- Pick what to drop from 종목, highest set count first. What you add comes from that list too.\n- If you add sets somewhere, cut sets elsewhere — total volume does not rise on a cut.\n- For stalled or regressing lifts pick one of: hold load / rebuild 5% lighter / raise reps. One line each, max 2 lifts. Look-critical lifts first.\n- Never ask to cut volume that is already done.\n\n[One line]\n- One sentence: the first thing to touch this week.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Use only values present in the data, never guess what is missing. The screen already draws 부위, 세부, 주단계, 경과일 — no line made of those alone; every line carries an exercise name or a decision. Under 60 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- wkclose:'You are a hypertrophy coach for a cut. Below are values the app has already judged. Close this week and open the next.\nContext: cut (-0.5kg per week), 5-day split, look first (side delts, lats), avoid upper-trap stimulus.\n\n[Follow-up]\n- Sort each line of 직전처방 into done or not done, backed by one matching measurement only. If 직전처방 is empty, drop this whole section.\n\n[Close]\n- Up to 2 lines on parts left short or run over. For parts covered by indirect sets, do not call them short; say why they were excluded.\n- If 체성분 fell, sort it into muscle loss, measurement noise, or judgment held, and cite 간격일. If 체성분 is null, drop this line.\n- If 주단계 is not late or the last day, the week is not closable — instead of this section write one line on what fills the training days left.\n\n[Next week]\n- Up to 4 lines of what moves, as "exercise ±N sets · why". Use names exactly as in the 종목 field. Keep the total equal to this week and move placement only.\n- Take from parts that ran over, give to parts left short. Nothing lands on 휴식요일.\n\n[One line]\n- If only one thing changes next week, what is it.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Use only values present in the data, never guess what is missing. Do not copy numbers the screen already draws; cite one only to overturn a verdict or to rank things. Under 60 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- swap:'You are a hypertrophy coach for a cut. Below are values the app has already judged. Decide only what to change at the exercise level, not set counts.\nContext: cut (-0.5kg per week), 5-day split, look first (side delts, lats), avoid upper-trap stimulus.\n\n[Swap]\n- Up to 3 lines, only for stalled or regressing lifts where a swap is the answer. Format "current → replacement · why".\n- The replacement must be a name that stands in 보유종목, copied exactly. Gear outside that list cannot be used, so skip the lift when nothing fits.\n- Anything a load or rep change fixes does not belong here — that belongs to the prescription.\n- Pick a replacement that hits the same detail muscle from a different joint angle or resistance curve. 보유종목 is grouped by detail muscle, so choose inside the same group.\n- Never swap into a lift that hits 회피세부.\n\n[Keep]\n- Up to 2 lines for lifts that are stalled or regressing but should not be swapped, with a few words of why. Drop this whole section if none.\n\n[One line]\n- If only one thing changes, what is it.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Use only values present in the data, never guess what is missing. Do not copy numbers the screen already draws; cite one only to overturn a verdict or to rank things. Under 60 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- pace:'You are a cutting coach. The screen already draws body weight, body composition and the verdicts. Decide only whether the cut is on track and what to adjust.\nContext: target -0.5kg per week, muscle retention first, training volume stays untouched.\n\n[Verdict]\n- One line on whether the current pace matches the target. Base it on 주당변화 and the window it came from (근거).\n- If 창을넓힘 is true, recent data was thin — say so instead of stating it flatly.\n- If 체성분 fell, sort it into muscle loss, measurement noise, or judgment held, and cite 간격일.\n\n[Adjust]\n- One line on raising, lowering or holding the deficit, with the size in kcal. Write hold if it is already right.\n- Adjust intake only. Cutting training volume on a cut costs muscle first.\n- If 인바디건수 is under 2, do not adjust — one line on what still needs measuring.\n\n[One line]\n- One sentence to hold to until the next InBody.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Use only values present in the data, never guess what is missing. Do not copy numbers the screen already draws; cite one only to overturn a verdict or to rank things. Under 60 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- dayplan:'You are a diet coach for a cut. The screen already draws what is left and the per-meal subtotals. Decide only how to split that across the meals left today.\nContext: cutting, muscle retention first, commonly available foods.\n\n[Split]\n- One line per entry in 안먹은끼니, giving (meal, kcal, protein g). The sum must not exceed 남은열량 and 남은단백질.\n- If 남은열량 is 0 or less, split no calories — fill the meals left with protein only.\n- If 오늘운동 is true, load carbs into the meals around training.\n- If 안먹은끼니 is empty, drop this section and write one line for tomorrow morning instead.\n\n[Per meal]\n- One line per meal you split, saying what to eat. Give the portion in grams and rough kcal.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Never assume food that is not in the log. Do not mention body parts or exercises. Under 50 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- meal:'You are a diet coach for a cut. The screen already draws what is left and the per-meal subtotals. Decide only what to eat.\nContext: cutting, muscle retention first, commonly available foods.\n\n[Next meal]\n- One protein dish, one rice or noodle, one vegetable, each with the portion in grams and rough kcal. Max 3 lines.\n- Much protein left, go protein first; little energy left, go high volume and low calorie; trained today, put carbs first.\n- If no meal is left, or it is not time for that meal, drop this whole section.\n\n[Trim]\n- Only when today went over target. Name the meal that pushed it over and what should have been dropped, one line each, max 2 lines. Drop this whole section if nothing went over.\n\nRules: section titles stay on their own line in brackets, every line inside a section starts with "- ". Never assume food that is not in the log. Do not mention body parts or exercises. Under 50 characters per line, short sentences, no markdown, no greeting, no closing.\n\n',
- glos:'The values below are results the app has already judged. Raw sets and exercise history are not passed.\nvd is the verdict the app attached and it already shows on screen as a chip — do not copy it; cite it only to overturn it or to rank things.\n',
- phPost:'Timing: a session is already logged for today (after training). Write the prescription for the next session.\n',
- phOff:'Timing: today is a rest day they chose. Do not assign anything for today; write the prescription for the next training day.\n',
- phPre:'Timing: no session logged today (before training). Write items to run in the session today.\n'
-};
-function PL(k,ko){return (LANG==='en'&&typeof ANLEN[k]==='string')?ANLEN[k]:ko;}
 function hasTodayStrength(){
   var pid={},i,k,td=today();
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
@@ -5423,35 +5156,25 @@ function hasTodayStrength(){
   }
   return false;
 }
-/* 숫자를 화면이 그리므로 용어집이 통째로 필요 없어졌다 — 3,176자가 이만큼 남는다.
-   AI 는 판정 결과만 받으므로 '이 필드는 이런 뜻' 을 설명할 대상이 없다. */
-var GLOS='아래 값은 앱이 판정을 끝낸 결과다. 세트 원본과 종목 이력은 넘기지 않는다.\n'
-  +'vd 는 앱이 붙인 판정이고 화면에 이미 칩으로 떠 있다 — 옮겨 적지 말고 뒤집거나 순위를 매길 때만 인용함.\n';
-function anlPrompt(){
-  /* 쉬기로 한 날에 '오늘 세션에서 바로 실행하라' 고 시키면 AI 가 쉬는 날에
-     운동을 처방한다. 기록이 없는 것과 쉬기로 한 것은 다른 말이다. */
-  var ph=hasTodayStrength()
-    ?PL('phPost','실행 시점: 오늘 세션 기록이 이미 있음(운동 후). 처방은 다음 세션 기준으로 씀.\n')
-    :(isOff(todayISO())
-      ?PL('phOff','실행 시점: 오늘은 본인이 쉬기로 정한 날임. 오늘 할 것을 시키지 말고 처방은 다음 훈련일 기준으로 씀.\n')
-      :PL('phPre','실행 시점: 오늘 세션 기록 없음(운동 전). 처방은 오늘 세션에서 바로 실행할 항목으로 씀.\n'));
-  /* PR 은 사용자가 손으로 고쳐 넣은 프롬프트다 — 건드리지 않는다 */
-  var base=(ANL==='plan'&&PR)?PR:PL(ANL,ANLDEF[ANL]||'');
-  /* 주말이면 처방 프롬프트에 [이행]·[감량] 을 끼워 넣던 것을 뺐다.
-     이제 '주간 마감' 이 독립 모드라, 남겨 두면 주말에 처방과 마감이 같은
-     말을 한다. 몸 카테고리는 실행 시점(운동 전/후)과 무관하므로 안 붙인다. */
-  return base+PL('glos',GLOS)+(catOf(ANL)==='body'?'':ph);
-}
-function anlSave(){if(canLS){try{localStorage.setItem(KEY+'.anl',ANL);}catch(e){}}}
-/* ANLC 는 따로 저장하지 않는다 — ANL 하나면 catOf 로 되살릴 수 있다 */
-/* 옛 아홉 키가 저장돼 있으면 새 두 키로 옮긴다 — 안 하면 기본값으로 튄다 */
-var ANLMAP={wk:'plan',vol:'plan',prog:'plan',recov:'plan',acsm:'plan',bal:'plan',vt:'plan',cut:'meal',mac:'meal'};
+function isCat(k){var i;for(i=0;i<CATS.length;i++)if(CATS[i].k===k)return true;return false;}
+function anlSave(){if(canLS){try{localStorage.setItem(KEY+'.anl',ANLC);}catch(e){}}}
+/* 예전에는 여기에 AI 모드 열쇠가 저장됐다(plan·pace·meal…). 그것이 어느
+   갈래였는지 한 표로 옮긴다 — 안 하면 쓰던 탭이 훈련으로 튄다. */
+var OLDANL={plan:'train',wkclose:'train',swap:'train',wk:'train',vol:'train',prog:'train',
+  recov:'train',acsm:'train',bal:'train',vt:'train',
+  pace:'body',meal:'diet',dayplan:'diet',cut:'diet',mac:'diet'};
 (function(){if(!canLS)return;try{
   var a=localStorage.getItem(KEY+'.anl');
-  if(a&&ANLMAP[a]&&!ANLL[a]){ANL=ANLMAP[a];ANLC=catOf(ANL);anlSave();return;}
-  if(a&&ANLL[a])ANL=a;
-  ANLC=catOf(ANL);
+  if(!a)return;
+  if(isCat(a)){ANLC=a;return;}
+  if(OLDANL[a]){ANLC=OLDANL[a];anlSave();}
 }catch(e){}})();
+/* 리포트를 걷어내며 쓸모를 잃은 저장값. 그냥 두면 기기에 영영 남는다 —
+   'Reset all' 도 본 열쇠 넷만 지운다. */
+(function(){if(!canLS)return;
+  var dead=['.aiout','.aiat','.aiby','.aidt','.aih','.aic','.aibg'],q;
+  for(q=0;q<dead.length;q++){try{localStorage.removeItem(KEY+dead[q]);}catch(e){}}
+})();
 /* ── 로컬 신호 판정 (프롬프트 규칙 21 포팅: 퇴행 > 회복 부채 > 옷맵시 페이스 > 정상) ── */
 /* RIR 을 안 찍은 세트가 몇 개인지 — 유효 세트에 들어가 있지만 확인된 것은
    아니므로 숫자 옆에 같이 적는다 */
@@ -5556,10 +5279,10 @@ function heroProg(onDate){
 }
 /* ── 손댈 것 · 원인 판별 ──
    heroProg 이 이미 고른 종목만 받는다. 여기서 새로 내는 것은 '왜' 하나뿐이다.
-   조치(무게·세트·반복·요일)는 내지 않는다 — ANLDEF.plan 이 그것을 AI 몫으로
-   잡아 뒀고, 앱이 같이 쓰면 한 화면에 처방이 둘이 된다. 반대로 AI 는 '숫자와
-   판정은 화면이 그리고 있으니 다시 나열하지 말라' 는 지시를 받아 근거를 못
-   쓴다 — 그 칸은 원래 비어 있고 앱만 채울 수 있다.
+   조치(무게·세트·반복·요일)는 여기서 내지 않는다. 예전 까닭은 'AI 몫이라
+   한 화면에 처방이 둘이 된다' 였는데, 리포트를 걷어내며 그 까닭은 없어졌다.
+   지금은 무게·반복을 입력존(nextRx)이 미리 채워 주고, 세트 배분은
+   routeToday 에 짜여 있으나 부르는 데가 없다. 여기는 '왜' 만 맡는다.
    쓰는 값은 전부 그 종목 자신의 로그다. deloadSignal(회복 갈래)·fatigueDrop
    ·repZone(균형 갈래)·lmRow(부위 갈래)는 한 번도 부르지 않는다. */
 var PG_SIG=3.5;   /* 세션 e1RM 한 점의 기본 변동폭 % — 표본이 모자랄 때만 씀 */
@@ -7825,9 +7548,9 @@ function vzDiet(tab){
   return '<div class="anlviz">'+h+'</div>';
 }
 
-function anlViz(k,tab){
-  /* 카테고리로 가른다. 옛 리포트가 든 키(wk·vol·cut 등)도 catOf 가 받는다 */
-  var c=catOf(k);
+/* 카테고리(body·train·diet)를 그대로 받는다. 예전에는 AI 모드 열쇠를 받아
+   catOf 로 갈랐는데, 모드가 없어졌으므로 한 겹이 통째로 필요 없다. */
+function anlViz(c,tab){
   if(c==='diet')return vzDiet(tab);
   if(c==='body')return vzBody(tab);
   if(!hasLogs())return '';
@@ -7873,18 +7596,11 @@ function weekVolCardio(){
 }
 /* ── Insights: 전체 이력 기반 로컬 시각화 ── */
 function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function aiDayTag(d){
-  if(!d)return '';
-  var t=new Date(),y=new Date(Date.now()-864e5);
-  if(d===MONS[t.getMonth()]+' '+t.getDate())return '';
-  if(d===MONS[y.getMonth()]+' '+y.getDate())return TX('어제 생성');
-  return TX('이전 리포트');
-}
 /* 앱 내려받기 주소 — latest 태그를 계속 덮어쓰므로 바뀌지 않는다 */
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-13 01:12';
+var BUILD='2026-09-14 13:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -7970,10 +7686,7 @@ window.hcNative=function(r){
   try{bhSync();}catch(eS){}
   if(UI.sheet||UI.tab==='diet')render();
 };
-var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-var AIC={d:'',n:0};
 var KS={gem:'',oai:'',ant:''};
-var LMN={gem:'Gemini',oai:'GPT',ant:'Claude'};
 var GM='gemini-3.7-flash';
 var GMN={'gemini-3.7-flash':'3.7','gemini-3.6-flash':'3.6','gemini-flash-latest':'Latest','gemini-2.5-flash':'2.5'};
 var GVM='';
@@ -7988,26 +7701,6 @@ function tFetch(url,opt,ms){
     function(r){clearTimeout(tid);return r;},
     function(e){clearTimeout(tid);throw (e&&e.name==='AbortError')?new Error(TX1('요청 시간 초과 {0}초',Math.round(ms/1000))):e;}
   );
-}
-function gemDiscover(){
-  return tFetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':KS.gem}},30000)
-    .then(function(r){return r.json();})
-    .then(function(j){
-      var ms=(j&&j.models)||[],best='',score=-1,i;
-      for(i=0;i<ms.length;i++){
-        var n=String(ms[i].name||'').replace(/^models\//,'');
-        var sup=(ms[i].supportedGenerationMethods||[]).join(',');
-        if(sup.indexOf('generateContent')<0)continue;
-        if(!/flash/i.test(n))continue;
-        if(/lite|8b|tts|audio|image|imagen|embed|exp|preview|thinking/i.test(n))continue;
-        var sc=0,vm=n.match(/(\d+)(?:[.\-](\d+))?/);
-        if(vm)sc=(+vm[1])*100+(+vm[2]||0);
-        if(/latest/i.test(n))sc+=1;
-        if(sc>score){score=sc;best=n;}
-      }
-      if(best){GVM=best;try{if(canLS)localStorage.setItem(KEY+'.gvm',GVM);}catch(e2){}}
-      return best;
-    });
 }
 function gemDiscoverList(){
   return tFetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':KS.gem}},30000)
@@ -8057,9 +7750,6 @@ function engShort(){
   if(LM==='oai')return 'GPT 5 Mini';
   return 'Sonnet 4.6';
 }
-/* 설정 · AI 의 프롬프트 칸이 보여 주는 기본값. plan 모드의 기본 프롬프트와
-   같아야 한다 — 다르면 열어 보고 그대로 저장하는 것만으로 프롬프트가 바뀐다. */
-var DEFPR=ANLDEF.plan;
 (function(){
   if(!canLS)return;
   try{
@@ -8077,17 +7767,6 @@ var DEFPR=ANLDEF.plan;
     }
   }catch(e){}
   try{var pr=localStorage.getItem(KEY+'.pr');if(pr)PR=pr;}catch(e){}
-  try{
-    AIOUT=localStorage.getItem(KEY+'.aiout')||'';
-    AIAT=localStorage.getItem(KEY+'.aiat')||'';
-    AIBY=localStorage.getItem(KEY+'.aiby')||'';
-    var c=localStorage.getItem(KEY+'.aic');
-    if(c){var pj=JSON.parse(c);if(pj&&pj.d)AIC=pj;}
-    var hh=localStorage.getItem(KEY+'.aih');
-    if(hh){var ha=JSON.parse(hh);if(ha&&ha.length)AIH=ha;}
-    AIDT=localStorage.getItem(KEY+'.aidt')||'';
-    if(!AIH.length&&AIOUT)AIH=[{o:AIOUT,at:AIAT,by:AIBY,d:AIDT}];
-  }catch(e){}
 })();
 (function(){
   if(!canLS)return;
@@ -8487,180 +8166,6 @@ function autoBackup(){
   }catch(e){}
 }
 
-/* 감량·영양 모드는 훈련 데이터를 안 본다. 종목·로그·톱세트를 주면
-   리포트에 '등 운동' 이야기가 섞인다 — 주지 않으면 말할 수 없다. */
-
-
-/* 종목별 이번 주 세트. 부위 합(wkSets)과 세부 합(subCnt)은 있는데 종목
-   단위가 없어서 '어느 종목에서 몇 세트' 를 시킬 수가 없었다 — '등 볼륨
-   추가 중단 요망' 같은 줄이 나오던 까닭이 이것이다. 재료가 없으면 그런
-   말밖에 못 한다. */
-function exWeek(){
-  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now);
-  mon.setDate(now.getDate()-dow);
-  var days={},i,j,t;
-  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);
-    days[t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)]=1;}
-  var out=[];
-  for(i=0;i<S.m.length;i++){
-    var m=S.m[i];
-    if(isCard(m.p))continue;
-    var a=S.l[m.i]||[],n=0,d=0,rs=0,rn=0;
-    for(j=0;j<a.length;j++){
-      if(!days[a[j].d]||!a[j].s||!a[j].s.length)continue;
-      n+=hardOf(a[j].s).n;d++;
-      var rv=rirAvg(a[j].s);
-      if(rv!==null){rs+=rv;rn++;}
-    }
-    if(!n)continue;
-    var sk=subOf(m);
-    out.push({종목:pgName(m),부위:PN_KO[m.p]||m.p,세부:sk?subName(sk):'',
-      세트:n,수행일:d,RIR:rn?Math.round(rs/rn*10)/10:null});
-  }
-  out.sort(function(x,y){return y.세트-x.세트;});
-  return out;
-}
-/* 세부 근육별로 지금 가진 종목. 없는 기구를 권하면 쓸 수가 없는데 AI 는
-   무엇이 있는지 모른다 — 'Incline Fly' 가 이 사람 헬스장에 있는지 알 길이
-   없었다. 이 목록 안에서만 고르게 하면 그럴 방법이 없어진다.
-   회피 목표 근육(STG 0)은 뺀다: 거기로 옮기라고 할 일이 아니다. */
-function swapPool(){
-  var by={},i;
-  for(i=0;i<S.m.length;i++){
-    var m=S.m[i];
-    if(isCard(m.p))continue;
-    var sk=subOf(m);
-    if(!sk||STG[sk]===0)continue;
-    var nm2=subName(sk);
-    (by[nm2]||(by[nm2]=[])).push(pgName(m));
-  }
-  return by;
-}
-/* 판정값만. 세트 원본·tops·로그는 넘기지 않는다 — 넘기면 AI 가 그것을
-   자기 말로 다시 요약해 화면과 겹치는 문단이 생긴다. */
-function planPayload(){
-  var ws=wkSets(),sc=subCnt(),cf=computedFacts()||{},i,k;
-  var parts=[];
-  for(k in PN_KO){
-    var c=ws[k]||0,g=WTGT[k]||0;
-    parts.push({부위:PN_KO[k],실적:c,목표:g,vd:vzVerdict(c,g).t});
-  }
-  var wc=wkCardio();
-  parts.push({부위:'유산소(분)',실적:wc.z2,목표:WTGT['CARDIO']||90,vd:vzVerdict(wc.z2,WTGT['CARDIO']||90).t});
-  /* 적절한 것은 결정거리가 아니다 — 손댈 곳만 보낸다 */
-  var subs=[],seP=subEasy();
-  for(i=0;i<SUBS.length;i++){
-    var sb=SUBS[i],L=LMK[sb.k];
-    if(!L)continue;
-    /* 화면과 같은 자를 댄다. 여기만 easy 를 안 넘기면 화면은 '강도 부족'
-       인데 리포트는 'MEV 미만' 이라, 한 카드가 두 말을 한다. */
-    var cur=sc[sb.k]||0,ez=seP[sb.k]||0,v=vzZone(cur,L,ez);
-    if(v.ok)continue;   /* 표시용 글자로 견주면 이름을 바꿀 때 조용히 깨진다 */
-    subs.push({세부:subLabel(sb),실적:cur,보정MRV:Math.round(L[3]*0.8),
-      여지:Math.max(0,Math.min(L[2],Math.round(L[3]*0.8))-cur),
-      가벼운세트:ez,vd:v.t});
-  }
-  var B=progBuckets(),pr=B.pr;
-  function nm(a){return a.map(function(x){return {종목:x.n,수치:x.t||'',변화:(x.p!==undefined?x.p+'%':''),RIR:x.r,사유:x.why||''};});}
-  /* 화면과 같은 통을 본다. 예전에는 여기가 heroProg 원 판정을 보내서,
-     화면이 '정체 3' 이라 적는 동안 AI 는 9 를 받았다. */
-  function bk(a){return a.map(function(x){
-    return {종목:x.n,원인:x.c,변화:(x.pct>0?'+':'')+x.pct+'%',주:x.wk,세션:x.ns};});}
-  var dl=deloadSignal(),lt=lbmTrend(),pc=paceCalc(BW,BF,GF),rz=repZone();
-  /* 간접 자극 — 팔의 부족을 등·가슴 볼륨으로 깎을지는 판단이라 AI 몫이다.
-     감산 비율은 안 넘기고 기여 세트 수만 준다. */
-  var indirect=[{대상:'팔',기여:'등+가슴',기여세트:(ws['BACK']||0)+(ws['CHEST']||0)},
-                {대상:'어깨후면',기여:'등',기여세트:ws['BACK']||0}];
-  var prev='';
-  try{if(AIH.length&&AIH[0].o){
-    var mm=String(AIH[0].o).split('\n').filter(function(x){return /^-\s/.test(x);});
-    prev=mm.slice(-4).join(' / ');
-  }}catch(e){}
-  return {
-    주단계:cf.weekPhase,경과훈련일:cf.elapsedTrainDays,잔여훈련일:cf.remainTrainDays,
-    /* 날짜 목록은 안 보낸다 — 세는 값이면 판단에 충분하고, 날짜 맵을
-       통째로 흘리면 페이로드가 부풀기만 한다 */
-    휴식요일:RD.map(function(x){return '일월화수목금토'.charAt(x);}),
-    실제훈련일:wkTrainDays(),이번주쉰날:wkOffCount(),오늘쉬는날:isOff(todayISO()),
-    부위:parts,손댈세부:subs,
-    /* 종목 단위 재료. 이것이 없으면 '등 볼륨' 까지만 말할 수 있다 */
-    종목:exWeek(),
-    /* upL 이 B.up 으로 합쳐졌다 — 이어 붙이면 같은 종목이 이중계상된다 */
-    진전:bk(B.up),정체:bk(B.st),퇴행:bk(B.dn),
-    보류:bk(B.hold).concat(nm(pr.holdL)),
-    빈도:wkDaysByPart(),
-    회복:{연속일:heroStreak(),이틀연속:partGap48().map(function(x){return PN_KO[x.p]||x.p;}),
-          디로드후보:dl?dl.n:0,디로드종목:dl?dl.names:[],
-          세션내급락:fatigueDrop().map(function(x){return {종목:x.n,사유:x.why};}),
-          변동:vzDelta().rows,RIR미입력세트:unkWeek()},
-    균형:{당기기:(sc.lt||0)+(sc.tm||0)+(sc.ut||0)+(sc.bi||0),
-          밀기:(sc.uc||0)+(sc.mc||0)+(sc.ad||0)+(sc.tri||0),
-          사두:sc.qd||0,햄:sc.hm||0,측면:sc.sd||0,전면후면:(sc.ad||0)+(sc.pd||0),
-          상체:(ws['CHEST']||0)+(ws['BACK']||0)+(ws['SHOULDERS']||0)+(ws['ARMS·ETC']||0),하체:ws['LEGS']||0},
-    반복구간:{'6~12비율':rz.pct,벗어난종목:rz.off},
-    간접기여:indirect,
-    몸:pc.ok?{주당변화:pc.rate,목표:-WR,판정:pc.tag,근거:pc.how}:null,
-    체성분:lt?{지표:lt.k,변화:lt.d,간격일:lt.gap}:null,
-    회피세부:(function(){var a=[],q;for(q=0;q<SUBS.length;q++)if(STG[SUBS[q].k]===0&&(sc[SUBS[q].k]||0)>0)a.push(subLabel(SUBS[q]));return a;})(),
-    직전처방:prev,
-    오늘:todayISO()
-  };
-}
-/* 몸 — 체중이 어디로 가고 있고 그것을 무엇이 밀고 있나. 훈련 종목이나
-   세트는 안 보낸다: 이 모드는 섭취만 조정하고 볼륨은 건드리지 않는다. */
-/* 카테고리가 무엇을 보낼지 정한다 — 모드마다 if 를 늘리면 새 모드를 더할
-   때마다 두 군데(전경·배경 호출)를 같이 고쳐야 한다 */
-function anlPayload(){
-  var c=catOf(ANL);
-  if(c==='diet')return mealPayload();
-  if(c==='body')return bodyPayload();
-  var p=planPayload();
-  /* 교체 모드에만 보유 목록을 붙인다 — 다른 모드에서는 쓸 데가 없고
-     자수만 는다 */
-  if(ANL==='swap')p.보유종목=swapPool();
-  return p;
-}
-function bodyPayload(){
-  var pc=paceCalc(BW,BF,GF),lt=lbmTrend(),bh=bhLoad(),nf=nutriFacts();
-  var kw=kcalWeek(0),bs=bmr(BW,BF);
-  return {
-    체중:BW,체지방:BF,목표체지방:GF,제지방:Math.round(BW*(1-BF/100)*10)/10,
-    주당변화:pc.ok?pc.rate:null,목표:-WR,판정:pc.ok?pc.tag:'',
-    근거:pc.how||'',창을넓힘:!!pc.stale,
-    남은감량:pc.remain,목표체중:pc.tw,도달예상:pc.eta||'',남은주:pc.weeks||0,
-    체성분:lt?{지표:lt.k,이전:lt.from,지금:lt.to,변화:lt.d,간격일:lt.gap}:null,
-    인바디건수:bh.length,
-    기초대사:bs,활동계수:ACT,하루소비:Math.round(bs*ACT),
-    이번주운동소비:kw?Math.round(kw.ex):null,
-    섭취:(nf&&nf.completedDaysCount>0)?{일수:nf.completedDaysCount,
-      평균섭취:Math.round(nf.completedDaysAvgIntake),
-      평균목표:Math.round(nf.completedDaysAvgTarget)}:null,
-    오늘:todayISO()
-  };
-}
-function mealPayload(){
-  var nf=nutriFacts();
-  if(!nf)return {섭취기록:'없음'};
-  var t=nf.today||{};
-  var now=new Date();
-  return {
-    지금:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
-    오늘:{먹은열량:Math.round(t.intakeSoFar||0),목표:Math.round(t.goalIntake||0),
-          남은열량:Math.round(t.kcalLeft||0),
-          단백질:Math.round(t.proteinSoFar||0),단백질목표:Math.round(t.proteinGoal||0),
-          남은단백질:Math.round(t.proteinLeft||0),
-          /* 거른끼니는 안먹은끼니에서 이미 빠져 있다. 그래도 보낸다 —
-             빼기만 하면 AI 는 저녁 한 끼에 왜 하루치가 몰렸는지 모른다. */
-          안먹은끼니:t.missingMeals,거른끼니:t.skippedMeals,
-          먹은끼니:t.eatenMeals,끼니별:t.byMeal},
-    오늘운동:dayExKcal(todayISO())>0,
-    /* 쉬는 날은 소비가 낮다 — 안 보내면 훈련일과 같은 몫을 권한다 */
-    오늘쉬는날:isOff(todayISO()),
-    페이스:(function(){var p=paceCalc(BW,BF,GF);return p.ok?p.tag:'';})(),
-    끝난날평균:nf.completedDaysCount>0?{일수:nf.completedDaysCount,
-      섭취:Math.round(nf.completedDaysAvgIntake),목표:Math.round(nf.completedDaysAvgTarget)}:null
-  };
-}
 
 /* 삼성헬스에서 들어온 섭취 실측 — 없으면 통째로 빼서 AI 가 0 을 굶은 것으로
    읽지 않게 한다. 모르는 것과 안 먹은 것은 다르다. */
@@ -8678,6 +8183,19 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'분석 화면':'Analyze view',
+'현황 갈래 보는 법':'Reading the views',
+'사진 판독용 키 만들기':'A key for photo reading',
+'설정 · AI에 키를 넣으면 인바디 사진 판독을 쓸 수 있음. 발급 방법은 <em>AI 키</em> 패널에 있음.':'Add a key under Settings · AI to use InBody photo reading. The <em>AI key</em> panel shows how to get one.',
+'같은 18세트라도 하루에 몰아친 것과 사흘에 나눈 것은 효과가 다름. 분석 · 훈련 · <b>회복</b> 갈래에 부위별 수행 요일이 나오므로 세트 총량과 같이 볼 것.':'The same 18 sets done in one day or spread over three are not the same. Analyze · Training · <b>Recovery</b> shows which days each part was trained — read it next to the set totals.',
+'맨 위에서 감량·훈련·식단 중 하나를 고름. 아래 상자가 함께 바뀜.':'Pick Cut, Training or Diet at the top. The box below changes with it.',
+'갈래 보기':'Open a view',
+'갈래를 눌러 앱이 직접 계산한 값을 봄. 기다림 없이 바로 나옴.':'Tap a view to see values the app works out itself. No waiting.',
+'인바디 결과지 사진을 읽으려면 AI 제공사의 키가 하나 필요함. <b>Gemini가 무료 한도가 넓어</b> 시작하기에 적합함.':'Reading a photo of an InBody sheet needs one key from an AI provider. <b>Gemini has the widest free tier</b>, so it is the easiest start.',
+'같은 화면 아래 <em>판독 엔진</em> 칸에서 고름. 고른 제공사에 키가 없으면 키가 있는 쪽으로 넘어감.':'Pick it under <em>Reader engine</em> on the same screen. If that provider has no key, it falls back to one that does.',
+'인바디 결과지 사진 판독에 씀. 하나만 넣으면 됨.':'Used to read photos of InBody sheets. One key is enough.',
+'판독 엔진':'Reader engine',
+'고른 제공사에 키가 없으면 키가 있는 쪽으로 넘어감.':'If the chosen provider has no key, it falls back to one that does.',
 '월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}':'{0} days since Mon · {1} kcal over · weight {2}',
 '월~오늘 {0}일 · 체중 {1} (목표 {2})':'{0} days since Mon · weight {1} (goal {2})',
 '주간 누적 적자 <u>점선은 목표</u>':'Weekly cumulative deficit <u>dashed is goal</u>',
@@ -8992,7 +8510,6 @@ var EN={
 '화면 판 <b>{0}</b>':'Build <b>{0}</b>',
 '회피':'avoid',
 '회피 위반 +{0}':'violated +{0}',
-'훈련 · <b>세트 처방</b> 지시문만 고침. 나머지 다섯 세부는 기본값을 씀.':'Edits the training · <b>set prescription</b> prompt only. The other five modes use defaults.',
 /* ── 훈련분석 ── */
 ' · e1RM 미산출 {0}세션 제외':' · {0} sessions with no e1RM excluded',
 ' · 원인 판정은 4회부터':' · cause needs 4 sessions',
@@ -9136,31 +8653,23 @@ var EN={
 '<em>AIza</em>로 시작하는 문자열이 나옴.':'A string starting with <em>AIza</em> appears.',
 '<em>sk-</em>로 시작하는 키가 <b>한 번만</b> 보이므로 즉시 복사함.':'The key starting with <em>sk-</em> is shown <b>only once</b>, so copy it right away.',
 '<em>sk-ant-</em>로 시작하는 키를 복사함.':'Copy the key starting with <em>sk-ant-</em>.',
-'AI 분석':'AI report',
-'AI 세부 6종':'Six AI tasks',
 'AI 키':'AI key',
 'AI 키 발급':'AI key',
-'ANALYZE 의 실행 버튼 왼쪽 칸에서 쓸 엔진을 선택함.':'Choose the engine in the box left of the run button in ANALYZE.',
-'API 키 만들어 넣기':'Create a key and add it',
 'Gemini · 권장':'Gemini · recommended',
 'MAV 구간':'The MAV range',
 'MEV에서 MAV까지':'MEV up to MAV',
 'RIR 3 이하만 볼륨으로 셈. 4+ 는 안 셈. 미입력은 세되 미확인으로 표시함':'Only RIR 3 or under counts as volume. 4+ does not. Blank counts but is flagged unconfirmed',
 'RIR · 남은 반복':'RIR · reps in reserve',
 'RIR 원':'RIR circle',
-'[방향] 항목은 눌러서 완료 표시를 할 수 있음. 운동 전에 뽑은 리포트에서만 나타남.':'Items under [방향] can be tapped to mark them done. They show up only in a report pulled before training.',
 'n세트 배지':'n-set badge',
 '× 누르기':'Tap ×',
 '− + 로 조절하거나 숫자를 직접 입력함. 증량 단위는 종목마다 다르게 설정할 수 있음.':'Use − + or type the number. The step size can be set per exercise.',
 '▲▼ 퍼센트':'▲▼ percent',
 '각지거나 선만 · 장식 없음':'Angular, outline only, or bare',
-'갈래를 눌러 앱이 직접 계산한 값을 봄. AI 없이 늘 보이고 기다림도 없음.':'Tap a branch to see values the app worked out itself. Always there, no AI and no waiting.',
 '감량':'Cut',
-'감량 페이스가 맞는지, 적자를 얼마나 조정할지':'Whether the cut pace is right and how far to move the deficit',
 '감량기에는 회복 여력이 줄기 때문에 MRV를 원래 값의 <b>80퍼센트</b>로 낮춰 표시함.':'In a cut, recovery capacity drops, so MRV is shown at <b>80 percent</b> of its normal value.',
 '값을 불러와 수정 · 버튼이 <em>Update</em>로 바뀜 · 다시 누르면 취소':'Loads its values to edit · button turns to <em>Update</em> · tap again to cancel',
 '강조색 테두리 · 발광':'Accent border · glow',
-'같은 18세트라도 하루에 몰아친 것과 사흘에 나눈 것은 효과가 다름. 옷맵시 분석에 <b>측면과 광배의 주간 수행 횟수</b>가 함께 나오므로 세트 총량과 같이 볼 것.':'The same 18 sets crammed into one day and spread over three days do not work the same. The physique analysis also shows <b>weekly frequency for side delt and lat</b>, so read it next to the set total.',
 '결제 등록':'Add billing',
 '경과 배너':'Reminder banner',
 '구글 계정으로 로그인함.':'Sign in with a Google account.',
@@ -9171,8 +8680,6 @@ var EN={
 '기록은 이 기기의 브라우저 안에만 있음. <b>캐시를 지우면 사라짐.</b> 파일로 내려받아 두는 것이 가장 확실함.':'Your data lives only inside this browser. <b>Clearing the cache erases it.</b> Downloading a file is the surest way to keep it.',
 '기록을 잃지 않으려면':'Keeping your data safe',
 '기본 · 얇은 테두리':'Default · thin border',
-'남은 몫을 남은 끼니에 어떻게 나눌지':'How to split what is left across the meals left',
-'남은 세션에 세트를 어디에 넣고 뺄지':'Where to add and cut sets in the sessions left',
 '넣어두면 <b>정체와 강도 부족을 구분</b>할 수 있음. 같은 무게에서 여유가 계속 줄면 회복 부족으로 보고 디로드를 권함.':'With it the app can <b>tell a plateau from too little intensity</b>. If the reserve keeps shrinking at the same weight, it reads as poor recovery and suggests a deload.',
 '누를 때마다 미입력 → 0 → 1 → 2 → 3 → 4+ 순환':'Each tap cycles blank → 0 → 1 → 2 → 3 → 4+',
 '다음 끼니':'Next meal',
@@ -9181,16 +8688,12 @@ var EN={
 '러닝머신은 시속, 스텝밀은 기기 레벨 · 입력 칸 이름이 그때그때 바뀜':'Treadmill uses speed, stepmill uses machine level · the input label changes to match',
 '로그인 후 API Keys 메뉴로 감.':'Sign in and go to the API Keys menu.',
 '로그인 후 API keys 메뉴로 감.':'Sign in and go to the API keys menu.',
-'리포트 뽑고 읽는 법':'Running and reading reports',
-'리포트를 쓰려면 AI 제공사의 키가 하나 필요함. <b>Gemini가 무료 한도가 넓어</b> 시작하기에 적합함.':'Running reports needs one key from an AI provider. <b>Gemini has the widest free tier</b>, so it is the easiest start.',
 '맨 위':'Top bar',
-'맨 위에서 감량·훈련·식단 중 하나를 고름. 아래 두 상자가 함께 바뀜.':'Choose cut, training or diet at the top. Both boxes below change with it.',
 '목표 설정':'Goals',
 '목표는 두 층임. <b>부위</b>는 가슴·등 같은 큰 단위, <b>세부</b>는 측면 어깨·광배처럼 실제로 키우려는 근육. 설정 · GOALS에서 정함.':'Goals come in two layers. <b>Body part</b> is the large unit like chest or back, <b>detail</b> is the muscle you actually want to grow, like side delt or lat. Both are set under Settings · GOALS.',
 '무게 × 반복을 모두 더한 값':'Weight × reps added up over all sets',
 '무게와 반복':'Weight and reps',
 '무료 한도가 없어 카드 등록이 필요함.':'There is no free tier, so a card is required.',
-'무엇을 정하게 할지 고르고 RE-ANALYZE를 누름. 하루 20회까지.':'Pick what it should decide, then press RE-ANALYZE. Up to 20 times a day.',
 '반투명에 흐림 효과':'Translucent with blur',
 '보정 MRV':'Adjusted MRV',
 '복사':'Copy',
@@ -9207,7 +8710,6 @@ var EN={
 '색 20종과 조합해 340가지. 밝은 배경을 원하면 <b>Paper</b>나 <b>Frost</b>를 고를 것.':'20 colors make 340 combinations. For a light background pick <b>Paper</b> or <b>Frost</b>.',
 '색과 질감 바꾸기':'Change color and texture',
 '설정 · AI':'Settings · AI',
-'설정 · AI에 키를 넣으면 리포트를 쓸 수 있음. 발급 방법은 <em>AI 키</em> 패널에 있음.':'Put a key under Settings · AI to run reports. The <em>AI key</em> panel explains how to get one.',
 '설정 · DIET에서 결과지 사진을 올리면 체중과 체지방을 읽어 하루 소비와 목표 칼로리를 계산함. 직접 입력도 됨.':'Upload a photo of the sheet under Settings · DIET and the app reads weight and body fat, then works out daily burn and target calories. Manual entry works too.',
 '설정 · DISPLAY에서 <b>색</b>과 <b>질감</b>을 따로 고름. 기록에는 전혀 영향이 없음.':'Settings · DISPLAY picks <b>color</b> and <b>texture</b> separately. Neither touches your data.',
 '설정 · GOALS에서 부위별·세부별 주간 세트 수와 휴식 요일을 정함.':'Settings · GOALS sets weekly sets per body part and per muscle, plus rest days.',
@@ -9215,12 +8717,10 @@ var EN={
 '성장에 필요한 최소치 · 이 아래면 유지에 그침':'Minimum needed for growth · below this you only maintain',
 '성장이 가장 잘 나오는 구간 · 여기를 겨냥함':'Where growth comes best · aim here',
 '세로선':'Vertical line',
-'세부 근육 세트, 수행 횟수, 경과·잔여 훈련일, 연속 수행일, 정체·퇴행 종목 수는 <b>앱이 계산해서 넘겨줌.</b> AI는 그 값을 인용만 하므로 화면 그래프와 리포트 숫자가 어긋나지 않음.':'Detail-muscle sets, frequency, training days done and left, streak, and the number of stalled or regressing exercises are <b>worked out by the app and handed over.</b> The AI only quotes them, so the graphs on screen and the numbers in the report never disagree.',
 '세트':'Sets',
 '세트 고치기':'Editing sets',
 '세트 누르기':'Tap a set',
 '세트 입력하는 법':'How to log a set',
-'세트 처방':'Set plan',
 '세트가 위에 쌓이고 휴식 타이머가 자동으로 시작됨.':'The set stacks above and the rest timer starts on its own.',
 '세트를 넣을 때 타이머가 자동으로 다시 시작되고, 다음 세트를 넣으면 그 사이 시간이 세트 옆에 기록됨. 5초 미만이나 60분 초과는 이상치로 빼고 셈.':'Adding a set restarts the timer, and when the next set goes in the gap is recorded beside it. Under 5 s or over 60 min is dropped as an outlier.',
 '숫자 읽기':'Numbers',
@@ -9233,7 +8733,6 @@ var EN={
 '앱에 넣기':'Adding it to the app',
 '앱을 처음 켰다면':'First time opening the app',
 '앱이 대신 하는 것':'What the app does for you',
-'어떤 종목을 무엇으로 바꿀지 — 동작 자체를 바꿈':'Which exercise to replace and with what — the movement itself changes',
 '어시스트 머신 지정':'Mark assist machines',
 '얼마나 해야 하는가':'How much to do',
 '엔진 고르기':'Pick the engine',
@@ -9251,7 +8750,6 @@ var EN={
 '우측 상단 <em>···</em>를 누르고 AI 탭으로 감.':'Tap <em>···</em> at the top right, then the AI tab.',
 '운동이 아닌 일상 활동량 · 걷기는 여기로 보고 주간 목표 분에서 뺌':'Daily activity outside training · walking counts here and comes off the weekly target minutes',
 '유효 세트':'Working sets',
-'이번 주 결산과 다음 주 요일 배치':'This week wrapped up and next week laid out by day',
 '이번 주 실제 세트 수의 위치':'Where the actual sets this week sit',
 '인바디 등록':'Add InBody',
 '자동 스냅샷':'Auto snapshot',
@@ -9259,16 +8757,13 @@ var EN={
 '저장하면 시트가 닫히고 목록에 완료 표시가 붙음. 저장 전에는 언제든 고칠 수 있음.':'Saving closes the sheet and marks the exercise done in the list. Before saving, anything can be changed.',
 '점':'Dot',
 '제공사에 맞는 칸에 넣으면 자동으로 저장됨.':'Drop it in the field for that provider and it saves itself.',
-'종목 교체':'Swap exercise',
 '종목 누르기':'Tap an exercise',
 '종목 줄':'Exercise row',
 '종목 추가':'Add exercise',
 '종목을 열고 <em>EDIT</em> → Primary muscle. <em>Auto</em> 칩에 앱이 추정한 근육이 적혀 있으므로 틀렸을 때만 바꾸면 됨.':'Open the exercise, <em>EDIT</em> → Primary muscle. The <em>Auto</em> chip shows what the app guessed, so change it only when it is wrong.',
 '좌측 메뉴에서 키 만들기를 누름.':'Press create key in the left menu.',
-'주간 마감':'Week close',
 '주간 목표':'Weekly goals',
 '주동근 확인':'Check primary muscle',
-'지금 한 끼에 무엇을 먹을지':'What to eat for this one meal',
 '직전 세션 대비 성장률':'Growth against the previous session',
 '직접 하는 백업 · 설정 · DATA':'Manual backup · Settings · DATA',
 '진한 띠':'Dark band',
@@ -9276,7 +8771,6 @@ var EN={
 '질감 17종':'17 textures',
 '처음 설정':'Setup',
 '처음엔 붉게 변하기만 하고 한 번 더 눌러야 지워짐':'First tap only turns it red · a second tap deletes it',
-'체크 표시':'Check marks',
 '총량만큼 빈도도 중요':'Frequency counts as much as total',
 '최근 세션의 대표 무게 · 어시스트는 보조 무게':'Top weight of the last session · assist shows the help weight',
 '최대심박의 60~70% 로 오래 가는 강도 · 지방 연료 비중이 높은 구간':'60-70% of max heart rate held for a long stretch · the range where fat carries most of the fuel',
@@ -9288,11 +8782,8 @@ var EN={
 '키는 이 기기에만 저장되고 다른 곳으로 보내지 않음. <b>백업 파일에는 들어가지 않으므로</b> 기기를 옮기면 다시 넣어야 함.':'The key stays on this device and is never sent anywhere else. <b>It is not in the backup file</b>, so it has to be entered again on a new device.',
 '텍스트로 복사해 메모 등에 보관':'Copy as text and keep it in a note',
 '파일로 내려받기 · 가장 안전함':'Download as a file · safest',
-'페이스 점검':'Pace check',
-'하루 설계':'Day plan',
 '하루 한 번 따로 보관 · 데이터가 깨졌을 때 되살리는 용도':'Kept aside once a day · for recovery when data breaks',
 '현황 갈래':'Status branches',
-'현황 보기':'Check the status',
 '화면 테마':'Theme',
 '화면의 수치가 뜻하는 것':'What the numbers mean',
 '회복할 수 있는 상한 · 넘으면 피로만 쌓임':'Ceiling you can recover from · past it only fatigue builds',
@@ -9300,37 +8791,17 @@ var EN={
 '훈련 기록':'Logging',
 '휴식 시간':'Rest time',
 /* ── AI ── */
-'AI 리포트 도착':'AI report ready',
 '{0} · 훈련 {1}/{2}일':'{0} · trained {1}/{2}',
 '{0} 오늘':'{0} today',
-'감량이 제대로 가고 있는지':'Whether the cut is on track',
-'그때 기록':'Data at the time',
-'대기 해제됨 — 다시 실행 가능':'Wait cleared — you can run again',
 '마지막날':'Last day',
 '막바지':'Late',
-'백그라운드 결과 파싱 실패':'Background result parse failed',
-'백그라운드 생성 시작 — 앱 닫아도 진행됨':'Started in the background — safe to close the app',
-'백그라운드에서 리포트 생성 중 — 앱을 닫아도 진행됨. 완료되면 알림이 오고, 돌아오면 자동 표시됨. <b class="xlink" data-act="aibgx">대기 취소</b>':'Report running in the background — safe to close the app. A notification arrives when it is done, and it shows up when you return. <b class="xlink" data-act="aibgx">Cancel wait</b>',
-'샘플 데이터로는 분석할 수 없음 — 기록을 먼저 남겨주세요':'Cannot analyze sample data — log something first',
 '실패':'Failed',
-'아직 없음 — 위 숫자는 눌러 보지 않아도 나옴':'Nothing yet — the numbers above need no button',
-'어떤 종목을 무엇으로 바꿀지':'Which lift to swap, and for what',
-'어제 생성':'made yesterday',
-'오늘 남은 끼니를 어떻게 나눌지':'How to split the meals left today',
 '오류':'Error',
-'요청 실패':'Request failed',
-'응답 없음':'No response',
-'응답 파싱 실패':'Response parse failed',
-'이미 생성 중':'Already running',
-'이번 주 결산과 다음 주 배치':'Close this week, lay out the next',
-'이전 리포트':'older report',
 '인바디':'InBody',
 '중반':'Mid',
-'지금 무엇을 먹을지':'What to eat now',
 '체중 미기록':'No weight logged',
 '체중계':'Scale',
 '초반':'Early',
-'하루 {0}/20':'{0}/20 today',
 '현황':'Status',
 
 /* ── 2830-3200 ── */
@@ -9595,55 +9066,6 @@ function paceLeft(){
     return Math.round(E*100/TN);
   }catch(e){return -1;}
 }
-var AINEG=['과다','부족','미달','위험','우려','초과','부채','이탈','정체로','저조'];
-var AIPOS=['달성','양호','잘 ','준수','유지함','회피','안정','적절','성공'];
-function hlNum(t){
-  return t.replace(/(\d+(?:\.\d+)?\s*kg)/g,'<b class="hl">$1</b>')
-          .replace(/(\d+\s*회)/g,'<b class="hl">$1</b>')
-          .replace(/(\d+(?:\.\d+)?x\d+)/g,'<b class="hl">$1</b>');
-}
-/* 판정어 → 칩 라벨·톤. 구체적인 것부터 검사함 */
-var AISTAT=[
-  ['없음','정상','pos'],
-  ['위반','위반','neg'],['퇴행','퇴행','neg'],['재빌드','재빌드','neg'],['시급','시급','neg'],
-  ['미달','미달','neg'],['부족','부족','neg'],['빈약','부족','neg'],['과중','과중','neg'],
-  ['초과','초과','warn'],['부채','부채','warn'],['이탈','이탈','warn'],['정체','정체','warn'],
-  ['간섭','간섭','warn'],['보류','보류','warn'],
-  ['증량 성공','증량','pos'],['증량 준비','준비','pos'],['달성','달성','pos'],['순항','순항','pos'],
-  ['우수','우수','pos'],['양호','양호','pos'],['준수','준수','pos'],['확보','확보','pos'],
-  ['적절','적절','pos'],['가능','가능','pos'],['유지','유지',''],
-  ['첫 기록','신규','']
-];
-function aiStat(t){
-  for(var i=0;i<AISTAT.length;i++)if(t.indexOf(AISTAT[i][0])>=0)return AISTAT[i];
-  return null;
-}
-/* 불렛 한 줄 → 라벨·상태칩·수치바 카드 */
-function aiTr(body,tone,hl,noBar){
-  var ix=body.indexOf(' — ');
-  if(ix<1)ix=body.indexOf(' - ');
-  if(ix<1||ix>26)ix=-1;
-  var k=ix>0?body.slice(0,ix):body, v=ix>0?body.slice(ix+3):'';
-  if(hl){k=hlNum(k);v=hlNum(v);}
-  var st=aiStat(v||k), cls=tone==='neg'?'neg':'';
-  if(st&&!cls)cls=st[2]==='neg'?'neg':(st[2]==='pos'?'pos':'');
-  /* "5/10" 형태가 있으면 미니 바로 시각화 */
-  var mb='',m=noBar?null:(k+' '+v).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
-  if(m){
-    var cv=parseFloat(m[1]),gv=parseFloat(m[2]);
-    if(gv>0)mb='<div class="mini"><b style="width:'+Math.max(0,Math.min(100,Math.round(cv*100/gv)))+'%"></b></div>';
-  }
-  return '<div class="ai-tr'+(cls?' '+cls:'')+'">'
-    +'<div class="kr"><span class="k">'+k+'</span>'
-    +(st?'<span class="st">'+st[1]+'</span>':'')+'</div>'
-    +(v?'<span class="v">'+v+'</span>':'')+mb+'</div>';
-}
-function bhHead(body){
-  var ix=body.indexOf(' — ');
-  if(ix<1)ix=body.indexOf(' - ');
-  if(ix<1||ix>26)return body;
-  return '<b class="bh">'+body.slice(0,ix)+'</b><em class="bd2">—</em>'+body.slice(ix+3);
-}
 /* ── 판정 ──
    문턱은 전부 이미 코드에 있던 것을 그대로 쓴다. 목표+3 초과,
    페이스 환산, 디로드 2종목, 연속 3일 — 새 숫자를 지어내지 않는다. */
@@ -9677,7 +9099,7 @@ function vzZone(cur,L,easy){
   /* 어느 랜드마크를 넘고 못 미치는지를 낱말이 말해야 한다 — '초과' 만으로는
      MEV 를 넘었다는 말인지 MRV 를 넘었다는 말인지 알 수 없다.
      ok 는 '손댈 것이 아님' 표시다. 이것을 글자로 견주면 이름을 바꾸는 순간
-     조용히 깨진다(planPayload 이 그렇게 걸러 내고 있었다). */
+     조용히 깨진다 — 예전에 그렇게 깨진 적이 있다. */
   if(cur>mrv)return {t:'MRV 초과',c:'neg',z:'over'};
   if(cur>=Math.round(mrv*0.9))return {t:'MRV 근접',c:'warn',z:'over'};
   if(cur<L[0]){
@@ -9692,9 +9114,8 @@ function vzZone(cur,L,easy){
   return {t:'유지 구간',c:'',ok:1,z:'ok'};
 }
 
-/* ── 앱이 직접 그리는 조각 ──
-   지금까지 이 마크업은 aiFmt 안에만 있어서, 앱이 그리려면 같은 HTML 을
-   다시 써야 했다. 함수로 빼서 앱과 AI 렌더가 같은 조각을 쓴다. */
+/* ── 화면 조각 ──
+   막대 한 줄·수 한 줄처럼 여러 갈래가 같이 쓰는 마크업을 여기 모아 둔다. */
 
 /* 진행바 한 줄. 예전에는 Math.min(100) 으로 잘라 24/21 과 21/21 이 같은
    꽉 찬 막대였다. 넘치면 lmRow 처럼 눈금을 옮긴다 — 축의 끝을 실적에 맞추고
@@ -9998,337 +9419,9 @@ function vzLine(name,val,sub,vd){
     +'<span class="num">'+esc(String(val==null?'':val))+'</span>'
     +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')+'</div>';
 }
-/* 판정 칩. AI 글에서는 aiStat 이 문자열을 되짚어 붙이느라
-   '신규 진전 없음' 이 ['없음','정상'] 에 선매돼 초록이 됐다.
-   앱이 그릴 때는 되짚을 이유가 없으므로 판정을 그대로 받는다. */
-
-function aiFmt(txt,ck,ph){
-  ck=ck||[];
-  var ckOn=ph!=='post';
-  var esc=String(txt).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  var lines=esc.split(/\n/),out='',i,ln,m,sec='',ckIdx=0;
-  for(i=0;i<lines.length;i++){
-    ln=lines[i].trim();
-    if(!ln)continue;
-    m=ln.match(/^\[(.+)\]$/);
-    if(m){sec=m[1];out+='<div class="ai-h">'+m[1]+'</div>';continue;}
-
-    /* '가슴 18/15' 를 막대로 다시 그리던 분기를 뺐다. 화면이 이미 그리는
-       숫자를 AI 가 베끼면 앱이 그것을 예쁘게 렌더해 주고 있었다 —
-       되풀이를 거들던 셈이다. 이제 베껴도 그냥 글줄로 나온다. */
-    /* 영어판 프롬프트는 섹션 이름이 영어다 — 둘 다 받는다 */
-    var noBar=(sec.indexOf('다음 끼니')>=0||sec.indexOf('체중')>=0||sec.indexOf('영양')>=0||sec.indexOf('Next meal')>=0);
-    if(ln.indexOf('- ')===0){
-      var body=ln.slice(2),tone='',ki;
-      /* 처방·방향 섹션은 탭 가능한 체크 항목으로 */
-      if(ckOn&&(sec.indexOf('방향')>=0||sec.indexOf('처방')>=0||sec.indexOf('Prescribe')>=0)){
-        var done=ck.indexOf(ckIdx)>=0;
-        out+='<button class="ai-ck'+(done?' done':'')+'" data-act="ckp" data-v="'+ckIdx+'"><i>'+(done?'✓':'')+'</i><span>'+bhHead(body)+'</span></button>';
-        ckIdx++;
-        continue;
-      }
-      for(ki=0;ki<AIPOS.length;ki++)if(body.indexOf(AIPOS[ki])>=0){tone='pos';break;}
-      if(!tone)for(ki=0;ki<AINEG.length;ki++)if(body.indexOf(AINEG[ki])>=0){tone='neg';break;}
-      out+=aiTr(body,tone,sec.indexOf('정체')>=0,noBar);
-      continue;
-    }
-    out+='<div class="ai-p">'+ln+'</div>';
-  }
-  return out;
-}
 function todayISO(){
   var t=new Date();
   return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-}
-function aiCount(){
-  var td=todayISO();
-  if(AIC.d!==td)AIC={d:td,n:0};
-  AIC.n++;
-  if(canLS){try{localStorage.setItem(KEY+'.aic',JSON.stringify(AIC));}catch(e){}}
-}
-function buildAiReq(){
-  var prompt=anlPrompt()+JSON.stringify(anlPayload());
-  if(LM==='oai')return {eng:'oai',label:'GPT',
-    url:'https://api.openai.com/v1/chat/completions',
-    headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
-    body:JSON.stringify({model:'gpt-5-mini',max_completion_tokens:2048,messages:[{role:'user',content:prompt}]})};
-  if(LM==='ant')return {eng:'ant',label:'CLAUDE',
-    url:'https://api.anthropic.com/v1/messages',
-    headers:{'content-type':'application/json','x-api-key':KS.ant,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,messages:[{role:'user',content:prompt}]})};
-  function gClean(m){return String(m||'').trim().replace(/^models\//,'');}
-  var chain=[],seen={},cand=[gClean(GVM),gClean(GM)];
-  for(var gk in GMN)cand.push(gClean(gk));
-  cand.push('gemini-flash-latest');
-  for(var ci=0;ci<cand.length;ci++){
-    var cm=cand[ci];
-    if(cm&&!seen[cm]){seen[cm]=1;chain.push(cm);}
-  }
-  var gUrl=function(m){return 'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';};
-  var g={maxOutputTokens:8192};
-  if(/gemini-[3-9]|flash-latest/.test(chain[0]))g.thinkingConfig={thinkingLevel:'LOW'};
-  else g.thinkingConfig={thinkingBudget:0};
-  var urls=[],ui2;
-  for(ui2=0;ui2<chain.length&&ui2<4;ui2++)urls.push(gUrl(chain[ui2]));
-  return {eng:'gem',label:'GEMINI',
-    url:urls[0],
-    urls:urls,
-    models:chain.slice(0,4),
-    headers:{'Content-Type':'application/json','x-goog-api-key':KS.gem},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:g})};
-}
-function aiExtract(eng,d){
-  try{
-    if(d&&d.error&&d.error.message)return {err:d.error.message};
-    if(eng==='oai')return {txt:String(d.choices[0].message.content||'')};
-    if(eng==='ant'){var t='',i;for(i=0;i<(d.content||[]).length;i++)t+=(d.content[i].text||'');return {txt:t};}
-    var t2='',ps=(((d.candidates||[])[0]||{}).content||{}).parts||[];
-    for(var j=0;j<ps.length;j++)t2+=(ps[j].text||'');
-    return {txt:t2};
-  }catch(e){return {err:TX('응답 파싱 실패')};}
-}
-function aiBgPending(){
-  try{
-    var o=JSON.parse(localStorage.getItem(KEY+'.aibg')||'null');
-    return !!(o&&o.ts&&(Date.now()-o.ts)<600000);
-  }catch(e){return false;}
-}
-function aiBgPoll(){
-  if(!(window.AndroidAI&&AndroidAI.take))return;
-  var s='';
-  try{s=AndroidAI.take()||'';}catch(e){return;}
-  if(!s)return;
-  if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(e3){}}
-  var o=null;try{o=JSON.parse(s);}catch(e2){}
-  /* '오류:' 는 실패를 가려내는 표식이라 한국어로 둔다 — 보일 때만 옮긴다 */
-  if(!o){aiSave('오류: '+TX('백그라운드 결과 파싱 실패'));render();return;}
-  if(!o.ok){
-    var em2=String(o.err||('HTTP '+o.status));
-    if(o.trail)em2+=' ['+String(o.trail).slice(0,160)+']';
-    aiSave('오류: '+em2.slice(0,300));render();return;
-  }
-  var d=null;try{d=JSON.parse(o.body);}catch(e4){}
-  var ex=aiExtract(o.eng,d||{});
-  aiSave(ex.txt&&String(ex.txt).trim()?ex.txt:('오류: '+(ex.err||TX('응답 없음'))));
-  toast(TX('AI 리포트 도착'));
-  render();
-}
-function aiSave(txt){
-  AIRUN=false;
-  /* 실패는 리포트가 아니다. 예전에는 '오류: …' 도 이력에 넣고 4개로 잘라서
-     실패 두 번이면 지난 리포트가 사라졌다 — 되돌릴 수 없는 손실이다.
-     대신 토스트로 알린다. 조용히 삼키면 지난 리포트가 그대로 보여서
-     방금 돌린 것이 성공한 줄 안다. */
-  if(/^(오류|요청 실패)/.test(String(txt||''))){
-    AIREQ=null;AIVIEW=0;AIFRESH=false;
-    var em0=String(txt).replace(/^오류/,TX('오류')).replace(/^요청 실패/,TX('요청 실패'));
-    try{toast('<em>'+TX('실패')+'</em> '+esc(em0.slice(0,60)),7000);}catch(e0){}
-    renderSheet();
-    return;
-  }
-  AIOUT=txt;
-  var t=new Date();
-  AIAT=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-  AIBY=LMN[LM]+(LM==='gem'?' '+GMN[GM]:'');
-  AIDT=MONS[t.getMonth()]+' '+t.getDate();
-  var rq=AIREQ||{k:ANL,ph:hasTodayStrength()?'post':'pre'};
-  AIREQ=null;
-  /* 그릴 때 쓴 값을 함께 남긴다 — 지난 리포트를 넘겨 볼 때 글은 그때 것인데
-     그래프만 지금 주 것이면 둘이 다른 주를 말한다 */
-  AIH.unshift({o:txt,at:AIAT,by:AIBY,d:AIDT,k:rq.k,ph:rq.ph,vz:anlViz(rq.k)});
-  AIH=AIH.slice(0,4);
-  AIVIEW=0;
-  AIFRESH=true;
-  if(canLS){try{
-    localStorage.setItem(KEY+'.aiout',txt);
-    localStorage.setItem(KEY+'.aiat',AIAT);
-    localStorage.setItem(KEY+'.aiby',AIBY);
-    localStorage.setItem(KEY+'.aidt',AIDT);
-    localStorage.setItem(KEY+'.aih',JSON.stringify(AIH));
-  }catch(e){}}
-  renderSheet();
-}
-/* 오는 대로 그린다. 마지막 줄은 아직 오는 중이라 잘려 있으므로 완성된 줄까지만 —
-   반쯤 온 문장이 카드로 그려지면 글자가 튀어 오히려 어수선하다. */
-var AIPT=0;
-function aiPaint(t){
-  var el=document.getElementById('aiOut');
-  if(!el)return;
-  var now=+new Date();
-  if(now-AIPT<140)return;          /* 청크마다 그리면 그리는 데 시간을 다 쓴다 */
-  AIPT=now;
-  var i=t.lastIndexOf('\n');
-  var body=i>0?t.slice(0,i):'';
-  try{el.innerHTML=(body?aiFmt(body,[],null):'')+'<div class="ai-load">COMPILING REPORT</div>';}catch(e){}
-}
-/* 전체 시한이 아니라 '조용한 시간' 으로 끊는다 — 긴 리포트는 오래 걸리는 것이
-   정상이고, 진짜 문제는 아무것도 안 오는 것이다. */
-function sseFetch(url,opt,idleMs,onText){
-  idleMs=idleMs||25000;
-  var ac=(typeof AbortController!=='undefined')?new AbortController():null;
-  if(ac)opt.signal=ac.signal;
-  var t=null,bust=null;
-  /* abort() 가 읽기까지 닿는지에 기대지 않는다 — 안 닿으면 읽기가 영영 안
-     끝나 화면이 Analyzing 에 갇힌다. 시한을 따로 걸어 반드시 끝나게 한다. */
-  var dead=new Promise(function(_,rej){bust=rej;});
-  function poke(){
-    if(t)clearTimeout(t);
-    t=setTimeout(function(){
-      try{ac&&ac.abort();}catch(e){}
-      bust(new Error('idle'));
-    },idleMs);
-  }
-  poke();
-  return Promise.race([dead,fetch(url,opt).then(function(r){
-    if(!r.ok||!r.body)throw new Error('nostream:'+r.status);
-    var rd=r.body.getReader(),dec=new TextDecoder(),buf='',txt='';
-    function pump(){
-      return rd.read().then(function(res){
-        poke();
-        if(res.done){if(t)clearTimeout(t);return txt;}
-        buf+=dec.decode(res.value,{stream:true});
-        var lines=buf.split('\n');
-        buf=lines.pop();
-        for(var i=0;i<lines.length;i++){
-          var ln=lines[i].trim();
-          if(ln.indexOf('data:')!==0)continue;
-          var js=ln.slice(5).trim();
-          if(!js||js==='[DONE]')continue;
-          try{
-            var d=JSON.parse(js);
-            var ps=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts;
-            if(ps)for(var q=0;q<ps.length;q++)txt+=(ps[q].text||'');
-            if(onText)onText(txt);
-          }catch(e2){}
-        }
-        return pump();
-      });
-    }
-    return pump();
-  })]).then(function(v){if(t)clearTimeout(t);return v;},
-            function(e){if(t)clearTimeout(t);throw e;});
-}
-function runAI(){
-  if(AIRUN)return;
-  AIRUN=true;
-  /* 응답을 기다리는 동안 모드를 바꿀 수 있다. 도착 시점의 ANL 로 제목을 달면
-     볼륨 리포트에 진전 위젯이 붙는다 — 보낼 때의 모드를 잡아 둔다. */
-  AIREQ={k:ANL,ph:hasTodayStrength()?'post':'pre'};
-  aiCount();
-  UI.sheet='ai';
-  render();
-        var prompt=anlPrompt()+JSON.stringify(anlPayload());
-        /* 3.x 계열은 thinkingLevel, 2.5 계열은 thinkingBudget — 모델명으로 분기 */
-        var GCHAIN=[GM];
-        var gmAll;
-        for(gmAll in GMN){if(gmAll!==GM)GCHAIN.push(gmAll);}
-        if(GVM&&GCHAIN.indexOf(GVM)<0)GCHAIN.splice(1,0,GVM);
-        function gcfg(model){
-          /* 8192 는 리포트 길이(보통 700 토큰 남짓)에 견줘 지나치다 */
-          var g={maxOutputTokens:3072};
-          /* 감량·영양은 한 화면 요약이라 생각할 것이 거의 없다. 훈련 분석은
-             정체·퇴행 판정이 걸려 있어 LOW 를 유지한다. */
-          var light=(catOf(ANL)!=='train');
-          if(/gemini-[3-9]|flash-latest/.test(model))
-            g.thinkingConfig={thinkingLevel:light?'MINIMAL':'LOW'};
-          else g.thinkingConfig={thinkingBudget:0};
-          return g;
-        }
-        var BASE='https://generativelanguage.googleapis.com/v1beta/models/';
-        function gbody(model){
-          return JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gcfg(model)});
-        }
-        /* 오는 대로 그린다. 막히면 예전 방식으로 되돌아간다 —
-           스트리밍이 안 되는 망에서도 리포트는 나와야 한다. */
-        function gstream(idx){
-          var model=GCHAIN[idx];
-          return sseFetch(BASE+model+':streamGenerateContent?alt=sse',{
-            method:'POST',
-            headers:{'content-type':'application/json','x-goog-api-key':KS.gem},
-            body:gbody(model)
-          },25000,aiPaint);
-        }
-        function gcall(idx,rt){
-          rt=rt||0;
-          var model=GCHAIN[idx];
-          if(!rt){
-            gstream(idx).then(function(t){
-              if(t&&t.trim()){aiSave(t.trim());return;}
-              gplain(idx,rt);
-            }).catch(function(){gplain(idx,rt);});
-            return;
-          }
-          gplain(idx,rt);
-        }
-        function gplain(idx,rt){
-          rt=rt||0;
-          var model=GCHAIN[idx];
-          tFetch(BASE+model+':generateContent',{
-            method:'POST',
-            headers:{'content-type':'application/json','x-goog-api-key':KS.gem},
-            body:gbody(model)
-          }).then(function(r){return r.json();}).then(function(d){
-            var t='';
-            try{
-              var ps=d.candidates[0].content.parts;
-              for(var i=0;i<ps.length;i++)t+=(ps[i].text||'');
-            }catch(e4){}
-            if(!t){
-              var em=(d&&d.error&&d.error.message)?d.error.message:'';
-              if(gemTransient(em)&&rt<2){
-                setTimeout(function(){gplain(idx,rt+1);},1500*(rt+1));
-                return;
-              }
-              var swap=/not found|not supported|does not exist|invalid|unsupported|no longer available|not available|deprecated/i.test(em)||gemTransient(em);
-              if(swap){
-                if(idx+1<GCHAIN.length){gcall(idx+1);return;}
-                gemDiscover().then(function(m2){
-                  if(m2&&GCHAIN.indexOf(m2)<0){GCHAIN.push(m2);gcall(GCHAIN.length-1);}
-                  else aiSave('오류: '+em);
-                }).catch(function(){aiSave('오류: '+em);});
-                return;
-              }
-              t=em?('오류: '+em):TX('응답 없음');
-            }
-            aiSave(t.trim());
-          }).catch(function(e3){aiSave('요청 실패: '+e3.message);});
-        }
-        function done(t,err){
-          aiSave((t&&t.trim())||(err?('오류: '+err):TX('응답 없음')));
-        }
-        if(LM==='ant'){
-          tFetch('https://api.anthropic.com/v1/messages',{
-            method:'POST',
-            headers:{
-              'content-type':'application/json',
-              'x-api-key':KS.ant,
-              'anthropic-version':'2023-06-01',
-              'anthropic-dangerous-direct-browser-access':'true'
-            },
-            body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2048,messages:[{role:'user',content:prompt}]})
-          }).then(function(r){return r.json();}).then(function(d){
-            var t='';
-            if(d&&d.content)for(var i=0;i<d.content.length;i++)t+=(d.content[i].text||'');
-            done(t,d&&d.error&&d.error.message);
-          }).catch(function(e3){done('',e3.message);});
-        }else if(LM==='oai'){
-          var ocall=function(model,retry){
-            tFetch('https://api.openai.com/v1/chat/completions',{
-              method:'POST',
-              headers:{'content-type':'application/json','authorization':'Bearer '+KS.oai},
-              body:JSON.stringify({model:model,max_completion_tokens:2048,messages:[{role:'user',content:prompt}]})
-            }).then(function(r){return r.json();}).then(function(d){
-              var t='';
-              try{t=d.choices[0].message.content||'';}catch(e4){}
-              var em=d&&d.error&&d.error.message;
-              if(!t&&retry&&em&&(em.indexOf('model')>=0||em.indexOf('not exist')>=0)){ocall('gpt-4o-mini',false);return;}
-              done(t,em);
-            }).catch(function(e3){done('',e3.message);});
-          };
-          ocall('gpt-5-mini',true);
-        }else{
-          gcall(0);
-        }
 }
 
 /* ── 뒤로가기: 시트 열림 = 뒤로 닫기 / 메인 = 종료 확인 ── */
@@ -10707,11 +9800,6 @@ document.addEventListener('click',function(e){
         if(el){el.value=raw;toast(TX('스냅샷을 입력칸에 불러옴 — <em>Apply Input</em>으로 복원'));}
       })();
       break;
-    case 'aibgx':
-      if(canLS){try{localStorage.removeItem(KEY+'.aibg');}catch(eX){}}
-      toast(TX('대기 해제됨 — 다시 실행 가능'));
-      render();
-      break;
     case 'godiet':UI.dtab='diet';UI.sheet='data';render();break;
     case 'cl':
       if(UI.open)closeEx();
@@ -10787,27 +9875,6 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
-    case 'prsv':
-      (function(){
-        var el=document.getElementById('pr');
-        var v=el?String(el.value).trim():'';
-        if(!v||v===DEFPR.trim()){
-          PR='';
-          if(canLS){try{localStorage.removeItem(KEY+'.pr');}catch(e2){}}
-          toast('<em>Default prompt in use</em>');
-          return;
-        }
-        PR=v;
-        if(canLS){try{localStorage.setItem(KEY+'.pr',v);}catch(e2){}}
-        toast('<em>Prompt saved</em>');
-      })();
-      break;
-    case 'prrs':
-      PR='';
-      if(canLS){try{localStorage.removeItem(KEY+'.pr');}catch(e2){}}
-      render();
-      toast('<em>Default restored</em>');
-      break;
     case 'aksv':
       (function(){
         var m={gem:'akg',oai:'ako',ant:'aka'},any=false;
@@ -10825,17 +9892,6 @@ document.addEventListener('click',function(e){
         toast(any?'<em>Keys saved</em>':'Enter at least one key');
       })();
       break;
-    case 'aifold':
-      /* 머리줄 안의 넘기기 화살표는 자기 일을 하고 여기까지 안 온다 */
-      AIFOLD=!AIFOLD;AIFRESH=false;renderSheet();break;
-    case 'aiprev':
-      AIFOLD=false;
-      if(AIVIEW+1<AIH.length){AIVIEW++;AIFRESH=false;renderSheet();}
-      break;
-    case 'ainext':
-      AIFOLD=false;
-      if(AIVIEW>0){AIVIEW--;AIFRESH=false;renderSheet();}
-      break;
     case 'gmopen':
       GMOPEN=!GMOPEN;
       renderSheet();
@@ -10852,26 +9908,6 @@ document.addEventListener('click',function(e){
         GMOPEN=false;
         renderSheet();
       })();
-      break;
-    case 'airun':
-      /* 배경 실행도 보낼 때의 모드를 잡아 둔다 */
-      if(!AIREQ)AIREQ={k:ANL,ph:hasTodayStrength()?'post':'pre'};
-      /* 샘플 데이터로 리포트를 뽑으면 남의 기록을 자기 것으로 읽는다.
-         전경(runAI)과 배경(AndroidAI) 두 경로가 갈리기 전에 막는다 */
-      if(DEMO){toast(TX('샘플 데이터로는 분석할 수 없음 — 기록을 먼저 남겨주세요'));break;}
-      if(AIRUN||aiBgPending()){toast(TX('이미 생성 중'));break;}
-      if(!KS[LM]){UI.sheet='data';render();toast('Save your '+LMN[LM]+' key in settings first');break;}
-      if(window.AndroidAI&&AndroidAI.run){
-        try{
-          var bgSpec=buildAiReq();
-          AndroidAI.run(JSON.stringify(bgSpec));
-          if(canLS){try{localStorage.setItem(KEY+'.aibg',JSON.stringify({ts:Date.now(),eng:bgSpec.eng}));}catch(eBg){}}
-          toast(TX('백그라운드 생성 시작 — 앱 닫아도 진행됨'));
-          render();
-          break;
-        }catch(eB){}
-      }
-      runAI();
       break;
     case 'ai':
       UI.sheet='ai';render();
@@ -11024,27 +10060,9 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
-    case 'anlpick':
-      /* 옛 열쇠도 여기로 들어온다 — ANLMAP 으로 옮긴 뒤
-         그 모드가 속한 카테고리까지 같이 맞춘다. 안 맞추면 고른 모드와 위
-         카테고리가 서로 다른 것을 가리킨다. */
-      var nk=ANLMAP[v]||v;
-      if(!ANLL[nk])nk='plan';
-      ANL=nk;ANLC=catOf(nk);anlSave();renderSheet();break;
     case 'anlcat':
-      /* 카테고리를 바꾸면 그 안의 첫 AI 세부로 따라 간다 — 안 그러면 위는
-         식단인데 ANALYZE 는 훈련 처방을 부르게 된다. */
-      if(CATAI[v]){ANLC=v;ANL=CATAI[v][0];anlSave();renderSheet();}
+      if(isCat(v)){ANLC=v;anlSave();renderSheet();}
       break;
-    case 'ckp':
-      (function(){
-        var cur2=AIH[AIVIEW];if(!cur2)return;
-        cur2.ck=cur2.ck||[];
-        var ix=+v,pos=cur2.ck.indexOf(ix);
-        if(pos>=0)cur2.ck.splice(pos,1);else cur2.ck.push(ix);
-        if(canLS){try{localStorage.setItem(KEY+'.aih',JSON.stringify(AIH));}catch(e){}}
-        buzz(8);renderSheet();
-      })();break;
     case 'dcd':
       UI.draft={};UI.dirty={};saveDraft();
       if(PENDWD!==null){var pw=PENDWD;PENDWD=null;setWd(pw);}
@@ -11434,7 +10452,6 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
     });
   }).catch(function(){});
 }
-aiBgPoll();
 tmrNativeSync();
 hcPull(14);
 /* 음식은 다른 앱에서 적고 돌아오는 게 보통이라 복귀 시에도 다시 읽는다 */
@@ -11445,13 +10462,8 @@ addEventListener('scroll',function(){
 },{passive:true});
 document.addEventListener('visibilitychange',function(){
   if(document.hidden){mirrorPush(true);return;}
-  aiBgPoll();tmrNativeSync();
+  tmrNativeSync();
 });
-if(window.AndroidAI)setInterval(function(){
-  var was=aiBgPending();
-  aiBgPoll();
-  if(was&&!aiBgPending()&&UI.sheet==='ai')render();
-},15000);
 </script>
 </body>
 </html>
