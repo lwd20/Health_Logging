@@ -5927,7 +5927,9 @@ function fatigueDrop(){
 }
 /* 반복이 6~12 구간에 든 비율. 그 숫자는 지금 프롬프트 문자열에만 있고
    세는 코드가 없었다 — 순수 카운터라 판단이 0이다. */
-function repZone(){
+/* 구간을 인자로 받는다. 기본은 6~12(균형 갈래), ACSM 갈래는 8~12 */
+function repZone(lo,hi){
+  lo=lo||6;hi=hi||12;
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is4(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
@@ -5943,7 +5945,7 @@ function repZone(){
         var r=+a[j].s[k][1]||0;
         if(!(r>0))continue;
         tot++;
-        if(r>=6&&r<=12)inZ++;else off[m.n]=(off[m.n]||0)+1;
+        if(r>=lo&&r<=hi)inZ++;else off[m.n]=(off[m.n]||0)+1;
       }
     }
   }
@@ -6147,7 +6149,9 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
    '정체' 를 보러 '진전' 을 눌러야 했다. 다른 탭이 관점 이름이므로 여기도 그렇게. */
 /* '세부' 는 '자세한 것' 으로 읽히는데 실은 근육 목록이다. 부위(5)와
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
-var VZT=[['set','부위'],['sub','근육'],['prog','종목'],['recov','회복'],['bal','균형']];
+/* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
+   회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
+var VZT=[['vol','볼륨'],['prog','종목'],['recov','회복·균형'],['acsm','ACSM']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -7211,9 +7215,12 @@ function vzRoute(R){
   return h;
 }
 function vzTrain(tab){
-  tab=tab||'set';
+  /* 옛 열쇠로 들어와도 화면이 비지 않게 옮겨 준다 */
+  if(tab==='set'||tab==='sub')tab='vol';
+  else if(tab==='bal')tab='recov';
+  tab=tab||'vol';
   var h='',ws=wkSets(),sc=subCnt(),i,k;
-  if(tab==='set'){
+  if(tab==='vol'){
   /* 세부에는 눈금이 있는데 부위에는 없을 이유가 없다 — LMKP 가 이미
      다섯 부위의 랜드마크를 갖고 있다. 목표 대비는 숫자로, 구간은 눈금으로. */
   /* 이번 주 실적인데 그렇게 안 적혀 있었다. 같은 앱의 주간 목표·요일
@@ -7230,9 +7237,9 @@ function vzTrain(tab){
        있고 줄에 붙는 것은 한 묶음에 판정이 섞였을 때뿐이다. */
     ph2+=LMKP[k]?lmRow(TX(PN_KO[k]),c,LMKP[k],true,0,g):'';
   }
-  if(ph2)h+='<div class="lmsec">'+ph2
-    +'<div class="lmlg" data-act="hgo" data-v="goal">'
-    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV')+'</div></div>';
+  /* 범례는 안 단다 — 같은 갈래 아래쪽 근육 트리가 같은 눈금을 쓰고 거기에
+     이미 달려 있다. 한 화면에 같은 설명이 두 번 뜨면 그것부터 눈에 걸린다. */
+  if(ph2)h+='<div class="lmsec">'+ph2+'</div>';
   /* 눈금과 숫자 줄을 둘 다 그리면 같은 것을 두 번 본다 — 눈금이 자리로
      보여 주므로 목표 대비는 총계 한 줄이면 된다 */
   var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
@@ -7246,7 +7253,7 @@ function vzTrain(tab){
      내민다 — 단순 중복보다 이쪽이 해롭다. 세트만 말하게 둔다. */
   h+=vzTotal(TX('주 합계'),tot,tgt);
   }
-  if(tab==='sub'){
+  if(tab==='vol'){
   /* 부위로 묶는다. 예전에는 판정('적당 4 / 미만 9')으로 묶었는데, 그러면
      가슴이 어디 있는지 보려고 두 묶음을 훑어야 했다 — 열네 줄에서 한 부위를
      골라내는 일을 눈이 했다. 사람은 가슴·등·어깨·하체·팔로 생각하고 운동도
@@ -7432,7 +7439,7 @@ function vzTrain(tab){
   var dv=vzDelta();
   if(dv.h)h+=vzCap(TX('유효 세트 변동 · 페이스 대비'))+dv.h;
   }
-  if(tab==='bal'){
+  if(tab==='recov'){
   /* 눈금만 그려 놓고 맞았는지 틀렸는지는 앱이 아무 말도 안 했다. 55%가
      목표라는 사실조차 화면에 글자로 없었다 — 눈금 하나가 서 있을 뿐이라
      그것이 무슨 선인지 알 수 없다. 목표를 적고 어느 쪽이 모자란지 말한다. */
@@ -7466,6 +7473,42 @@ function vzTrain(tab){
     rz.off.length?TX1('{0}/{1}세트 · 벗어남 {2}',rz.inZ,rz.tot,rz.off.join(', '))
                  :TX1('{0}/{1}세트',rz.inZ,rz.tot),
     rz.pct>=70?{t:TX('구간 안'),c:'pos'}:{t:TX('구간 밖'),c:'warn'});
+  }
+  if(tab==='acsm'){
+  /* ACSM 성인 권고를 이 앱이 가진 자료로만 견준다. 새 수는 하나도 안 만든다 —
+     유산소 분·부위별 수행 일수·반복 구간·부위 간격은 전부 다른 갈래가 이미
+     세고 있는 값이다. 여기서는 그것을 권고와 나란히 놓기만 한다. */
+  h+=vzCap(TX('ACSM 성인 권고 · 이번 주'));
+  var OKV={t:TX('충족'),c:'pos'},NGV={t:TX('미충족'),c:'warn'};
+  var ac2=wkCardio();
+  h+=vzBar(TX('유산소'),ac2.z2,150,TX1('중강도 주 150분 · {0}회',ac2.days),
+    ac2.z2>=150?OKV:NGV,false);
+  /* '근육군마다 주 2일' — 부위를 근육군으로 본다. 모자란 부위를 이름으로
+     짚어 준다: 3/5 만 적으면 어느 둘인지 다시 세어야 한다. */
+  var fq2=wkDaysByPart(),nOk=0,nPt=0,low2=[];
+  for(k in PN_KO){
+    nPt++;
+    if((fq2[k]||0)>=2)nOk++;else low2.push(TX(PN_KO[k])+' '+(fq2[k]||0));
+  }
+  h+=vzBar(TX('부위 빈도'),nOk,nPt,
+    low2.length?TX1('주 2일 이상 · 모자람 {0}',low2.join(', ')):TX('주 2일 이상 · 다 채움'),
+    nOk>=nPt?OKV:NGV,false);
+  /* 균형 갈래는 6~12 로 본다. ACSM 이 말하는 근력·근비대 구간은 8~12 라
+     여기만 좁혀 센다 — 같은 함수에 구간만 달리 넘긴다. */
+  var rz2=repZone(8,12);
+  if(rz2.tot)h+=vzBar(TX('반복 8~12'),rz2.inZ,rz2.tot,
+    rz2.off.length?TX1('벗어난 종목 {0}',rz2.off.join(', ')):TX('전부 구간 안'),
+    rz2.pct>=70?OKV:NGV,false);
+  /* 같은 근육군은 48시간 띄우라는 권고. 기록에 시각이 없어 이틀 연속으로 본다 */
+  var g2=partGap48();
+  h+=vzLine(TX('부위 간격'),
+    g2.length?TX1('{0}부위 연속',g2.length):TX('48시간 이상'),
+    g2.length?g2.map(function(x){return TX(PN_KO[x.p]||x.p);}).join(', ')
+             :TX('같은 부위를 이틀 연속 하지 않음'),
+    g2.length?NGV:OKV);
+  h+='<div class="lmunk">'
+    +TX('ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음')
+    +'</div>';
   }
   return '<div class="anlviz">'+h+'</div>';
 }
@@ -7698,7 +7741,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-16 10:40';
+var BUILD='2026-09-16 12:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8281,6 +8324,22 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'주 2일 이상 · 다 채움':'2+ days a week · all met',
+'ACSM 성인 권고 · 이번 주':'ACSM adult guideline · this week',
+'미충족':'not met',
+'중강도 주 150분 · {0}회':'Moderate 150 min/wk · {0} sessions',
+'부위 빈도':'Part frequency',
+'주 2일 이상 · 모자람 {0}':'2+ days a week · short: {0}',
+'반복 8~12':'Reps 8–12',
+'벗어난 종목 {0}':'Outside: {0}',
+'전부 구간 안':'All in range',
+'부위 간격':'Part spacing',
+'{0}부위 연속':'{0} part(s) back-to-back',
+'48시간 이상':'48 h or more',
+'같은 부위를 이틀 연속 하지 않음':'No part trained on back-to-back days',
+'ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음':'This week’s log set beside the ACSM adult activity guideline — the numbers are the same ones the other views count',
+'볼륨':'Volume',
+'회복·균형':'Recovery',
 '미달':'under',
 '진행 중':'In progress',
 '분석 화면':'Analyze view',
