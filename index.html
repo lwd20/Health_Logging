@@ -1206,6 +1206,37 @@ html[lang=en] .acrow .bn{flex-basis:86px;letter-spacing:.01em}
 .acv em{font-style:normal;font-size:10px;color:var(--dim);font-weight:400}
 .acnt{margin:3px 0 0 74px;font-size:9.5px;color:var(--dim);line-height:1.5}
 html[lang=en] .acnt{margin-left:94px}
+/* 100점 — 큰 수 하나. 좋은지 나쁜지는 색과 낱말이 같이 말한다 */
+.acsc{display:flex;align-items:baseline;justify-content:center;gap:7px;margin:10px 0 0}
+.acsc b{font-family:var(--mono);font-size:34px;font-weight:800;line-height:1;
+  color:var(--mut);font-variant-numeric:tabular-nums}
+.acsc em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--dim)}
+.acsc .gd{font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;
+  border:1px solid rgba(var(--tx-rgb),.18);border-radius:2px;color:var(--mut)}
+.acsc.ok b,.acsc.ok .gd{color:var(--acc-br)}
+.acsc.mid b,.acsc.mid .gd{color:var(--acc-sf)}
+.acsc.ng b,.acsc.ng .gd{color:var(--sig)}
+/* 점수가 어디서 깎였는지. 칸 너비가 곧 배점이고 채운 만큼이 받은 점수라,
+   빈 자리가 그대로 잃은 점수다 — 넷을 한 줄에 놓아야 무게가 보인다. */
+.acslot{display:flex;gap:3px;margin:11px 0 0;height:12px}
+.acslot .sl{display:block;border-radius:2px;background:rgba(var(--tx-rgb),.08);overflow:hidden}
+.acslot .sl i{display:block;height:100%}
+.acslot .sl i.ok{background:linear-gradient(90deg,var(--acc-dk),var(--acc-sf))}
+.acslot .sl i.ng{background:rgba(var(--sig-rgb),.7)}
+.acslb{display:flex;gap:3px;margin:4px 0 0}
+.acslb span{min-width:0;font-family:var(--mono);font-size:8.5px;color:var(--dim);
+  text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* 칸마다 무엇을 보고 매겼는지 — 근거는 수로, 배점은 오른쪽 끝에 */
+.acsr{display:flex;align-items:baseline;gap:8px;margin:8px 0 0;font-family:var(--mono)}
+.acsr>i{flex:0 0 66px;font-style:normal;font-size:9.5px;font-weight:800;
+  letter-spacing:.06em;color:var(--tx)}
+html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
+.acsr .ev{flex:1 1 auto;min-width:0;font-size:9.5px;color:var(--dim);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.acsr>b{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--mut);
+  font-variant-numeric:tabular-nums}
+.acsr>b.ok{color:var(--acc-br)}
+.acsr>b em{font-style:normal;font-size:10px;color:var(--dim);font-weight:400}
 /* 부위 x 요일. 켜진 칸 수가 곧 빈도이고 붙은 두 칸이 곧 간격 위반이라,
    한 그림이 두 물음에 같이 답한다. */
 .wkg{margin-top:6px}
@@ -5280,6 +5311,53 @@ function rirDist(){
 }
 /* 회복 갈래가 쓰는 값 한 벌. 새 입력은 안 받는다 — 이미 있는 세트만 센다.
    주 시작은 월요일로, 다른 주간 집계와 같은 자를 쓴다. */
+/* 오늘로 끝나는 이레. 앞이 오래된 쪽이다. */
+function roll7Keys(){
+  var now=new Date(),a=[],q,t;
+  for(q=6;q>=0;q--){t=new Date(now);t.setDate(now.getDate()-q);
+    a.push(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'));}
+  return a;
+}
+/* ACSM 성인 권고를 100점으로. 배점은 권고가 실은 무게를 그대로 옮긴 것이다:
+   유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20.
+   새 수는 하나도 안 만든다 — 넷 다 다른 갈래가 이미 세고 있는 값이다.
+   창을 달력 주로 안 자르는 까닭은 '주 150분' 이 비율을 묻는 말이기
+   때문이다. 월요일마다 0점이 뜨고 일요일마다 만점이 뜨면 읽는 사람은
+   점수가 아니라 요일을 읽게 된다. */
+function acsmScore(){
+  var dks=roll7Keys(),dz={},q,k;
+  for(q=0;q<7;q++)dz[dks[q]]=1;
+  var ac=wkCardio(dz),rz=repZone(8,12,dz),pd=wkPartDays(dz);
+  /* 1) 유산소 30 — 중강도 150분 */
+  var sCar=30*Math.min(1,ac.z2/150);
+  /* 2) 근력 빈도 30 — 부위마다 이레에 2일. 다섯 부위 평균이다 */
+  var nd={},np=0,sf=0,act=0,viol=0,sumD=0;
+  for(k in PN_KO){
+    var dd=pd[k]||{},on=[],n=0;
+    for(q=0;q<7;q++){on.push(!!dd[dks[q]]);if(dd[dks[q]])n++;}
+    nd[k]={n:n,on:on};np++;sumD+=n;sf+=Math.min(1,n/2);
+    if(n>0){
+      act++;
+      /* 이틀 연속이 한 번이라도 있으면 그 부위는 간격을 못 지킨 것이다 */
+      for(q=1;q<7;q++)if(on[q]&&on[q-1]){viol++;break;}
+    }
+  }
+  var sFrq=30*(np?sf/np:0);
+  /* 3) 반복 8~12 — 세트의 70% 이상이면 만점. 한 세트도 안 찍었으면 0 이다 */
+  var sRep=rz.tot?20*Math.min(1,rz.pct/70):0;
+  /* 4) 부위 간격 20 — 한 번이라도 한 부위 가운데 연속이 없는 몫 */
+  var sGap=act?20*(act-viol)/act:0;
+  /* 굴러가는 창이라 요일 글자가 날마다 밀린다 — 날짜에서 뽑는다.
+     자료 점은 UTC 자정이므로 getUTCDay 로 읽는다 */
+  var dw=[];
+  for(q=0;q<7;q++)dw.push((new Date(dks[q]).getUTCDay()+6)%7);
+  return {tot:Math.round(sCar+sFrq+sRep+sGap),dks:dks,dw:dw,nd:nd,
+    ac:ac,rz:rz,act:act,viol:viol,avgD:np?sumD/np:0,
+    it:[{k:'car',n:'유산소',s:'유산소 30',max:30,got:sCar},
+        {k:'frq',n:'근력 빈도',s:'빈도 30',max:30,got:sFrq},
+        {k:'rep',n:'반복 8~12',s:'반복 20',max:20,got:sRep},
+        {k:'gap',n:'부위 간격',s:'간격 20',max:20,got:sGap}]};
+}
 function recovData(){
   var now=new Date(),dow=(now.getDay()+6)%7,i,j,q,k;
   function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
@@ -5407,12 +5485,14 @@ function subExWk(){
   for(q in out)out[q].sort(function(x,y){return y.c-x.c;});
   return out;
 }
-function wkCardio(){
+function wkCardio(dz){
   var now=new Date();var dow=(now.getDay()+6)%7;
   var mon=new Date(now);mon.setDate(now.getDate()-dow);
   function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},i,t;
   for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
+  /* 창을 받으면 그것을 쓴다 — 달력 주가 아니라 굴러가는 이레 */
+  if(dz)days=dz;
   var z2=0,nt=0,kc=0,km=0,dset={},k,j;
   for(i=0;i<S.m.length;i++){
     if(!isCard(S.m[i].p))continue;
@@ -6147,12 +6227,13 @@ function wkDaysByPart(){
 /* 날짜 집합. 개수만 돌려주면 '이틀 연속 재자극' 을 셀 수가 없다.
    반환 객체에 얹으면 freqThisWeek 로 AI 페이로드에 통째로 새어 나가므로
    따로 뽑는다. */
-function wkPartDays(){
+function wkPartDays(dz){
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is5(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is5(t)]=1;}
+  if(dz)days=dz;
   var pid={},i,k,out={};
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
@@ -6218,13 +6299,14 @@ function fatigueDrop(){
 /* 반복이 6~12 구간에 든 비율. 그 숫자는 지금 프롬프트 문자열에만 있고
    세는 코드가 없었다 — 순수 카운터라 판단이 0이다. */
 /* 구간을 인자로 받는다. 기본은 6~12(균형 갈래), ACSM 갈래는 8~12 */
-function repZone(lo,hi){
+function repZone(lo,hi,dz){
   lo=lo||6;hi=hi||12;
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is4(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is4(t)]=1;}
+  if(dz)days=dz;
   var inZ=0,tot=0,off={},i,j,k;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
@@ -7859,62 +7941,77 @@ function vzTrain(tab){
   }
   }
   if(tab==='acsm'){
-  /* ACSM 성인 권고를 이 앱이 가진 자료로만 견준다. 새 수는 하나도 안 만든다 —
-     유산소 분·부위별 수행 일수·반복 구간·부위 간격은 전부 다른 갈래가 이미
-     세고 있는 값이다. 여기서는 그것을 권고와 나란히 놓기만 한다.
-     넷 다 그림으로 낸다. 수만 적어 두면 115/150 이 어느 만큼인지, 모자란
-     부위가 무슨 모양인지를 읽어서 머리로 그려야 한다. */
-  h+=vzCap(TX('ACSM 성인 권고 · 이번 주'));
-  function acBar(nm,cur,goal,ok,note){
-    var pc=goal>0?Math.min(100,Math.round(cur*100/goal)):0;
-    return '<div class="acrow"><span class="bn">'+nm+'</span>'
-      +'<span class="acg"><b class="'+(ok?'ok':'ng')+'" style="width:'+pc+'%"></b></span>'
-      +'<span class="acv'+(ok?' ok':'')+'">'+cur+'<em>/'+goal+'</em></span></div>'
-      +(note?'<div class="acnt">'+note+'</div>':'');
+  /* ACSM 성인 권고를 100점 하나로 답한다. 옛 화면은 유산소 막대·반복 막대·
+     격자가 나란히 놓여 있을 뿐이라, 넷 가운데 무엇이 얼마나 모자란지를
+     눈이 스스로 견주어야 했다. 배점은 권고가 실은 무게 그대로다. */
+  var sc=acsmScore();
+  var gr=(sc.tot>=90)?{t:'우수',c:'ok'}
+        :(sc.tot>=75?{t:'양호',c:'ok'}
+        :(sc.tot>=60?{t:'보통',c:'mid'}:{t:'미흡',c:'ng'}));
+  h+=vzCap(TX('ACSM 권고 · 최근 7일'));
+  h+='<div class="acsc '+gr.c+'"><b>'+sc.tot+'</b><em>/100</em>'
+    +'<span class="gd">'+TX(gr.t)+'</span></div>';
+  /* 점수가 어디서 깎였는지. 칸 너비가 곧 배점이고 채운 만큼이 받은 점수라,
+     빈 자리가 그대로 잃은 점수다 — 넷을 한 줄에 놓아야 무게가 보인다.
+     30점짜리를 반만 채운 것이 20점짜리를 반만 채운 것보다 크게 비어 보인다. */
+  var q2,it,rt;
+  h+='<div class="acslot">';
+  for(q2=0;q2<sc.it.length;q2++){
+    it=sc.it[q2];rt=it.max?it.got/it.max:0;
+    /* 길이가 이미 얼마나 받았는지를 말한다 — 색은 '여기가 문제다' 만
+       말하면 된다. 가운데 색을 하나 더 두었더니 그 색이 ok 그러데이션의
+       왼쪽 끝과 같아서, 반만 찬 칸과 꽉 찬 칸이 같은 감으로 보였다. */
+    h+='<span class="sl" style="flex:'+it.max+' 0 0">'
+      +'<i class="'+(rt>=0.8?'ok':'ng')
+      +'" style="width:'+Math.round(rt*100)+'%"></i></span>';
   }
-  var ac2=wkCardio();
-  h+=acBar(TX('유산소'),ac2.z2,150,ac2.z2>=150,
-    TX1('중강도 주 150분 · 이번 주 {0}회',ac2.days));
-  /* 균형 갈래는 6~12 로 본다. ACSM 이 말하는 근력·근비대 구간은 8~12 라
-     여기만 좁혀 센다 — 같은 함수에 구간만 달리 넘긴다. */
-  var rz2=repZone(8,12),ch2='';
-  if(rz2.tot){
-    if(rz2.off.length){
-      ch2='<div class="fqrow">';
-      for(k=0;k<rz2.off.length;k++)ch2+='<span class="fq">'+esc(rz2.off[k])+'</span>';
-      ch2+='</div>';
+  h+='</div><div class="acslb">';
+  for(q2=0;q2<sc.it.length;q2++)
+    h+='<span style="flex:'+sc.it[q2].max+' 0 0">'+TX(sc.it[q2].s)+'</span>';
+  h+='</div>';
+  /* 칸마다 무엇을 보고 매겼는지. 같은 수를 막대로 또 그리지 않는다 —
+     위 칸이 이미 그 막대다. */
+  for(q2=0;q2<sc.it.length;q2++){
+    it=sc.it[q2];rt=it.max?it.got/it.max:0;
+    var ev='';
+    if(it.k==='car')ev=TX1('중강도 {0}분 / 150분 · {1}회',sc.ac.z2,sc.ac.days);
+    else if(it.k==='frq')ev=TX1('부위 평균 {0}일 / 2일',Math.round(sc.avgD*10)/10);
+    else if(it.k==='rep')ev=sc.rz.tot?TX1('8~12 세트 {0}% / 70%',sc.rz.pct):TX('기록 없음');
+    else ev=sc.act?(sc.viol?TX1('이틀 연속 {0}곳 / 5',sc.viol):TX('연속 없음')):TX('기록 없음');
+    h+='<div class="acsr"><i>'+TX(it.n)+'</i><span class="ev">'+ev+'</span>'
+      +'<b class="'+(rt>=0.8?'ok':'')+'">'+Math.round(it.got)+'<em>/'+it.max+'</em></b></div>';
+    /* 구간을 벗어난 종목은 반복 줄 바로 밑에 붙인다 — 어느 줄의 근거인지가
+       떨어져 있으면 알약만 덩그러니 남는다 */
+    if(it.k==='rep'&&sc.rz.off.length){
+      h+='<div class="fqrow">';
+      for(k=0;k<sc.rz.off.length;k++)h+='<span class="fq">'+esc(sc.rz.off[k])+'</span>';
+      h+='</div>';
     }
-    h+=acBar(TX('반복 8~12'),rz2.inZ,rz2.tot,rz2.pct>=70,
-      rz2.off.length?TX('구간을 벗어난 종목')+ch2:TX('전부 구간 안'));
   }
-  /* 부위 × 요일. 빈도와 간격을 한 그림이 같이 말한다 — 켜진 칸 수가 곧
-     빈도이고, 붙어 있는 두 칸이 곧 '48시간 안 띄움' 이다. */
-  var pdz=wkPartDays(),wk0=new Date(),dw0=(wk0.getDay()+6)%7;
-  var mon0=new Date(wk0);mon0.setDate(wk0.getDate()-dw0);
-  function isoD(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
-  var dks=[],q2;
-  for(q2=0;q2<7;q2++){var td2=new Date(mon0);td2.setDate(mon0.getDate()+q2);dks.push(isoD(td2));}
+  /* 부위 × 날짜. 켜진 칸 수가 곧 빈도이고, 붙어 있는 두 칸이 곧 '이틀 연속'
+     이라, 한 그림이 위의 빈도 칸과 간격 칸 둘을 같이 뒷받침한다.
+     점수와 같은 창(굴러가는 이레)을 쓴다 — 창이 다르면 둘이 어긋나도
+     알아챌 수가 없다. 오른쪽 끝이 늘 오늘이다. */
   var DOW=TX('월화수목금토일'),gz='<div class="wkg">';
   for(k in PN_KO){
-    var dd2=pdz[k]||{},on=[],nd=0;
-    for(q2=0;q2<7;q2++){on.push(!!dd2[dks[q2]]);if(dd2[dks[q2]])nd++;}
+    var e3=sc.nd[k];
     gz+='<div class="wkgr"><i>'+TX(PN_KO[k])+'</i>';
     for(q2=0;q2<7;q2++){
       /* 앞뒤 어느 쪽이든 붙어 있으면 그 칸이 간격 위반이다 */
-      var bk2=on[q2]&&((q2>0&&on[q2-1])||(q2<6&&on[q2+1]));
-      gz+='<span class="'+(on[q2]?(bk2?'on back':'on'):'')
-        +(dks[q2]===isoD(wk0)?' td':'')+'"></span>';
+      var bk2=e3.on[q2]&&((q2>0&&e3.on[q2-1])||(q2<6&&e3.on[q2+1]));
+      gz+='<span class="'+(e3.on[q2]?(bk2?'on back':'on'):'')
+        +(q2===6?' td':'')+'"></span>';
     }
-    gz+='<b class="'+(nd>=2?'ok':'')+'">'+nd+'</b></div>';
+    gz+='<b class="'+(e3.n>=2?'ok':'')+'">'+e3.n+'</b></div>';
   }
   gz+='<div class="wkgr wkgh"><i></i>';
-  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(q2)+'</span>';
+  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(sc.dw[q2])+'</span>';
   gz+='<b></b></div></div>';
-  h+=vzCap(TX('부위 · 요일 · 주 2일 이상'))+gz
+  h+=vzCap(TX('부위 · 날짜 · 이레에 2일 이상'))+gz
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘')+'</div>';
   h+='<div class="lmunk">'
-    +TX('ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음')
+    +TX('ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20')
     +'</div>';
   }
   return '<div class="anlviz">'+h+'</div>';
@@ -8148,7 +8245,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-16 23:40';
+var BUILD='2026-09-17 01:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8731,6 +8828,23 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'ACSM 권고 · 최근 7일':'ACSM guideline · last 7 days',
+'우수':'Excellent',
+'양호':'Good',
+'보통':'Fair',
+'미흡':'Poor',
+'유산소 30':'Cardio 30',
+'빈도 30':'Days 30',
+'반복 20':'Reps 20',
+'간격 20':'Gap 20',
+'근력 빈도':'Strength',
+'중강도 {0}분 / 150분 · {1}회':'{0} of 150 min moderate · {1} sessions',
+'부위 평균 {0}일 / 2일':'{0} days per part avg / 2',
+'8~12 세트 {0}% / 70%':'{0}% of sets in 8–12 / 70%',
+'이틀 연속 {0}곳 / 5':'{0} of 5 parts back-to-back',
+'연속 없음':'No back-to-back',
+'부위 · 날짜 · 이레에 2일 이상':'Part × day · 2+ days per week',
+'ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20':'This app’s log measured against the ACSM adult activity guideline — weights: cardio 30 · strength frequency 30 · rep range 20 · part spacing 20',
 '연속 자극 {0}':'{0} back-to-back',
 'RIR 0 많음':'Too many RIR 0',
 '세트 초과 {0}':'{0} over cap',
@@ -8758,10 +8872,8 @@ var EN={
 '중강도 주 150분 · 이번 주 {0}회':'Moderate 150 min/wk · {0} sessions this week',
 '구간을 벗어난 종목':'Outside the range',
 '월화수목금토일':'MTWTFSS',
-'부위 · 요일 · 주 2일 이상':'Part × day · 2+ days a week',
 '<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘':'<i class="w1"></i>Trained <i class="w2"></i>Back-to-back <i class="w3"></i>Today',
 '주 2일 이상 · 다 채움':'2+ days a week · all met',
-'ACSM 성인 권고 · 이번 주':'ACSM adult guideline · this week',
 '중강도 주 150분 · {0}회':'Moderate 150 min/wk · {0} sessions',
 '부위 빈도':'Part frequency',
 '주 2일 이상 · 모자람 {0}':'2+ days a week · short: {0}',
@@ -8769,7 +8881,6 @@ var EN={
 '벗어난 종목 {0}':'Outside: {0}',
 '전부 구간 안':'All in range',
 '부위 간격':'Part spacing',
-'ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음':'This week’s log set beside the ACSM adult activity guideline — the numbers are the same ones the other views count',
 '회복·균형':'Recovery',
 '미달':'under',
 '진행 중':'In progress',
