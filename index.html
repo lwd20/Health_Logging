@@ -6261,7 +6261,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','볼륨'],['acsm','ACSM'],['prog','종목'],['int','강도']];
+var VZT=[['vol','세트'],['acsm','권고'],['prog','종목'],['int','강도']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -7880,7 +7880,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-16 17:30';
+var BUILD='2026-09-16 18:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8463,6 +8463,7 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'권고':'Guideline',
 '미입력':'Not logged',
 '세트를 기록하면 RIR 로 강도를 갈라 보여줌':'Log sets and RIR splits them by how hard they were',
 '강도 · 이번 주 세트':'Intensity · this week’s sets',
@@ -8484,7 +8485,6 @@ var EN={
 '전부 구간 안':'All in range',
 '부위 간격':'Part spacing',
 'ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음':'This week’s log set beside the ACSM adult activity guideline — the numbers are the same ones the other views count',
-'볼륨':'Volume',
 '회복·균형':'Recovery',
 '미달':'under',
 '진행 중':'In progress',
