@@ -1184,6 +1184,44 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .lmsub{margin:7px 0 1px 9px;font-size:8.5px;font-weight:800;letter-spacing:.16em;
   color:var(--dim)}
 .lmgrp{padding-left:9px;border-left:1px solid rgba(var(--tx-rgb),.07)}
+/* 근육 아래 한 단 더 — 그 세트를 만든 종목. 이름 칸(58px) 밑에서 시작해
+   나무의 다음 단으로 읽히게 한다. 줄이 아니라 알약이다: 한 근육에 종목이
+   서넛이면 줄로 쌓는 것보다 한 줄에 흐르는 편이 낮다. */
+.lmex{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px 58px}
+.lmex i{font-style:normal;font-family:var(--mono);font-size:8.5px;color:var(--dim);
+  border:1px solid rgba(var(--tx-rgb),.09);border-radius:2px;padding:1px 5px;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lmex i b{color:var(--mut);font-weight:700;margin-left:5px}
+.lmex i.more{border-style:dashed;color:var(--mut)}
+/* ACSM — 수만 적으면 115/150 이 어느 만큼인지 읽어서 머리로 그려야 한다.
+   이름 칸은 lmrow 보다 넓다: '반복 8~12' 가 58px 에서 감긴다. */
+.acrow{display:flex;align-items:center;gap:8px;margin:9px 0 0;font-family:var(--mono)}
+.acrow .bn{flex:0 0 66px;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--tx)}
+html[lang=en] .acrow .bn{flex-basis:86px;letter-spacing:.01em}
+.acg{flex:1;height:9px;border-radius:2px;background:rgba(var(--tx-rgb),.08);overflow:hidden}
+.acg b{display:block;height:100%;border-radius:2px;background:rgba(var(--sig-rgb),.6)}
+.acg b.ok{background:linear-gradient(90deg,var(--acc-dk),var(--acc-sf))}
+.acv{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--sig);font-variant-numeric:tabular-nums}
+.acv.ok{color:var(--acc-br)}
+.acv em{font-style:normal;font-size:10px;color:var(--dim);font-weight:400}
+.acnt{margin:3px 0 0 74px;font-size:9.5px;color:var(--dim);line-height:1.5}
+html[lang=en] .acnt{margin-left:94px}
+/* 부위 x 요일. 켜진 칸 수가 곧 빈도이고 붙은 두 칸이 곧 간격 위반이라,
+   한 그림이 두 물음에 같이 답한다. */
+.wkg{margin-top:6px}
+.wkgr{display:flex;align-items:center;gap:3px;margin:3px 0}
+.wkgr>i{flex:0 0 40px;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--mut)}
+.wkgr>span{flex:1 1 0;min-width:0;height:12px;border-radius:2px;background:rgba(var(--tx-rgb),.07)}
+.wkgr>span.on{background:var(--acc-dk)}
+.wkgr>span.back{background:rgba(var(--sig-rgb),.75)}
+.wkgr>span.td{box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.35)}
+.wkgr>b{flex:0 0 22px;text-align:right;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--dim)}
+.wkgr>b.ok{color:var(--pos)}
+.wkgh>span{background:none;height:auto;font-family:var(--mono);font-size:8.5px;
+  color:var(--dim);text-align:center;letter-spacing:0}
+.lmlg .w1{background:var(--acc-dk)}
+.lmlg .w2{background:rgba(var(--sig-rgb),.75)}
+.lmlg .w3{background:none;box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.35)}
 /* 52px 에서는 '중부·능형' 이 칸에 딱 붙고 고쳐 둔 이름은 두 줄로 감겼다 */
 .lmrow .bn{flex:0 0 58px;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--mut)}
 .lmrow .bv{flex:0 0 auto;font-size:11px;color:var(--acc-br);font-variant-numeric:tabular-nums;min-width:18px;text-align:right}
@@ -5117,6 +5155,28 @@ function subCnt(){
   }
   return out;
 }
+/* 이번 주 세부 근육별로, 그 세트를 만든 종목. 세는 자는 subCnt 와 똑같이
+   쓴다 — 따로 세면 나무 속 합이 바로 위 줄의 수와 안 맞는다. */
+function subExWk(){
+  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now);
+  mon.setDate(now.getDate()-dow);
+  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var days={},i,t,q;
+  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
+  var out={};
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(isCard(m.p))continue;
+    var k=subOf(m);
+    if(!k)continue;
+    var a=S.l[m.i]||[],j,n=0;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)n+=hardOf(a[j].s).n;
+    if(n>0)(out[k]=out[k]||[]).push({n:m.n,c:n});
+  }
+  /* 많이 한 것부터 — 그 근육을 무엇이 끌고 갔는지가 먼저 보여야 한다 */
+  for(q in out)out[q].sort(function(x,y){return y.c-x.c;});
+  return out;
+}
 function wkCardio(){
   var now=new Date();var dow=(now.getDay()+6)%7;
   var mon=new Date(now);mon.setDate(now.getDate()-dow);
@@ -7260,7 +7320,7 @@ function vzTrain(tab){
      그렇게 짠다. 묶음 머리는 종목 목록(.pgh)과 같은 모양이다.
      판정 낱말은 줄에 맡긴다: 한 부위 안에 적당과 미만이 섞이므로 머리가
      대신 말할 수 없고, lmRow 는 이미 괜찮은 줄에 아무 말도 안 적는다. */
-  var hs='',gb={},gw={},se=subEasy();
+  var hs='',gb={},gw={},se=subEasy(),sx=subExWk();
   for(i=0;i<SUBS.length;i++){
     var sb=SUBS[i],L=LMK[sb.k];
     if(!L)continue;
@@ -7277,7 +7337,7 @@ function vzTrain(tab){
        깨진다 — 이 파일이 예전에 그렇게 깨진 적이 있다. */
     var zk=vz2.z||'ok';
     if(!gb[sb.p])gb[sb.p]={over:[],ok:[],under:[]};
-    gb[sb.p][zk].push([nm2,cur,L,se[sb.k]||0,STG[sb.k]]);
+    gb[sb.p][zk].push([nm2,cur,L,se[sb.k]||0,STG[sb.k],sb.k]);
     if(!vz2.ok)gw[sb.p]=(gw[sb.p]||0)+1;
   }
   var ZN=[['over','초과'],['ok','적정'],['under','미달']];
@@ -7300,8 +7360,23 @@ function vzTrain(tab){
       /* 줄에서는 판정 낱말을 뺀다 — 묶음 이름이 이미 그 말을 하고 있다.
          easy 는 그대로 넘긴다: 안 넘기면 vzZone 이 '강도 부족' 을 '미달'
          이 아닌 다른 통으로 보낸다. */
-      for(j2=0;j2<zr.length;j2++)
-        hs+='<div class="lmgrp">'+lmRow(zr[j2][0],zr[j2][1],zr[j2][2],true,zr[j2][3],zr[j2][4])+'</div>';
+      for(j2=0;j2<zr.length;j2++){
+        hs+='<div class="lmgrp">'+lmRow(zr[j2][0],zr[j2][1],zr[j2][2],true,zr[j2][3],zr[j2][4]);
+        /* 한 단 더 — 그 세트를 만든 종목. '광배 9세트' 다음 물음이 '무엇으로
+           9세트인가' 인데 그 답이 다른 갈래에 있어 눌러 옮겨 가야 했다. */
+        var ex2=sx[zr[j2][5]]||[],e3,EXCAP=3;
+        if(ex2.length){
+          hs+='<div class="lmex">';
+          for(e3=0;e3<ex2.length&&e3<EXCAP;e3++)
+            hs+='<i>'+esc(ex2[e3].n)+'<b>'+ex2[e3].c+'</b></i>';
+          /* 기구를 많이 등록하면 한 근육에 여덟 개까지 달린다. 차례가 이미
+             세트 많은 순이라 위의 셋이 그 근육을 끌고 간 것들이다 — 나머지는
+             수로 접는다. */
+          if(ex2.length>EXCAP)hs+='<i class="more">+'+(ex2.length-EXCAP)+'</i>';
+          hs+='</div>';
+        }
+        hs+='</div>';
+      }
     }
   }
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
@@ -7477,35 +7552,58 @@ function vzTrain(tab){
   if(tab==='acsm'){
   /* ACSM 성인 권고를 이 앱이 가진 자료로만 견준다. 새 수는 하나도 안 만든다 —
      유산소 분·부위별 수행 일수·반복 구간·부위 간격은 전부 다른 갈래가 이미
-     세고 있는 값이다. 여기서는 그것을 권고와 나란히 놓기만 한다. */
+     세고 있는 값이다. 여기서는 그것을 권고와 나란히 놓기만 한다.
+     넷 다 그림으로 낸다. 수만 적어 두면 115/150 이 어느 만큼인지, 모자란
+     부위가 무슨 모양인지를 읽어서 머리로 그려야 한다. */
   h+=vzCap(TX('ACSM 성인 권고 · 이번 주'));
-  var OKV={t:TX('충족'),c:'pos'},NGV={t:TX('미충족'),c:'warn'};
-  var ac2=wkCardio();
-  h+=vzBar(TX('유산소'),ac2.z2,150,TX1('중강도 주 150분 · {0}회',ac2.days),
-    ac2.z2>=150?OKV:NGV,false);
-  /* '근육군마다 주 2일' — 부위를 근육군으로 본다. 모자란 부위를 이름으로
-     짚어 준다: 3/5 만 적으면 어느 둘인지 다시 세어야 한다. */
-  var fq2=wkDaysByPart(),nOk=0,nPt=0,low2=[];
-  for(k in PN_KO){
-    nPt++;
-    if((fq2[k]||0)>=2)nOk++;else low2.push(TX(PN_KO[k])+' '+(fq2[k]||0));
+  function acBar(nm,cur,goal,ok,note){
+    var pc=goal>0?Math.min(100,Math.round(cur*100/goal)):0;
+    return '<div class="acrow"><span class="bn">'+nm+'</span>'
+      +'<span class="acg"><b class="'+(ok?'ok':'ng')+'" style="width:'+pc+'%"></b></span>'
+      +'<span class="acv'+(ok?' ok':'')+'">'+cur+'<em>/'+goal+'</em></span></div>'
+      +(note?'<div class="acnt">'+note+'</div>':'');
   }
-  h+=vzBar(TX('부위 빈도'),nOk,nPt,
-    low2.length?TX1('주 2일 이상 · 모자람 {0}',low2.join(', ')):TX('주 2일 이상 · 다 채움'),
-    nOk>=nPt?OKV:NGV,false);
+  var ac2=wkCardio();
+  h+=acBar(TX('유산소'),ac2.z2,150,ac2.z2>=150,
+    TX1('중강도 주 150분 · 이번 주 {0}회',ac2.days));
   /* 균형 갈래는 6~12 로 본다. ACSM 이 말하는 근력·근비대 구간은 8~12 라
      여기만 좁혀 센다 — 같은 함수에 구간만 달리 넘긴다. */
-  var rz2=repZone(8,12);
-  if(rz2.tot)h+=vzBar(TX('반복 8~12'),rz2.inZ,rz2.tot,
-    rz2.off.length?TX1('벗어난 종목 {0}',rz2.off.join(', ')):TX('전부 구간 안'),
-    rz2.pct>=70?OKV:NGV,false);
-  /* 같은 근육군은 48시간 띄우라는 권고. 기록에 시각이 없어 이틀 연속으로 본다 */
-  var g2=partGap48();
-  h+=vzLine(TX('부위 간격'),
-    g2.length?TX1('{0}부위 연속',g2.length):TX('48시간 이상'),
-    g2.length?g2.map(function(x){return TX(PN_KO[x.p]||x.p);}).join(', ')
-             :TX('같은 부위를 이틀 연속 하지 않음'),
-    g2.length?NGV:OKV);
+  var rz2=repZone(8,12),ch2='';
+  if(rz2.tot){
+    if(rz2.off.length){
+      ch2='<div class="fqrow">';
+      for(k=0;k<rz2.off.length;k++)ch2+='<span class="fq">'+esc(rz2.off[k])+'</span>';
+      ch2+='</div>';
+    }
+    h+=acBar(TX('반복 8~12'),rz2.inZ,rz2.tot,rz2.pct>=70,
+      rz2.off.length?TX('구간을 벗어난 종목')+ch2:TX('전부 구간 안'));
+  }
+  /* 부위 × 요일. 빈도와 간격을 한 그림이 같이 말한다 — 켜진 칸 수가 곧
+     빈도이고, 붙어 있는 두 칸이 곧 '48시간 안 띄움' 이다. */
+  var pdz=wkPartDays(),wk0=new Date(),dw0=(wk0.getDay()+6)%7;
+  var mon0=new Date(wk0);mon0.setDate(wk0.getDate()-dw0);
+  function isoD(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  var dks=[],q2;
+  for(q2=0;q2<7;q2++){var td2=new Date(mon0);td2.setDate(mon0.getDate()+q2);dks.push(isoD(td2));}
+  var DOW=TX('월화수목금토일'),gz='<div class="wkg">';
+  for(k in PN_KO){
+    var dd2=pdz[k]||{},on=[],nd=0;
+    for(q2=0;q2<7;q2++){on.push(!!dd2[dks[q2]]);if(dd2[dks[q2]])nd++;}
+    gz+='<div class="wkgr"><i>'+TX(PN_KO[k])+'</i>';
+    for(q2=0;q2<7;q2++){
+      /* 앞뒤 어느 쪽이든 붙어 있으면 그 칸이 간격 위반이다 */
+      var bk2=on[q2]&&((q2>0&&on[q2-1])||(q2<6&&on[q2+1]));
+      gz+='<span class="'+(on[q2]?(bk2?'on back':'on'):'')
+        +(dks[q2]===isoD(wk0)?' td':'')+'"></span>';
+    }
+    gz+='<b class="'+(nd>=2?'ok':'')+'">'+nd+'</b></div>';
+  }
+  gz+='<div class="wkgr wkgh"><i></i>';
+  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(q2)+'</span>';
+  gz+='<b></b></div></div>';
+  h+=vzCap(TX('부위 · 요일 · 주 2일 이상'))+gz
+    +'<div class="lmlg" data-act="hgo" data-v="goal">'
+    +TX('<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘')+'</div>';
   h+='<div class="lmunk">'
     +TX('ACSM 성인 신체활동 권고와 이번 주 기록을 나란히 놓은 것임 — 수는 다른 갈래가 세는 것과 같음')
     +'</div>';
@@ -7741,7 +7839,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-16 12:15';
+var BUILD='2026-09-16 14:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8324,6 +8422,11 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'중강도 주 150분 · 이번 주 {0}회':'Moderate 150 min/wk · {0} sessions this week',
+'구간을 벗어난 종목':'Outside the range',
+'월화수목금토일':'MTWTFSS',
+'부위 · 요일 · 주 2일 이상':'Part × day · 2+ days a week',
+'<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘':'<i class="w1"></i>Trained <i class="w2"></i>Back-to-back <i class="w3"></i>Today',
 '주 2일 이상 · 다 채움':'2+ days a week · all met',
 'ACSM 성인 권고 · 이번 주':'ACSM adult guideline · this week',
 '미충족':'not met',
