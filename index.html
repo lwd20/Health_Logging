@@ -7653,9 +7653,19 @@ function vzDiet(tab){
     var gi=Math.round(nf.todayTargetIntake||0),tdA=Math.round(nf.todayTdee||0);
     var exA=Math.round(dayExKcal(DTD));
     h+=vzCap(TX('오늘 · 아직 식사 기록이 없음'));
+    /* 먹은 것이 없어도 그릴 것은 있다 — 목표는 먹기 전부터 정해져
+       있고, 그것이 그림의 절반이기 때문이다. 빈 원 셋이 '단백질 0/160g' 을
+       한눈에 말하고, 기록이 들어오면 같은 자리에서 차오른다. 예전에는
+       이 자리가 통째로 글이었다. */
+    var mg0=(gi>0)?macroGoals(gi):null;
+    if(mg0)h+='<div class="rings">'
+      +vzRing(TX('단백질'),'opt',0,mg0.p,'g')
+      +vzRing(TX('탄수'),'min',0,mg0.c,'g')
+      +vzRing(TX('지방'),'min',0,mg0.f,'g')+'</div>';
     if(gi>0)h+=vzLine(TX('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
       TX1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
-    if(BW>0)h+=vzLine(TX('단백질 목표'),Math.round(BW*PRO_PER_KG)+' g',
+    /* 원이 단백질 목표를 이미 말하므로 그때는 줄로 또 안 적는다 */
+    if(BW>0&&!mg0)h+=vzLine(TX('단백질 목표'),Math.round(BW*PRO_PER_KG)+' g',
       /* 2.0 이 '2' 로 찍혀 정수 배율처럼 보였다 */
       TX1('체중 {0}kg × {1}',fmtW(BW),PRO_PER_KG.toFixed(1)),{t:'',c:''});
     if(exA>0)h+=vzLine(TX('운동으로 번 몫'),'+'+exA.toLocaleString()+' kcal',
@@ -7861,7 +7871,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-17 15:10';
+var BUILD='2026-09-17 16:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9603,7 +9613,16 @@ function dgHead(nf){
    진다 — 그래서 칸 안에 수가 하나도 없다.
    농도로도 값을 안 싣는다. 회색 두 칸의 진하기를 견주는 일은 사람이 못 한다. */
 function dgWeekGrid(nf){
-  var W=320,GL=30,CW=(W-GL-2)/7,HH=10,RH=18;
+  /* 줄 간격을 18→22 로 벌린다 — 칸 높이가 이제 어긋난 크기를
+     말하므로, 큰 칸이 윗줄을 침범하지 않을 만큼은 비어 있어야 한다. */
+  var W=320,GL=30,CW=(W-GL-2)/7,HH=10,RH=22;
+  /* 칸 높이 = 그날 폭(db)의 몇 배나. 예전에는 30 넘긴 날과 600 넘긴
+     날이 똑같은 칸이라, 같은 '초과 5일' 이어도 둘이 구분되지 않았다.
+     3.5~9.5px 에서 끓는다: 그 밑은 안 보이고 그 위는 옆 줄을 침범한다. */
+  function dgH(v,b){
+    if(!(b>0))return 7;
+    return Math.round((3.5+Math.min(1,Math.max(0,Math.abs(v)/b-1)/2)*6)*10)/10;
+  }
   var WD=TX('월,화,수,목,금,토,일').split(',');
   var now=new Date();
   /* nutriFacts 의 21일 창과 같은 식이라 격자의 표식 수와 daysOnTarget/
@@ -9664,12 +9683,14 @@ function dgWeekGrid(nf){
       var db=okBand(rec.target);
       if(df>db){
         wO[c]++;
-        mk+='<rect class="dgu" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy-8.5).toFixed(1)
-          +'" width="11" height="7.5" rx="2.5"/>';
+        var hu=dgH(df,db);
+        mk+='<rect class="dgu" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy-1-hu).toFixed(1)
+          +'" width="11" height="'+hu+'" rx="2.5"/>';
       }else if(df<-db){
         wU[c]++;
+        var hd=dgH(df,db);
         mk+='<rect class="dgd" x="'+(cx-5.5).toFixed(1)+'" y="'+(cy+1).toFixed(1)
-          +'" width="11" height="7.5" rx="2.5"/>';
+          +'" width="11" height="'+hd+'" rx="2.5"/>';
       }else{
         mk+='<circle class="dgo" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3.2"/>';
       }
