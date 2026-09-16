@@ -7229,33 +7229,38 @@ function vzTrain(tab){
   h+=vzTotal(TX('주 합계'),tot,tgt);
   }
   if(tab==='sub'){
-  /* 열네 줄이 한 덩어리면 어디를 봐야 할지 눈이 헤맨다. 판정은 vzZone 이
-     이미 내고 있으므로 그것으로 묶는다 — 초과와 미만이 손댈 것이고 적당은
-     지나쳐도 되는 것이다. 묶음 머리는 종목 목록(.pgh)과 같은 모양이다:
-     한 앱에 묶음 머리가 두 가지면 그것부터 헷갈린다. */
-  var hs='',gb={},gn={초과:0,적당:0,미만:0},se=subEasy();
+  /* 부위로 묶는다. 예전에는 판정('적당 4 / 미만 9')으로 묶었는데, 그러면
+     가슴이 어디 있는지 보려고 두 묶음을 훑어야 했다 — 열네 줄에서 한 부위를
+     골라내는 일을 눈이 했다. 사람은 가슴·등·어깨·하체·팔로 생각하고 운동도
+     그렇게 짠다. 묶음 머리는 종목 목록(.pgh)과 같은 모양이다.
+     판정 낱말은 줄에 맡긴다: 한 부위 안에 적당과 미만이 섞이므로 머리가
+     대신 말할 수 없고, lmRow 는 이미 괜찮은 줄에 아무 말도 안 적는다. */
+  var hs='',gb={},gw={},se=subEasy();
   for(i=0;i<SUBS.length;i++){
     var sb=SUBS[i],L=LMK[sb.k];
     if(!L)continue;
     var cur=sc[sb.k]||0;
     if(!cur&&!L[0]&&!(STG[sb.k]===0))continue;
     var vz2=vzZone(cur,L,se[sb.k]||0);
-    /* 8535 주석이 '글자로 견주면 이름을 바꾸는 순간 조용히 깨진다' 고 적어
-       놨는데 여기가 그랬다. 안 바뀌는 열쇠로 가른다 — 낱말은 화면용이다. */
-    var g=(vz2.z==='over')?'초과':(vz2.z==='under'?'미만':'적당');
-    (gb[g]||(gb[g]=[])).push([subLabel(sb),cur,L,vz2.t,se[sb.k]||0,STG[sb.k]]);gn[g]++;
+    /* 묶음 머리가 '가슴' 인데 줄이 '상부가슴' 이면 같은 말을 두 번 한다.
+       손으로 고쳐 둔 이름은 그대로 둔다 — 그건 사용자가 정한 말이다. */
+    var own2=(LANG==='en')?SUBX.renEn[sb.k]:SUBX.ren[sb.k];
+    var nm2=own2?own2:(sb.user?sb.n:TX(sb.n));
+    (gb[sb.p]||(gb[sb.p]=[])).push([nm2,cur,L,se[sb.k]||0,STG[sb.k]]);
+    if(!vz2.ok)gw[sb.p]=(gw[sb.p]||0)+1;
   }
-  /* 묶음이 하나뿐이면 머리를 안 단다 — 한 덩어리에 이름표는 군더더기다 */
-  var gk=['초과','적당','미만'].filter(function(x){return gn[x];});
-  for(i=0;i<gk.length;i++){
-    var rows=gb[gk[i]],uniq={},j;
-    for(j=0;j<rows.length;j++)uniq[rows[j][3]]=1;
-    /* 판정이 하나뿐인 묶음은 머리가 그것을 대신 말한다 */
-    var one=Object.keys(uniq).length<2;
-    if(gk.length>1)hs+='<div class="pgh"><span>'+TX(gk[i])+'</span><i>'+gn[gk[i]]+'</i></div>';
-    /* easy 를 같이 넘긴다. 안 넘기면 묶음 제목은 '강도 부족' 인데 그 안의
-       줄은 'MEV 미만' 이라 한 묶음이 두 말을 한다. */
-    for(j=0;j<rows.length;j++)hs+=lmRow(rows[j][0],rows[j][1],rows[j][2],one,rows[j][4],rows[j][5]);
+  for(i=0;i<PARTS.length;i++){
+    var pk2=PARTS[i],rows=gb[pk2];
+    if(!rows)continue;
+    /* 수는 '몇 줄' 이 아니라 '손댈 것 몇' 이다. 세부가 둘이라는 것은 눈앞에
+       이미 보이고, 알고 싶은 것은 이 부위를 들여다볼 일이 있느냐다.
+       없으면 안 적는다 — 조용한 것이 곧 괜찮다는 뜻이다. */
+    hs+='<div class="pgh"><span>'+TX(PN_KO[pk2]||pk2)+'</span>'
+      +(gw[pk2]?'<i>'+TX('손댈 것')+' '+gw[pk2]+'</i>':'')+'</div>';
+    /* easy 를 같이 넘긴다. 안 넘기면 줄이 '강도 부족' 대신 'MEV 미만' 이라
+       적어 한 화면이 두 말을 한다. */
+    for(var j2=0;j2<rows.length;j2++)
+      hs+=lmRow(rows[j2][0],rows[j2][1],rows[j2][2],false,rows[j2][3],rows[j2][4]);
   }
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
@@ -7658,7 +7663,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-14 21:10';
+var BUILD='2026-09-16 03:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
