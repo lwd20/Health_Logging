@@ -1187,6 +1187,29 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
    시작해 '적정' 과 '중하부' 가 같은 줄에 서 있어, 어느 쪽이 상위인지가
    자리로 안 보였다. 세로줄은 그대로 '적정' 밑에서 내려오는 가지가 된다. */
 .lmgrp{margin-left:9px;padding-left:9px;border-left:1px solid rgba(var(--tx-rgb),.07)}
+/* 초과·적정·미달 세 낱말이 크기도 색도 같아서, 어느 묶음을 보고 있는지를
+   글자를 읽어야 알 수 있었다. 색과 표식을 같이 달아 한 눈에 갈라지게 한다.
+   표식이 곰 방향이다 — 위로 넘쳤는지 아래로 모자랐는지. 색만으로 못
+   가르는 눈이 있어 모양을 같이 둔다. 가지 선도 같은 색을 띄어, 묶음이
+   어디서 끝나는지가 선으로 보인다. */
+.lmsub::before{content:'';display:inline-block;width:0;height:0;margin-right:5px}
+.lmsub.over{color:var(--sig)}
+.lmsub.over::before{border-left:3.5px solid transparent;border-right:3.5px solid transparent;
+  border-bottom:5px solid var(--sig);vertical-align:1px}
+.lmsub.under{color:var(--acc-br)}
+/* 미달은 꽉 채운 삼각이 아니라 선으로 그린 꽎이표다. paper 판에서
+   잴 색 거리가 58 밖에 안 되어(초과 184,65,40 · 미달 137,98,32) 둘이
+   눈에 비슷하게 들어온다 — 색만다 믿지 않고 모양과 굵기까지
+   갈라 둔다. 차랑 차면 무거운 삼각, 모자라면 가벼운 선이다. */
+.lmsub.under::before{width:5px;height:5px;border-right:1.6px solid var(--acc-br);
+  border-bottom:1.6px solid var(--acc-br);transform:rotate(45deg);
+  margin-right:7px;vertical-align:2px}
+/* 적정은 조용하다 — 이 파일은 줄곳 '아무 말이 없으면 괜찮다' 로 짜 있다 */
+.lmsub.ok{color:var(--dim)}
+.lmsub.ok::before{width:6px;height:2px;border-radius:1px;
+  background:rgba(var(--tx-rgb),.3);vertical-align:2px}
+.lmgrp.over{border-left-color:rgba(var(--sig-rgb),.32)}
+.lmgrp.under{border-left-color:rgba(var(--acc-rgb),.38)}
 /* ACSM — 수만 적으면 115/150 이 어느 만큼인지 읽어서 머리로 그려야 한다.
    이름 칸은 lmrow 보다 넓다: '반복 8~12' 가 58px 에서 감긴다. */
 .acrow{display:flex;align-items:center;gap:8px;margin:9px 0 0;font-family:var(--mono)}
@@ -7644,12 +7667,15 @@ function vzTrain(tab){
       /* 묶음이 하나뿐인 부위에도 이름을 단다. 한 줄 아끼자고 다섯 부위의
          생김새를 달라지게 하는 것보다, 늘 같은 자리에 같은 것이 있는 편이
          눈에 편하다 — '미달' 하나뿐이면 그 낱말이 곧 전부 모자람이다. */
-      hs+='<div class="lmsub">'+TX(ZN[z2][1])+'</div>';
+      /* 가르는 열쇠를 화면에도 얹는다 — 세 낱말이 같은 모양이면
+         눈이 셋을 따로 읽어야 한다 */
+      var zc2=ZN[z2][0];
+      hs+='<div class="lmsub '+zc2+'">'+TX(ZN[z2][1])+'</div>';
       /* 줄에서는 판정 낱말을 뺀다 — 묶음 이름이 이미 그 말을 하고 있다.
          easy 는 그대로 넘긴다: 안 넘기면 vzZone 이 '강도 부족' 을 '미달'
          이 아닌 다른 통으로 보낸다. */
       for(j2=0;j2<zr.length;j2++)
-        hs+='<div class="lmgrp">'+lmRow(zr[j2][0],zr[j2][1],zr[j2][2],true,zr[j2][3],zr[j2][4])+'</div>';
+        hs+='<div class="lmgrp '+zc2+'">'+lmRow(zr[j2][0],zr[j2][1],zr[j2][2],true,zr[j2][3],zr[j2][4])+'</div>';
     }
   }
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
@@ -8204,7 +8230,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-17 12:40';
+var BUILD='2026-09-17 13:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
