@@ -1267,100 +1267,6 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .wkgr>b.ok{color:var(--pos)}
 .wkgh>span{background:none;height:auto;font-family:var(--mono);font-size:8.5px;
   color:var(--dim);text-align:center;letter-spacing:0}
-/* 회복 — 색·길이·자리로 말한다. 글은 링 안 한 낱말과 범례뿐이다. */
-.rvring{position:relative;width:76px;height:76px;margin:6px auto 0}
-.rvring svg{width:76px;height:76px;transform:rotate(-90deg);display:block}
-.rvring circle{fill:none;stroke-width:6;stroke-linecap:round}
-.rvring .bg{stroke:rgba(var(--tx-rgb),.09)}
-.rvring.ok .fg{stroke:var(--acc-sf)}
-.rvring.wn .fg{stroke:var(--acc-br)}
-.rvring.bad .fg{stroke:var(--sig)}
-.rvring .tt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--acc-sf);
-  text-align:center;line-height:1.15;padding:0 10px}
-.rvring.wn .tt{color:var(--acc-br)}
-.rvring.bad .tt{color:var(--sig)}
-.rvsub{text-align:center;margin:5px 0 2px;font-family:var(--mono);font-size:9px;
-  letter-spacing:.1em;color:var(--dim)}
-/* 부위 줄 — 길이가 곧 값이다 */
-.rvrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-family:var(--mono)}
-.rvrow>i{flex:0 0 40px;font-style:normal;font-size:9px;font-weight:800;
-  letter-spacing:.06em;color:var(--mut)}
-.rvg{flex:1;display:flex;height:9px;border-radius:2px;position:relative;
-  background:rgba(var(--tx-rgb),.07);overflow:hidden}
-.rvg b{display:block;height:100%}
-.rvg b.ok{background:linear-gradient(90deg,var(--acc-dk),var(--acc-sf))}
-.rvg b.tight{background:var(--sig)}
-.rvg b.rest{background:rgba(var(--tx-rgb),.2)}
-.rvg b.hold{background:repeating-linear-gradient(45deg,
-  rgba(var(--tx-rgb),.14) 0 3px,transparent 3px 6px)}
-.rvg u{position:absolute;top:-2px;bottom:-2px;width:2px;border-radius:1px;
-  background:rgba(var(--tx-rgb),.55);transform:translateX(-1px)}
-.rvrow>b{flex:0 0 30px;text-align:right;font-size:10.5px;font-weight:700;color:var(--acc-br)}
-.rvrow>b.tight{color:var(--sig)}
-.rvrow>b.rest,.rvrow>b.hold{color:var(--dim);font-weight:400}
-.lmlg .v1{background:var(--sig)}
-.lmlg .v2{background:var(--acc-sf)}
-.lmlg .v3{background:rgba(var(--tx-rgb),.2)}
-.lmlg .v4{background:repeating-linear-gradient(45deg,
-  rgba(var(--tx-rgb),.3) 0 2px,transparent 2px 4px)}
-/* 4주 스파크라인 — 40% 선을 넘은 주만 빨갛다 */
-.rvspk{position:relative;display:flex;align-items:flex-end;gap:6px;height:46px;
-  margin:8px 0 0;padding-right:24px}
-.rvspk>i{flex:1 1 0;background:linear-gradient(180deg,var(--acc-sf),var(--acc-dk));
-  border-radius:2px 2px 0 0;min-height:3px}
-.rvspk>i.hi{background:linear-gradient(180deg,var(--sig),rgba(var(--sig-rgb),.6))}
-.rvspk>i.now{box-shadow:inset 0 0 0 1.5px rgba(var(--tx-rgb),.55)}
-/* 이름을 .ln 으로 뒀더니 671행의 .ln{max-width:40%}(종목 라인 라벨)에 걸려
-   선이 정확히 폭의 40% 에서 잘렸다 — 이름을 갈라 둔다 */
-.rvspk .rvbase{position:absolute;left:0;right:24px;bottom:40%;height:0;
-  border-top:1px dashed rgba(var(--tx-rgb),.4)}
-/* 한 번도 안 찍은 주. 0% 막대와 같은 모양이면 '거의 0' 으로 읽힌다 */
-.rvspk>i.nd{background:repeating-linear-gradient(45deg,
-  rgba(var(--tx-rgb),.16) 0 3px,transparent 3px 6px)}
-.rvnow{margin-top:4px;text-align:right;font-family:var(--mono);font-size:17px;
-  font-weight:700;color:var(--acc-br)}
-.rvnow.hi{color:var(--sig)}
-.rvnow .nl{font-family:var(--sans);font-size:9.5px;font-weight:800;color:var(--mut);
-  letter-spacing:.06em;margin-right:6px;vertical-align:2px}
-/* 점선이 무슨 자인지 선 끝에 적는다. 오른쪽에 자리를 비워 두고 거기 놓는다 */
-.rvbl{position:absolute;right:0;bottom:40%;transform:translateY(50%);line-height:1;
-  font-family:var(--mono);font-size:8.5px;color:var(--dim)}
-.fqrow.ct{justify-content:center}
-.fq.wn{color:var(--sig);border-color:rgba(var(--sig-rgb),.4)}
-.rvlg{margin-top:5px;font-family:var(--mono);font-size:9px;color:var(--dim)}
-/* 무게 정체 — 화살표 둘이 먼저 말한다 */
-.rvdrop{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0 0;
-  padding:7px 9px;border:var(--bw) solid rgba(var(--sig-rgb),.35);border-radius:var(--rad-s);
-  background:rgba(var(--sig-rgb),.06)}
-.rvdrop .ar{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--sig);line-height:1}
-.rvdrop .ar.fl{color:var(--dim)}
-.rvdrop .tx{font-size:11.5px;font-weight:700;color:var(--tx);flex:1 1 auto;min-width:0;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rvdrop .nu{flex:1 0 100%;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
-/* 강도 — 유효/가벼움/미입력을 한 막대에. '볼륨에 실제로 들어간 것이
-   얼마나' 가 이 갈래의 물음이라 세 덩이면 답이 자리로 나온다. */
-.inbar{display:flex;height:13px;border-radius:2px;overflow:hidden;
-  background:rgba(var(--tx-rgb),.07);margin:8px 0 0}
-.inbar i{display:block;height:100%}
-.inbar i.h{background:linear-gradient(90deg,var(--acc-dk),var(--acc-sf))}
-.inbar i.e{background:rgba(var(--sig-rgb),.65)}
-.inbar i.u{background:rgba(var(--tx-rgb),.2)}
-.lmlg .i1{background:var(--acc-sf)}
-.lmlg .i2{background:rgba(var(--sig-rgb),.65)}
-.lmlg .i3{background:rgba(var(--tx-rgb),.2)}
-/* 부위별 RIR — 0~3 칸이 유효 구간이고 점이 그 주의 평균이다 */
-.rirow{display:flex;align-items:center;gap:8px;margin:5px 0;font-family:var(--mono)}
-.rirow>i{flex:0 0 40px;font-style:normal;font-size:9px;font-weight:800;
-  letter-spacing:.06em;color:var(--mut)}
-.rig{flex:1;height:8px;border-radius:2px;background:rgba(var(--tx-rgb),.07);position:relative}
-.rig .zn{position:absolute;top:1px;bottom:1px;left:0;border-radius:1px;
-  background:rgba(var(--acc-rgb),.22)}
-.rig .cd{position:absolute;top:-2px;width:7px;height:12px;border-radius:50%;
-  background:var(--acc-br);transform:translateX(-3.5px)}
-.rig .cd.easy{background:var(--sig)}
-.rirow>b{flex:0 0 42px;text-align:right;font-size:10.5px;font-weight:700;color:var(--acc-br)}
-.rirow>b.off{color:var(--dim);font-weight:400;font-size:9px}
 .lmlg .w1{background:var(--acc-dk)}
 .lmlg .w2{background:rgba(var(--sig-rgb),.75)}
 .lmlg .w3{background:none;box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.35)}
@@ -5302,49 +5208,21 @@ function subCnt(){
 /* 이번 주 근력 세트를 RIR 로 가른다. 실패 3회 이내(RIR_HARD)가 유효 세트,
    4 이상은 자극이 모자라 볼륨에 안 들어가고, 미입력은 어느 쪽인지 모른다.
    부위별 평균도 같이 낸다 — 어느 부위를 봐주고 있는지는 합계로는 안 보인다. */
-function rirDist(){
-  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now);
+function wkKeys(){
+  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now),a=[],q,t;
   mon.setDate(now.getDate()-dow);
-  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
-  var days={},i,t,j,q;
-  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
-  var b=[0,0,0,0,0],unk=0,hard=0,easy=0,by={};
-  for(i=0;i<S.m.length;i++){
-    var m=S.m[i];
-    if(isCard(m.p))continue;
-    var a=S.l[m.i]||[];
-    for(j=0;j<a.length;j++){
-      if(!days[a[j].d])continue;
-      for(q=0;q<a[j].s.length;q++){
-        var v=a[j].s[q][2];
-        if(!(v===0||v>0)){unk++;continue;}
-        if(v<=RIR_HARD){hard++;b[Math.min(3,v)]++;}else{easy++;b[4]++;}
-        var e=(by[m.p]=by[m.p]||{t:0,n:0});
-        e.t+=v;e.n++;
-      }
-    }
-  }
-  return {b:b,unk:unk,hard:hard,easy:easy,tot:hard+easy+unk,by:by};
-}
-/* 회복 갈래가 쓰는 값 한 벌. 새 입력은 안 받는다 — 이미 있는 세트만 센다.
-   주 시작은 월요일로, 다른 주간 집계와 같은 자를 쓴다. */
-/* 오늘로 끝나는 이레. 앞이 오래된 쪽이다. */
-function roll7Keys(){
-  var now=new Date(),a=[],q,t;
-  for(q=6;q>=0;q--){t=new Date(now);t.setDate(now.getDate()-q);
+  for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);
     a.push(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'));}
   return a;
 }
 /* ACSM 성인 권고를 100점으로. 배점은 권고가 실은 무게를 그대로 옮긴 것이다:
    유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20.
    새 수는 하나도 안 만든다 — 넷 다 다른 갈래가 이미 세고 있는 값이다.
-   창을 달력 주로 안 자르는 까닭은 '주 150분' 이 비율을 묻는 말이기
-   때문이다. 월요일마다 0점이 뜨고 일요일마다 만점이 뜨면 읽는 사람은
-   점수가 아니라 요일을 읽게 된다. */
+   창은 이번 주(월~일)다 — 권고가 말하는 '주' 가 달력 주이고,
+   다른 갈래도 전부 그 창을 쓴다. */
 function acsmScore(){
-  var dks=roll7Keys(),dz={},q,k;
-  for(q=0;q<7;q++)dz[dks[q]]=1;
-  var ac=wkCardio(dz),rz=repZone(8,12,dz),pd=wkPartDays(dz);
+  var dks=wkKeys(),q,k;
+  var ac=wkCardio(),rz=repZone(8,12),pd=wkPartDays();
   /* 1) 유산소 30 — 중강도 150분 */
   var sCar=30*Math.min(1,ac.z2/150);
   /* 2) 근력 빈도 30 — 부위마다 이레에 2일. 다섯 부위 평균이다 */
@@ -5364,132 +5242,19 @@ function acsmScore(){
   var sRep=rz.tot?20*Math.min(1,rz.pct/70):0;
   /* 4) 부위 간격 20 — 한 번이라도 한 부위 가운데 연속이 없는 몫 */
   var sGap=act?20*(act-viol)/act:0;
-  /* 굴러가는 창이라 요일 글자가 날마다 밀린다 — 날짜에서 뽑는다.
-     자료 점은 UTC 자정이므로 getUTCDay 로 읽는다 */
-  var dw=[];
-  for(q=0;q<7;q++)dw.push((new Date(dks[q]).getUTCDay()+6)%7);
-  return {tot:Math.round(sCar+sFrq+sRep+sGap),dks:dks,dw:dw,nd:nd,
+  return {tot:Math.round(sCar+sFrq+sRep+sGap),dks:dks,nd:nd,
     ac:ac,rz:rz,act:act,viol:viol,avgD:np?sumD/np:0,
     it:[{k:'car',n:'유산소',s:'유산소 30',max:30,got:sCar},
         {k:'frq',n:'근력 빈도',s:'빈도 30',max:30,got:sFrq},
         {k:'rep',n:'반복 8~12',s:'반복 20',max:20,got:sRep},
         {k:'gap',n:'부위 간격',s:'간격 20',max:20,got:sGap}]};
 }
-function recovData(){
-  var now=new Date(),dow=(now.getDay()+6)%7,i,j,q,k;
-  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
-  function monOff(w){var m=new Date(now);m.setDate(now.getDate()-dow-w*7);return m;}
-  function wkDays(w){var m=monOff(w),d={},t;
-    for(q=0;q<7;q++){t=new Date(m);t.setDate(m.getDate()+q);d[iso(t)]=1;}return d;}
-  /* 굴러가는 이레 — w=0 이면 오늘까지 이레, w=1 이면 그 앞 이레.
-     달력 주로 자르면 수요일에는 사흘짜리 창을 지난주 이레와 견주게 된다.
-     견줄 두 창은 길이가 같아야 하고, 지금 상태를 묻는 값은 주가 바뀌었다고
-     0 으로 돌아가면 안 된다. */
-  function rollDays(w){var d={},t,q2;
-    for(q2=0;q2<7;q2++){t=new Date(now);t.setDate(now.getDate()-w*7-q2);d[iso(t)]=1;}
-    return d;}
-  var td=iso(now),pid={};
-  for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
-
-  /* 부위마다 마지막으로 한 날에서 며칠 지났나. 이번 주에 안 했어도 값이
-     있어야 하므로 창을 안 자르고 전부 본다. */
-  var last={},sess={},thisW=rollDays(0);
-  for(k in S.l){
-    var m=pid[k];
-    if(!m||isCard(m.p))continue;
-    for(i=0;i<S.l[k].length;i++){
-      var e=S.l[k][i];
-      if(!e.s.length)continue;
-      if(!last[m.p]||e.d>last[m.p])last[m.p]=e.d;
-      if(thisW[e.d])(sess[m.p]=sess[m.p]||{})[e.d]=1;
-    }
-  }
-  var part={};
-  for(k in PN_KO){
-    var ld=last[k]||'',n=sess[k]?Object.keys(sess[k]).length:0;
-    /* 이레에 2회 이하는 판정 보류 — 사흘에 한 번 하는 부위와 하루 걸러
-       하는 부위를 같은 자로 잴 수 없다. 보류는 경고에서 뺀다는 뜻이고,
-       며칠 지났는지는 그래도 적는다. */
-    part[k]={d:ld?Math.round((new Date(td)-new Date(ld))/86400000):null,
-             hold:(n<=2),n:n};
-  }
-
-  /* RIR 0 비중. 분모는 RIR 을 찍은 유효 세트(0~3)뿐이다 — 미입력과 가벼움은
-     실패에 얼마나 가까웠는지를 말해 주지 않으므로 뺀다. */
-  function r0(w){
-    var d=wkDays(w),z=0,n=0;
-    for(k in S.l){
-      var m2=pid[k];
-      if(!m2||isCard(m2.p))continue;
-      for(i=0;i<S.l[k].length;i++){
-        if(!d[S.l[k][i].d])continue;
-        var ss=S.l[k][i].s;
-        for(j=0;j<ss.length;j++){
-          var v=ss[j][2];
-          if(!(v===0||v>0)||v>RIR_HARD)continue;
-          n++;if(v===0)z++;
-        }
-      }
-    }
-    return {pct:n?Math.round(z*100/n):null,n:n};
-  }
-  var r4=[r0(3),r0(2),r0(1),r0(0)];
-
-  /* 무게 정체: 총 볼륨은 늘었는데 톱세트 무게가 그대로이거나 내려간 종목.
-     같은 무게로 세트만 늘린 것이라 나아진 것이 아니다.
-     창은 굴러가는 이레 둘이다 — 달력 주로 자르면 주 앞머리의 짧은 창이
-     지난주 이레와 견주어져 없는 정체를 만들어 낸다. */
-  function exWk(w){
-    var d=rollDays(w),out={};
-    for(k in S.l){
-      var m3=pid[k];
-      if(!m3||isCard(m3.p))continue;
-      for(i=0;i<S.l[k].length;i++){
-        if(!d[S.l[k][i].d])continue;
-        var ss2=S.l[k][i].s,vol=0,top=0;
-        for(j=0;j<ss2.length;j++){
-          var wt=+ss2[j][0]||0,rp=+ss2[j][1]||0;
-          vol+=wt*rp;if(wt>top)top=wt;
-        }
-        var o2=(out[k]=out[k]||{v:0,t:0,dn:0,n:m3.n});
-        o2.v+=vol;if(top>o2.t)o2.t=top;o2.dn++;
-      }
-    }
-    return out;
-  }
-  var a0=exWk(0),a1=exWk(1),drop=[];
-  for(k in a0){
-    var cur=a0[k],prv=a1[k];
-    if(!prv||!(prv.v>0)||!(cur.v>prv.v)||!(cur.t>0&&prv.t>0))continue;
-    if(cur.t>prv.t)continue;
-    /* 창마다 두 번은 해 봐야 견줄 값이 된다. 한 번뿐인 창과 견주면 그저
-       하루 더 한 것이 '볼륨 +233%' 로 나와 정체로 몰린다. */
-    if(cur.dn<2||prv.dn<2)continue;
-    var upv=Math.round((cur.v-prv.v)*100/prv.v);
-    /* 한 자릿수 오르내림은 그날 컨디션이지 정체가 아니다 */
-    if(upv<15)continue;
-    drop.push({n:cur.n,up:upv,top:cur.t,same:cur.t===prv.t});
-  }
-  drop.sort(function(x,y){return y.up-x.up;});
-
-  /* 경고 넷 */
-  var ws=wkSets(),over=[],tight=[];
-  for(k in PN_KO){
-    if((ws[k]||0)>20)over.push(k);
-    if(!part[k].hold&&part[k].d!==null&&part[k].d<=1)tight.push(k);
-  }
-  var cw=(r4[3].pct!==null&&r4[3].pct>40);
-  var warn=(tight.length?1:0)+(cw?1:0)+(over.length?1:0)+(drop.length?1:0);
-  return {part:part,r4:r4,drop:drop,ws:ws,over:over,tight:tight,cw:cw,warn:warn};
-}
-function wkCardio(dz){
+function wkCardio(){
   var now=new Date();var dow=(now.getDay()+6)%7;
   var mon=new Date(now);mon.setDate(now.getDate()-dow);
   function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},i,t;
   for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
-  /* 창을 받으면 그것을 쓴다 — 달력 주가 아니라 굴러가는 이레 */
-  if(dz)days=dz;
   var z2=0,nt=0,kc=0,km=0,dset={},k,j;
   for(i=0;i<S.m.length;i++){
     if(!isCard(S.m[i].p))continue;
@@ -6224,13 +5989,12 @@ function wkDaysByPart(){
 /* 날짜 집합. 개수만 돌려주면 '이틀 연속 재자극' 을 셀 수가 없다.
    반환 객체에 얹으면 freqThisWeek 로 AI 페이로드에 통째로 새어 나가므로
    따로 뽑는다. */
-function wkPartDays(dz){
+function wkPartDays(){
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is5(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is5(t)]=1;}
-  if(dz)days=dz;
   var pid={},i,k,out={};
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
@@ -6296,14 +6060,13 @@ function fatigueDrop(){
 /* 반복이 6~12 구간에 든 비율. 그 숫자는 지금 프롬프트 문자열에만 있고
    세는 코드가 없었다 — 순수 카운터라 판단이 0이다. */
 /* 구간을 인자로 받는다. 기본은 6~12(균형 갈래), ACSM 갈래는 8~12 */
-function repZone(lo,hi,dz){
+function repZone(lo,hi){
   lo=lo||6;hi=hi||12;
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is4(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is4(t)]=1;}
-  if(dz)days=dz;
   var inZ=0,tot=0,off={},i,j,k;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
@@ -6520,7 +6283,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','세트'],['acsm','권고'],['prog','종목'],['int','강도'],['recov','회복']];
+var VZT=[['vol','세트'],['acsm','권고'],['prog','종목']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -7585,10 +7348,9 @@ function vzRoute(R){
 }
 function vzTrain(tab){
   /* 옛 열쇠로 들어와도 화면이 비지 않게 옮겨 준다 */
-  if(tab==='set'||tab==='sub')tab='vol';
-  /* 'recov' 는 이제 진짜 갈래다 — 옛 열쇠 옮기기가 그것까지 가로채고 있었다.
-     '균형' 은 갈 곳이 없어졌으므로 회복으로 보낸다. */
-  else if(tab==='bal')tab='recov';
+  /* 강도·회복을 걸어냈으므로 그 열쇠도 세트로 보낸다 — 저장된
+     UI.vzt 가 그것이면 열때마다 화면이 통째로 비기 때문이다. */
+  if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal')tab='vol';
   tab=tab||'vol';
   var h='',ws=wkSets(),sc=subCnt(),i,k;
   if(tab==='vol'){
@@ -7794,137 +7556,6 @@ function vzTrain(tab){
   if(!pgA.length&&!pgK.length&&!B.nUp&&!B.nHold)
     h+=vzLine(TX('판정 대상'),TX('없음'),TX('기록 2회 이하 종목만 있음'),{t:TX('기록 없음'),c:''});
   }
-  if(tab==='int'){
-  /* 셋째 축. 볼륨은 얼마나 했나, ACSM 은 얼마나 자주 했나, 여기는 얼마나
-     세게 했나를 본다. 앱이 세트마다 RIR 을 받아 놓고도 각주 한 줄로만
-     말하던 값이다. 기준은 이 앱이 이미 쓰는 RIR_HARD(=3): 실패 3회 이내가
-     유효 세트다. */
-  var rd=rirDist();
-  if(!rd.tot)h+=vzLine(TX('강도'),TX('기록 없음'),TX('세트를 기록하면 RIR 로 강도를 갈라 보여줌'),{t:'',c:''});
-  else{
-    h+=vzCap(TX('강도 · 이번 주 세트'));
-    /* 한 막대에 셋. 이 갈래의 물음이 '볼륨에 실제로 들어간 것이 얼마나' 라
-       세 덩이면 답이 자리로 나온다 — 수를 더 적을 이유가 없다. */
-    function pw(n){return rd.tot?(n*100/rd.tot):0;}
-    h+='<div class="inbar">'
-      +'<i class="h" style="width:'+pw(rd.hard).toFixed(1)+'%"></i>'
-      +'<i class="e" style="width:'+pw(rd.easy).toFixed(1)+'%"></i>'
-      +'<i class="u" style="width:'+pw(rd.unk).toFixed(1)+'%"></i></div>';
-    h+='<div class="lmlg" data-act="hgo" data-v="log">'
-      +TX1('<i class="i1"></i>유효 {0} <i class="i2"></i>가벼움 {1} <i class="i3"></i>미입력 {2}',
-           rd.hard,rd.easy,rd.unk)+'</div>';
-    /* RIR 낱낱. 유효가 0 에 몰렸는지 3 에 몰렸는지는 덩이 하나로는 안 보인다 */
-    var RL=['0','1','2','3','4+'],ri;
-    /* 하나도 안 찍은 주에는 다섯 알약이 전부 0 으로 늘어선다 — 아무것도 안
-       알려 주면서 자리만 먹는다. 찍은 것이 있을 때만 낱낱을 편다. */
-    if(rd.hard+rd.easy>0){
-      h+='<div class="fqrow">';
-      for(ri=0;ri<5;ri++)
-        h+='<span class="fq'+(ri<4&&rd.b[ri]?' ok':'')+'">RIR '+RL[ri]+' '+rd.b[ri]+'</span>';
-      h+='</div>';
-    }
-    /* 부위마다 평균. 어느 부위를 봐주고 있는지는 합계로는 안 보인다.
-       자는 0~5 다: 5 를 넘는 RIR 은 세트로 세는 뜻이 없다. */
-    h+=vzCap(TX('부위별 RIR 평균 · 0~3이 유효'));
-    var RMAX=5;
-    for(k in PN_KO){
-      var e2=rd.by[k],av=(e2&&e2.n)?(e2.t/e2.n):null;
-      h+='<div class="rirow"><i>'+TX(PN_KO[k])+'</i><span class="rig">'
-        +'<b class="zn" style="width:'+Math.round((RIR_HARD+0.5)*100/RMAX)+'%"></b>'
-        +(av===null?'':'<b class="cd'+(av>RIR_HARD?' easy':'')+'" style="left:'
-          +Math.min(100,av*100/RMAX).toFixed(1)+'%"></b>')
-        +'</span>'
-        +(av===null?'<b class="off">'+TX('미입력')+'</b>'
-                   :'<b>'+(Math.round(av*10)/10)+'</b>')+'</div>';
-    }
-  }
-  }
-  if(tab==='recov'){
-  var rc=recovData();
-  /* 1) 상태 링. 경고 넷을 한 자리에 모은다 — 아래 네 그림이 각각 그 하나가
-     어디서 왔는지 말하므로, 여기는 '지금 어떤가' 만 크게 말하면 된다. */
-  var st2=(rc.warn===0)?{t:TX('정상'),c:'ok'}
-         :(rc.warn===1?{t:TX('주의'),c:'wn'}:{t:TX('회복 부채'),c:'bad'});
-  var R2=30,CIR=Math.round(2*Math.PI*R2*10)/10,fill=CIR*Math.min(1,rc.warn/4);
-  h+='<div class="rvring '+st2.c+'">'
-    +'<svg viewBox="0 0 76 76" role="img" aria-label="'+esc(st2.t)+'">'
-    +'<circle class="bg" cx="38" cy="38" r="'+R2+'"/>'
-    +'<circle class="fg" cx="38" cy="38" r="'+R2+'" stroke-dasharray="'
-    +fill.toFixed(1)+' '+CIR+'"/></svg>'
-    +'<span class="tt">'+st2.t+'</span></div>'
-    +'<div class="rvsub">'+TX1('경고 {0} / 4',rc.warn)+'</div>';
-  /* 걸린 것의 이름을 링 밑에 댄다. 안 대면 넷 중 무엇이 걸렸는지 아래
-     네 그림을 다 훑어 되짚어야 한다 — 링만 보고는 알 수가 없었다.
-     알약 하나가 아래 한 칸을 가리킨다. */
-  if(rc.warn){
-    h+='<div class="fqrow ct">';
-    if(rc.tight.length)h+='<span class="fq wn">'+TX1('연속 자극 {0}',rc.tight.length)+'</span>';
-    if(rc.cw)h+='<span class="fq wn">'+TX('RIR 0 많음')+'</span>';
-    if(rc.over.length)h+='<span class="fq wn">'+TX1('세트 초과 {0}',rc.over.length)+'</span>';
-    if(rc.drop.length)h+='<span class="fq wn">'+TX1('무게 정체 {0}',rc.drop.length)+'</span>';
-    h+='</div>';
-  }
-  /* 2) 부위별 회복 간격. 길이가 곧 경과일이다(사흘에서 꽉 찬다).
-     하루 이하면 빨강(재자극), 나흘 넘으면 회색(쉬는 중). */
-  h+=vzCap(TX('부위별 회복 간격'));
-  for(k in PN_KO){
-    var p2=rc.part[k],dv=p2.d,cls2,wd;
-    /* 며칠 지났는지는 판정이 아니라 사실이다. 보류라고 수까지 지웠더니
-       다섯 줄이 전부 '—' 로 비어, 이 갈래에서 가장 할 말이 많은 칸이
-       아무 말도 안 했다. 보류는 빗금과 흐린 색으로만 말한다. */
-    if(dv===null){cls2='hold';wd=100;}
-    else{
-      cls2=p2.hold?'hold':((dv<=1)?'tight':(dv<=3?'ok':'rest'));
-      wd=Math.max(6,Math.min(100,Math.round(dv*100/3)));
-    }
-    h+='<div class="rvrow"><i>'+TX(PN_KO[k])+'</i>'
-      +'<span class="rvg"><b class="'+cls2+'" style="width:'+wd+'%"></b></span>'
-      +'<b class="'+cls2+'">'+((dv===null)?'\u2014':dv+'d')+'</b></div>';
-  }
-  h+='<div class="lmlg" data-act="hgo" data-v="goal">'
-    +TX('<i class="v1"></i>1일 이하 <i class="v2"></i>2~3일 <i class="v3"></i>4일 이상 <i class="v4"></i>주 2회 이하')+'</div>';
-  /* 3) RIR 0 비중 — 최근 네 주. 40% 선을 넘은 주만 빨갛다. */
-  var cw2=rc.r4[3];
-  h+=vzCap(TX('RIR 0 비중 · 최근 4주'));
-  h+='<div class="rvspk"><span class="rvbase"></span><span class="rvbl">40%</span>';
-  for(q=0;q<4;q++){
-    var wv=rc.r4[q],pc2=(wv.pct===null)?0:wv.pct;
-    h+='<i class="'+((wv.pct===null)?'nd ':((wv.pct>40)?'hi ':''))+(q===3?'now':'')
-      +'" style="height:'+Math.max(3,pc2)+'%"></i>';
-  }
-  h+='</div><div class="rvnow'+((cw2.pct!==null&&cw2.pct>40)?' hi':'')+'">'
-    +'<span class="nl">'+TX('이번 주')+'</span>'
-    +(cw2.pct===null?'\u2014':cw2.pct+'%')+'</div>';
-  /* 4) 부위별 주간 세트. 20 자리에 눈금을 세우고 그 너머는 빨갛다. */
-  h+=vzCap(TX('부위별 주간 세트 · 상한 20'));
-  var mx2=20;
-  for(k in PN_KO)if((rc.ws[k]||0)>mx2)mx2=rc.ws[k];
-  mx2=mx2*1.08;
-  for(k in PN_KO){
-    var cv=rc.ws[k]||0,inw=Math.min(cv,20),ovw=Math.max(0,cv-20);
-    h+='<div class="rvrow"><i>'+TX(PN_KO[k])+'</i>'
-      +'<span class="rvg"><b class="ok" style="width:'+(inw*100/mx2).toFixed(1)+'%"></b>'
-      +'<b class="tight" style="width:'+(ovw*100/mx2).toFixed(1)+'%"></b>'
-      +'<u style="left:'+(20*100/mx2).toFixed(1)+'%"></u></span>'
-      +'<b class="'+(cv>20?'tight':'')+'">'+cv+'</b></div>';
-  }
-  /* 5) 무게 정체 — 볼륨은 늘었는데 톱세트가 안 오른 종목. 없으면 안 그린다.
-     '하락' 이라 적어 두었더니 칸마다 '볼륨 +233% · 톱세트 유지' 라 적혀,
-     한 칸이 제 이름과 정반대 말을 했다. */
-  if(rc.drop.length){
-    h+=vzCap(TX('무게 정체'));
-    /* 화살표 둘이 무엇을 가리키는지 먼저 말한다 */
-    h+='<div class="rvlg">'+TX('\u2191 볼륨 \u00b7 \u2192 톱세트 무게')+'</div>';
-    for(q=0;q<rc.drop.length&&q<3;q++){
-      var dp=rc.drop[q];
-      h+='<div class="rvdrop"><span class="ar">\u2191</span><span class="ar fl">\u2192</span>'
-        +'<span class="tx">'+esc(dp.n)+'</span>'
-        +'<span class="nu">'+TX1('볼륨 +{0}%',dp.up)+' \u00b7 '
-        +(dp.same?TX1('톱세트 {0}kg 유지',fmtW(dp.top)):TX1('톱세트 {0}kg 하락',fmtW(dp.top)))
-        +'</span></div>';
-    }
-  }
-  }
   if(tab==='acsm'){
   /* ACSM 성인 권고를 100점 하나로 답한다. 옛 화면은 유산소 막대·반복 막대·
      격자가 나란히 놓여 있을 뿐이라, 넷 가운데 무엇이 얼마나 모자란지를
@@ -7933,7 +7564,7 @@ function vzTrain(tab){
   var gr=(sc.tot>=90)?{t:'우수',c:'ok'}
         :(sc.tot>=75?{t:'양호',c:'ok'}
         :(sc.tot>=60?{t:'보통',c:'mid'}:{t:'미흡',c:'ng'}));
-  h+=vzCap(TX('ACSM 권고 · 최근 7일'));
+  h+=vzCap(TX('ACSM 권고 · 이번 주'));
   h+='<div class="acsc '+gr.c+'"><b>'+sc.tot+'</b><em>/100</em>'
     +'<span class="gd">'+TX(gr.t)+'</span></div>';
   /* 점수가 어디서 깎였는지. 칸 너비가 곧 배점이고 채운 만큼이 받은 점수라,
@@ -7973,11 +7604,11 @@ function vzTrain(tab){
       h+='</div>';
     }
   }
-  /* 부위 × 날짜. 켜진 칸 수가 곧 빈도이고, 붙어 있는 두 칸이 곧 '이틀 연속'
+  /* 부위 × 요일. 켜진 칸 수가 곧 빈도이고, 붙어 있는 두 칸이 곧 '이틀 연속'
      이라, 한 그림이 위의 빈도 칸과 간격 칸 둘을 같이 뒷받침한다.
-     점수와 같은 창(굴러가는 이레)을 쓴다 — 창이 다르면 둘이 어긋나도
-     알아챌 수가 없다. 오른쪽 끝이 늘 오늘이다. */
-  var DOW=TX('월화수목금토일'),gz='<div class="wkg">';
+     점수와 같은 창(이번 주)을 쓴다 — 창이 다르면 둘이 어긋나도
+     알아챌 수가 없다. */
+  var DOW=TX('월화수목금토일'),tdK=todayISO(),gz='<div class="wkg">';
   for(k in PN_KO){
     var e3=sc.nd[k];
     gz+='<div class="wkgr"><i>'+TX(PN_KO[k])+'</i>';
@@ -7985,14 +7616,14 @@ function vzTrain(tab){
       /* 앞뒤 어느 쪽이든 붙어 있으면 그 칸이 간격 위반이다 */
       var bk2=e3.on[q2]&&((q2>0&&e3.on[q2-1])||(q2<6&&e3.on[q2+1]));
       gz+='<span class="'+(e3.on[q2]?(bk2?'on back':'on'):'')
-        +(q2===6?' td':'')+'"></span>';
+        +(sc.dks[q2]===tdK?' td':'')+'"></span>';
     }
     gz+='<b class="'+(e3.n>=2?'ok':'')+'">'+e3.n+'</b></div>';
   }
   gz+='<div class="wkgr wkgh"><i></i>';
-  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(sc.dw[q2])+'</span>';
+  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(q2)+'</span>';
   gz+='<b></b></div></div>';
-  h+=vzCap(TX('부위 · 날짜 · 이레에 2일 이상'))+gz
+  h+=vzCap(TX('부위 · 요일 · 주 2일 이상'))+gz
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘')+'</div>';
   h+='<div class="lmunk">'
@@ -8230,7 +7861,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-17 13:30';
+var BUILD='2026-09-17 15:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8813,7 +8444,8 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
-'ACSM 권고 · 최근 7일':'ACSM guideline · last 7 days',
+'ACSM 권고 · 이번 주':'ACSM guideline · this week',
+'부위 · 요일 · 주 2일 이상':'Part × day · 2+ days a week',
 '우수':'Excellent',
 '양호':'Good',
 '보통':'Fair',
@@ -8828,7 +8460,6 @@ var EN={
 '8~12 세트 {0}% / 70%':'{0}% of sets in 8–12 / 70%',
 '이틀 연속 {0}곳 / 5':'{0} of 5 parts back-to-back',
 '연속 없음':'No back-to-back',
-'부위 · 날짜 · 이레에 2일 이상':'Part × day · 2+ days per week',
 'ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20':'This app’s log measured against the ACSM adult activity guideline — weights: cardio 30 · strength frequency 30 · rep range 20 · part spacing 20',
 '연속 자극 {0}':'{0} back-to-back',
 'RIR 0 많음':'Too many RIR 0',
