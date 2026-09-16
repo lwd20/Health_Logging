@@ -1183,6 +1183,12 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
    같은 크기로 두면 어느 쪽이 상위인지 자리로 안 보인다. */
 .lmsub{margin:7px 0 1px 9px;font-size:8.5px;font-weight:800;letter-spacing:.16em;
   color:var(--dim)}
+/* 부위 묶음. 머리 글자 하나로만 갈려 있어 열여덟 줄이 한 덩이로
+   흘렀다 — 테두리를 두르면 어디서 끝나는지가 글자를 안 읽어도 보인다. */
+.lmpart{border:1px solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-s);
+  padding:2px 9px 7px;margin:9px 0 0}
+.lmpart:first-child{margin-top:2px}
+.lmpart>.pgh{margin-top:7px}
 /* 근육 줄은 판정 묶음보다 한 단 더 오른쪽이다. 예전에는 둘 다 9px 에서
    시작해 '적정' 과 '중하부' 가 같은 줄에 서 있어, 어느 쪽이 상위인지가
    자리로 안 보였다. 세로줄은 그대로 '적정' 밑에서 내려오는 가지가 된다. */
@@ -1256,7 +1262,10 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .acsr>b em{font-style:normal;font-size:10px;color:var(--dim);font-weight:400}
 /* 부위 x 요일. 켜진 칸 수가 곧 빈도이고 붙은 두 칸이 곧 간격 위반이라,
    한 그림이 두 물음에 같이 답한다. */
-.wkg{margin-top:6px}
+.wkg{margin-top:4px}
+/* 주 이름표. 격자 둘을 그냥 쌓으면 어느 쪽이 이번 주인지 몰람다 */
+.wkwk{margin:9px 0 0;font-family:var(--mono);font-size:8.5px;font-weight:700;
+  letter-spacing:.14em;color:var(--dim)}
 .wkgr{display:flex;align-items:center;gap:3px;margin:3px 0}
 .wkgr>i{flex:0 0 40px;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--mut)}
 .wkgr>span{flex:1 1 0;min-width:0;height:12px;border-radius:2px;background:rgba(var(--tx-rgb),.07)}
@@ -1624,9 +1633,31 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
   border-top:1px solid rgba(var(--tx-rgb),.06)}
 /* 줄 사이 선은 묶음 안에서만 — 머리 바로 밑에 선이 겹치면 두 줄로 보인다 */
 .pgg>.pgli:first-child{border-top:0}
+/* 칸막이. 캐프션 한 줄만으로는 어디서 끝나고 어디서 시작하는지가
+   안 보여, '2주 이상 안 한 종목' 이 위 목록에 붙어 한 덩이로 읽혔다. */
+.pgsec{border:1px solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-m);
+  padding:10px 12px 8px;margin:0 0 11px}
+.pgsec>.lmcap{margin:0 0 6px!important}
+/* 할 일 칸은 이 갈래에서 유일하게 '지금 뭔 하라' 를 말하는 칸이다 —
+   테두리와 바탕을 달리해 목록 칸과 한눈에 갈린다. */
+.pgsec.act{border-color:rgba(var(--acc-rgb),.4);background:rgba(var(--acc-rgb),.055)}
+/* 막대 자. 가운데 금이 0 이고 양 끝이 ±PGB_MAX 다 */
+.pgax{display:flex;align-items:center;gap:8px;padding:0 2px 5px}
+.pgax .nmx{flex:1 1 0;min-width:0}
+.pgax .spx{flex:0 0 32px}
+.pgax .barx{flex:0 0 56px;display:flex;align-items:center;justify-content:space-between}
+.pgax .barx b{font-family:var(--mono);font-size:7.5px;font-weight:400;color:var(--dim)}
+.pgax .barx i{flex:1;height:1px;background:rgba(var(--tx-rgb),.16);margin:0 2px}
+.pgax .vx{flex:0 0 58px;text-align:right;font-size:8px;font-weight:800;
+  letter-spacing:.1em;color:var(--dim)}
 /* 그림이 붙는 줄은 두 칵이다 — 위는 이름·흐름·크기·변화율,
    아래는 절대값. 한 줄에 다 실으면 375px 에서 이름이 세 글자만 남는다. */
 .pgli.vz{flex-wrap:wrap;row-gap:1px}
+/* 이름이 늘어나야 오른쪽 세 칸이 줄마다 같은 자리에 선다. 예전에는
+   이름 길이만큼 막대가 좌우로 밀려, 길이를 견줄 수가 없었다 — 그러면
+   그것은 막대가 아니라 무달리다. */
+.pgli.vz>b{flex:1 1 0;min-width:0}
+.pgli.vz>u{margin-left:0;flex:0 0 58px}
 .pgli b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;font-size:12.5px;font-weight:600;color:var(--tx)}
 /* 세션 e1RM 흐름. 수가 아니라 모양이라 눈이 멈추지 않고 훑는다 */
@@ -5233,9 +5264,9 @@ function subCnt(){
 /* 이번 주 근력 세트를 RIR 로 가른다. 실패 3회 이내(RIR_HARD)가 유효 세트,
    4 이상은 자극이 모자라 볼륨에 안 들어가고, 미입력은 어느 쪽인지 모른다.
    부위별 평균도 같이 낸다 — 어느 부위를 봐주고 있는지는 합계로는 안 보인다. */
-function wkKeys(){
+function wkKeys(off){
   var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now),a=[],q,t;
-  mon.setDate(now.getDate()-dow);
+  mon.setDate(now.getDate()-dow-(off||0)*7);
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);
     a.push(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'));}
   return a;
@@ -5245,17 +5276,29 @@ function wkKeys(){
    새 수는 하나도 안 만든다 — 넷 다 다른 갈래가 이미 세고 있는 값이다.
    창은 이번 주(월~일)다 — 권고가 말하는 '주' 가 달력 주이고,
    다른 갈래도 전부 그 창을 쓴다. */
+/* 주 하나치 부위별 on/일수. 점수도 이것을 쓰고 격자도 이것을 쓴다 —
+   둘이 같은 함수에서 나와야 서로 어긋날 자리가 없다. */
+function wkPartNd(off){
+  var dks=wkKeys(off),dz={},q,k,out={};
+  for(q=0;q<7;q++)dz[dks[q]]=1;
+  var pd=wkPartDays(dz);
+  for(k in PN_KO){
+    var dd=pd[k]||{},on=[],n=0;
+    for(q=0;q<7;q++){on.push(!!dd[dks[q]]);if(dd[dks[q]])n++;}
+    out[k]={n:n,on:on};
+  }
+  return {dks:dks,nd:out};
+}
 function acsmScore(){
   var dks=wkKeys(),q,k;
   var ac=wkCardio(),rz=repZone(8,12),pd=wkPartDays();
   /* 1) 유산소 30 — 중강도 150분 */
   var sCar=30*Math.min(1,ac.z2/150);
   /* 2) 근력 빈도 30 — 부위마다 이레에 2일. 다섯 부위 평균이다 */
-  var nd={},np=0,sf=0,act=0,viol=0,sumD=0;
+  var nd=wkPartNd(0).nd,np=0,sf=0,act=0,viol=0,sumD=0;
   for(k in PN_KO){
-    var dd=pd[k]||{},on=[],n=0;
-    for(q=0;q<7;q++){on.push(!!dd[dks[q]]);if(dd[dks[q]])n++;}
-    nd[k]={n:n,on:on};np++;sumD+=n;sf+=Math.min(1,n/2);
+    var on=nd[k].on,n=nd[k].n;
+    np++;sumD+=n;sf+=Math.min(1,n/2);
     if(n>0){
       act++;
       /* 이틀 연속이 한 번이라도 있으면 그 부위는 간격을 못 지킨 것이다 */
@@ -5837,6 +5880,13 @@ function pgList(items,empty,viz){
     by[k].push(x);
   }
   if(viz)ord=PGP.concat(['기타']).filter(function(p){return by[p];});
+  /* 막대가 무엇인지를 자로 한 번 말한다 — 줄마다 글로 적을 수는 없고,
+     적지 않으면 그저 무달리 하나다. 가운데가 0, 오른쪽이 진전, 왼쪽이
+     퇴행, 양 끝이 ±25% 다. */
+  var ax=viz?('<div class="pgax"><span class="nmx"></span>'
+    +'<span class="spx"></span>'
+    +'<span class="barx"><b>−'+PGB_MAX+'%</b><i></i><b>+'+PGB_MAX+'%</b></span>'
+    +'<span class="vx">'+TX('변화')+'</span></div>'):'';
   for(i=0;i<ord.length;i++){
     k=ord[i];
     var g=by[k].slice();
@@ -5849,7 +5899,7 @@ function pgList(items,empty,viz){
     var av=(viz&&cn===g.length&&cn)?Math.round(sm/cn*10)/10:null;
     h+='<div class="pgh"><span>'+esc(g[0].gl||k)+'</span><i>'
       +(av===null?TX1('{0}종목',g.length):((av>0?'+':'')+av+'%'))+'</i></div>';
-    h+='<div class="pgg">';
+    h+='<div class="pgg">'+ax;
     for(j=0;j<g.length;j++){
       x=g[j];
       h+='<div class="pgli'+(viz?' vz':'')+'"><b>'+esc(x.n)+'</b>'
@@ -5859,6 +5909,7 @@ function pgList(items,empty,viz){
         +(x.abs?'<em>'+esc(x.abs)+'</em>':'')+'</div>';
     }
     h+='</div>';
+    ax='';   /* 자는 첫 묶음에만 — 묶음마다 그리면 그것이 다시 무달리다 */
   }
   var seen={},li;
   for(li=0;li<items.length;li++)if(items[li].c)seen[items[li].c]=1;
@@ -5967,10 +6018,11 @@ function pgRow(d,open,tap){
     +'<span class="st">'+esc(TX(d.c))+'</span>'
     +'<span class="num">'+(d.kind==='dn'?((d.pct>0?'+':'')+d.pct+'%'):TX1('{0}주째',d.wk))+'</span>'
     +(open?'<span class="sub">'+esc(d.sub)+'</span>'
-          +(d.w?'<span class="why">'+esc(d.w)+'</span>':'')
-          /* 원인까지 적고 거기서 멈추면 읽는 사람이 다음 한 칸을 스스로
-             옮겨야 한다. 앞에서 이미 난 판정을 행동으로 옮긴다. */
-          +'<span class="fix">→ '+esc(pgFix(d))+'</span>':'')
+          +(d.w?'<span class="why">'+esc(d.w)+'</span>':''):'')
+    /* 할 일은 접힌 줄에도 적는다. 펌 줄에만 있으면 이 칸이 '진단
+       목록' 으로 읽힌다 — 칸의 뜻은 '다음에 뭐를 하라' 다.
+       펴고 접는 것은 근거(세션 수·변동폭·왜)만 가른다. */
+    +'<span class="fix">'+esc(pgFix(d))+'</span>'
     +'</div>';
 }
 /* 디로드 감지 — 진전이 멈췄는데 RIR까지 내려가면 회복 부족으로 봄 */
@@ -6104,12 +6156,15 @@ function wkDaysByPart(){
 /* 날짜 집합. 개수만 돌려주면 '이틀 연속 재자극' 을 셀 수가 없다.
    반환 객체에 얹으면 freqThisWeek 로 AI 페이로드에 통째로 새어 나가므로
    따로 뽑는다. */
-function wkPartDays(){
+/* 창을 받으면 그 날들만 본다 — 격자가 지난주를 같이 그리려고 필요하다.
+   안 넘기면 예전 그대로 이번 주다. */
+function wkPartDays(dz){
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
   var mon=new Date(nowd);mon.setDate(nowd.getDate()-dw);
   function is5(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is5(t)]=1;}
+  if(dz)days=dz;
   var pid={},i,k,out={};
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
@@ -6398,7 +6453,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','세트'],['acsm','권고'],['prog','종목']];
+var VZT=[['vol','운동량'],['acsm','점수'],['prog','종목']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -7535,7 +7590,7 @@ function vzTrain(tab){
     /* 수는 '몇 줄' 이 아니라 '손댈 것 몇' 이다. 세부가 둘이라는 것은 눈앞에
        이미 보이고, 알고 싶은 것은 이 부위를 들여다볼 일이 있느냐다.
        없으면 안 적는다 — 조용한 것이 곧 괜찮다는 뜻이다. */
-    hs+='<div class="pgh"><span>'+TX(PN_KO[pk2]||pk2)+'</span>'
+    hs+='<div class="lmpart"><div class="pgh"><span>'+TX(PN_KO[pk2]||pk2)+'</span>'
       +(gw[pk2]?'<i>'+TX('손댈 것')+' '+gw[pk2]+'</i>':'')+'</div>';
     var z2;
     for(z2=0;z2<ZN.length;z2++){
@@ -7554,6 +7609,7 @@ function vzTrain(tab){
       for(j2=0;j2<zr.length;j2++)
         hs+='<div class="lmgrp '+zc2+'">'+lmRow(zr[j2][0],zr[j2][1],zr[j2][2],true,zr[j2][3],zr[j2][4])+'</div>';
     }
+    hs+='</div>';
   }
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
@@ -7582,7 +7638,7 @@ function vzTrain(tab){
     var pgOi=0;
     for(pgi=0;pgi<pgA.length;pgi++)if(pgA[pgi].id&&pgA[pgi].id===UI.pgo)pgOi=pgi;
     var pgLim=Math.max(Math.min(pgA.length,PG_FOLD+1),pgOi+1);
-    h+=vzCap(TX('손댈 것'));
+    h+='<div class="pgsec act">'+vzCap(TX('다음에 할 일'));
     for(pgi=0;pgi<pgLim;pgi++)
       h+=(pgi===pgOi?'<div class="lmsec pgd">'+pgRow(pgA[pgi],true,'')+'</div>'
                     :pgRow(pgA[pgi],false,pgA[pgi].id));
@@ -7596,12 +7652,16 @@ function vzTrain(tab){
           +(pgA[pgi].kind==='dn'?pgA[pgi].pct+'%':TX1('{0}주째',pgA[pgi].wk))+'</span>';
       h+='<div class="pgcs">'+pgC+'</div>';
     }
+    h+='</div>';
   }
   /* 무엇에 견준 몇 %인지를 캡션이 말한다. 화면 어디에도 그 자가 없어서
      +40% 가 볼륨인지 톱세트 무게인지 추정 1RM 인지 알 수가 없었다. */
-  h+=vzCap(TX('종목 판정 · 추정 1RM · 앞뒤 묶음 평균'));
+  h+='<div class="pgsec">'+vzCap(TX('종목 판정 · 추정 1RM · 앞뒤 묶음 평균'));
+  /* 고른 것이 없으면 네 칸만 떠 있고 밑이 통째로 비어, 칸이 무엇을
+     말하려는지가 안 보였다. 손놀 것이 있는 통부터 펼쳐 둔다. */
+  var pgt=UI.pgt||(B.nDn?'dn':(B.nSt?'st':(B.nUp?'up':'hd')));
   function stt(k,n,lb,cls){
-    return '<span class="stt'+(cls?' '+cls:'')+(UI.pgt===k?' on':'')
+    return '<span class="stt'+(cls?' '+cls:'')+(pgt===k?' on':'')
       +'" data-act="pgt" data-v="'+k+'"><b>'+n+'</b><i>'+lb+'</i></span>';
   }
   h+='<div class="sttrow four">'+stt('up',B.nUp,TX('진전'),'up2')
@@ -7639,24 +7699,25 @@ function vzTrain(tab){
     if(x.c==='간격 큼')return x.gap?TX1('간격 {0}일',x.gap):TX1('{0}세션',x.ns||0);
     return TX1('{0}세션',x.ns||0);
   }
-  if(UI.pgt==='up'){
+  if(pgt==='up'){
     h+=pgList(pgViz(B.up),TX('진전 중인 종목 없음'),true);
-  }else if(UI.pgt==='hd'){
+  }else if(pgt==='hd'){
     var hd=B.hold.slice().sort(function(u,v){
       return (PGH[u.c]===undefined?9:PGH[u.c])-(PGH[v.c]===undefined?9:PGH[v.c]);});
     h+=pgList(hd.map(function(x){
       return {n:x.n,c:'',gk:x.c,gl:pgHoldLabel(x.c),pct:null,q:x.q,v:pgHoldVal(x),abs:''};
     }),TX('보류된 종목 없음'),false);
-  }else if(UI.pgt==='st'||UI.pgt==='dn'){
-    h+=pgList(pgViz((UI.pgt==='dn'?B.dn:B.st).slice()),
-      TX(UI.pgt==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'),true);
+  }else if(pgt==='st'||pgt==='dn'){
+    h+=pgList(pgViz((pgt==='dn'?B.dn:B.st).slice()),
+      TX(pgt==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'),true);
   }
+  h+='</div>';
   /* 루틴에서 빠진 종목. 보류에 섞여 있던 것을 떼어 늘 보이게 둔다 —
      '판정 불가' 가 아니라 '안 하고 있다' 는 사실이고, 그건 행동이 되는
      정보다. 오래 안 한 것부터. */
   if(B.idle.length){
     var idl=B.idle.slice().sort(function(u,v){return (v.ago||0)-(u.ago||0);});
-    h+=vzCap(TX1('2주 이상 안 한 종목 {0}',idl.length));
+    h+='<div class="pgsec">'+vzCap(TX1('2주 이상 안 한 종목 {0}',idl.length));
     h+='<div class="pgl"><div class="pgg">';
     var IDC=6;
     for(pgi=0;pgi<idl.length&&pgi<IDC;pgi++)
@@ -7670,6 +7731,7 @@ function vzTrain(tab){
         idc+='<span class="pgc">'+esc(idl[pgi].n)+' '+idl[pgi].ago+'d</span>';
       h+='<div class="pgcs">'+idc+'</div>';
     }
+    h+='</div>';
   }
   if(pgK.length){
     var pgKn=pgK.slice(0,3).map(function(z){return z.n;}).join(', ');
@@ -7734,21 +7796,31 @@ function vzTrain(tab){
      이라, 한 그림이 위의 빈도 칸과 간격 칸 둘을 같이 뒷받침한다.
      점수와 같은 창(이번 주)을 쓴다 — 창이 다르면 둘이 어긋나도
      알아챌 수가 없다. */
-  var DOW=TX('월화수목금토일'),tdK=todayISO(),gz='<div class="wkg">';
-  for(k in PN_KO){
-    var e3=sc.nd[k];
-    gz+='<div class="wkgr"><i>'+TX(PN_KO[k])+'</i>';
-    for(q2=0;q2<7;q2++){
-      /* 앞뒤 어느 쪽이든 붙어 있으면 그 칸이 간격 위반이다 */
-      var bk2=e3.on[q2]&&((q2>0&&e3.on[q2-1])||(q2<6&&e3.on[q2+1]));
-      gz+='<span class="'+(e3.on[q2]?(bk2?'on back':'on'):'')
-        +(sc.dks[q2]===tdK?' td':'')+'"></span>';
+  var DOW=TX('월화수목금토일'),tdK=todayISO();
+  function wkGrid(nd,dks){
+    var gz='<div class="wkg">',k3,q3;
+    for(k3 in PN_KO){
+      var e3=nd[k3];
+      gz+='<div class="wkgr"><i>'+TX(PN_KO[k3])+'</i>';
+      for(q3=0;q3<7;q3++){
+        /* 앞뒤 어느 쪽이든 붙어 있으면 그 칸이 간격 위반이다 */
+        var bk2=e3.on[q3]&&((q3>0&&e3.on[q3-1])||(q3<6&&e3.on[q3+1]));
+        gz+='<span class="'+(e3.on[q3]?(bk2?'on back':'on'):'')
+          +(dks[q3]===tdK?' td':'')+'"></span>';
+      }
+      gz+='<b class="'+(e3.n>=2?'ok':'')+'">'+e3.n+'</b></div>';
     }
-    gz+='<b class="'+(e3.n>=2?'ok':'')+'">'+e3.n+'</b></div>';
+    gz+='<div class="wkgr wkgh"><i></i>';
+    for(q3=0;q3<7;q3++)gz+='<span>'+DOW.charAt(q3)+'</span>';
+    gz+='<b></b></div></div>';
+    return gz;
   }
-  gz+='<div class="wkgr wkgh"><i></i>';
-  for(q2=0;q2<7;q2++)gz+='<span>'+DOW.charAt(q2)+'</span>';
-  gz+='<b></b></div></div>';
+  /* 한 주만 놓으면 '수요일이 비었다' 가 이번 주 사정인지 늘 그런지를
+     알 수 없다. 지난주를 밑에 나란히 놓으면 그 물음이 눈으로 풀린다 —
+     점수는 그대로 이번 주 것만 쓴다. */
+  var lw=wkPartNd(1);
+  var gz='<div class="wkwk">'+TX('이번 주')+'</div>'+wkGrid(sc.nd,sc.dks)
+    +'<div class="wkwk">'+TX('지난주')+'</div>'+wkGrid(lw.nd,lw.dks);
   h+=vzCap(TX('부위 · 요일 · 주 2일 이상'))+gz
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘')+'</div>';
@@ -7997,7 +8069,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-17 18:00';
+var BUILD='2026-09-17 20:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8580,6 +8652,10 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'다음에 할 일':'What to do next',
+'변화':'Change',
+'운동량':'Volume',
+'점수':'Score',
 '종목 판정 · 추정 1RM · 앞뒤 묶음 평균':'Exercise verdict · est. 1RM · block averages',
 '기록 부족 · 4세션부터 판정':'Too few logs · needs 4 sessions',
 '변동폭 안 · 움직였다고 못 함':'Within noise · no real move',
