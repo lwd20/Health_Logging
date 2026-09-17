@@ -1824,6 +1824,22 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
   color:var(--acc-br);letter-spacing:.02em;flex:0 0 auto;white-space:nowrap}
 /* 기구 이름 — 브랜드 배지와 같은 자리를 쓰되 꼴을 가른다. 브랜드는
    누가 만든 것이고 기구는 어느 기계 앞에 서는가라, 뒤에 섞이면 안 된다. */
+/* 기구 덩이 — 줄이 기계고 그 안이 운동이다. 테두리를 두르지 않는 까닭은
+   목록이 이미 근육·브랜드 두 층으로 갈려 있어, 상자를 또 두르면 한 화면에
+   네 가지 테두리가 겹치기 때문이다. 왼쪽 금 하나면 누구 밑인지가 보인다. */
+.mch{display:flex;align-items:baseline;gap:7px;padding:9px 2px 5px;
+  font-size:12.5px;font-weight:750;color:var(--tx)}
+.mch i{font-style:normal;font-size:9px;font-weight:700;color:var(--chrome);opacity:.75;
+  letter-spacing:.12em;text-transform:uppercase}
+.mch em{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:9.5px;
+  color:var(--dim)}
+.mcblk>.mc.vr{padding-left:11px;border-left:2px solid rgba(var(--tx-rgb),.12)}
+.mcblk>.mc.vr.did{border-left-color:var(--acc-dk)}
+/* .mc.did 는 오늘 한 줄임을 카드 끝까지 번지게 하려고 margin:0 -13px 를 쓴다.
+   덩이 안에서는 그것이 들여쓰기를 13px 어긋내, 세 줄 중 한 줄만 튀어나온다.
+   덩이 안에서는 번짐을 거두고, 오늘 했다는 것은 왼쪽 금 색으로 말한다. */
+.mcblk>.mc.vr.did{margin:0;padding-right:0}
+.mcblk>.mc.vr.did::before{display:none}
 .nm i.mcb{font-style:normal;margin-left:6px;font-size:9px;font-weight:700;
   color:var(--mut);letter-spacing:.06em;flex:0 0 auto;white-space:nowrap;
   border:1px solid rgba(var(--tx-rgb),.16);border-radius:2px;padding:1px 5px}
@@ -3021,19 +3037,33 @@ function renderList(){
              줄 두 개를 아끼자고 화면의 짜임을 못 믿게 만든 셈이다.
              갈래가 하나뿐일 때만 칸막이를 뺀다. 그때는 제목이 할 말이 없고,
              브랜드는 행마다 배지로 이미 붙어 있다. */
+          /* 한 기계로 여러 운동을 하는 것은 그 기계가 줄이 되고 운동은 그 안이다.
+             ★ 는 덩이 단위로 올린다 — 아이가 부모보다 위로 올라가면 줄이 끊긴다. */
+          function mcHtml(items,nb){
+            var bk=mcBlocks(items),r='',bi,bx,q;
+            bk=bk.filter(function(x){return x.items.some(function(m2){return m2.f;});})
+                 .concat(bk.filter(function(x){return !x.items.some(function(m2){return m2.f;});}));
+            for(bi=0;bi<bk.length;bi++){
+              bx=bk[bi];
+              if(!bx.mc){r+=rowHtml(bx.items[0],nb);continue;}
+              r+='<div class="mcblk"><div class="mch"><b>'+esc(bx.mc)+'</b>'
+                +(bx.b&&!nb?'<i>'+esc(bx.b)+'</i>':'')
+                +'<em>'+TX1('{0}종목',bx.items.length)+'</em></div>';
+              var bit2=favFirst(bx.items);
+              for(q=0;q<bit2.length;q++)r+=rowHtml(bit2[q],true,true);
+              r+='</div>';
+            }
+            return r;
+          }
+          /* 먹음표가 하나뿐이면 칸막이를 안 둔다 — 그때는 제목이 할 말이 없고
+             브랜드는 행마다 배지로 이미 붙어 있다. */
           if(bgs.length<2){
-            /* ★는 묶음 안에서만 위로 — 부위 전체에 걸면 묶음 순서가 흔들린다 */
-            /* 배지를 켠다. rowHtml 의 둘째 인자는 '브랜드 배지 숨김' 인데,
-               브랜드가 바깥 제목이던 시절엔 제목이 이미 말해 줘서 껐던 것이다.
-               이제 바깥은 근육이라 배지를 끄면 어깨의 Standing Lateral Raise
-               두 줄이 똑같아 보인다 — 칸막이가 없는 자리에서는 켜야 한다. */
-            var sit=favFirst(sg.items);
-            for(j=0;j<sit.length;j++)h+=rowHtml(sit[j],false);
+            h+=mcHtml(favFirst(sg.items),false);
           }else{
             for(bj=0;bj<bgs.length;bj++){
               var bg=bgs[bj],bit=favFirst(bg.items);
               h+='<div class="sbh">'+esc(bg.n)+'<i>'+bit.length+'</i></div>';
-              for(j=0;j<bit.length;j++)h+=rowHtml(bit[j],true);
+              h+=mcHtml(bit,true);
             }
           }
           h+='</div>';
@@ -3055,7 +3085,9 @@ function bkBanner(){
     +'<i>'+TX('이 기기에만 저장됨 — 캐시를 지우면 기록이 사라짐')+'</i>'
     +'<em>'+TX('저장')+'</em></button>';
 }
-function rowHtml(m,noBadge){
+/* inMc — 기구 덩이 안의 줄인가. 그러면 기계 이름은 바로 위 줄이 적었으므로
+   줄에서는 뺀다. 한 칸 들여쓰기로 누구 밑인지를 말한다. */
+function rowHtml(m,noBadge,inMc){
   var open=UI.open===m.i,right,sub='',dtag='',noRec=false;
   var dirty=!!UI.dirty[m.i],draft=UI.draft[m.i];
   function rgt(w2,unit,tag){
@@ -3106,7 +3138,7 @@ function rowHtml(m,noBadge){
   /* 묶음 머리가 기구 이름을 이미 적고 있으면(noBadge) 줄에서는 뺀다.
      묶음이 하나뿐이어서 머리를 안 그린 때와 찾기 결과에서는 줄이 말해야 한다. */
   var mcn=cleanMc(m.mc);
-  var stn=((!noBadge&&mcn)?'<i class="mcb">'+esc(mcn)+'</i>':'');
+  var stn=((!noBadge&&!inMc&&mcn)?'<i class="mcb">'+esc(mcn)+'</i>':'');
   var badge=((!noBadge&&!fam1&&!mcn)&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
   var lnm=cleanLine(m.ln);
   /* 그립이 있으면 라인 알약을 대신 뻐다. 375px 에 둘 다 실으면 이름이
@@ -3115,12 +3147,12 @@ function rowHtml(m,noBadge){
   var grip=(m.v?'<i class="vg">'+esc(m.v)+'</i>':'');
   /* 묶음 머리가 기구 이름과 브랜드를 이미 적었으면 라인까지 줄에 달 이유가
      없다 — 'Overhead Extensi… A…' 처럼 둘 다 잘리는 것보다 하나를 온전히 */
-  var line=(!m.v&&!(noBadge&&mcn)&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
+  var line=(!m.v&&!inMc&&!(noBadge&&mcn)&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
   var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
   if(done&&!dirty)dtag='<i class="dtag done">'+(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',ts2.s.length))+'</i>';
 
-  return '<section class="mc'+(open?' on':'')+(done?' did':'')+'">'
+  return '<section class="mc'+(open?' on':'')+(done?' did':'')+(inMc?' vr':'')+'">'
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
@@ -4201,24 +4233,31 @@ function mcLabel(m){
   var b=String((m&&m.b)||'').trim();
   return b?(k+' · '+b):k;
 }
-/* 기구 이름이 있으면 그것으로, 없으면 지금까지처럼 브랜드로 묶는다.
-   단을 하나 더 두지 않는 까닭은, 기구가 브랜드보다 좀은 말이라 브랜드가 하던
-   일을 더 잘 하기 때문이다 — 둘을 다 두면 부위→근육→브랜드→기구→종목이 돼
-   목록이 두세 화면씩 깊어진다. 열쇠에 브랜드를 섞는 것은 브랜드가 다른 두
-   카페의 '케이블' 이 한 칸으로 섞이지 않게 하려는 것이다. */
 function brandGroups(list){
-  var order=[],g={},lab={},etc=[],i,k,m;
+  var order=[],g={},etc=[],i,b;
+  for(i=0;i<list.length;i++){b=(list[i].b||'').trim();if(b&&order.indexOf(b)<0)order.push(b);}
   for(i=0;i<list.length;i++){
-    m=list[i];
-    k=cleanMc(m.mc);
-    k=k?(k+'\u0000'+String(m.b||'').trim()):String(m.b||'').trim();
-    if(!k){etc.push(m);continue;}
-    if(!g[k]){g[k]=[];order.push(k);lab[k]=mcLabel(m);}
-    g[k].push(m);
+    b=(list[i].b||'').trim();
+    if(b)(g[b]=g[b]||[]).push(list[i]);
+    else etc.push(list[i]);
   }
   var out=[];
-  for(i=0;i<order.length;i++)out.push({n:lab[order[i]],items:g[order[i]]});
+  for(i=0;i<order.length;i++)out.push({n:order[i],items:g[order[i]]});
   if(etc.length)out.push({n:'ETC',items:etc});
+  return out;
+}
+/* 기구 이름으로 덩이를 짓는다. 덩이가 둘 이상이면 그 기계가 줄이 되고
+   운동은 그 안으로 들어간다. 하나뿐이면 층을 나누지 않는다 — 기계 하나에
+   운동 하나면 그것이 곳 줄이다. 차례는 받은 그대로 둔다. */
+function mcBlocks(list){
+  var out=[],idx={},i,k,m;
+  for(i=0;i<list.length;i++){
+    m=list[i];k=cleanMc(m.mc);
+    if(!k){out.push({mc:'',items:[m]});continue;}
+    if(idx[k]===undefined){idx[k]=out.length;out.push({mc:k,b:String(m.b||'').trim(),items:[]});}
+    out[idx[k]].items.push(m);
+  }
+  for(i=0;i<out.length;i++)if(out[i].items.length<2)out[i].mc='';
   return out;
 }
 function normDraft(id){
