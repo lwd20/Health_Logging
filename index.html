@@ -957,6 +957,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .lbb{display:flex;height:9px;border-radius:3px;overflow:hidden;background:var(--inset)}
 .lbb>i{display:block;height:100%}
 .lbb>i.f{background:var(--acc-br)}
+.lbb>i.m{background:var(--sig)}
 .lbb>i.l{background:rgba(var(--sig-rgb),.55)}
 .lbt{display:flex;align-items:baseline;gap:8px;margin-top:4px;
   font-family:var(--mono);font-size:10.5px;color:var(--dim);
@@ -2398,6 +2399,18 @@ function bwOn(ds){
     if(d<bd&&a[i].w>0){bd=d;best=a[i];}
   }
   return best?best.w:fb;
+}
+/* 그날의 체지방률 — 가장 가까운 인바디 점을 쓴다. 느리게 움직이는
+   값이라 이웃 점으로 대신하는 오차가 체중보다 훨씬 작다. bwOn 과 짝이다. */
+function bfOn(ds,cache){
+  var a=cache||bhLoad();
+  if(!ds||!a.length)return BF;
+  var best=null,bd=1e9,i,t=new Date(ds).getTime();
+  for(i=0;i<a.length;i++){
+    var d=Math.abs((new Date(a[i].d).getTime()-t)/86400000);
+    if(d<bd&&a[i].f>0){bd=d;best=a[i];}
+  }
+  return best?best.f:BF;
 }
 function effOf(m,w,ds){
   if(!isAssist(m))return +w||0;
@@ -6314,19 +6327,26 @@ function lbmSplit(b0,b1){
   /* -3.2 옆에 0 이 서면 자릿수가 어긋나 보인다. 한 자리로 맞춘다 */
   function n1(v){var r=Math.round(v*10)/10;return (r>0?'+':'')+r.toFixed(1);}
   /* 막대는 준 만큼만 그린다. 는 쪽(제지방이 늘었으면)은 칸이 없으므로
-     길이를 0 으로 두고 낱말이 말한다. */
+     길이를 0 으로 두고 낱말이 말한다.
+     골격근을 재 둔 날이면 제지방 칸을 골격근과 그 밖으로 한 번 더 가른다 —
+     판정은 골격근으로 나는데 막대는 제지방으로 갈려 있어, 한 그림 안에서
+     칸과 글이 서로 다른 수를 가리켰다. 셋을 더하면 여전히 체중 감소다. */
+  var mm=(b0.m>0&&b1.m>0);
   var af=Math.max(0,-df),al=Math.max(0,-dl),tt=af+al;
+  var am=mm?Math.min(al,Math.max(0,-dm)):0,ao=al-am;
   var h='<div class="lbs"><div class="lbb">';
   if(tt>0){
     h+='<i class="f" style="flex:'+af+' 1 0"></i>'
-      +'<i class="l" style="flex:'+al+' 1 0"></i>';
+      +(mm?'<i class="m" style="flex:'+am+' 1 0"></i>'
+            +'<i class="l" style="flex:'+ao+' 1 0"></i>'
+         :'<i class="l" style="flex:'+al+' 1 0"></i>');
   }
   /* 낱말을 조각으로 넘기지 않는다. '근육' 을 따로 옮기면 사전의 '근육'
      (훈련 갈래 이름 = Muscles)에 걸려 'Muscles 0' 이 된다 — 한글 원문을
      열쇠로 쓰는 방식의 대가다. 틀을 둘로 가른다. */
-  var mm=(b0.m>0&&b1.m>0);
   h+='</div><div class="lbt">'
-    +(mm?TX1('체중 {0}kg 중  지방 {1} · 근육 {2}',(Math.round(dw*10)/10).toFixed(1),n1(df),n1(dm))
+    /* 칸이 셋이면 글도 셋을 말해야 한다 — 이름 없는 칸은 읽힐 수가 없다 */
+    +(mm?TX1('지방 {0} · 골격근 {1} · 그 밖 {2}',n1(df),n1(dm),n1(-(ao)))
         :TX1('체중 {0}kg 중  지방 {1} · 제지방 {2}',(Math.round(dw*10)/10).toFixed(1),n1(df),n1(dm)))
     +'<b class="'+cls+'">'+vd+'</b></div></div>';
   return h;
@@ -6499,11 +6519,19 @@ function trendRows(days){
   /* 오늘도 들인다. 다만 part 로 표시해 둔다 — 하루가 안 끝났으므로 그리는
      쪽에서 끝난 날과 다르게 다뤄야 하고, 평균 내는 쪽에서는 빼야 한다. */
   for(k in hd)if(k>=lim&&k<=td0&&hd[k]&&hd[k].n>0)all[k]=1;
-  var b=bmr(BW,BF),base=b?Math.round(b*ACT):0;
+  /* 기초대사를 오늘 몸으로 한 번 내서 창 안 모든 날에 같이 찍고 있었다.
+     두 주 사이에 1kg 이 빠졌으면 옛 날의 기초대사는 그만큼 높았는데,
+     오늘 몸로 되돌려 찍으면 그 날들의 소비가 낮게 잡혀 적자가 실제보다
+     작게 적힌다 — 카치리에서 제지방 1kg 은 기초대사 21.6kcal, 활동계수를
+     곱하면 하루 30kcal 안팽이다. 날마다 그날 몸으로 낸다.
+     인바디 목록은 한 번만 읽어 넘긴다 — 날마다 읽으면 같은 것을 열넬 번 푸는다. */
+  var bhc=bhLoad();
+  var fb=bmr(BW,BF),fbase=fb?Math.round(fb*ACT):0;
   var keys=Object.keys(all).sort(),out=[];
   for(i=0;i<keys.length;i++){
     k=keys[i];
     var ate=(hd[k]&&hd[k].n>0)?Math.round(hd[k].kcal):null;
+    var bk=bmr(bwOn(k),bfOn(k,bhc)),base=bk?Math.round(bk*ACT):fbase;
     out.push({d:k,w:(wm[k]===undefined?null:wm[k]),ate:ate,base:base,ex:dayExKcal(k),
       part:(k===td0)});
   }
@@ -6903,7 +6931,17 @@ function chartCum(win){
       var rt=(PX(we.d)>x0+PW*0.6);
       CLBL.push({x:gvClampX(PX(we.d)+(rt?-5:5),wt,rt?'end':'start',x0,x1),
         y:CY(we.v),an:rt?'end':'start',
-        c:(we.v>=we.g?'gvOK':'gvNG'),t:wt});
+        /* 줄과 같은 자를 쓴다. 예전에는 그림이 목표를 딱 넘겼는지로 색을
+           갈랐는데, 바로 밑 줄은 okBand 만큼 폭을 두고 판정한다 — 50kcal
+           모자란 주가 그림에서는 빨간데 줄에서는 아무 말이 없었다. */
+        /* 0 밑은 폭과 상관없이 NG 다 — 줄이 그런다('초과' 가 첫 가지).
+           하루 목표가 아주 작으면 목표 누적보다 폭이 커져, 안 막으면 적자가
+           음수인데도 그림만 파랑이 된다. */
+        /* 오늘은 아직 안 끝났다. 바로 밑 줄은 그래서 판정 낱말을 안 박는다
+           ('진행 중'). 그런데 그림만 빨간 수를 적으면 한 화면이 두 말을 한다 —
+           소비는 하루치 전부인데 섭취는 먹은 데까지라 아침에는 늘 모자라 보인다. */
+        c:(we.part?'gvOK'
+          :((we.v>=0&&we.v>=we.g-okBand(C.dfc)*Math.sqrt(Math.max(1,we.n)))?'gvOK':'gvNG')),t:wt});
     }
   }
   /* 선이 다 그려졌다 — 이제 그 자리를 피해 수를 앉힌다 */
@@ -7175,7 +7213,14 @@ function vzBody(tab){
     if(et){
       /* 평균은 끝난 날들의 값이라야 한다. 진행 중인 오늘을 섞으면 반쪽
          값이 평균 적자를 부풀린다 — 그림에는 넣되 평균에서는 뺀다. */
-      var er=trendRows(TRW).filter(function(r){return r.ate!=null&&!r.part;});
+      /* 창 밖을 세고 있었다. trendRows(TRW) 는 오늘-14 부터 주는데 그림의
+         창은 주에 맞춰 8~14일이라, 오늘이 월요일이면 요약이 그림에 없는
+         엿새를 같이 셌다. 그림과 글이 같은 날을 봐야 한다. */
+      var er=trendRows(TRW).filter(function(r){
+        if(r.ate==null||r.part)return false;
+        var t=new Date(r.d).getTime();
+        return t>=WIN.t0&&t<=WIN.t1;
+      });
       var sI=0,sO=0,sX=0,ng=0;
       er.forEach(function(r){var out=r.base+r.ex;sI+=r.ate;sO+=out;sX+=r.ex;if(out<r.ate)ng++;});
       var n2=er.length;
@@ -8088,7 +8133,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-17 22:10';
+var BUILD='2026-09-18 00:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8671,6 +8716,8 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'근육 섞임':'Some muscle lost',
+'지방 {0} · 골격근 {1} · 그 밖 {2}':'Fat {0} · muscle {1} · other {2}',
 '다음에 할 일':'What to do next',
 '변화':'Change',
 '운동량':'Volume',
