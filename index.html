@@ -1485,8 +1485,10 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .sxnm{flex:1 1 auto;min-width:0;background:none;border:0;outline:0;
   color:var(--tx);font-size:12px;font-weight:700;font-family:inherit;padding:4px 0}
 .sxnm:focus{border-bottom:1px solid var(--acc-br)}
+/* 종목 수 — 모든 줄에 같은 자리. 0 은 '손볼 곳' 이라 색을 달리한다 */
 .sxrow .tagu{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.05em;
   color:var(--acc-br);opacity:.85}
+.sxrow .tagu.zero{color:var(--dim);opacity:1}
 .sxb{flex:0 0 auto;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:700;
   border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);color:var(--mut)}
 .sxb.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
@@ -6835,7 +6837,9 @@ function subEditHtml(){
     +'<span style="font-weight:400;letter-spacing:0;color:var(--dim)"> '
     +(nh?TX1('{0}개 · {1}개 숨김',SUBS.length,nh):TX1('{0}개',SUBS.length))+'</span></div>'
     +'<div class="note" style="margin:0 0 7px">'
-    +TX('이름을 눌러 고치고, 비우면 기본으로 돌아감. 더한 항목은 이름으로 자동 분류되지 않아 <b>주동근 정리</b>에서 지정해야 함.')
+    /* '메인에 안 뜬다' 는 까닭은 줄마다 되풀이할 말이 아니라 규칙이다.
+       여기 한 번 적고, 줄에는 수만 둔다 — 그래야 모든 줄이 같은 모양이 된다. */
+    +TX('이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.')
     +'</div>';
   for(var pi=0;pi<ORD.length;pi++){
     var P2=ORD[pi];
@@ -6845,17 +6849,19 @@ function subEditHtml(){
       var e=SUBS[i];
       if(e.p!==P2)continue;
       var hid=subHidden(e.k);
-      /* 더한 근육은 종목에 지정해야 메인에 뜬다 — 그 수를 적어, 0이면 왜 메인에
-         안 보이는지 여기서 알게 한다. 기본 항목은 이름으로 자동 잡히니 안 센다. */
+      /* 종목 수는 모든 줄에 적는다. 더한 것에만 적었더니 그 줄만 칸이 하나 더
+         있어 목록이 두 가지 모양으로 보였다 — 세는 규칙은 둘 다 같다.
+         '지움' 을 앞에 둔 까닭은 그것이 더한 항목에만 있기 때문이다. 뒤에 두면
+         보임/숨김 단추가 줄마다 다른 자리에 서서 오른쪽 끝이 들쭉날쭉했다. */
       var nu=0,ui2;
-      if(e.user)for(ui2=0;ui2<S.m.length;ui2++)if(!isCard(S.m[ui2].p)&&subHas(S.m[ui2],e.k))nu++;
+      for(ui2=0;ui2<S.m.length;ui2++)if(!isCard(S.m[ui2].p)&&subHas(S.m[ui2],e.k))nu++;
       h+='<div class="sxrow'+(hid?' off':'')+'">'
         +'<input class="sxnm" id="subn-'+esc(e.k)+'" value="'+esc(subLabel(e))+'" '
         +'placeholder="'+TX('이름')+'" autocomplete="off" maxlength="12">'
-        +(e.user?'<span class="tagu">'+(nu?TX1('종목 {0}',nu):TX('종목 없음 · 메인에 안 뜸'))+'</span>':'')
+        +'<span class="tagu'+(nu?'':' zero')+'">'+(nu?TX1('종목 {0}',nu):TX('종목 없음'))+'</span>'
+        +(e.user?'<button class="sxb" data-act="sxdel" data-v="'+esc(e.k)+'">'+TX('지움')+'</button>':'')
         +'<button class="sxb'+(hid?' on':'')+'" data-act="sxhide" data-v="'+esc(e.k)+'">'
         +TX(hid?'숨김':'보임')+'</button>'
-        +(e.user?'<button class="sxb" data-act="sxdel" data-v="'+esc(e.k)+'">'+TX('지움')+'</button>':'')
         +'</div>';
     }
   }
@@ -8503,7 +8509,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 14:05';
+var BUILD='2026-09-18 14:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9420,6 +9426,8 @@ var EN={
 '이두':'Biceps',
 '이름':'Name',
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. 더한 항목은 이름으로 자동 분류되지 않아 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. Added items are not auto-classified by name — set them in <b>Prime movers</b>',
+'이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Prime movers</b>',
+'종목 없음':'No exercise',
 '전면어깨':'Front delt',
 '전완':'Forearms',
 '종아리':'Calves',
