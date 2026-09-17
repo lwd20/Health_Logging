@@ -416,9 +416,14 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    테두리를 준다 — 켜지면 강조색으로 채워 한눈에 갈린다(틴트로는 팔레트에
    따라 켜진 티가 안 난다). 세로 여백은 음수 마진으로 되돌려 줄 높이를
    안 늘리면서 누를 자리만 넓힌다. */
-.doff{border:1px solid rgba(var(--tx-rgb),.22);border-radius:var(--rad-s);
-  padding:11px 9px;margin:-8px 0;font-size:11px;font-weight:700;color:var(--mut);
-  letter-spacing:.04em}
+/* 보이는 상자는 날짜 줄에 맞춘다. 예전에는 누를 자리를 넓히려고
+   padding 을 11px 로 키우고 음수 마진으로 되돌렸는데, 되돌려진 것은 줄
+   높이뿐이고 상자 자체는 40px 로 커져 아래 칸까지 내려왔다 — 헤더에서
+   가장 무거운 덩어리가 정작 상태 표시였다.
+   상자는 줄에 맞추고, 누를 자리는 안 보이는 덤칸으로 넓힌다. */
+.doff{position:relative;border:1px solid rgba(var(--tx-rgb),.22);border-radius:var(--rad-s);
+  padding:4px 9px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.04em}
+.doff::after{content:'';position:absolute;left:-6px;right:-6px;top:-9px;bottom:-9px}
 .doff:active{opacity:.6}
 .doff.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc)}
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
@@ -1426,7 +1431,6 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .dvg .c0{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(var(--tx-rgb),.4)}
 .dvg b{position:absolute;top:1px;bottom:1px;background:var(--acc-dk);border-radius:1px}
 .dvg b.neg{background:rgba(var(--sig-rgb),.72)}
-.fqrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .fq{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:2px 6px}
 .fq.ok{color:var(--pos);border-color:rgba(var(--pos-rgb),.4)}
 .stk2{flex:1;display:flex;gap:4px}
@@ -1690,8 +1694,12 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .pgb i.dn{background:rgba(var(--sig-rgb),.75)}
 /* 절대값은 변화율 밑에 붙는다 — 60→84kg 을 붙여 놓아야 +40% 가
    기저 효과인지 아닌지가 보인다 */
-.pgli em{flex:1 0 100%;text-align:right;font-style:normal;font-family:var(--mono);
-  font-size:8.5px;color:var(--dim)}
+/* 둘째 칵 — 왼쪽은 원인, 오른쪽은 절대값. 둘 다 있을 때 맞붙여
+   놓지 않고 양 끝으로 밀어 둘이 한 말로 읽히지 않게 한다. */
+.pgli em{flex:1 0 100%;display:flex;justify-content:flex-end;gap:8px;
+  font-style:normal;font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+.pgli em s{margin-right:auto;text-decoration:none;font-weight:700;color:var(--mut);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .pgli i{flex:0 0 auto;font-style:normal;font-size:9.5px;font-weight:700;color:var(--mut)}
 /* 값은 고정폭으로 두어 줄이 많아도 세로줄이 선다 */
 .pgli u{margin-left:auto;flex:0 0 auto;min-width:56px;text-align:right;
@@ -1808,7 +1816,10 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .jrv b{font-size:12px;font-weight:700;color:var(--acc-br)}
 /* 내역에 자리를 미리 잡아 두면 앞의 무게들이 한 줄로 선다.
    일지를 훑을 때 눈으로 좇는 건 세트 내역이 아니라 무게다. */
-.jrv em{flex:0 0 auto;min-width:104px;font-style:normal;font-size:11px;color:var(--dim)}
+/* 묶어 적어도 세트가 많은 날은 길어질 수 있다 — 막은 줄이 넘치지
+   않게 끝을 잡아 둔다. */
+.jrv em{flex:0 0 auto;min-width:104px;max-width:152px;font-style:normal;font-size:11px;
+  color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
 /* ── 토스트 ── */
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);z-index:30;background:var(--sheet-bg);border:1px solid var(--edge);color:var(--tx);padding:11px 18px;border-radius:var(--rad-s);box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:12px;font-weight:750;letter-spacing:.04em;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:86vw;text-align:center}
@@ -2351,7 +2362,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgo:'',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2480,11 +2491,26 @@ function cardDetail(s,n){
   for(i=0;i<s.length;i++)a.push(fmtW(s[i][0])+"' "+cUnitN(s[i],n));
   return a.join('  ');
 }
+/* 무게가 섮인 세션. 세트마다 '무게×반복' 을 죽 늘어놓으면
+   '40×12  42.5×12  42.5×12' 처럼 줄이 밀려 이름 칸을 먹고 오른쪽이 넘친다.
+   같은 무게가 이어지면 무게를 한 번만 적는다: '40×12  42.5×12·12'.
+   묶음이 셋을 넘으면 거기서 끓고 남은 세트 수를 적는다 — 줄임표로
+   숨기는 것보다 몇 개가 더 있는지를 말하는 편이 낫다. */
 function detailOf(s){
   if(!s.length)return '';
   if(sameW(s))return repsOf(s);
-  var a=[];for(var i=0;i<s.length;i++)a.push(fmtW(s[i][0])+'×'+s[i][1]);
-  return a.join('  ');
+  var g=[],i;
+  for(i=0;i<s.length;i++){
+    if(g.length&&g[g.length-1].w===s[i][0])g[g.length-1].r.push(s[i][1]);
+    else g.push({w:s[i][0],r:[s[i][1]]});
+  }
+  var CAP=3,out=[],used=0;
+  for(i=0;i<g.length&&i<CAP;i++){
+    out.push(fmtW(g[i].w)+'×'+g[i].r.join('·'));
+    used+=g[i].r.length;
+  }
+  if(g.length>CAP)out.push('+'+(s.length-used));
+  return out.join('  ');
 }
 /* 세션 볼륨: 전 세트 합산 Σ(무게×반복) — 주간 누적 일량 지표 */
 /* 볼륨은 톤수가 아니라 '실패 근처까지 간 세트 수'다 — MEV/MAV/MRV 가 원래
@@ -5534,7 +5560,6 @@ function heroProg(onDate){
    ·repZone(균형 갈래)·lmRow(부위 갈래)는 한 번도 부르지 않는다. */
 var PG_SIG=3.5;   /* 세션 e1RM 한 점의 기본 변동폭 % — 표본이 모자랄 때만 씀 */
 var PG_Z=1.3;     /* 변동폭의 몇 배부터 신호로 보나 */
-var PG_FOLD=3;    /* 펼친 하나 뒤에 줄로 남기는 수, 그 뒤는 칩 */
 var PG_N=6;       /* 몇 세션까지 거슬러 보나 */
 
 function pgGapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
@@ -5936,7 +5961,8 @@ function pgList(items,empty,viz){
         +(x.c&&!viz?'<i>'+esc(TX(x.c))+'</i>':'')
         +(viz?pgSpark(x.q)+pgBar(x.pct):'')
         +'<u>'+esc(x.v)+'</u>'
-        +(x.abs?'<em>'+esc(x.abs)+'</em>':'')+'</div>';
+        +((x.abs||x.wy)?'<em>'+(x.wy?'<s>'+esc(x.wy)+'</s>':'')+esc(x.abs||'')+'</em>':'')
+        +'</div>';
     }
     h+='</div>';
     ax='';   /* 자는 첫 묶음에만 — 묶음마다 그리면 그것이 다시 무달리다 */
@@ -5963,38 +5989,6 @@ function pgStub(id,nm,cause){
    판정을 행동으로 옮길 뿐이고, 쓰는 자는 앱이 다른 데서 쓰던 그것이다.
    무게는 마지막 세션 톱세트에서 가져와 machStep 으로 떨어뜨린다 —
    '5% 감량' 만 적으면 그것을 읽는 사람이 암산을 해야 한다. */
-function pgCut(d,p){
-  var m=d.id?machById(d.id):null;
-  var a=m?(S.l[m.i]||[]).filter(function(z){return z.s&&z.s.length;}):[];
-  var pc=Math.round(p*100);
-  if(!a.length)return TX1('다음 세션 {0}% 감량 후 재빌드',pc);
-  var w=topOfM(m,a[0].s),stp=machStep(m.i)||2.5;
-  if(!(w>0))return TX1('다음 세션 {0}% 감량 후 재빌드',pc);
-  var nw=Math.round(w*(1-p)/stp)*stp;
-  if(!(nw>0)||nw>=w)nw=Math.max(stp,w-stp);
-  return TX1('다음 세션 {0}% 감량 후 재빌드 ({1}→{2}kg)',pc,fmtW(w),fmtW(nw));
-}
-function pgFix(d){
-  var c=d.c,m=d.id?machById(d.id):null;
-  if(c==='실패 근처'||c==='여유 줄어듦')return pgCut(d,0.05);
-  if(c==='회복 부족')return TX('하루 더 쉬고 다음 세션은 같은 무게로');
-  if(c==='볼륨 과다')return TX('주 세트를 보정 MRV 아래로');
-  if(c==='볼륨 부족')return TX('주 세트 +2 — MEV 까지');
-  if(c==='세트 감소')return TX('유효 세트를 기준선으로 되돌림');
-  if(c==='빈도 부족')return TX('주 2회로 나눠 배치');
-  if(c==='자극 공백')return TX('이번 주 안에 한 번 배치');
-  if(c==='무게 과욕')return TX('무게를 되돌리고 반복부터 채움');
-  if(c==='반복 이탈')return TX('반복 6~12 안으로');
-  if(c==='회피 근육')return TX('의도한 회피면 그대로 둠');
-  if(c==='신기록 뒤')return TX('한·두 세션 더 지켜봄');
-  /* 아무 규칙도 안 걸린 정체 — 자극이 제자리다. 한 칸이 얼마인지는
-     machStep 이 이미 알고 있으므로 그것을 적는다. */
-  if(m){
-    var stp=machStep(m.i)||2.5;
-    return TX1('무게 +{0}kg 또는 반복 +1',fmtW(stp));
-  }
-  return TX('무게 한 칸 또는 반복 +1');
-}
 function progBuckets(){
   var pr=heroProg(),sc=subCnt(),i,d;
   var t=wTrend(),pl=paceLeft();
@@ -6045,21 +6039,6 @@ function progBuckets(){
           nUp:up.length,nSt:st.length,nDn:dn.length,
           nHold:hold.length,nIdle:idle.length};
 }
-function pgRow(d,open,tap){
-  return '<div class="zrow pgr '+(d.kind==='dn'?'neg':'warn')+(open?'':' pgt')+'"'
-    +(tap?' data-act="pgo" data-v="'+esc(tap)+'"':'')+'>'
-    +'<span class="nm">'+esc(d.n)+'</span>'
-    +'<span class="st">'+esc(TX(d.c))+'</span>'
-    +'<span class="num">'+(d.kind==='dn'?((d.pct>0?'+':'')+d.pct+'%'):TX1('{0}주째',d.wk))+'</span>'
-    +(open?'<span class="sub">'+esc(d.sub)+'</span>'
-          +(d.w?'<span class="why">'+esc(d.w)+'</span>':''):'')
-    /* 할 일은 접힌 줄에도 적는다. 펌 줄에만 있으면 이 칸이 '진단
-       목록' 으로 읽힌다 — 칸의 뜻은 '다음에 뭐를 하라' 다.
-       펴고 접는 것은 근거(세션 수·변동폭·왜)만 가른다. */
-    +'<span class="fix">'+esc(pgFix(d))+'</span>'
-    +'</div>';
-}
-/* 디로드 감지 — 진전이 멈췄는데 RIR까지 내려가면 회복 부족으로 봄 */
 function deloadSignal(){
   var hits=[],names=[],i;
   for(i=0;i<S.m.length;i++){
@@ -6271,7 +6250,7 @@ function repZone(lo,hi){
   function is4(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is4(t)]=1;}
-  var inZ=0,tot=0,off={},i,j,k;
+  var inZ=0,tot=0,i,j,k;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=S.l[m.i]||[];
@@ -6281,12 +6260,11 @@ function repZone(lo,hi){
         var r=+a[j].s[k][1]||0;
         if(!(r>0))continue;
         tot++;
-        if(r>=lo&&r<=hi)inZ++;else off[m.n]=(off[m.n]||0)+1;
+        if(r>=lo&&r<=hi)inZ++;
       }
     }
   }
-  var names=Object.keys(off).sort(function(x,y){return off[y]-off[x];}).slice(0,3);
-  return {inZ:inZ,tot:tot,pct:tot?Math.round(inZ*100/tot):0,off:names};
+  return {inZ:inZ,tot:tot,pct:tot?Math.round(inZ*100/tot):0};
 }
 /* 제지방·골격근 추세. 인바디가 듬성듬성하므로 최근 두 지점이 7일 이상
    벌어진 경우만 본다. 골격근이 둘 다 있으면 그쪽을 우선한다 —
@@ -7693,33 +7671,6 @@ function vzTrain(tab){
     pgd=pgCon[pgi];
     (pgd.k==='keep'?pgK:pgA).push(pgd);
   }
-  /* 퇴행 먼저, 그 안에서 많이 내려간 것부터. 정렬은 표현이지 처방이 아니다 —
-     '1순위' 같은 라벨은 안 붙인다. 자리로만 말한다. */
-  pgA.sort(function(u,v){return u.kind!==v.kind?(u.kind==='dn'?-1:1):u.pct-v.pct;});
-  /* 이 갈래에서 값이 가장 큰 칸이라 맨 위에 둔다. 예전에는 스크롤 끝에
-     있었는데, 실제로 행동이 필요한 유일한 항목이 거기 있었다. */
-  if(pgA.length){
-    /* 손댈 것이 다섯이면 다섯 다 손댈 수는 없다. 항상 정확히 하나만 펴서
-       '왜' 와 '다음에 뭘' 까지 보이고 나머지는 눌러야 열린다. */
-    var pgOi=0;
-    for(pgi=0;pgi<pgA.length;pgi++)if(pgA[pgi].id&&pgA[pgi].id===UI.pgo)pgOi=pgi;
-    var pgLim=Math.max(Math.min(pgA.length,PG_FOLD+1),pgOi+1);
-    h+='<div class="pgsec act">'+vzCap(TX('다음에 할 일'));
-    for(pgi=0;pgi<pgLim;pgi++)
-      h+=(pgi===pgOi?'<div class="lmsec pgd">'+pgRow(pgA[pgi],true,'')+'</div>'
-                    :pgRow(pgA[pgi],false,pgA[pgi].id));
-    /* 넘치는 것은 이름과 원인 한 단어만 칩으로 — 줄로 펴면 그만큼 스크롤이다 */
-    if(pgA.length>pgLim){
-      var pgC='';
-      for(pgi=pgLim;pgi<pgA.length;pgi++)
-        pgC+='<span class="pgc'+(pgA[pgi].kind==='dn'?' dn3':'')
-          +'" data-act="pgo" data-v="'+esc(pgA[pgi].id)+'">'
-          +esc(pgA[pgi].n)+' '+esc(TX(pgA[pgi].c))+' '
-          +(pgA[pgi].kind==='dn'?pgA[pgi].pct+'%':TX1('{0}주째',pgA[pgi].wk))+'</span>';
-      h+='<div class="pgcs">'+pgC+'</div>';
-    }
-    h+='</div>';
-  }
   /* 무엇에 견준 몇 %인지를 캡션이 말한다. 화면 어디에도 그 자가 없어서
      +40% 가 볼륨인지 톱세트 무게인지 추정 1RM 인지 알 수가 없었다. */
   h+='<div class="pgsec">'+vzCap(TX('종목 판정 · 추정 1RM · 앞뒤 묶음 평균'));
@@ -7737,11 +7688,15 @@ function vzTrain(tab){
   /* 값 칸에는 변화율, 그 밑에 절대값. +40% 가 60→84kg 인지 15→21kg 인지가
      빠지면 그 40% 를 다른 종목의 +5.8% 와 같은 선에 놓을 수가 없다 —
      시작 무게가 낮으면 퍼센트는 저절로 커진다. */
-  function pgViz(a2){
+  /* 정체·퇴행은 원인을 같이 진다. 그것을 지던 칸이 없어졌으므로,
+     안 옮기면 화면이 '-13.2%' 만 적고 왜인지는 아무 데에도 없다.
+     진전은 안 단다 — 거기 붙는 '오르는 중' 은 타일이 이미 한 말이다. */
+  function pgViz(a2,wc){
     return a2.map(function(x){
-      return {n:x.n,c:x.c,gk:x.p||pgPart(x.id),gl:TX(PN_KO[x.p||pgPart(x.id)]||'기타'),
+      return {n:x.n,c:'',gk:x.p||pgPart(x.id),gl:TX(PN_KO[x.p||pgPart(x.id)]||'기타'),
               pct:x.pct,q:x.q,
               v:(typeof x.pct==='number'?((x.pct>0?'+':'')+x.pct+'%'):'—'),
+              wy:wc?TX(x.c):'',
               abs:(x.a0>0&&x.a1>0)?(fmtW(x.a0)+'→'+fmtW(x.a1)+'kg'):''};
     });
   }
@@ -7772,7 +7727,7 @@ function vzTrain(tab){
       return {n:x.n,c:'',gk:x.c,gl:pgHoldLabel(x.c),pct:null,q:x.q,v:pgHoldVal(x),abs:''};
     }),TX('보류된 종목 없음'),false);
   }else if(pgt==='st'||pgt==='dn'){
-    h+=pgList(pgViz((pgt==='dn'?B.dn:B.st).slice()),
+    h+=pgList(pgViz((pgt==='dn'?B.dn:B.st).slice(),true),
       TX(pgt==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'),true);
   }
   h+='</div>';
@@ -7848,13 +7803,6 @@ function vzTrain(tab){
     else ev=sc.act?(sc.viol?TX1('이틀 연속 {0}곳 / 5',sc.viol):TX('연속 없음')):TX('기록 없음');
     h+='<div class="acsr"><i>'+TX(it.n)+'</i><span class="ev">'+ev+'</span>'
       +'<b class="'+(rt>=0.8?'ok':'')+'">'+Math.round(it.got)+'<em>/'+it.max+'</em></b></div>';
-    /* 구간을 벗어난 종목은 반복 줄 바로 밑에 붙인다 — 어느 줄의 근거인지가
-       떨어져 있으면 알약만 덩그러니 남는다 */
-    if(it.k==='rep'&&sc.rz.off.length){
-      h+='<div class="fqrow">';
-      for(k=0;k<sc.rz.off.length;k++)h+='<span class="fq">'+esc(sc.rz.off[k])+'</span>';
-      h+='</div>';
-    }
   }
   /* 부위 × 요일. 켜진 칸 수가 곧 빈도이고, 붙어 있는 두 칸이 곧 '이틀 연속'
      이라, 한 그림이 위의 빈도 칸과 간격 칸 둘을 같이 뒷받침한다.
@@ -8133,7 +8081,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 00:20';
+var BUILD='2026-09-18 02:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10566,22 +10514,6 @@ document.addEventListener('click',function(e){
         var se=document.getElementById('sheet'),sy=se?se.scrollTop:0;
         UI.pgt=(UI.pgt===v)?'':v;renderSheet();
         se=document.getElementById('sheet');if(se)se.scrollTop=sy;
-      })();
-      break;
-    case 'pgo':
-      /* renderSheet 은 sh.innerHTML=h 로 자식을 전멸시키므로 scrollTop 이
-         0 으로 클램프된다 — 그냥 두면 줄을 누를 때마다 시트가 맨 위로 튀어
-         방금 편 카드가 화면 밖으로 나간다. 같은 파일의 case 'dsub' 가 이미
-         이 동작을 알고 복원 코드를 달고 있었다. 높이가 바뀌므로 자리를
-         되돌린 뒤 편 카드가 화면 밖이면 그것을 끌어온다. */
-      (function(){
-        var se=document.getElementById('sheet'),sy=se?se.scrollTop:0;
-        UI.pgo=v;renderSheet();
-        se=document.getElementById('sheet');if(!se)return;
-        se.scrollTop=sy;
-        var op=se.querySelector('.lmsec.pgd');if(!op)return;
-        var off=op.getBoundingClientRect().top-se.getBoundingClientRect().top;
-        if(off<0||off>se.clientHeight-60)se.scrollTop=sy+off-90;
       })();
       break;
     case 'gppick':
