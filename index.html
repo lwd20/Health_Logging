@@ -723,6 +723,10 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .gridchips.c3{grid-template-columns:1fr 1fr 1fr}
 .gridchips .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;padding:8px 6px;text-align:center;font-size:11px;font-weight:600;letter-spacing:0;background:rgba(var(--tx-rgb),.05);border-color:rgba(var(--tx-rgb),.08)}
 .gridchips .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+/* 보조 근육 — 골랐지만 세트는 절반. 주동근 칩과 같은 색 테두리만 두어
+   '고른 것' 은 같고 '무게' 가 다름을 보인다. */
+.gridchips .chip.on.half{background:transparent;border-color:var(--acc-sf);color:var(--tx)}
+.gridchips .chip.on.half i{opacity:.8}
 .gridchips.c2>.chip:last-child:nth-child(odd){grid-column:1/-1}
 .gridchips.c3>.chip:last-child:nth-child(3n+1){grid-column:1/-1}
 .gridchips.c3>.chip:last-child:nth-child(3n+2){grid-column:span 2}
@@ -2403,7 +2407,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editSk2:[],editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2939,7 +2943,7 @@ function renderSubChips(){
   if(q||UI.filter==='CARDIO'){el.innerHTML='';UI.sub='';return;}
   var arr=[],i;
   for(i=0;i<S.m.length;i++)if(S.m[i].p===UI.filter)arr.push(S.m[i]);
-  var gs=subGroups(arr);
+  var gs=subGroups(arr,true);
   /* 하나뿐이면 고를 것이 없는데 줄만 는다 */
   if(gs.length<2){el.innerHTML='';UI.sub='';return;}
   /* '기타'(추정 실패)는 키가 빈 문자열인데 '전체' 도 빈 값이라, 아무것도
@@ -2992,8 +2996,12 @@ function renderList(){
       if(S.m[i].p!==UI.filter)continue;
       totP++;
       if(UI.favOnly&&!S.m[i].f)continue;
-      /* 근육을 골랐으면 그것만. 추정이 안 된 것들은 '기타'(빈 키)로 모인다 */
-      if(UI.sub&&(subOf(S.m[i])||SUB_ETC)!==UI.sub)continue;
+      /* 근육을 골랐으면 그것만 — 주동근이든 보조든. 추정이 안 된 것들은
+         '기타'(빈 키)로 모인다 */
+      if(UI.sub){
+        var okS=(UI.sub===SUB_ETC)?!subOf(S.m[i]):subHas(S.m[i],UI.sub);
+        if(!okS)continue;
+      }
       arr2.push(S.m[i]);
     }
     if(UI.favOnly){
@@ -3033,7 +3041,10 @@ function renderList(){
            'GYM80 에 뭐 있지' 가 아니다. 브랜드가 위에 있으면 같은 근육이
            브랜드마다 흩어져 광배를 보려면 여섯 묶음을 다 뒤져야 했다.
            근육이 중간, 기계가 그 안이다. */
-        var sgs=subGroups(arr2),sg,sj;
+        /* 근육을 하나 골라 뒀으면 묶음은 그 하나다. 보조로 쓰는 종목이 걸려
+           왔는데 묶음 머리에 그 종목의 주동근이 적히면, 어깨를 눌렀는데
+           '삼두' 가 뜬다 — 누른 것과 보이는 것이 어긋난다. */
+        var sgs=(UI.sub&&UI.sub!==SUB_ETC)?[{k:UI.sub,n:subName(UI.sub),items:arr2}]:subGroups(arr2),sg,sj;
         for(sj=0;sj<sgs.length;sj++){
           sg=sgs[sj];
           h+='<div class="bhd">'+esc(sg.n)+'<i>'+sg.items.length+'</i></div><div class="grp">';
@@ -3390,12 +3401,15 @@ function brandListAll(){
   }
   return list;
 }
-function chipRow(items, act, cur, cols){
+/* sec — 절반으로 켜진 값들(보조 근육). 주동근 칩과 같이 켜지되 테두리만 남고
+   ½ 를 단다. 다른 칸은 안 넘겨 예전 그대로다. */
+function chipRow(items, act, cur, cols, sec){
   var h = '<div class="' + (cols ? 'gridchips c' + cols : 'wrapchips') + '">', i;
   for (i = 0; i < items.length; i++) {
     var v = items[i].v, l = items[i].l, sub = items[i].s;
-    h += '<button class="chip' + (String(cur) === String(v) ? ' on' : '') + '" data-act="' + act + '" data-v="' + esc(String(v)) + '">'
-      + esc(l) + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</button>';
+    var half = !!(sec && sec.indexOf(v) >= 0);
+    h += '<button class="chip' + (String(cur) === String(v) ? ' on' : (half ? ' on half' : '')) + '" data-act="' + act + '" data-v="' + esc(String(v)) + '">'
+      + esc(l) + (sub ? '<i>' + esc(sub) + '</i>' : (half ? '<i>½</i>' : '')) + '</button>';
   }
   return h + '</div>';
 }
@@ -3486,9 +3500,15 @@ function exFormHtml(isEdit){
       if (subHidden(SUBS[i].k)) continue;
       kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
     }
-    h += pickRow('sk', TX('주동근'), UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : TX('미분류')),
+    /* 여럿 고른다 — 첫 것이 주동근, 그 뒤가 보조(세트 절반). 머리에는 둘 다
+       적는다: 접힌 채로도 무엇을 골랐는지 보여야 한다. */
+    var s2v = skSecClean(UI.editSk2, UI.editSk), sk2n = [];
+    for (i = 0; i < s2v.length; i++) sk2n.push(subName(s2v[i]) + '½');
+    h += pickRow('sk', TX('주동근'),
+      (UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : TX('미분류'))) + (sk2n.length ? ' + ' + sk2n.join(' · ') : ''),
       UI.editSk ? TX('직접 지정') : TX('자동'),
-      chipRow(kItems, 'psk', UI.editSk, 3));
+      chipRow(kItems, 'psk', UI.editSk, 3, s2v)
+      + '<div class="note">' + TX('첫 번째로 누른 것이 주동근(세트 전부), 다음부터는 보조(세트 절반) · 다시 누르면 뺌') + '</div>');
     h += '</div>';
   }
 
@@ -4383,6 +4403,8 @@ function addMachine(name,part,brand,line){
   if(UI.editRx&&UI.editRx!==12)nm.rx=UI.editRx;
   if(UI.editAs)nm.as=1;
   if(subValid(UI.editSk))nm.sk=UI.editSk;
+  var s2n=skSecClean(UI.editSk2,nm.sk||'');
+  if(s2n.length)nm.sk2=s2n;
   if(isCard(part)&&ctOk(UI.editCt))nm.ct=UI.editCt;
   S.m.push(nm);
   save();render();
@@ -4447,6 +4469,8 @@ function editMachine(){
   if(mcv)m.mc=mcv;else delete m.mc;
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
   if(subValid(UI.editSk))m.sk=UI.editSk;else delete m.sk;
+  var s2e=skSecClean(UI.editSk2,m.sk||'');
+  if(s2e.length)m.sk2=s2e;else delete m.sk2;
   if(UI.editAs)m.as=1;else delete m.as;
   if(isCard(UI.addPart)&&ctOk(UI.editCt))m.ct=UI.editCt;else delete m.ct;
   UI.sheet=null;
@@ -4653,6 +4677,10 @@ function subLabel(e){
      사용자가 무엇으로 고칠지 알 수 없기 때문이다. 칸을 따로 둔다. */
   var own=(LANG==='en')?SUBX.renEn[e.k]:SUBX.ren[e.k];
   if(own)return own;
+  /* 사용자가 지은 이름은 그대로. 기본 항목은 '중하부' 처럼 부위 낱말을 떼고
+     적혀 있어 가슴·어깨를 덧붙이는데, 직접 지은 이름에도 그러니 '상부 안쪽가슴' 이
+     됐다 — 설정에서 더한 근육이 메인에서 다른 이름으로 떴다. */
+  if(e.user)return e.n;
   var s=e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);
   /* 사용자가 더한 근육은 이름 자체가 손으로 지은 것이라 사전에 있을 리 없다 */
   return e.user?s:TX(s);
@@ -4675,13 +4703,44 @@ function subOf(m){
   if(m&&subValid(m.sk))return m.sk;
   return subAuto(m);
 }
+/* 보조 근육(sk2) — 주동근 다음에 고른 것들. 케이블 푸시다운을 삼두·어깨로
+   골랐으면 삼두가 주동근, 어깨가 보조다. 세트는 절반(SUB_HALF)으로 센다 —
+   전부 세면 한 세트가 두 근육에 두 번 들어가 주 합계가 부풀고, 반씩 나누면
+   주동근이 늘 미달로 보인다. 목록 자리는 주동근 묶음 하나뿐이고 거르개는
+   보조로도 걸린다. */
+var SUB_HALF=0.5;
+/* 보조 목록을 쓸 수 있는 것만 남긴다 — 숨긴 것·주동근과 겹치는 것·중복을 뺀다.
+   폼에서 저장할 때와 저장된 것을 읽을 때 같은 체를 쓴다. */
+function skSecClean(list,pk){
+  var out=[],i,k;
+  for(i=0;i<(list||[]).length;i++){
+    k=list[i];
+    if(k===pk||!subValid(k)||out.indexOf(k)>=0)continue;
+    out.push(k);
+  }
+  return out;
+}
+function subSec(m){
+  if(!m||!m.sk2||!m.sk2.length)return [];
+  return skSecClean(m.sk2,subOf(m));
+}
+/* 주동근이든 보조든 그 근육을 쓰는가 — 거르개·수행일 판단에 쓴다 */
+function subHas(m,k){
+  return !!k&&(subOf(m)===k||subSec(m).indexOf(k)>=0);
+}
 /* 브랜드 묶음 안을 주동근으로 다시 가른다. 차례는 SUBS 에 적힌 순서를
    따른다 — 화면마다 순서가 달라지면 못 찾는다. 추정이 안 된 것은 맨 아래. */
-function subGroups(items){
-  var m={},i,k;
+/* any — 보조 근육 묶음에도 넣는다. 거르개 칩이 이것을 쓴다: 어깨를 보조로
+   고른 종목이 어깨 칩에서 안 나오면 '고른 근육 어느 것을 눌러도 나온다' 가
+   거짓이 된다. 목록 자체는 주동근 묶음 한 자리에만 둔다(any 없이). */
+function subGroups(items,any){
+  var m={},i,k,q,s2;
   for(i=0;i<items.length;i++){
     k=subOf(items[i])||'';
     (m[k]=m[k]||[]).push(items[i]);
+    if(!any)continue;
+    s2=subSec(items[i]);
+    for(q=0;q<s2.length;q++)(m[s2[q]]=m[s2[q]]||[]).push(items[i]);
   }
   var out=[];
   for(i=0;i<SUBS.length;i++){
@@ -5496,10 +5555,15 @@ function subEasy(){
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(isCard(m.p))continue;
-    var k=subOf(m);
-    if(!k)continue;
-    var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[k]+=hardOf(a[j].s).easy;
+    var k=subOf(m),k2=subSec(m),q2;
+    if(!k&&!k2.length)continue;
+    var a=S.l[m.i]||[],j,e2;
+    for(j=0;j<a.length;j++){
+      if(!days[a[j].d]||!a[j].s.length)continue;
+      e2=hardOf(a[j].s).easy;
+      if(k)out[k]+=e2;
+      for(q2=0;q2<k2.length;q2++)out[k2[q2]]+=e2*SUB_HALF;
+    }
   }
   return out;
 }
@@ -5514,10 +5578,16 @@ function subCnt(){
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(isCard(m.p))continue;
-    var k=subOf(m);
-    if(!k)continue;
-    var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[k]+=hardOf(a[j].s).n;
+    /* 보조 근육은 절반 — subEasy 와 같은 길로 센다 */
+    var k=subOf(m),k2=subSec(m),q2;
+    if(!k&&!k2.length)continue;
+    var a=S.l[m.i]||[],j,n2;
+    for(j=0;j<a.length;j++){
+      if(!days[a[j].d]||!a[j].s.length)continue;
+      n2=hardOf(a[j].s).n;
+      if(k)out[k]+=n2;
+      for(q2=0;q2<k2.length;q2++)out[k2[q2]]+=n2*SUB_HALF;
+    }
   }
   return out;
 }
@@ -5870,10 +5940,13 @@ function pgSubAvg(sk,cx){
   var t=0,i,j;
   for(i=0;i<S.m.length;i++){
     var m2=S.m[i];
-    if(isCard(m2.p)||subOf(m2)!==sk)continue;
+    if(isCard(m2.p))continue;
+    /* 보조로 쓰는 종목은 절반 — 이번 주 수(subCnt)와 같은 자로 잰다 */
+    var f2=subOf(m2)===sk?1:(subSec(m2).indexOf(sk)>=0?SUB_HALF:0);
+    if(!f2)continue;
     var a2=S.l[m2.i]||[];
     for(j=0;j<a2.length;j++)
-      if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n;
+      if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n*f2;
   }
   /* 늘 4로 나누면 한 주를 통째로 쉬었을 때 평균이 실제의 4분의 3으로
      희석돼 MEV 미만으로 오진된다. 훈련할 수 있었던 날이 하나도 없던 주는
@@ -6373,9 +6446,12 @@ function wkDaysBySub(){
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(isCard(m.p))continue;
-    var sk=subOf(m);if(!sk)continue;
+    /* 날은 반으로 못 쪼갠다 — 보조로 쓴 날도 그 근육을 친 날이다 */
+    var ks=subSec(m),sk=subOf(m),q3;if(sk)ks=[sk].concat(ks);
+    if(!ks.length)continue;
     var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)(out[sk]=out[sk]||{})[a[j].d]=1;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)
+      for(q3=0;q3<ks.length;q3++)(out[ks[q3]]=out[ks[q3]]||{})[a[j].d]=1;
   }
   var cnt={},k;for(k in out)cnt[k]=Object.keys(out[k]).length;
   return cnt;
@@ -6583,7 +6659,7 @@ function clsCheckHtml(){
     var none=!k, oth=(!!k&&ep!==m.p);
     if(none)nbad++;
     (byP[m.p]=byP[m.p]||[]).push({m:m,k:k,sn:k?subName(k):'',none:none,oth:oth,
-      manual:subValid(m.sk)});
+      manual:subValid(m.sk),s2:subSec(m).map(function(x){return subName(x);})});
   }
   if(!tot)return '';
   /* 손봐야 할 것 = 미분류 + 다른 부위의 근육으로 잡힌 것.
@@ -6617,7 +6693,8 @@ function clsCheckHtml(){
         +'<span class="nm2">'+esc(r.m.n)+(r.m.b?' '+esc(r.m.b):'')+'</span>'
         +'<span class="au">'+(r.manual?TX('지정'):TX('자동'))+'</span>'
         +'<span class="ar">&#8594;</span>'
-        +'<span class="sb">'+(r.sn?esc(r.sn):TX('미분류'))+'</span></div>';
+        +'<span class="sb">'+(r.sn?esc(r.sn):TX('미분류'))
+        +(r.s2.length?' + '+esc(r.s2.join('½ · '))+'½':'')+'</span></div>';
       if(open){
         h+='<div class="skrow"><span class="skcap">'+TX1('{0} — 주동근 고르기',esc(r.m.n))+'</span>'
           +'<b class="'+(r.manual?'':'on')+'" data-act="skset" data-v="'+id+'|">'+TX('자동')
@@ -6662,10 +6739,14 @@ function subEditHtml(){
       var e=SUBS[i];
       if(e.p!==P2)continue;
       var hid=subHidden(e.k);
+      /* 더한 근육은 종목에 지정해야 메인에 뜬다 — 그 수를 적어, 0이면 왜 메인에
+         안 보이는지 여기서 알게 한다. 기본 항목은 이름으로 자동 잡히니 안 센다. */
+      var nu=0,ui2;
+      if(e.user)for(ui2=0;ui2<S.m.length;ui2++)if(!isCard(S.m[ui2].p)&&subHas(S.m[ui2],e.k))nu++;
       h+='<div class="sxrow'+(hid?' off':'')+'">'
         +'<input class="sxnm" id="subn-'+esc(e.k)+'" value="'+esc(subLabel(e))+'" '
         +'placeholder="'+TX('이름')+'" autocomplete="off" maxlength="12">'
-        +(e.user?'<span class="tagu">'+TX('추가함')+'</span>':'')
+        +(e.user?'<span class="tagu">'+(nu?TX1('종목 {0}',nu):TX('종목 없음 · 메인에 안 뜸'))+'</span>':'')
         +'<button class="sxb'+(hid?' on':'')+'" data-act="sxhide" data-v="'+esc(e.k)+'">'
         +TX(hid?'숨김':'보임')+'</button>'
         +(e.user?'<button class="sxb" data-act="sxdel" data-v="'+esc(e.k)+'">'+TX('지움')+'</button>':'')
@@ -7593,7 +7674,7 @@ function rtLast(k){
   var best=null,i,j;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
-    if(isCard(m.p)||subOf(m)!==k)continue;
+    if(isCard(m.p)||!subHas(m,k))continue;
     var a=S.l[m.i]||[];
     for(j=0;j<a.length;j++){if(a[j].s.length){if(!best||a[j].d>best)best=a[j].d;break;}}
   }
@@ -8316,7 +8397,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 11:10';
+var BUILD='2026-09-18 12:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9352,6 +9433,9 @@ var EN={
 '{0}세션 {1}주':'{0} sessions {1} wks',
 '{0}세션 · 변동폭 ±{1}%':'{0} sessions · swing ±{1}%',
 '{0}종목':'{0} ex',
+'종목 {0}':'{0} exercises',
+'종목 없음 · 메인에 안 뜸':'No exercise yet — not on the main list',
+'첫 번째로 누른 것이 주동근(세트 전부), 다음부터는 보조(세트 절반) · 다시 누르면 뺌':'First tap is the prime mover (full set), the rest are secondary (half a set) — tap again to remove',
 '{0}주째':'{0} wks',
 '{0}회 · 걷기 {1}분 별도':'{0}x · {1} min walking on top',
 '간격 {0}일':'gap {0}d',
@@ -10556,13 +10640,13 @@ document.addEventListener('click',function(e){
         S=UNDO.s;if(UNDO.off)OFF=UNDO.off;offSave();UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
-    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addMc='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editCt='tread';UI.pickOpen='';render();break;
+    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addMc='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editSk2=[];UI.editCt='tread';UI.pickOpen='';render();break;
     case 'ed':
       (function(){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editSk2=subSec(m);UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -10600,7 +10684,7 @@ document.addEventListener('click',function(e){
        그립 칸만 비운다 — 주동근은 일부러 물려주지 않는다: 그립을 바꾸는
        까닭이 보통 근육을 바꾸려는 것이라 자동 추정에 맡기는 편이 낫다. */
     case 'vadd':
-      UI.sheet='add';UI.addVar='';UI.editSk='';UI.editId=null;
+      UI.sheet='add';UI.addVar='';UI.editSk='';UI.editSk2=[];UI.editId=null;
       render();
       break;
     /* 이 기구로 운동 하나 더. 기구·브랜드·라인·부위·증량 설정을 덩이의 첫 줄에서
@@ -10613,7 +10697,7 @@ document.addEventListener('click',function(e){
         UI.sheet='add';UI.editId=null;
         UI.addName='';UI.addVar='';UI.addMc=m0.mc||'';UI.addBrand=m0.b||'';UI.addLine=m0.ln||'';
         UI.addPart=m0.p;UI.editStep=(m0.st>0?m0.st:2.5);UI.editRx=(m0.rx>0?m0.rx:12);
-        UI.editAs=!!m0.as;UI.editSk='';UI.editCt=cKind(m0);UI.pickOpen='';
+        UI.editAs=!!m0.as;UI.editSk='';UI.editSk2=[];UI.editCt=cKind(m0);UI.pickOpen='';
         render();
       })();
       break;
@@ -10758,7 +10842,21 @@ document.addEventListener('click',function(e){
       break;
     case 'px':UI.editRx=+v;render();break;
     case 'pct':UI.editCt=ctOk(v)?v:'tread';UI.pickOpen='';render();break;
-    case 'psk':UI.editSk=subValid(v)?v:'';UI.pickOpen='';render();break;
+    /* 주동근 칩은 여럿 고른다. 빈 값(Auto)은 전부 비움. 아무것도 없을 때 누른
+       것이 주동근, 그 뒤는 보조. 고른 것을 다시 누르면 뺀다 — 주동근을 빼면
+       첫 보조가 주동근으로 올라온다. 칸은 닫지 않는다: 둘째를 고르러 다시
+       열게 하면 두 번 누를 것이 네 번이 된다. */
+    case 'psk':
+      (function(){
+        var s2=(UI.editSk2||[]).slice(),ix=s2.indexOf(v);
+        if(!subValid(v)){UI.editSk='';UI.editSk2=[];UI.pickOpen='';}
+        else if(UI.editSk===v){UI.editSk=s2.length?s2[0]:'';UI.editSk2=s2.slice(1);}
+        else if(ix>=0){s2.splice(ix,1);UI.editSk2=s2;}
+        else if(!UI.editSk)UI.editSk=v;
+        else{s2.push(v);UI.editSk2=s2;}
+        render();
+      })();
+      break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
     case 'pmc':UI.addMc=(cleanMc(UI.addMc)===v)?'':v;UI.pickOpen='';render();break;
@@ -10863,7 +10961,13 @@ document.addEventListener('click',function(e){
       for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
       delete SUBRX[v];delete LMK[v];delete STG[v];
       /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
-      for(di=0;di<S.m.length;di++)if(S.m[di].sk===v)delete S.m[di].sk;
+      for(di=0;di<S.m.length;di++){
+        if(S.m[di].sk===v)delete S.m[di].sk;
+        if(S.m[di].sk2){
+          S.m[di].sk2=S.m[di].sk2.filter(function(x){return x!==v;});
+          if(!S.m[di].sk2.length)delete S.m[di].sk2;
+        }
+      }
       subxSave();save();render();break;
     }
     case 'skall':UI.skAll=!UI.skAll;UI.skOpen='';render();break;
@@ -10875,6 +10979,9 @@ document.addEventListener('click',function(e){
         /* 빈 값은 '자동' — sk 를 지우면 subAuto 가 다시 돈다. 한번 손으로
            지정하면 이름을 바꿔도 추정이 안 도는데 풀 길이 없으면 갇힌다. */
         if(subValid(pp[1]))mm.sk=pp[1];else delete mm.sk;
+        /* 새 주동근이 보조에도 있으면 거기서 뺀다 — 안 그러면 같은 근육이
+           전부와 절반으로 두 번 세인다 */
+        if(mm.sk2){var s2k=skSecClean(mm.sk2,subOf(mm));if(s2k.length)mm.sk2=s2k;else delete mm.sk2;}
         save();
       }
       UI.skOpen='';render();break;
@@ -10884,7 +10991,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editSk2=subSec(m);UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
