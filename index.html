@@ -6707,7 +6707,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px">'+t+'</di
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','운동량'],['acsm','점수'],['prog','종목']];
+var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['prog','종목 추세']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -8316,7 +8316,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 10:30';
+var BUILD='2026-09-18 11:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8899,6 +8899,9 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'부위별 세트':'Sets by part',
+'주간 점수':'Weekly score',
+'종목 추세':'Exercise trends',
 '기구':'Machine',
 '한 기계로 여러 종목을 할 때만':'Only when one station hosts several exercises',
 '예: 케이블 스테이션':'e.g. Cable station',
@@ -8909,8 +8912,6 @@ var EN={
 '지방 {0} · 골격근 {1} · 그 밖 {2}':'Fat {0} · muscle {1} · other {2}',
 '다음에 할 일':'What to do next',
 '변화':'Change',
-'운동량':'Volume',
-'점수':'Score',
 '종목 판정 · 추정 1RM · 앞뒤 묶음 평균':'Exercise verdict · est. 1RM · block averages',
 '기록 부족 · 4세션부터 판정':'Too few logs · needs 4 sessions',
 '변동폭 안 · 움직였다고 못 함':'Within noise · no real move',
