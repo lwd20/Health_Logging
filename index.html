@@ -1822,6 +1822,11 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
   color:var(--acc-br);letter-spacing:.02em}
 .nm i.vg{font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;
   color:var(--acc-br);letter-spacing:.02em;flex:0 0 auto;white-space:nowrap}
+/* 기구 이름 — 브랜드 배지와 같은 자리를 쓰되 꼴을 가른다. 브랜드는
+   누가 만든 것이고 기구는 어느 기계 앞에 서는가라, 뒤에 섞이면 안 된다. */
+.nm i.mcb{font-style:normal;margin-left:6px;font-size:9px;font-weight:700;
+  color:var(--mut);letter-spacing:.06em;flex:0 0 auto;white-space:nowrap;
+  border:1px solid rgba(var(--tx-rgb),.16);border-radius:2px;padding:1px 5px}
 .exname em.vgx{font-style:normal;margin-left:8px;font-size:12px;font-weight:800;
   color:var(--acc-br);letter-spacing:.02em}
 /* 대표 무게와 세트 내역은 읽는 목적이 다르다 — 굵기와 색으로 갈라 놓는다 */
@@ -2375,7 +2380,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -2937,7 +2942,10 @@ function favFirst(arr){
 function matchQ(m,q){
   return (m.n||'').toLowerCase().indexOf(q)>=0
       ||(m.b||'').toLowerCase().indexOf(q)>=0
-      ||(m.ln||'').toLowerCase().indexOf(q)>=0;
+      ||(m.ln||'').toLowerCase().indexOf(q)>=0
+      /* 기구 이름으로도 찾힌다 — '케이블' 을 치면 그 기계로 하는 것이 다 나온다 */
+      ||(m.mc||'').toLowerCase().indexOf(q)>=0
+      ||(m.v||'').toLowerCase().indexOf(q)>=0;
 }
 function renderList(){
   var h=bkBanner(),q=String(UI.q||'').trim().toLowerCase(),i,j;
@@ -3095,13 +3103,19 @@ function rowHtml(m,noBadge){
      집안이 둘 이상이면 브랜드를 나눠 쓰므로 줄마다 적을 이유가 없다 — 뻐서
      이름에 자리를 넘긴다. 혼자인 기구는 지금까지와 똑같다. */
   var fam1=(m.v||(m.b&&famRows(m).length>1));
-  var badge=((!noBadge&&!fam1)&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
+  /* 묶음 머리가 기구 이름을 이미 적고 있으면(noBadge) 줄에서는 뺀다.
+     묶음이 하나뿐이어서 머리를 안 그린 때와 찾기 결과에서는 줄이 말해야 한다. */
+  var mcn=cleanMc(m.mc);
+  var stn=((!noBadge&&mcn)?'<i class="mcb">'+esc(mcn)+'</i>':'');
+  var badge=((!noBadge&&!fam1&&!mcn)&&m.b?'<i class="bd">'+esc(m.b)+'</i>':'');
   var lnm=cleanLine(m.ln);
   /* 그립이 있으면 라인 알약을 대신 뻐다. 375px 에 둘 다 실으면 이름이
      세 글자만 남고, 라인은 기구의 제품명이고 그립은 지금 무엇을 하는지라
      둘 중 하나만 둔다면 그립이다. */
   var grip=(m.v?'<i class="vg">'+esc(m.v)+'</i>':'');
-  var line=(!m.v&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
+  /* 묶음 머리가 기구 이름과 브랜드를 이미 적었으면 라인까지 줄에 달 이유가
+     없다 — 'Overhead Extensi… A…' 처럼 둘 다 잘리는 것보다 하나를 온전히 */
+  var line=(!m.v&&!(noBadge&&mcn)&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
   var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
   if(done&&!dirty)dtag='<i class="dtag done">'+(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',ts2.s.length))+'</i>';
@@ -3110,7 +3124,7 @@ function rowHtml(m,noBadge){
     +'<div style="display:flex;align-items:center">'
     +'<button class="fav'+(m.f?' on':'')+'" data-act="fv" data-v="'+m.i+'" aria-label="Favorite" aria-pressed="'+(m.f?'true':'false')+'">'+(m.f?'★':'☆')+'</button>'
     +'<button class="row" data-act="tg" data-v="'+m.i+'" style="flex:1;min-width:0">'
-    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+grip+badge+line+dtag+'</span>'+sub+'</span>'
+    +'<span class="rl"><span class="nm"><b>'+esc(m.n)+'</b>'+grip+stn+badge+line+dtag+'</span>'+sub+'</span>'
     +'<span class="rr'+(noRec?' thin':'')+'">'+right+'</span></button>'
     +'</div>'
     +'</section>';
@@ -3380,6 +3394,15 @@ function exFormHtml(isEdit){
   h += fRow(TX('그립·변형'), '<input id="addVar" class="fin" enterkeyhint="done" placeholder="'
     + TX('비워 두면 기본') + '" autocomplete="off" autocapitalize="none" spellcheck="false" value="'
     + esc(UI.addVar || '') + '">');
+
+  /* 브랜드 보다 위다. 헬스장에서 먼저 보이는 것은 제조사가 아니라 기계고,
+     비워 두면 지금까지와 똑같이 브랜드로 묶인다. */
+  var ml = mcListAll(), mItems = [{ v: '', l: TX('없음') }];
+  for (i = 0; i < ml.length; i++) mItems.push({ v: ml[i], l: ml[i] });
+  h += pickRow('mc', TX('기구'), cleanMc(UI.addMc) || TX('없음'),
+    cleanMc(UI.addMc) ? '' : TX('한 기계로 여러 종목을 할 때만'),
+    (ml.length ? chipRow(mItems, 'pmc', cleanMc(UI.addMc), 2) : '')
+      + txtRow('addMc', TX('예: 케이블 스테이션'), UI.addMc || ''));
 
   var bl = brandListAll(), bItems = [{ v: '', l: TX('없음') }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
@@ -4155,16 +4178,46 @@ function addSet(){
   fillNext();
   saveDraft();render();
 }
+/* 기구 이름 — 브랜드와 같은 규칙으로 다듬는다(대문자·공백 정리).
+   길이를 끓는 까닭은 묶음 머리가 한 줄에 들어가야 하기 때문이다. */
+function cleanMc(x){
+  return String(x||'').trim().replace(/\s+/g,' ').slice(0,18);
+}
+/* 지금까지 쓴 기구 이름 모음 — 고를 것을 먼저 내미려야 같은 기계를
+   '케이블' 과 '케이블 스테이션' 두 이름으로 적는 일이 줄어든다. */
+function mcListAll(){
+  var out=[],seen={},i,k;
+  for(i=0;i<S.m.length;i++){
+    k=cleanMc(S.m[i].mc);
+    if(k&&!seen[k]){seen[k]=1;out.push(k);}
+  }
+  out.sort();
+  return out;
+}
+/* 묶음 머리에 적힐 이름 */
+function mcLabel(m){
+  var k=cleanMc(m&&m.mc);
+  if(!k)return String((m&&m.b)||'').trim()||'ETC';
+  var b=String((m&&m.b)||'').trim();
+  return b?(k+' · '+b):k;
+}
+/* 기구 이름이 있으면 그것으로, 없으면 지금까지처럼 브랜드로 묶는다.
+   단을 하나 더 두지 않는 까닭은, 기구가 브랜드보다 좀은 말이라 브랜드가 하던
+   일을 더 잘 하기 때문이다 — 둘을 다 두면 부위→근육→브랜드→기구→종목이 돼
+   목록이 두세 화면씩 깊어진다. 열쇠에 브랜드를 섞는 것은 브랜드가 다른 두
+   카페의 '케이블' 이 한 칸으로 섞이지 않게 하려는 것이다. */
 function brandGroups(list){
-  var order=[],g={},etc=[],i,b;
-  for(i=0;i<list.length;i++){b=(list[i].b||'').trim();if(b&&order.indexOf(b)<0)order.push(b);}
+  var order=[],g={},lab={},etc=[],i,k,m;
   for(i=0;i<list.length;i++){
-    b=(list[i].b||'').trim();
-    if(b)(g[b]=g[b]||[]).push(list[i]);
-    else etc.push(list[i]);
+    m=list[i];
+    k=cleanMc(m.mc);
+    k=k?(k+'\u0000'+String(m.b||'').trim()):String(m.b||'').trim();
+    if(!k){etc.push(m);continue;}
+    if(!g[k]){g[k]=[];order.push(k);lab[k]=mcLabel(m);}
+    g[k].push(m);
   }
   var out=[];
-  for(i=0;i<order.length;i++)out.push({n:order[i],items:g[order[i]]});
+  for(i=0;i<order.length;i++)out.push({n:lab[order[i]],items:g[order[i]]});
   if(etc.length)out.push({n:'ETC',items:etc});
   return out;
 }
@@ -4274,6 +4327,8 @@ function addMachine(name,part,brand,line){
     }
   var nm={i:uid(),n:name,p:part,b:brand,ln:line};
   if(vr)nm.v=vr;
+  var mcv=cleanMc(UI.addMc);
+  if(mcv)nm.mc=mcv;
   if(UI.editStep>0&&UI.editStep!==2.5)nm.st=UI.editStep;
   if(UI.editRx&&UI.editRx!==12)nm.rx=UI.editRx;
   if(UI.editAs)nm.as=1;
@@ -4338,6 +4393,8 @@ function editMachine(){
     }
   m.n=name;m.p=UI.addPart;m.b=brand;m.ln=line;m.st=UI.editStep||2.5;
   if(vr)m.v=vr;else delete m.v;
+  var mcv=cleanMc(UI.addMc);
+  if(mcv)m.mc=mcv;else delete m.mc;
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
   if(subValid(UI.editSk))m.sk=UI.editSk;else delete m.sk;
   if(UI.editAs)m.as=1;else delete m.as;
@@ -8209,7 +8266,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 04:30';
+var BUILD='2026-09-18 06:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -8792,6 +8849,9 @@ var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
 var EN={
+'기구':'Machine',
+'한 기계로 여러 종목을 할 때만':'Only when one station hosts several exercises',
+'예: 케이블 스테이션':'e.g. Cable station',
 '그립·변형':'Grip / variant',
 '비워 두면 기본':'Leave blank for default',
 '이 기구의 다른 그립 추가':'Add another grip for this machine',
@@ -10282,6 +10342,7 @@ function syncFromDom(){
   var el;
   el=document.getElementById('addName');if(el)UI.addName=el.value;
   el=document.getElementById('addVar');if(el)UI.addVar=el.value;
+  el=document.getElementById('addMc');if(el)UI.addMc=el.value;
   el=document.getElementById('addBrand');if(el)UI.addBrand=el.value;
   el=document.getElementById('addLine');if(el)UI.addLine=el.value;
   el=document.getElementById('inW');if(el)UI.w=el.value;
@@ -10444,13 +10505,13 @@ document.addEventListener('click',function(e){
         S=UNDO.s;if(UNDO.off)OFF=UNDO.off;offSave();UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
-    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editCt='tread';UI.pickOpen='';render();break;
+    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addMc='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editCt='tread';UI.pickOpen='';render();break;
     case 'ed':
       (function(){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -10635,6 +10696,7 @@ document.addEventListener('click',function(e){
     case 'psk':UI.editSk=subValid(v)?v:'';UI.pickOpen='';render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
+    case 'pmc':UI.addMc=(cleanMc(UI.addMc)===v)?'':v;UI.pickOpen='';render();break;
     case 'pas':UI.editAs=(v==='1');UI.pickOpen='';render();break;
     case 'patpick':
       if(patOk(v)){
@@ -10757,7 +10819,7 @@ document.addEventListener('click',function(e){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -11008,7 +11070,7 @@ window.addEventListener('beforeunload',function(e){
 document.addEventListener('keydown',function(e){
   if(e.key!=='Enter'||e.isComposing)return;
   var id=e.target&&e.target.id;
-  if(id==='addName'||id==='addVar'||id==='addBrand'||id==='addLine'){
+  if(id==='addName'||id==='addVar'||id==='addMc'||id==='addBrand'||id==='addLine'){
     e.preventDefault();
     var b=document.querySelector('[data-act="am"],[data-act="em"]');
     if(b)b.click();
