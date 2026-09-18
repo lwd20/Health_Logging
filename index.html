@@ -1244,6 +1244,21 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
   background:rgba(var(--tx-rgb),.3);vertical-align:2px}
 .lmgrp.over{border-left-color:rgba(var(--sig-rgb),.32)}
 .lmgrp.under{border-left-color:rgba(var(--acc-rgb),.38)}
+/* 기준 미설정 — 판정이 안 난 것이므로 셋 중 어느 색도 쓰지 않고 물린다.
+   조용한 것이 괜찮다는 뜻인 이 파일에서, 이쪽은 '아직 말할 수 없다' 다. */
+/* 회피 — 안 하기로 정한 것이라 0 이 맞다 */
+.lmsub.avoid{color:var(--dim)}
+.lmsub.avoid::before{width:6px;height:6px;border-radius:50%;
+  border:1.4px solid rgba(var(--tx-rgb),.3);
+  background:linear-gradient(45deg,transparent 45%,rgba(var(--tx-rgb),.3) 45%,rgba(var(--tx-rgb),.3) 55%,transparent 55%);
+  vertical-align:1px}
+.lmgrp.avoid{opacity:.72}
+.lmsub.none{color:var(--dim);opacity:.75}
+.lmsub.none::before{width:5px;height:5px;border-radius:50%;
+  border:1.4px solid rgba(var(--tx-rgb),.28);vertical-align:1px}
+.lmgrp.none{opacity:.62;border-left-style:dotted}
+.lmnone{margin:9px 2px 0;font-size:9.5px;line-height:1.5;color:var(--dim)}
+.lmnone b{color:var(--mut);font-weight:800}
 /* ACSM — 수만 적으면 115/150 이 어느 만큼인지 읽어서 머리로 그려야 한다.
    이름 칸은 lmrow 보다 넓다: '반복 8~12' 가 58px 에서 감긴다. */
 .acrow{display:flex;align-items:center;gap:8px;margin:9px 0 0;font-family:var(--mono)}
@@ -8253,6 +8268,12 @@ function vzTrain(tab){
     if(subHidden(sb.k))continue;
     var cur=sc[sb.k]||0;
     var vz2=vzZone(cur,L,se[sb.k]||0);
+    /* 회피 목표(0)는 '안 정한 것' 이 아니라 '0 으로 정한 것' 이다. MEV 도 0 이라
+       그냥 두면 '기준 미설정' 으로 떨어지는데, 그쪽은 정하라는 말이고 이쪽은
+       이미 정해 둔 것이다. 자극이 들어갔으면 미달이 아니라 넘긴 것이다. */
+    if(STG[sb.k]===0)
+      vz2=(cur>0)?{t:'회피 위반',c:'neg',z:'over'}
+                 :{t:'회피 지킴',c:'',ok:1,z:'avoid'};
     /* 묶음 머리가 '가슴' 인데 줄도 '가슴 중하부' 면 같은 말을 두 번 하고,
        그 길이 때문에 이름이 두 줄로 감긴다. 손으로 고쳐 둔 이름에서도 부위
        낱말을 떼어 보여 준다 — 저장된 이름은 안 건드린다(설정에서 고칠 때는
@@ -8264,11 +8285,15 @@ function vzTrain(tab){
     /* 가르는 열쇠는 vz.z 다. 화면 낱말로 견주면 이름을 바꾸는 순간 조용히
        깨진다 — 이 파일이 예전에 그렇게 깨진 적이 있다. */
     var zk=vz2.z||'ok';
-    if(!gb[sb.p])gb[sb.p]={over:[],ok:[],under:[]};
+    if(!gb[sb.p])gb[sb.p]={over:[],ok:[],under:[],avoid:[],none:[]};
     gb[sb.p][zk].push([nm2,cur,L,se[sb.k]||0,STG[sb.k],sb.k]);
     if(!vz2.ok)gw[sb.p]=(gw[sb.p]||0)+1;
   }
-  var ZN=[['over','초과'],['ok','적정'],['under','미달']];
+  /* 앞 셋은 판정, 회피는 '0 이 맞다' 는 뜻, 기준 미설정은 정할 것이다.
+     회피를 적정에 섞으면 0 옆에 적정이 붙어 왜 0 인지가 안 보인다. */
+  var ZN=[['over','초과'],['ok','적정'],['under','미달'],
+          ['avoid','회피'],['none','기준 미설정']];
+  var anyNone=false;
   for(i=0;i<PARTS.length;i++){
     var pk2=PARTS[i],bk=gb[pk2];
     if(!bk)continue;
@@ -8287,6 +8312,7 @@ function vzTrain(tab){
       /* 가르는 열쇠를 화면에도 얹는다 — 세 낱말이 같은 모양이면
          눈이 셋을 따로 읽어야 한다 */
       var zc2=ZN[z2][0];
+      if(zc2==='none')anyNone=true;
       hs+='<div class="lmsub '+zc2+'">'+TX(ZN[z2][1])+'</div>';
       /* 줄에서는 판정 낱말을 뺀다 — 묶음 이름이 이미 그 말을 하고 있다.
          easy 는 그대로 넘긴다: 안 넘기면 vzZone 이 '강도 부족' 을 '미달'
@@ -8296,6 +8322,10 @@ function vzTrain(tab){
     }
     hs+='</div>';
   }
+  /* 그 묶음이 있을 때만 어디서 정하는지 말한다. 늘 적어 두면 정할 것이
+     하나도 없는 사람에게도 남는 안내다. */
+  if(hs&&anyNone)hs+='<div class="lmnone">'
+    +TX('<b>기준 미설정</b> — MEV 가 0 이라 판정이 안 나옴. 설정 · GOALS 에서 근육 이름을 눌러 정할 수 있음')+'</div>';
   if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV')+'</div></div>';
@@ -8722,7 +8752,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 18:10';
+var BUILD='2026-09-18 18:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9648,6 +9678,11 @@ var EN={
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Prime movers</b>',
 '종목 없음':'No exercise',
 '기준 세트 · 주':'Landmarks · sets per week',
+/* 묶음 이름은 소문자로 — 바로 옆 '적정'(target)·'미달'(under) 과 짝을 맞춘다 */
+'기준 미설정':'no landmark',
+'회피 위반':'Avoid breached',
+'회피 지킴':'Avoided',
+'<b>기준 미설정</b> — MEV 가 0 이라 판정이 안 나옴. 설정 · GOALS 에서 근육 이름을 눌러 정할 수 있음':'<b>No landmark</b> — MEV is 0, so no verdict can be given. Set it in Settings · GOALS by tapping the muscle name',
 '고침':'edited',
 '기본값':'default',
 '네 칸을 다 비우면 기본값으로 돌아감 · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨':'Clear all four to restore the default · out-of-order values are sorted ascending · press <b>SAVE GOALS</b> to store',
@@ -10362,6 +10397,12 @@ function vzZone(cur,L,easy){
     return {t:'MEV 미만',c:'neg',z:'under'};
   }
   if(cur>=z1&&cur<=z2)return {t:'MAV 안',c:'pos',ok:1,z:'ok'};
+  /* MEV 를 0 으로 둔 근육은 '얼마나 해야 하는지 아직 안 정했다' 는 뜻이다.
+     그런데 MEV 0 은 'cur<L[0]' 을 영원히 거짓으로 만들어, 한 세트도 안 한
+     근육이 '적정' 으로 떨어졌다 — 0 옆에 적정이 붙으면 화면이 거짓말을 한다.
+     정할 일이지 할 일은 아니므로 손댈 것(ok)에는 안 넣고 묶음만 따로 낸다.
+     MAV 구간 안이거나 MRV 를 넘긴 것은 위에서 이미 갈렸으므로 여기 안 온다. */
+  if(!L[0]&&cur<z1)return {t:'기준 미설정',c:'',ok:1,z:'none'};
   return {t:'유지 구간',c:'',ok:1,z:'ok'};
 }
 
