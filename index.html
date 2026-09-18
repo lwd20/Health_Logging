@@ -1854,6 +1854,9 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
    네 가지 테두리가 겹치기 때문이다. 왼쪽 금 하나면 누구 밑인지가 보인다. */
 .mch{display:flex;align-items:baseline;gap:7px;padding:9px 2px 5px;
   font-size:12.5px;font-weight:750;color:var(--tx)}
+/* 긴 기구 이름은 여기서 줄인다 — 저장할 때 글자를 없애는 대신. min-width:0
+   이 없으면 flex 항목이 안 줄어들어 오른쪽의 '＋ 운동' 이 밖으로 밀린다. */
+.mch b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mch i{font-style:normal;font-size:9px;font-weight:700;color:var(--chrome);opacity:.75;
   letter-spacing:.12em;text-transform:uppercase}
 .mch em{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:9.5px;
@@ -1873,7 +1876,8 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .mcblk>.mc.vr.did{margin:0;padding-right:0}
 .mcblk>.mc.vr.did::before{display:none}
 .nm i.mcb{font-style:normal;margin-left:6px;font-size:9px;font-weight:700;
-  color:var(--mut);letter-spacing:.06em;flex:0 0 auto;white-space:nowrap;
+  color:var(--mut);letter-spacing:.06em;flex:0 1 auto;min-width:0;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:40%;
   border:1px solid rgba(var(--tx-rgb),.16);border-radius:2px;padding:1px 5px}
 .exname em.vgx{font-style:normal;margin-left:8px;font-size:12px;font-weight:800;
   color:var(--acc-br);letter-spacing:.02em}
@@ -3509,9 +3513,12 @@ function pickRow(key, label, cur, hint, body){
     + '<span class="fv"><b>' + esc(cur) + '</b>' + (hint ? '<u>' + hint + '</u>' : '') + '<i>' + (open ? '\u2715' : '\u203a') + '</i></span></button>'
     + (open ? ('<div class="pickbody">' + body + '</div>') : '');
 }
-function txtRow(id, ph, val){
+/* mx — 글자 수 상한. 칸 자체에 걸어 둔다: 저장할 때 조용히 잘라 내면 친 것이
+   어디로 갔는지 알 수가 없고, 칸에 걸면 더 안 쳐지는 것이 그 자리에서 보인다. */
+function txtRow(id, ph, val, mx){
   return '<div class="namerow"><span class="namein"><input id="' + id + '" enterkeyhint="done" placeholder="' + ph
-    + '" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(val) + '"></span></div>';
+    + '" autocomplete="off" autocapitalize="characters" spellcheck="false"'
+    + (mx ? ' maxlength="' + mx + '"' : '') + ' value="' + esc(val) + '"></span></div>';
 }
 /* 추가·편집 공용 입력 폼 */
 function exFormHtml(isEdit){
@@ -3529,9 +3536,10 @@ function exFormHtml(isEdit){
 
   /* 이름 바로 밑이다. 그립은 기구가 아니라 종목의 일부라 브랜드보다
      이름에 가깝다. 비워 두면 지금까지와 똑같다. */
+  /* 기구 이름과 같은 자리다 — 저장할 때 조용히 자르는 대신 칸에 상한을 건다 */
   h += fRow(TX('그립·변형'), '<input id="addVar" class="fin" enterkeyhint="done" placeholder="'
-    + TX('비워 두면 기본') + '" autocomplete="off" autocapitalize="none" spellcheck="false" value="'
-    + esc(UI.addVar || '') + '">');
+    + TX('비워 두면 기본') + '" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="'
+    + VAR_MAX + '" value="' + esc(UI.addVar || '') + '">');
 
   /* 브랜드 보다 위다. 헬스장에서 먼저 보이는 것은 제조사가 아니라 기계고,
      비워 두면 지금까지와 똑같이 브랜드로 묶인다. */
@@ -3540,7 +3548,7 @@ function exFormHtml(isEdit){
   h += pickRow('mc', TX('기구'), cleanMc(UI.addMc) || TX('없음'),
     cleanMc(UI.addMc) ? '' : TX('한 기계로 여러 종목을 할 때만'),
     (ml.length ? chipRow(mItems, 'pmc', cleanMc(UI.addMc), 2) : '')
-      + txtRow('addMc', TX('예: 케이블 스테이션'), UI.addMc || ''));
+      + txtRow('addMc', TX('예: 케이블 스테이션'), UI.addMc || '', MC_MAX));
 
   var bl = brandListAll(), bItems = [{ v: '', l: TX('없음') }];
   for (i = 0; i < bl.length; i++) bItems.push({ v: bl[i], l: bl[i] });
@@ -4364,8 +4372,13 @@ function addSet(){
 }
 /* 기구 이름 — 브랜드와 같은 규칙으로 다듬는다(대문자·공백 정리).
    길이를 끓는 까닭은 묶음 머리가 한 줄에 들어가야 하기 때문이다. */
+var MC_MAX=30,VAR_MAX=12;
+/* 예전에는 여기서 18자로 잘랐다. 묶음 머리가 한 줄에 들어가야 한다는 까닭
+   이었는데, 'Cable Crossover Station' 을 치면 저장할 때 조용히 'Cable
+   Crossover St' 이 됐다 — 화면 폭 때문에 사람이 친 글자를 없애는 셈이다.
+   자리는 CSS 가 말줄임으로 알아서 줄이고, 상한은 칸(maxlength)에 걸어 둔다. */
 function cleanMc(x){
-  return String(x||'').trim().replace(/\s+/g,' ').slice(0,18);
+  return String(x||'').trim().replace(/\s+/g,' ').slice(0,MC_MAX);
 }
 /* 지금까지 쓴 기구 이름 모음 — 고를 것을 먼저 내미려야 같은 기계를
    '케이블' 과 '케이블 스테이션' 두 이름으로 적는 일이 줄어든다. */
@@ -4537,7 +4550,7 @@ function step(kind,dir){
 }
 function addMachine(name,part,brand,line){
   name=String(name||'').trim();brand=normBrand(brand);line=cleanLine(line);
-  var vr=String(UI.addVar||'').trim().slice(0,12);
+  var vr=String(UI.addVar||'').trim().slice(0,VAR_MAX);
   if(!name){toast('Exercise name required');return;}
   /* 그립을 넣으려면 이름·브랜드·라인이 같은 줄이 여럿이어야 하므로
      그립을 넷째 항으로 더한다. 안 더하면 두 번째 그립을 만들 수가 없다. */
@@ -4607,7 +4620,7 @@ function editMachine(){
   var id=UI.editId,m=machById(id),i;
   if(!m)return;
   var name=String(UI.addName||'').trim(),brand=normBrand(UI.addBrand),line=cleanLine(UI.addLine);
-  var vr=String(UI.addVar||'').trim().slice(0,12);
+  var vr=String(UI.addVar||'').trim().slice(0,VAR_MAX);
   if(!name){toast('Exercise name required');return;}
   for(i=0;i<S.m.length;i++)
     if(S.m[i].i!==id&&S.m[i].n===name&&(S.m[i].b||'')===brand&&(S.m[i].ln||'')===line&&(S.m[i].v||'')===vr){
@@ -8625,7 +8638,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 16:05';
+var BUILD='2026-09-18 16:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
