@@ -1492,7 +1492,18 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .sxb{flex:0 0 auto;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:700;
   border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);color:var(--mut)}
 .sxb.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
+.sxb.arm{background:var(--sig);border-color:transparent;color:var(--on-acc)}
 .sxb:active{opacity:.6}
+/* 차례 바꾸기 — 종목 목록의 ▲▼(.ord)와 같은 일이라 같은 모양으로 두되,
+   설정 줄은 42px 단추를 세 개 세울 자리가 없어 작게 줄인다. */
+.sxo{flex:0 0 auto;width:26px;height:26px;padding:0;border-radius:var(--rad-s);
+  border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);
+  color:var(--mut);font-size:9px;line-height:1}
+.sxo:disabled{opacity:.25}
+.sxo:active{color:var(--chrome)}
+/* 지운 항목 줄의 이름은 고칠 것이 아니라 읽을 것이다 */
+.sxnm.ro{flex:1 1 auto;min-width:0;font-size:12px;font-weight:700;color:var(--mut);
+  padding:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .skhd{display:flex;align-items:baseline;gap:6px}
 .sxadd{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:800;
   border:var(--bw) dashed rgba(var(--tx-rgb),.25);background:none;color:var(--dim)}
@@ -3558,20 +3569,37 @@ function exFormHtml(isEdit){
       + (UI.editAs ? '<div class="note">' + TX1('친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중({0}kg)에서 뺀 값으로 계산함.', fmtW(BW)) + '</div>' : ''));
 
     var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
-    var kItems = [{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : TX('미분류') }];
-    /* 목록·거르개·추정에서는 숨긴 것을 뺐는데 이 한 곳을 빠뜨렸다 */
-    for (i = 0; i < SUBS.length; i++) {
-      if (subHidden(SUBS[i].k)) continue;
-      kItems.push({ v: SUBS[i].k, l: subLabel(SUBS[i]) });
-    }
     /* 여럿 고른다 — 첫 것이 주동근, 그 뒤가 보조(세트 절반). 머리에는 둘 다
        적는다: 접힌 채로도 무엇을 골랐는지 보여야 한다. */
     var s2v = skSecClean(UI.editSk2, UI.editSk), sk2n = [];
     for (i = 0; i < s2v.length; i++) sk2n.push(subName(s2v[i]) + '½');
+    /* 스무 개를 한 판에 깔아 놓으니 어느 것이 어느 부위 근육인지가 이름으로만
+       갈렸다 — '상부' 가 가슴인지 등인지 보여야 고른다. 부위로 갈라 머리를 달고,
+       지금 들어가 있는 부위를 맨 위로 올린다. 설정의 주동근 고르개가 이미 같은
+       차례를 쓴다 — 두 고르개가 다르게 달리면 손이 두 번 헤맨다. */
+    var PNP = { 'CHEST': '가슴', 'BACK': '등', 'SHOULDERS': '어깨', 'LEGS': '하체', 'ARMS·ETC': '팔·기타' };
+    var PORD = ['CHEST', 'BACK', 'SHOULDERS', 'LEGS', 'ARMS·ETC'], pOrd = [], pq;
+    if (PNP[UI.addPart]) pOrd.push(UI.addPart);
+    for (pq = 0; pq < PORD.length; pq++) if (PORD[pq] !== UI.addPart) pOrd.push(PORD[pq]);
+    var skBody = chipRow([{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : TX('미분류') }], 'psk', UI.editSk, 3, s2v);
+    for (pq = 0; pq < pOrd.length; pq++) {
+      var pk3 = pOrd[pq], kIt = [];
+      /* 목록·거르개·추정에서는 숨긴 것을 빼는데 이 한 곳을 빠뜨렸다 */
+      for (i = 0; i < SUBS.length; i++) {
+        if (SUBS[i].p !== pk3 || subHidden(SUBS[i].k)) continue;
+        /* 머리가 '가슴' 이라 적고 있는데 알약도 '상부가슴' 이면 같은 말을 두 번
+           한다. 부위 낱말을 빼 '상부' 로 — 부위별 세트 나무가 같은 자리에서
+           같은 일을 이미 한다(subBare). 저장된 이름은 안 건드린다. */
+        kIt.push({ v: SUBS[i].k, l: subBare(subLabel(SUBS[i]), pk3) });
+      }
+      if (!kIt.length) continue;
+      skBody += '<div class="skcap" style="margin-top:8px">' + TX(PNP[pk3] || pk3) + '</div>'
+        + chipRow(kIt, 'psk', UI.editSk, 3, s2v);
+    }
     h += pickRow('sk', TX('주동근'),
       (UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : TX('미분류'))) + (sk2n.length ? ' + ' + sk2n.join(' · ') : ''),
       UI.editSk ? TX('직접 지정') : TX('자동'),
-      chipRow(kItems, 'psk', UI.editSk, 3, s2v)
+      skBody
       + '<div class="note">' + TX('첫 번째로 누른 것이 주동근(세트 전부), 다음부터는 보조(세트 절반) · 다시 누르면 뺌') + '</div>');
     h += '</div>';
   }
@@ -4722,7 +4750,10 @@ var SUBRX={};
    판올림되어 기본 목록이 바뀌어도 고친 것이 남는다. */
 /* ren 은 한국어 이름, renEn 은 영어 이름. 고쳐 놓은 이름은 그 말에서만
    쓴다 — '가슴 상부' 라고 적어 둔 것을 영어 화면에 그대로 두면 뜻이 없다. */
-var SUBX={ren:{},renEn:{},hide:{},add:[]};
+/* ord — 부위마다 보일 차례. 열쇠 배열로 든다(자리 번호가 아니라) — 판올림에서
+   기본 항목이 하나 끼어들면 번호는 통째로 밀리지만 열쇠는 안 밀린다.
+   적힌 것이 먼저, 안 적힌 것은 원래 차례로 뒤에 붙는다. */
+var SUBX={ren:{},renEn:{},hide:{},add:[],ord:{}};
 (function(){
   if(!canLS)return;
   try{
@@ -4730,6 +4761,7 @@ var SUBX={ren:{},renEn:{},hide:{},add:[]};
     if(x&&typeof x==='object'){
       SUBX.ren=x.ren||{};SUBX.renEn=x.renEn||{};
       SUBX.hide=x.hide||{};SUBX.add=Array.isArray(x.add)?x.add:[];
+      SUBX.ord=(x.ord&&typeof x.ord==='object')?x.ord:{};
     }
   }catch(e){}
 })();
@@ -4756,7 +4788,60 @@ function subxApply(){
     if(STG[a.k]===undefined)STG[a.k]=-1;
   }
 }
-subxApply();
+/* 적어 둔 차례대로 SUBS 를 다시 늘어놓는다. 자리 바꿈은 같은 부위 안에서만
+   일어난다 — 부위끼리의 자리는 안 건드린다. 이 표를 훑는 곳이 여럿이고
+   (목록 칩·주동근 고르개·부위별 세트 나무) 그 중 몇은 부위로 묶지 않고
+   순서 그대로 쓰기 때문에, 부위를 넘어 섞으면 그쪽 화면이 뒤집힌다. */
+function subxSort(){
+  var byP={},nat={},i,p;
+  for(i=0;i<SUBS.length;i++){nat[SUBS[i].k]=i;(byP[SUBS[i].p]=byP[SUBS[i].p]||[]).push(i);}
+  for(p in byP){
+    var slots=byP[p],ord=SUBX.ord[p]||[],items=[],q;
+    for(q=0;q<slots.length;q++)items.push(SUBS[slots[q]]);
+    items.sort(function(a,b){
+      var ia=ord.indexOf(a.k),ib=ord.indexOf(b.k);
+      if(ia<0)ia=1e6+nat[a.k];
+      if(ib<0)ib=1e6+nat[b.k];
+      return ia-ib;
+    });
+    for(q=0;q<slots.length;q++)SUBS[slots[q]]=items[q];
+  }
+}
+/* 그 부위 안에서 한 칸 위·아래로. 적어 두는 것은 그 부위의 지금 차례 전부다 —
+   한 자리만 적으면 나중에 기본 항목이 늘었을 때 어디에 낄지 알 수 없다. */
+function subOrdKeys(p,vis){
+  var a=[],i;
+  for(i=0;i<SUBS.length;i++){
+    if(SUBS[i].p!==p)continue;
+    if(vis&&subHidden(SUBS[i].k))continue;
+    a.push(SUBS[i].k);
+  }
+  return a;
+}
+/* 자리 바꿈은 화면에 보이는 줄끼리만 한다. 지운 것은 아래 칸에 따로 서 있어
+   그것과 바꿔 봐야 눌렀는데 아무 일도 안 일어난 것처럼 보인다. */
+function subCanMove(k,dir){
+  var e=null,i;
+  for(i=0;i<SUBS.length;i++)if(SUBS[i].k===k)e=SUBS[i];
+  if(!e)return false;
+  var a=subOrdKeys(e.p,true),pos=a.indexOf(k);
+  return dir<0?pos>0:(pos>=0&&pos<a.length-1);
+}
+function subMove(k,dir){
+  var e=null,i;
+  for(i=0;i<SUBS.length;i++)if(SUBS[i].k===k)e=SUBS[i];
+  if(!e)return;
+  var vis=subOrdKeys(e.p,true),pos=vis.indexOf(k),to=pos+dir;
+  if(pos<0||to<0||to>=vis.length)return;
+  var t=vis[pos];vis[pos]=vis[to];vis[to]=t;
+  /* 적어 두는 것은 그 부위의 전체 차례다 — 지운 것을 되살렸을 때 제 자리로
+     돌아가게. 보이는 자리에만 새 차례를 끼운다. */
+  var full=subOrdKeys(e.p),out=[],q,vi=0;
+  for(q=0;q<full.length;q++)out.push(subHidden(full[q])?full[q]:vis[vi++]);
+  SUBX.ord[e.p]=out;
+  subxSave();subxSort();render();
+}
+subxApply();subxSort();
 function subHidden(k){return !!SUBX.hide[k];}
 /* 쓸 수 있는 근육인가. 예전에는 SUBRX(정규식 표)에 물었는데, 그건 '이름으로
    추정할 때 쓰는 말' 이지 '있는 근육인가' 가 아니다. 더한 항목은 정규식이
@@ -5084,8 +5169,9 @@ function applyBackup(o){
         SUBX.ren=c.subx.ren||{};SUBX.renEn=c.subx.renEn||{};
         SUBX.hide=c.subx.hide||{};
         SUBX.add=Array.isArray(c.subx.add)?c.subx.add:[];
+        SUBX.ord=(c.subx.ord&&typeof c.subx.ord==='object')?c.subx.ord:{};
         /* 켤 때와 같은 길로 등록한다 — SUBS 에 넣는 것만으로는 못 쓴다 */
-        subxApply();subxSave();
+        subxApply();subxSort();subxSave();
       }
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
@@ -6830,12 +6916,15 @@ function clsCheckHtml(){
    라면 이쪽은 '근육 목록에 무엇을 둘 것인가' 다. */
 function subEditHtml(){
   var PN4={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
-  var ORD=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'],i,q;
+  var ORD=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'],i;
+  /* 지운 것은 목록에서 내리고 맨 아래 칸에 모은다. 예전에는 줄마다 보임/숨김
+     단추가 붙어 지운 것과 남은 것이 같은 줄로 섞여 있었고, 더한 항목에만 지움이
+     더 붙어 한 목록이 두 가지 모양이었다. 단추는 줄마다 똑같이 세 개 — ▲ ▼ 지움. */
   var nh=0;
   for(i=0;i<SUBS.length;i++)if(subHidden(SUBS[i].k))nh++;
   var h='<div class="sh-l" style="margin-top:16px">'+TX('근육 항목')
     +'<span style="font-weight:400;letter-spacing:0;color:var(--dim)"> '
-    +(nh?TX1('{0}개 · {1}개 숨김',SUBS.length,nh):TX1('{0}개',SUBS.length))+'</span></div>'
+    +TX1('{0}개',SUBS.length-nh)+'</span></div>'
     +'<div class="note" style="margin:0 0 7px">'
     /* '메인에 안 뜬다' 는 까닭은 줄마다 되풀이할 말이 아니라 규칙이다.
        여기 한 번 적고, 줄에는 수만 둔다 — 그래야 모든 줄이 같은 모양이 된다. */
@@ -6847,21 +6936,33 @@ function subEditHtml(){
       +'<button class="sxadd" data-act="sxadd" data-v="'+esc(P2)+'">'+TX('＋ 추가')+'</button></div>';
     for(i=0;i<SUBS.length;i++){
       var e=SUBS[i];
-      if(e.p!==P2)continue;
-      var hid=subHidden(e.k);
-      /* 종목 수는 모든 줄에 적는다. 더한 것에만 적었더니 그 줄만 칸이 하나 더
-         있어 목록이 두 가지 모양으로 보였다 — 세는 규칙은 둘 다 같다.
-         '지움' 을 앞에 둔 까닭은 그것이 더한 항목에만 있기 때문이다. 뒤에 두면
-         보임/숨김 단추가 줄마다 다른 자리에 서서 오른쪽 끝이 들쭉날쭉했다. */
+      if(e.p!==P2||subHidden(e.k))continue;
+      /* 종목 수는 모든 줄에 적는다 — 세는 규칙은 더한 것이나 기본 것이나 같다 */
       var nu=0,ui2;
       for(ui2=0;ui2<S.m.length;ui2++)if(!isCard(S.m[ui2].p)&&subHas(S.m[ui2],e.k))nu++;
-      h+='<div class="sxrow'+(hid?' off':'')+'">'
+      var arm=(UI.arm==='sxdel'+e.k);
+      h+='<div class="sxrow">'
         +'<input class="sxnm" id="subn-'+esc(e.k)+'" value="'+esc(subLabel(e))+'" '
         +'placeholder="'+TX('이름')+'" autocomplete="off" maxlength="12">'
         +'<span class="tagu'+(nu?'':' zero')+'">'+(nu?TX1('종목 {0}',nu):TX('종목 없음'))+'</span>'
-        +(e.user?'<button class="sxb" data-act="sxdel" data-v="'+esc(e.k)+'">'+TX('지움')+'</button>':'')
-        +'<button class="sxb'+(hid?' on':'')+'" data-act="sxhide" data-v="'+esc(e.k)+'">'
-        +TX(hid?'숨김':'보임')+'</button>'
+        +'<button class="sxo" data-act="sxmu" data-v="'+esc(e.k)+'"'+(subCanMove(e.k,-1)?'':' disabled')+' aria-label="Up">▲</button>'
+        +'<button class="sxo" data-act="sxmd" data-v="'+esc(e.k)+'"'+(subCanMove(e.k,1)?'':' disabled')+' aria-label="Down">▼</button>'
+        +'<button class="sxb'+(arm?' arm':'')+'" data-act="sxdel" data-v="'+esc(e.k)+'">'
+        +TX(arm?'정말?':'지움')+'</button>'
+        +'</div>';
+    }
+  }
+  /* 지운 것 — 기본 항목은 판올림 때 코드에서 다시 만들어지므로 진짜로 없앨 수가
+     없다. 목록에서 내려 여기 모으고, 되살릴 길을 남겨 둔다. */
+  if(nh){
+    h+='<div class="bhd" style="margin-top:12px">'+TX('지운 항목')+'<i>'+nh+'</i></div>';
+    for(i=0;i<SUBS.length;i++){
+      var e2=SUBS[i];
+      if(!subHidden(e2.k))continue;
+      h+='<div class="sxrow off">'
+        +'<span class="sxnm ro">'+esc(subLabel(e2))+'</span>'
+        +'<span class="tagu zero">'+TX(PN4[e2.p]||e2.p)+'</span>'
+        +'<button class="sxb" data-act="sxhide" data-v="'+esc(e2.k)+'">'+TX('되살림')+'</button>'
         +'</div>';
     }
   }
@@ -8509,7 +8610,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 14:40';
+var BUILD='2026-09-18 15:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9428,6 +9529,9 @@ var EN={
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. 더한 항목은 이름으로 자동 분류되지 않아 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. Added items are not auto-classified by name — set them in <b>Prime movers</b>',
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Prime movers</b>',
 '종목 없음':'No exercise',
+'되살림':'Restore',
+'지운 항목':'Removed',
+'{0} 지움 — 아래 <b>지운 항목</b> 에서 되살릴 수 있음':'{0} removed — restore it under <b>Removed</b> below',
 '전면어깨':'Front delt',
 '전완':'Forearms',
 '종아리':'Calves',
@@ -10646,7 +10750,7 @@ document.addEventListener('click',function(e){
   var t=e.target.closest('[data-act]');if(!t)return;
   syncFromDom();
   var act=t.getAttribute('data-act'),v=t.getAttribute('data-v');
-  if(act!=='dm'&&act!=='rs'&&act!=='sd'&&act!=='ds'&&act!=='dfdc')UI.arm=null;
+  if(act!=='dm'&&act!=='rs'&&act!=='sd'&&act!=='ds'&&act!=='dfdc'&&act!=='sxdel')UI.arm=null;
   switch(act){
     case 'ts':
       TMR.b=0;TMR.ts=Date.now();
@@ -11091,19 +11195,41 @@ document.addEventListener('click',function(e){
       SUBRX[nk]=/(?!)/;
       if(!LMK[nk])LMK[nk]=[0,4,8,12];
       if(STG[nk]===undefined)STG[nk]=-1;
-      subxSave();render();
+      /* 새 항목은 그 부위 맨 끝에 세운다. 안 적어 두면 차례를 한 번이라도
+         손댄 부위에서 새것이 적힌 것들보다 앞으로 튀어 오른다. */
+      SUBX.ord[v]=subOrdKeys(v);
+      subxSave();subxSort();render();
       var el2=document.getElementById('subn-'+nk);
       if(el2){el2.focus();el2.select();}
       break;
     }
+    case 'sxmu':subMove(v,-1);break;
+    case 'sxmd':subMove(v,1);break;
+    /* 지운 것을 되돌린다 — '지운 항목' 칸의 단추 */
     case 'sxhide':
       if(SUBX.hide[v])delete SUBX.hide[v];else SUBX.hide[v]=1;
       subxSave();render();break;
     case 'sxdel':{
-      /* 내가 더한 것만 지운다. 기본 항목을 지우면 다음 판올림 때 되살아나
-         헷갈리므로 그쪽은 숨김만 된다. */
+      /* 기본 항목은 목록에서 내리기만 한다 — 판올림 때 코드에서 다시
+         만들어지므로 배열에서 빼 봐야 다음에 켜면 돌아온다. 내린 것은
+         '지운 항목' 칸에 모여 되살릴 수 있다.
+         내가 더한 것은 진짜로 없앤다. 그쪽은 되돌릴 수 없고 그 근육을 쓰던
+         종목의 지정까지 풀리므로, 한 번 더 묻고 나서 지운다. */
+      var ud=false,uq;
+      for(uq=0;uq<SUBS.length;uq++)if(SUBS[uq].k===v&&SUBS[uq].user)ud=true;
+      if(!ud){
+        SUBX.hide[v]=1;UI.arm=null;
+        subxSave();render();
+        toast(TX1('{0} 지움 — 아래 <b>지운 항목</b> 에서 되살릴 수 있음',esc(subName(v)||v)));
+        break;
+      }
+      if(UI.arm!=='sxdel'+v){UI.arm='sxdel'+v;render();break;}
+      UI.arm=null;
       SUBX.add=SUBX.add.filter(function(x){return x.k!==v;});
       delete SUBX.ren[v];delete SUBX.renEn[v];delete SUBX.hide[v];
+      /* 차례 표에서도 뺀다 — 안 빼면 지운 열쇠가 남아, 같은 번호(u3)를 다시
+         만들었을 때 예전 자리로 끌려간다 */
+      for(var ok in SUBX.ord)SUBX.ord[ok]=SUBX.ord[ok].filter(function(x){return x!==v;});
       for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
       delete SUBRX[v];delete LMK[v];delete STG[v];
       /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
