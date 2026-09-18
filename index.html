@@ -1938,6 +1938,22 @@ html{color-scheme:dark}
 .strow.avoid.viol .stv{color:var(--neg)}
 .strow.off .stv{color:var(--dim);font-weight:400}
 .strow.off .stnm{color:var(--dim)}
+/* 기준값 고치기 — 이름을 누르면 그 줄 밑에서 열린다 */
+.strow .stnm.lmt{text-align:left;-webkit-tap-highlight-color:transparent}
+.strow .stnm.lmt.cus{color:var(--acc-br)}
+.strow .stnm.lmt.on{color:var(--chrome)}
+.strow .stnm.lmt:active{opacity:.6}
+.lmedit{margin:-2px 0 10px;padding:9px 10px;border-radius:var(--rad-s);
+  background:rgba(var(--acc-rgb),.05);border:var(--bw) solid rgba(var(--acc-rgb),.16)}
+.lmcap{display:block;font-size:9.5px;letter-spacing:.06em;color:var(--dim);margin-bottom:6px}
+.lmcap em{font-style:normal;font-weight:800;color:var(--acc-br)}
+.lmcap u{text-decoration:none;color:var(--dim);opacity:.8}
+.lmins{display:flex;gap:6px}
+.lmins label{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;align-items:center}
+.lmins label span{font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--mut)}
+.lmins .stin{width:100%}
+.lmnote{display:block;margin-top:7px;font-size:9.5px;line-height:1.45;color:var(--dim)}
+.lmnote b{color:var(--mut)}
 .strow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--acc-br);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
 .calov{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .calpn{width:min(316px,88vw);background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);box-shadow:0 18px 50px rgba(0,0,0,.7);padding:14px 14px 12px}
@@ -2471,7 +2487,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editSk2:[],editAs:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editSk2:[],editAs:false,lmOpen:'',editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -4115,14 +4131,30 @@ function renderSheet(){
             /* 여기만 subLabel 을 안 거쳐 기본 이름을 그대로 썼다. 사용자가
              이름을 고쳐 놓으면 다른 화면은 고친 이름이 나오는데 이 표만
              달랐다 — 번역을 붙이는 김에 같이 고친다. */
-          hh+='<div class="strow'+(goal<0?' off':'')+(goal===0?' avoid':'')+'"><b class="stnm">'+esc(subLabel(e2))+'</b>'
+          var lmCus=!!LMX[e2.k],lmOn=(UI.lmOpen===e2.k);
+          hh+='<div class="strow'+(goal<0?' off':'')+(goal===0?' avoid':'')+'">'
+              +'<b class="stnm lmt'+(lmOn?' on':'')+(lmCus?' cus':'')+'" data-act="lmo" data-v="'+esc(e2.k)+'">'+esc(subLabel(e2))+'</b>'
               +mid
               +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
               +'<input id="st'+si4+'" class="stin" inputmode="numeric" maxlength="2" placeholder="–" value="'+(goal<0?'':goal)+'">'
               +'</div>';
+            /* 이름을 누르면 그 자리에서 기준값이 열린다. 주동근 정리가 쓰는
+               것과 같은 '눌러서 펼침' 이라 새 방식을 하나 더 만들지 않는다. */
+            if(lmOn){
+              var LD=LMK[e2.k]||[0,4,8,12];
+              var lmC=[['lm0','MEV'],['lm1','MAV↓'],['lm2','MAV↑'],['lm3','MRV']],lq;
+              hh+='<div class="lmedit"><span class="lmcap">'+TX('기준 세트 · 주')
+                +(lmCus?' <em>'+TX('고침')+'</em>':' <u>'+TX('기본값')+'</u>')+'</span><div class="lmins">';
+              for(lq=0;lq<4;lq++)
+                hh+='<label><span>'+lmC[lq][1]+'</span>'
+                  +'<input id="'+lmC[lq][0]+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[lq]+'"></label>';
+              hh+='</div><div class="lmnote">'
+                +TX('네 칸을 다 비우면 기본값으로 돌아감 · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨')
+                +'</div></div>';
+            }
           }
         }
-        hh+='<div class="note" style="margin:4px 0 0">'+TX('이름으로 자동 분류함 · 빈칸 – = 미추적 · <b>0 = 회피 목표</b>(자극 시 위반 표시)')+'</div>';
+        hh+='<div class="note" style="margin:4px 0 0">'+TX('이름으로 자동 분류함 · 빈칸 – = 미추적 · <b>0 = 회피 목표</b>(자극 시 위반 표시) · <b>이름을 누르면</b> MEV~MRV 기준을 고칠 수 있음')+'</div>';
         return hh;
       })()
       +'<div class="sh-l" style="margin-top:14px">Rest days</div>'
@@ -4781,6 +4813,11 @@ var SUBRX={};
 /* ord — 부위마다 보일 차례. 열쇠 배열로 든다(자리 번호가 아니라) — 판올림에서
    기본 항목이 하나 끼어들면 번호는 통째로 밀리지만 열쇠는 안 밀린다.
    적힌 것이 먼저, 안 적힌 것은 원래 차례로 뒤에 붙는다. */
+/* LMK0 — 기준값(MEV·MAV·MRV)의 원본. 사용자가 고친 값을 LMK 에 덮어쓰므로
+   되돌릴 자리가 따로 있어야 한다. LMX — 사용자가 고친 값.
+   LMK 보다 한참 앞에 세우는 까닭은 subxApply 가 더한 근육의 기준값을 채우는
+   자리가 LMK 선언보다 위이기 때문이다. */
+var LMK0={},LMX={};
 var SUBX={ren:{},renEn:{},hide:{},add:[],ord:{}};
 (function(){
   if(!canLS)return;
@@ -4812,7 +4849,8 @@ function subxApply(){
     if(dup)continue;
     SUBS.push({k:a.k,p:a.p,n:a.n,d:0,r:/(?!)/,user:1});
     SUBRX[a.k]=/(?!)/;
-    if(typeof LMK!=='undefined'&&!LMK[a.k])LMK[a.k]=[0,4,8,12];
+    if(!LMK0[a.k])LMK0[a.k]=[0,4,8,12];
+    if(typeof LMK!=='undefined'&&!LMK[a.k])LMK[a.k]=LMK0[a.k].slice();
     if(STG[a.k]===undefined)STG[a.k]=-1;
   }
 }
@@ -5133,7 +5171,8 @@ function bkText(){
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
-    subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add},
+    subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add,ord:SUBX.ord},
+    lmx:LMX,
     /* 섭취와 체중계. 본 키가 아니라 'tl_hc' 에 살아서 통째로 빠져 있었다 —
        앱이 세 군데서 백업하라고 재촉하는데 그 백업에 식단이 없었다.
        안드로이드는 삼성헬스에서 다시 당겨 오지만, 손으로 넣은 값과 되메우기
@@ -5201,6 +5240,8 @@ function applyBackup(o){
         /* 켤 때와 같은 길로 등록한다 — SUBS 에 넣는 것만으로는 못 쓴다 */
         subxApply();subxSort();subxSave();
       }
+      /* 기준값은 subx 뒤다 — 더한 근육이 LMK 에 자리를 잡은 다음에 덮어써야 한다 */
+      if(c.lmx&&typeof c.lmx==='object'){LMX=c.lmx;lmxSave();lmxApply();}
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
@@ -6612,6 +6653,41 @@ var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10
 /* 사용자가 더한 항목의 기준치. LMK 가 subLabel 보다 뒤에 선언돼 있어
    SUBX 를 읽는 자리에서는 아직 없다 — 여기서 채운다. */
 (function(){for(var i=0;i<SUBS.length;i++)if(SUBS[i].user&&!LMK[SUBS[i].k])LMK[SUBS[i].k]=[0,4,8,12];})();
+/* ── 기준값 고치기 ──
+   이 표는 근육마다 고정이었다. 그런데 이름을 바꾸고 항목을 더할 수 있게 되니,
+   화면에는 내가 지은 이름이 뜨는데 숫자는 남의 근육 것이 앉아 있게 됐다 —
+   직접 더한 항목은 전부 0/4~8/12 한 벌을 나눠 쓴다. 쪼갠 근육의 기준을 앱이
+   대신 나눠 줄 수는 없다(무엇을 어떻게 나눴는지 알 길이 없다). 고칠 수 있게 한다. */
+(function(){for(var k in LMK)if(!LMK0[k])LMK0[k]=LMK[k].slice();})();
+(function(){
+  if(!canLS)return;
+  try{var x=JSON.parse(localStorage.getItem(KEY+'.lmx')||'null');
+    if(x&&typeof x==='object')LMX=x;}catch(e){}
+})();
+function lmxSave(){
+  if(!canLS)return;
+  try{localStorage.setItem(KEY+'.lmx',JSON.stringify(LMX));}catch(e){}
+}
+/* 네 수를 쓸 수 있는 꼴로 — 0~60 정수, 오름차순. 뒤집힌 채 두면 MAV 존이
+   거꾸로 그려져 막대가 깨진다. 고쳐서 넣고, 고친 것을 칸에 그대로 돌려준다. */
+function lmNorm(a){
+  var o=[],i,v;
+  for(i=0;i<4;i++){
+    v=Math.floor(+String(a[i]).replace(/[^0-9]/g,''));
+    if(!(v>=0))v=0;
+    if(v>60)v=60;
+    o.push(v);
+  }
+  o.sort(function(x,y){return x-y;});
+  if(o[3]<1)return null;                 /* MRV 가 0 이면 막대가 성립 안 한다 */
+  return o;
+}
+function lmxApply(){
+  var k;
+  for(k in LMK0)LMK[k]=LMK0[k].slice();
+  for(k in LMX){var v=LMX[k];if(v&&v.length===4&&LMK[k])LMK[k]=v.slice();}
+}
+lmxApply();
 var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'LEGS':[10,14,22,26],'ARMS·ETC':[8,12,18,22]};
 /* hideVd — 묶음 머리가 이미 그 판정을 말하고 있으면 줄마다 또 적지 않는다.
    묶음 안에 판정이 둘 이상 섞여 있을 때만 줄에 붙인다. */
@@ -8646,7 +8722,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 17:20';
+var BUILD='2026-09-18 18:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9571,6 +9647,11 @@ var EN={
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. 더한 항목은 이름으로 자동 분류되지 않아 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. Added items are not auto-classified by name — set them in <b>Prime movers</b>',
 '이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Prime movers</b>',
 '종목 없음':'No exercise',
+'기준 세트 · 주':'Landmarks · sets per week',
+'고침':'edited',
+'기본값':'default',
+'네 칸을 다 비우면 기본값으로 돌아감 · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨':'Clear all four to restore the default · out-of-order values are sorted ascending · press <b>SAVE GOALS</b> to store',
+'이름으로 자동 분류함 · 빈칸 – = 미추적 · <b>0 = 회피 목표</b>(자극 시 위반 표시) · <b>이름을 누르면</b> MEV~MRV 기준을 고칠 수 있음':'Auto-classified by name · blank – = untracked · <b>0 = avoid</b> (flags any volume) · <b>tap a name</b> to edit its MEV~MRV landmarks',
 '되살림':'Restore',
 '지운 항목':'Removed',
 '샘플 데이터':'Sample data',
@@ -11256,7 +11337,8 @@ document.addEventListener('click',function(e){
       /* SUBRX 는 SUBS 에서 파생되는데 그 파생이 켤 때 한 번만 돈다.
          여기서 같이 안 채우면 쓰다가 더한 항목만 표에서 빠진다. */
       SUBRX[nk]=/(?!)/;
-      if(!LMK[nk])LMK[nk]=[0,4,8,12];
+      if(!LMK0[nk])LMK0[nk]=[0,4,8,12];
+      if(!LMK[nk])LMK[nk]=LMK0[nk].slice();
       if(STG[nk]===undefined)STG[nk]=-1;
       /* 새 항목은 그 부위 맨 끝에 세운다. 안 적어 두면 차례를 한 번이라도
          손댄 부위에서 새것이 적힌 것들보다 앞으로 튀어 오른다. */
@@ -11294,7 +11376,8 @@ document.addEventListener('click',function(e){
          만들었을 때 예전 자리로 끌려간다 */
       for(var ok in SUBX.ord)SUBX.ord[ok]=SUBX.ord[ok].filter(function(x){return x!==v;});
       for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
-      delete SUBRX[v];delete LMK[v];delete STG[v];
+      delete SUBRX[v];delete LMK[v];delete LMK0[v];delete LMX[v];delete STG[v];
+      lmxSave();
       /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
       for(di=0;di<S.m.length;di++){
         if(S.m[di].sk===v)delete S.m[di].sk;
@@ -11413,8 +11496,23 @@ document.addEventListener('click',function(e){
         var fe=document.getElementById('bhFile');if(fe)fe.click();
       })();
       break;
+    case 'lmo':UI.lmOpen=(UI.lmOpen===v?'':v);render();break;
     case 'wg':
       (function(){
+        /* 펼쳐 둔 기준값 칸이 있으면 같이 거둔다. 이 화면의 다른 수와 같은
+           단추로 저장돼야 '어느 것은 여기, 어느 것은 저기' 가 안 생긴다. */
+        if(UI.lmOpen){
+          var q0=document.getElementById('lm0'),q1=document.getElementById('lm1'),
+              q2=document.getElementById('lm2'),q3=document.getElementById('lm3');
+          if(q0&&q1&&q2&&q3){
+            var raw=[q0.value,q1.value,q2.value,q3.value];
+            var blank=true,bi3;
+            for(bi3=0;bi3<4;bi3++)if(String(raw[bi3]).trim())blank=false;
+            if(blank)delete LMX[UI.lmOpen];
+            else{var nrm=lmNorm(raw);if(nrm)LMX[UI.lmOpen]=nrm;}
+            lmxSave();lmxApply();
+          }
+        }
         var ids=['wt0','wt1','wt2','wt3','wt4','wt5'],ks=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC','CARDIO'],i;
         for(i=0;i<ids.length;i++){
           var el=document.getElementById(ids[i]);if(!el)continue;
