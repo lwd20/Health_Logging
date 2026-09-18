@@ -3577,16 +3577,22 @@ function exFormHtml(isEdit){
   /* 세부 부위 — 메인 목록에서 이 기계가 어느 칸에 설 것인가. 판정과 무관하다.
      비워 두면 이름으로 알아서 잡는다(Auto). */
   if (!cd) {
+    /* 칩 스물한 개를 펼쳐 두니 이름 칸이 화면 밖으로 밀렸다. 이 파일이 이미
+       쓰는 '접었다 펴는 줄'(머신 종류·기구·브랜드)과 같은 꼴로 둔다 — 접혀
+       있을 때는 한 줄이고, 고른 값이 그 줄에 적혀 있다.
+       지금 부위의 것을 앞으로 당긴다: 가슴 종목을 고치는데 '측면어깨' 가
+       맨 앞에 있을 이유가 없다. */
     var skA = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
-    var skI = [{ v: '', l: 'Auto', s: skA ? subName(skA) : TX('미분류') }], sq;
+    var skI = [{ v: '', l: 'Auto', s: skA ? subName(skA) : TX('미분류') }], sq, skR = [];
     for (sq = 0; sq < SUBS.length; sq++) {
       if (subHidden(SUBS[sq].k)) continue;
-      skI.push({ v: SUBS[sq].k, l: subLabel(SUBS[sq]) });
+      (SUBS[sq].p === UI.addPart ? skI : skR).push({ v: SUBS[sq].k, l: subLabel(SUBS[sq]) });
     }
-    h += '<div class="fgrp"><div class="ft">' + TX('세부 부위') + '</div>'
-      + chipRow(skI, 'psk', UI.editSk || '', 3)
-      + '<div class="note">' + TX('메인 목록의 칩·묶음에만 쓰임 · MEV/MRV 판정과는 상관없음') + '</div>'
-      + '</div>';
+    h += pickRow('sk', TX('세부 부위'),
+      UI.editSk ? subName(UI.editSk) : (skA ? subName(skA) : TX('미분류')),
+      UI.editSk ? TX('직접 지정') : TX('자동'),
+      chipRow(skI.concat(skR), 'psk', UI.editSk || '', 3)
+      + '<div class="note">' + TX('메인 목록의 칩·묶음에만 쓰임 · MEV/MRV 판정과는 상관없음') + '</div>');
   }
 
   /* 주동근 — 부위 바로 아래다. 판정이 보는 것은 이것 하나뿐이라 이름보다
@@ -3596,10 +3602,11 @@ function exFormHtml(isEdit){
   if (!cd) {
     var mmI = [{ v: '', l: TX('미지정') }], mq;
     for (mq = 0; mq < MMS.length; mq++) mmI.push({ v: MMS[mq].k, l: mmLabel(MMS[mq]) });
-    h += '<div class="fgrp"><div class="ft">' + TX('주동근') + '</div>'
-      + chipRow(mmI, 'pmm', UI.editMm || '', 3)
-      + '<div class="note">' + TX('세트는 여기 고른 근육 하나에만 들어감 · 기준치가 간접 자극을 이미 품고 있어 다른 근육에는 안 나눔') + '</div>'
-      + '</div>';
+    h += pickRow('mm', TX('주동근'),
+      UI.editMm ? mmName(UI.editMm) : TX('미지정'),
+      UI.editMm ? '' : TX('정해야 MEV/MRV 가 잡힘'),
+      chipRow(mmI, 'pmm', UI.editMm || '', 3)
+      + '<div class="note">' + TX('세트는 여기 고른 근육 하나에만 들어감 · 기준치가 간접 자극을 이미 품고 있어 다른 근육에는 안 나눔') + '</div>');
   }
 
   h += '<div class="fgrp"><div class="ft">' + TX('종목') + '</div>';
@@ -8774,7 +8781,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 23:30';
+var BUILD='2026-09-18 23:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11315,8 +11322,8 @@ document.addEventListener('click',function(e){
        첫 보조가 주동근으로 올라온다. 칸은 닫지 않는다: 둘째를 고르러 다시
        열게 하면 두 번 누를 것이 네 번이 된다. */
     /* 하나만 고른다. 고른 것을 다시 누르면 미지정으로 돌아간다. */
-    case 'psk':UI.editSk=(UI.editSk===v)?'':(subValid(v)?v:'');render();break;
-    case 'pmm':UI.editMm=(UI.editMm===v)?'':(mmValid(v)?v:'');render();break;
+    case 'psk':UI.editSk=(UI.editSk===v)?'':(subValid(v)?v:'');UI.pickOpen='';render();break;
+    case 'pmm':UI.editMm=(UI.editMm===v)?'':(mmValid(v)?v:'');UI.pickOpen='';render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
     case 'pmc':UI.addMc=(cleanMc(UI.addMc)===v)?'':v;UI.pickOpen='';render();break;
