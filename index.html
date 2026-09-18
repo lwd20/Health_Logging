@@ -1970,6 +1970,19 @@ html{color-scheme:dark}
 .lmins .stin{width:100%}
 .lmnote{display:block;margin-top:7px;font-size:9.5px;line-height:1.45;color:var(--dim)}
 .lmnote b{color:var(--mut)}
+/* 주동근 기준치 표 — 이름 + 다섯 칸. 375px 에서 칸이 겹치지 않게 칸을
+   40px 로 두고 이름을 줄인다. */
+.mmhd{display:flex;align-items:center;gap:4px;margin:9px 0 2px;padding-right:2px}
+.mmhd span{flex:1 1 auto;min-width:0}
+.mmhd b{flex:0 0 40px;text-align:center;font-size:8.5px;font-weight:800;
+  letter-spacing:.04em;color:var(--dim)}
+.mmrow{display:flex;align-items:center;gap:4px;margin:5px 0}
+.mmrow .mmn{flex:1 1 auto;min-width:0;font-size:10.5px;font-weight:700;color:var(--mut);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mmrow .mmn i{font-style:normal;margin-left:5px;font-family:var(--mono);font-size:10px;
+  color:var(--acc-br)}
+.mmrow.cus .mmn{color:var(--acc-br)}
+.mmrow .stin{flex:0 0 40px;width:40px}
 .strow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--acc-br);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
 .calov{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .calpn{width:min(316px,88vw);background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);box-shadow:0 18px 50px rgba(0,0,0,.7);padding:14px 14px 12px}
@@ -2503,7 +2516,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editSk:'',editSk2:[],editAs:false,lmOpen:'',editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editAs:false,lmOpen:'',editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -3563,6 +3576,19 @@ function exFormHtml(isEdit){
     h += '<button class="chip' + (UI.addPart === PARTS[i] ? ' on' : '') + '" data-act="pp" data-v="' + PARTS[i] + '">' + PARTS[i] + '</button>';
   h += '</div>';
 
+  /* 주동근 — 부위 바로 아래다. 판정이 보는 것은 이것 하나뿐이라 이름보다
+     먼저 눈에 들어와야 한다. 열둘 + 미지정, 하나만 고른다.
+     부위를 바꿔도 여기는 안 따라간다: 부위는 화면에서 묶어 볼 자리고
+     주동근은 그 종목이 실제로 무엇을 치는가라, 서로 끌려다니면 안 된다. */
+  if (!cd) {
+    var mmI = [{ v: '', l: TX('미지정') }], mq;
+    for (mq = 0; mq < SUBS.length; mq++) mmI.push({ v: SUBS[mq].k, l: subLabel(SUBS[mq]) });
+    h += '<div class="fgrp"><div class="ft">' + TX('주동근') + '</div>'
+      + chipRow(mmI, 'pmm', UI.editMm || '', 3)
+      + '<div class="note">' + TX('세트는 여기 고른 근육 하나에만 들어감 · 기준치가 간접 자극을 이미 품고 있어 다른 근육에는 안 나눔') + '</div>'
+      + '</div>';
+  }
+
   h += '<div class="fgrp"><div class="ft">' + TX('종목') + '</div>';
   h += fRow(TX('이름'), '<input id="addName" class="fin" enterkeyhint="done" placeholder="' + TX('종목 이름') + '" autocomplete="off" autocapitalize="none" spellcheck="false" value="' + esc(UI.addName) + '">');
 
@@ -3617,39 +3643,6 @@ function exFormHtml(isEdit){
       chipRow([{ v: 0, l: TX('일반'), s: TX('무게가 곧 부하') }, { v: 1, l: TX('어시스트'), s: TX('무게만큼 체중 보조') }], 'pas', UI.editAs ? 1 : 0, 2)
       + (UI.editAs ? '<div class="note">' + TX1('친업·딥 어시스트처럼 설정 무게가 클수록 가벼워지는 머신임. 실부하를 체중({0}kg)에서 뺀 값으로 계산함.', fmtW(BW)) + '</div>' : ''));
 
-    var skAuto = subAuto({ n: UI.addName, ln: UI.addLine, b: UI.addBrand, p: UI.addPart });
-    /* 여럿 고른다 — 첫 것이 주동근, 그 뒤가 보조(세트 절반). 머리에는 둘 다
-       적는다: 접힌 채로도 무엇을 골랐는지 보여야 한다. */
-    var s2v = skSecClean(UI.editSk2, UI.editSk), sk2n = [];
-    for (i = 0; i < s2v.length; i++) sk2n.push(subName(s2v[i]) + '½');
-    /* 스무 개를 한 판에 깔아 놓으니 어느 것이 어느 부위 근육인지가 이름으로만
-       갈렸다 — '상부' 가 가슴인지 등인지 보여야 고른다. 부위로 갈라 머리를 달고,
-       지금 들어가 있는 부위를 맨 위로 올린다. 설정의 주동근 고르개가 이미 같은
-       차례를 쓴다 — 두 고르개가 다르게 달리면 손이 두 번 헤맨다. */
-    var PNP = { 'CHEST': '가슴', 'BACK': '등', 'SHOULDERS': '어깨', 'LEGS': '하체', 'ARMS·ETC': '팔·기타' };
-    var PORD = ['CHEST', 'BACK', 'SHOULDERS', 'LEGS', 'ARMS·ETC'], pOrd = [], pq;
-    if (PNP[UI.addPart]) pOrd.push(UI.addPart);
-    for (pq = 0; pq < PORD.length; pq++) if (PORD[pq] !== UI.addPart) pOrd.push(PORD[pq]);
-    var skBody = chipRow([{ v: '', l: 'Auto', s: skAuto ? subName(skAuto) : TX('미분류') }], 'psk', UI.editSk, 3, s2v);
-    for (pq = 0; pq < pOrd.length; pq++) {
-      var pk3 = pOrd[pq], kIt = [];
-      /* 목록·거르개·추정에서는 숨긴 것을 빼는데 이 한 곳을 빠뜨렸다 */
-      for (i = 0; i < SUBS.length; i++) {
-        if (SUBS[i].p !== pk3 || subHidden(SUBS[i].k)) continue;
-        /* 머리가 '가슴' 이라 적고 있는데 알약도 '상부가슴' 이면 같은 말을 두 번
-           한다. 부위 낱말을 빼 '상부' 로 — 부위별 세트 나무가 같은 자리에서
-           같은 일을 이미 한다(subBare). 저장된 이름은 안 건드린다. */
-        kIt.push({ v: SUBS[i].k, l: subBare(subLabel(SUBS[i]), pk3) });
-      }
-      if (!kIt.length) continue;
-      skBody += '<div class="skcap" style="margin-top:8px">' + TX(PNP[pk3] || pk3) + '</div>'
-        + chipRow(kIt, 'psk', UI.editSk, 3, s2v);
-    }
-    h += pickRow('sk', TX('주동근'),
-      (UI.editSk ? subName(UI.editSk) : (skAuto ? subName(skAuto) : TX('미분류'))) + (sk2n.length ? ' + ' + sk2n.join(' · ') : ''),
-      UI.editSk ? TX('직접 지정') : TX('자동'),
-      skBody
-      + '<div class="note">' + TX('첫 번째로 누른 것이 주동근(세트 전부), 다음부터는 보조(세트 절반) · 다시 누르면 뺌') + '</div>');
     h += '</div>';
   }
 
@@ -3991,7 +3984,6 @@ function renderSheet(){
       +'<button class="okbtn" data-act="fi">Load File</button></div>'
       +(function(){var mi=mirrorInfo();return mi?'<div class="note" style="margin-top:6px">'+TX1('앱 저장소 사본 {0} \u2014 캐시를 지워도 이 사본으로 자동 복구됨',esc(mi))+'</div>':'';})()
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
-    h+=clsCheckHtml()+subEditHtml();
     /* 앱 안에서 이 링크를 누르면 시스템 브라우저가 열린다.
        채팅앱 같은 데서 주소를 열면 인앱 브라우저가 APK 내려받기를 막아
        주소를 복사해 옮겨야 했다. */
@@ -4079,30 +4071,8 @@ function renderSheet(){
       })();
     }
     if(tb==='goals'){
-    /* 열여덟 칸을 손으로 채우는 것이 목표를 정하는 유일한 길이었다. 무엇을
-       적어야 하는지는 아무 데도 안 쓰여 있고, 적어 넣은 수가 서로 맞는지도
-       알 길이 없다(세부 합이 부위 예산을 넘는 조합이 대부분이다).
-       한 벌로 고르게 두고, 낱개 수정은 그대로 남긴다 — 색 고르는 자리가
-       이미 같은 꼴이다(시안 → 낱개). */
-    h+=(function(){
-      var cur=UI.gpre||gpNow(),gi,hh='';
-      hh+='<div class="sh-l" style="margin-top:2px">Goal</div><div class="psets">';
-      for(gi=0;gi<GPRE.length;gi++){
-        var G=GPRE[gi];
-        hh+='<button class="pset'+(cur===G.k?' on':'')+'" data-act="gppick" data-v="'+G.k+'"'
-          +' aria-pressed="'+(cur===G.k?'true':'false')+'">'
-          +'<b>'+TX(G.n)+'</b><i>'+TX(G.d)+'</i></button>';
-      }
-      hh+='</div>';
-      /* 눌렀을 때 무슨 일이 벌어졌는지가 안 보이면 사람은 한 번 더 누른다.
-         칸만 채웠다는 것과, 총량은 안 는다는 것 둘 다 여기서만 말한다. */
-      hh+='<div class="note" style="margin-top:7px">'
-        +(UI.gpre?TX('<b>아래 칸을 채워 놓음 · Save goals 를 눌러야 바뀜</b>')
-                 :(cur?TX('부위별 총량은 넷 다 같음 · 자리만 옮김')
-                      :TX('직접 맞춘 목표임 · 한 벌로 바꾸려면 위에서 고름')))
-        +'</div>';
-      return hh;
-    })();
+    /* 목표 한 벌 고르기(GPRE)는 걷어냈다 — 그 프리셋은 없어진 열쇠(sd·lt·ut)로
+       적혀 있었고, 이제 '얼마나 해야 하는가' 는 아래 기준치 표가 말한다. */
     h+=(function(){
       var pcNow=partCnt();
       var ROWS=[
@@ -4130,47 +4100,37 @@ function renderSheet(){
         var sc=subCnt();
         var PN={'SHOULDERS':'어깨','BACK':'등','CHEST':'가슴','LEGS':'하체','ARMS·ETC':'팔·기타'};
         var PO=['SHOULDERS','BACK','CHEST','LEGS','ARMS·ETC'];
-        var hh='<div class="sh-l" style="margin-top:14px">Sub targets · this week</div>';
+        /* 주동근별 기준치. 이 표가 곧 목표다 — 예전에는 '주간 목표' 한 숫자를
+           따로 받아 눈금과 따로 놀았는데, MEV~MRV 가 이미 '얼마나 해야 하는가'
+           를 말하고 있어 두 개를 둘 이유가 없다.
+           MV(유지 최소) · MEV · MAV 하한~상한 · MRV 넷을 그대로 고친다. */
+        var hh='<div class="sh-l skhd" style="margin-top:14px">'+TX('주동근 기준 · 주 세트')
+          +'<button class="sxadd'+(UI.arm==='mmrst'?' arm':'')+'" style="margin-left:auto" data-act="mmrst">'
+          +TX(UI.arm==='mmrst'?'정말?':'기본값으로')+'</button></div>';
+        var PN={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
+        var PO=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'];
         var gi,si4;
+        hh+='<div class="mmhd"><span></span><b>MV</b><b>MEV</b><b>MAV\u2193</b><b>MAV\u2191</b><b>MRV</b></div>';
         for(gi=0;gi<PO.length;gi++){
+          var any=false;
+          for(si4=0;si4<SUBS.length;si4++)if(SUBS[si4].p===PO[gi])any=true;
+          if(!any)continue;
           hh+='<div class="stpt">'+TX(PN[PO[gi]])+'</div>';
           for(si4=0;si4<SUBS.length;si4++){
             var e2=SUBS[si4];
-            if(e2.p!==PO[gi]||subHidden(e2.k))continue;
-            var goal=gpStg(e2.k),cur=sc[e2.k];
-            var mid;
-            if(goal===0){
-              mid='<div class="stband'+(cur>0?' viol':'')+'">'+(cur>0?TX1('회피 위반 +{0}',cur):TX('회피'))+'</div>';
-            }else{
-              mid='<div class="strest"'+(goal<0?' style="opacity:.22"':'')+'></div>';
-            }
-            /* 여기만 subLabel 을 안 거쳐 기본 이름을 그대로 썼다. 사용자가
-             이름을 고쳐 놓으면 다른 화면은 고친 이름이 나오는데 이 표만
-             달랐다 — 번역을 붙이는 김에 같이 고친다. */
-          var lmCus=!!LMX[e2.k],lmOn=(UI.lmOpen===e2.k);
-          hh+='<div class="strow'+(goal<0?' off':'')+(goal===0?' avoid':'')+'">'
-              +'<b class="stnm lmt'+(lmOn?' on':'')+(lmCus?' cus':'')+'" data-act="lmo" data-v="'+esc(e2.k)+'">'+esc(subLabel(e2))+'</b>'
-              +mid
-              +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
-              +'<input id="st'+si4+'" class="stin" inputmode="numeric" maxlength="2" placeholder="–" value="'+(goal<0?'':goal)+'">'
+            if(e2.p!==PO[gi])continue;
+            var LD=LMK[e2.k],cus=!!(MMX[e2.k]),cv=sc[e2.k]||0;
+            hh+='<div class="mmrow'+(cus?' cus':'')+'"><span class="mmn">'+esc(subLabel(e2))
+              +'<i>'+cv+'</i></span>'
+              +'<input id="mv'+si4+'" class="stin" inputmode="numeric" maxlength="2" value="'+MVL[e2.k]+'">'
+              +'<input id="me'+si4+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[0]+'">'
+              +'<input id="ma'+si4+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[1]+'">'
+              +'<input id="mb'+si4+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[2]+'">'
+              +'<input id="mr'+si4+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[3]+'">'
               +'</div>';
-            /* 이름을 누르면 그 자리에서 기준값이 열린다. 주동근 정리가 쓰는
-               것과 같은 '눌러서 펼침' 이라 새 방식을 하나 더 만들지 않는다. */
-            if(lmOn){
-              var LD=LMK[e2.k]||[0,4,8,12];
-              var lmC=[['lm0','MEV'],['lm1','MAV↓'],['lm2','MAV↑'],['lm3','MRV']],lq;
-              hh+='<div class="lmedit"><span class="lmcap">'+TX('기준 세트 · 주')
-                +(lmCus?' <em>'+TX('고침')+'</em>':' <u>'+TX('기본값')+'</u>')+'</span><div class="lmins">';
-              for(lq=0;lq<4;lq++)
-                hh+='<label><span>'+lmC[lq][1]+'</span>'
-                  +'<input id="'+lmC[lq][0]+'" class="stin" inputmode="numeric" maxlength="2" value="'+LD[lq]+'"></label>';
-              hh+='</div><div class="lmnote">'
-                +TX('네 칸을 다 비우면 기본값으로 돌아감 · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨')
-                +'</div></div>';
-            }
           }
         }
-        hh+='<div class="note" style="margin:4px 0 0">'+TX('이름으로 자동 분류함 · 빈칸 – = 미추적 · <b>0 = 회피 목표</b>(자극 시 위반 표시) · <b>이름을 누르면</b> MEV~MRV 기준을 고칠 수 있음')+'</div>';
+        hh+='<div class="note" style="margin:6px 0 0">'+TX('이름 옆 수는 이번 주 유효 세트(RIR 0~3) · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨')+'</div>';
         return hh;
       })()
       +'<div class="sh-l" style="margin-top:14px">Rest days</div>'
@@ -4614,9 +4574,7 @@ function addMachine(name,part,brand,line){
   if(UI.editStep>0&&UI.editStep!==2.5)nm.st=UI.editStep;
   if(UI.editRx&&UI.editRx!==12)nm.rx=UI.editRx;
   if(UI.editAs)nm.as=1;
-  if(subValid(UI.editSk))nm.sk=UI.editSk;
-  var s2n=skSecClean(UI.editSk2,nm.sk||'');
-  if(s2n.length)nm.sk2=s2n;
+  if(subValid(UI.editMm))nm.mm=UI.editMm;
   if(isCard(part)&&ctOk(UI.editCt))nm.ct=UI.editCt;
   S.m.push(nm);
   save();render();
@@ -4680,9 +4638,7 @@ function editMachine(){
   var mcv=cleanMc(UI.addMc);
   if(mcv)m.mc=mcv;else delete m.mc;
   if(UI.editRx&&UI.editRx!==12)m.rx=UI.editRx;else delete m.rx;
-  if(subValid(UI.editSk))m.sk=UI.editSk;else delete m.sk;
-  var s2e=skSecClean(UI.editSk2,m.sk||'');
-  if(s2e.length)m.sk2=s2e;else delete m.sk2;
+  if(subValid(UI.editMm))m.mm=UI.editMm;else delete m.mm;
   if(UI.editAs)m.as=1;else delete m.as;
   if(isCard(UI.addPart)&&ctOk(UI.editCt))m.ct=UI.editCt;else delete m.ct;
   UI.sheet=null;
@@ -4789,43 +4745,34 @@ function mirrorInfo(){
 /* 홈 위젯 동기화: 이번 주(월~일) 요일별 부위 + 부위별 세트 수 */
 var WTGT={'CHEST':15,'BACK':17,'SHOULDERS':20,'LEGS':15,'ARMS·ETC':10,'CARDIO':90};
 var IVs=120,HRM=190,BW=78,BF=20,GF=15,ACT=1.3;
+/* ── 주동근 12개 (고정) ──
+   판정 전용이다. 종목의 부위(p)와 별개로 종목마다 하나씩 고른다 — 부위에서
+   끌어내지 않는다. 팔 부위 종목이라도 이두·삼두·전완 중 무엇인지는 종목이
+   정하고, 등 부위라도 등인지 승모인지는 종목이 정한다.
+   이 열둘 말고는 없다. 전면삼각·가슴 상하부·등 상하부는 랜드마크가 정의된
+   단위가 아니라 안 만든다.
+   p 는 화면에서 묶어 보일 자리일 뿐 판정에 안 쓴다. */
 var SUBS=[
- {k:'sd', p:'SHOULDERS',n:'측면',      d:18,r:/\blateral|래터럴|레터럴|라테랄|사레레|사이드\s*?레이즈|side\s*raise|neck\s*press|넥\s*?프레스|네크\s*?프레스|측면/},
- {k:'ad', p:'SHOULDERS',n:'전면',      d:0, r:/shoulder\s*press|숄더\s*?프레스|overhead\s*press|오버헤드\s*?프레스|\bohp\b|military|밀리터리|front\s*raise|프론트\s*?레이즈|viking|바이킹|arnold|아놀드/},
- {k:'pd', p:'SHOULDERS',n:'후면',      d:0, r:/rear|리어|reverse\s*pec|리버스\s*?펙|face\s*pull|페이스\s*?풀|reverse\s*fly|리버스\s*?플라이/},
- /* 로우 계열을 여기로 받는다. 중부·능형(tm)을 목록에서 내리면 그 패턴의
-    임자가 없어져 로우 기구가 전부 미분류로 떨어진다 — 등에서 랜드마크가
-    있는 것은 광배와 승모뿐이고, 로우가 주로 치는 것은 광배다.
-    '업라이트 로우' 는 승모라, EVORD 에서 ut 를 lt 보다 앞에 세워 가른다. */
- {k:'lt', p:'BACK',     n:'광배',      d:16,r:/\blat\b|랫풀|pull\s*-?down|풀\s*?다운|pull\s*-?up|풀업|친업|\bchin|pull\s*?over|풀오버|\brow|로우|t-?bar|티바|dorsi|dorsy|도르시|광배|턱걸이/},
- {k:'ut', p:'BACK',     n:'승모 상부', d:0, r:/shrug|슈러그|셰러그|셸러그|upright\s*row|업라이트/},
- {k:'tm', p:'BACK',     n:'중부·능형', d:0, r:/\brow|로우|t-?bar|티바|중부|능형/},
- {k:'es', p:'BACK',     n:'척추기립근', d:0, r:/deadlift|데드\s*?리프트|데드리프트|rack\s*pull|랙\s*?풀|hyper\s*-?ext|하이퍼\s*?익스텐션|back\s*extension|백\s*?익스텐션|erector|기립근/},
- /* 대흉근 하나다. 예전에는 상부(uc)와 중하부(mc)로 갈라 두었는데, 그 분할에는
-    기준이 되는 랜드마크가 없다 — 위 근육들은 해부학적으로 갈린 근섬유 다발이라
-    각각 값이 있지만(어깨 세 갈래처럼), 대흉근은 하나로만 정의된다.
-    쪼개 두면 화면은 정밀해 보이는데 그 수를 뒷받침하는 것이 아무 데도 없다.
-    인클라인도 여기로 들어온다 — 쓰는 근육이 같다. */
- {k:'mc', p:'CHEST',    n:'대흉근', ns:1, d:0, r:/chest|체스트|bench|벤치|\bdip|딥스|\bfly|플라이|pec\s*deck|펙\s*?덱|flat\s*press|플랫|incline|인클라인|decline|디클라인|cross\s*-?over|크로스\s*?오버|push\s*-?up|푸시\s*?업|팔굽혀/},
- {k:'qd', p:'LEGS',     n:'대퇴사두',  d:0, r:/squat|스쿼트|hack|\b핵|leg\s*press|레그\s*?프레스|leg\s*extension|레그\s*?익스텐션|lunge|런지|step\s*-?up|스텝\s*?업|split\s*squat|스플릿\s*?스쿼트/},
- {k:'hm', p:'LEGS',     n:'햄스트링',  d:10, r:/leg\s*curl|레그\s*?컬|햄스트링|hamstring|\bham\b|\brdl\b|루마니안|romanian|stiff|스티프|good\s*?morning|굿\s*?모닝/},
- {k:'gl', p:'LEGS',     n:'둔근',      d:0, r:/hip\s*thrust|힙\s*?쓰러스트|glute|글루트|bridge|브릿지|킥\s*?백\s*?머신/},
- {k:'abd',p:'LEGS',     n:'외전근',    d:0, r:/abduct|어브덕|앱덕|외전|outer\s*thigh|아웃터\s*?사이|아웃\s*?타이/},
- {k:'adc',p:'LEGS',     n:'내전근',    d:0, r:/adduct|어덕|애덕|내전|inner\s*thigh|이너\s*?사이|이너\s*?타이/},
- {k:'cf', p:'LEGS',     n:'종아리',    d:0, r:/calf|카프|종아리/},
- {k:'bi', p:'ARMS·ETC', n:'이두',      d:0, r:/bicep|바이셉|이두|curl|컬/},
- {k:'tri',p:'ARMS·ETC', n:'삼두',      d:0, r:/tricep|트라이셉|삼두|push\s*?down|푸시\s*?다운|press\s*?down|프레스\s*?다운|kick\s*?back|킥백|skull|스컬|overhead\s*ext|오버헤드\s*?익스텐션|lying\s*ext|라잉\s*?익스텐션/},
- {k:'fa', p:'ARMS·ETC', n:'전완',      d:0, r:/forearm|전완|wrist\s*curl|리스트\s*?컬|grip|그립|손목/},
- {k:'ab', p:'ARMS·ETC', n:'복근·코어', d:0, r:/crunch|크런치|복근|\bab\b|plank|플랭크|sit\s*?up|싯업|leg\s*raise|레그\s*?레이즈|russian|러시안/}
+ {k:'chest',   p:'CHEST',     n:'가슴'},
+ {k:'back',    p:'BACK',      n:'등'},
+ {k:'trap',    p:'BACK',      n:'승모'},
+ {k:'delt',    p:'SHOULDERS', n:'측면·후면삼각'},
+ {k:'quad',    p:'LEGS',      n:'대퇴사두'},
+ {k:'ham',     p:'LEGS',      n:'햄스트링'},
+ {k:'glute',   p:'LEGS',      n:'둔근'},
+ {k:'calf',    p:'LEGS',      n:'종아리'},
+ {k:'biceps',  p:'ARMS·ETC',  n:'이두'},
+ {k:'triceps', p:'ARMS·ETC',  n:'삼두'},
+ {k:'forearm', p:'ARMS·ETC',  n:'전완'},
+ {k:'abs',     p:'ARMS·ETC',  n:'복근'}
 ];
-/* es 는 hm 뒤여야 한다. 앞에 두면 Romanian Deadlift·Stiff Leg Deadlift 가
-   햄스트링에서 끌려간다 — 그 둘은 햄스트링이 맞다.
-   gl 앞이어야 백익스텐션이 둔근에서 척추기립근으로 옮겨 온다. */
-/* 랜드마크가 정의돼 있지 않은 갈래. 지우지는 않는다 — 쓰던 사람이 있고 되살릴
-   수 있어야 한다. 기본으로 목록에서 내려 두고, 설정의 '지운 항목' 에 모인다.
-   등 중부·능형과 척추기립근은 등 전체로만, 외전·내전근은 아예 값이 없다. */
-var SUBD={tm:1,es:1,abd:1,adc:1};
-var EVORD=['sd','pd','ad','hm','es','abd','adc','ut','lt','tm','mc','qd','gl','tri','cf','fa','bi','ab'];
+var MMK={};
+(function(){for(var i=0;i<SUBS.length;i++)MMK[SUBS[i].k]=SUBS[i];})();
+/* 예전 열쇠를 새 열둘로 옮기는 표. 부위에서 추정하는 것이 아니라, 이미
+   종목마다 골라 두었던 것을 옮기는 것이다. 열둘에 없는 것(전면삼각·중부
+   능형·척추기립근·외전·내전·직접 더한 항목)은 미지정으로 남는다. */
+var MMOLD={mc:'chest',uc:'chest',lt:'back',tm:'back',ut:'trap',sd:'delt',pd:'delt',
+  qd:'quad',hm:'ham',gl:'glute',cf:'calf',bi:'biceps',tri:'triceps',fa:'forearm',ab:'abs'};
 var WR=0.5; /* 주당 감량 목표 kg */
 var STG={}; /* -1=미추적, 0=회피 목표, 1~30=주간 목표 */
 /* 승모 상부는 '추적 안 함'(-1)이 아니라 '회피'(0)다. -1 로 두면
@@ -4841,11 +4788,9 @@ var SUBRX={};
 /* ord — 부위마다 보일 차례. 열쇠 배열로 든다(자리 번호가 아니라) — 판올림에서
    기본 항목이 하나 끼어들면 번호는 통째로 밀리지만 열쇠는 안 밀린다.
    적힌 것이 먼저, 안 적힌 것은 원래 차례로 뒤에 붙는다. */
-/* LMK0 — 기준값(MEV·MAV·MRV)의 원본. 사용자가 고친 값을 LMK 에 덮어쓰므로
-   되돌릴 자리가 따로 있어야 한다. LMX — 사용자가 고친 값.
-   LMK 보다 한참 앞에 세우는 까닭은 subxApply 가 더한 근육의 기준값을 채우는
-   자리가 LMK 선언보다 위이기 때문이다. */
-var LMK0={},LMX={};
+/* LMK0·MVL0 — 기준치의 원본. 사용자가 고친 값을 LMK·MVL 에 덮어쓰므로
+   되돌릴 자리가 따로 있어야 한다. MMX — 사용자가 고친 값 [MV,MEV,MAV1,MAV2,MRV]. */
+var LMK0={},MMX={};
 var SUBX={ren:{},renEn:{},hide:{},add:[],ord:{}};
 (function(){
   if(!canLS)return;
@@ -4868,184 +4813,38 @@ function subxSave(){
    함수로 묶는다.
    정규식은 안 준다. 이름으로 추정하지 않고 손으로 지정한 것만 들어간다 —
    사용자가 정규식을 쓸 수는 없으니 그 편이 정직하다. */
-function subxApply(){
-  for(var i=0;i<SUBX.add.length;i++){
-    var a=SUBX.add[i];
-    if(!a||!a.k||!a.p||!a.n)continue;
-    var dup=false,q;
-    for(q=0;q<SUBS.length;q++)if(SUBS[q].k===a.k)dup=true;
-    if(dup)continue;
-    SUBS.push({k:a.k,p:a.p,n:a.n,d:0,r:/(?!)/,user:1});
-    SUBRX[a.k]=/(?!)/;
-    if(!LMK0[a.k])LMK0[a.k]=[0,4,8,12];
-    if(typeof LMK!=='undefined'&&!LMK[a.k])LMK[a.k]=LMK0[a.k].slice();
-    if(STG[a.k]===undefined)STG[a.k]=-1;
-  }
-}
-/* 적어 둔 차례대로 SUBS 를 다시 늘어놓는다. 자리 바꿈은 같은 부위 안에서만
-   일어난다 — 부위끼리의 자리는 안 건드린다. 이 표를 훑는 곳이 여럿이고
-   (목록 칩·주동근 고르개·부위별 세트 나무) 그 중 몇은 부위로 묶지 않고
-   순서 그대로 쓰기 때문에, 부위를 넘어 섞으면 그쪽 화면이 뒤집힌다. */
-function subxSort(){
-  var byP={},nat={},i,p;
-  for(i=0;i<SUBS.length;i++){nat[SUBS[i].k]=i;(byP[SUBS[i].p]=byP[SUBS[i].p]||[]).push(i);}
-  for(p in byP){
-    var slots=byP[p],ord=SUBX.ord[p]||[],items=[],q;
-    for(q=0;q<slots.length;q++)items.push(SUBS[slots[q]]);
-    items.sort(function(a,b){
-      var ia=ord.indexOf(a.k),ib=ord.indexOf(b.k);
-      if(ia<0)ia=1e6+nat[a.k];
-      if(ib<0)ib=1e6+nat[b.k];
-      return ia-ib;
-    });
-    for(q=0;q<slots.length;q++)SUBS[slots[q]]=items[q];
-  }
-}
-/* 그 부위 안에서 한 칸 위·아래로. 적어 두는 것은 그 부위의 지금 차례 전부다 —
-   한 자리만 적으면 나중에 기본 항목이 늘었을 때 어디에 낄지 알 수 없다. */
-function subOrdKeys(p,vis){
-  var a=[],i;
-  for(i=0;i<SUBS.length;i++){
-    if(SUBS[i].p!==p)continue;
-    if(vis&&subHidden(SUBS[i].k))continue;
-    a.push(SUBS[i].k);
-  }
-  return a;
-}
-/* 자리 바꿈은 화면에 보이는 줄끼리만 한다. 지운 것은 아래 칸에 따로 서 있어
-   그것과 바꿔 봐야 눌렀는데 아무 일도 안 일어난 것처럼 보인다. */
-function subCanMove(k,dir){
-  var e=null,i;
-  for(i=0;i<SUBS.length;i++)if(SUBS[i].k===k)e=SUBS[i];
-  if(!e)return false;
-  var a=subOrdKeys(e.p,true),pos=a.indexOf(k);
-  return dir<0?pos>0:(pos>=0&&pos<a.length-1);
-}
-function subMove(k,dir){
-  var e=null,i;
-  for(i=0;i<SUBS.length;i++)if(SUBS[i].k===k)e=SUBS[i];
-  if(!e)return;
-  var vis=subOrdKeys(e.p,true),pos=vis.indexOf(k),to=pos+dir;
-  if(pos<0||to<0||to>=vis.length)return;
-  var t=vis[pos];vis[pos]=vis[to];vis[to]=t;
-  /* 적어 두는 것은 그 부위의 전체 차례다 — 지운 것을 되살렸을 때 제 자리로
-     돌아가게. 보이는 자리에만 새 차례를 끼운다. */
-  var full=subOrdKeys(e.p),out=[],q,vi=0;
-  for(q=0;q<full.length;q++)out.push(subHidden(full[q])?full[q]:vis[vi++]);
-  SUBX.ord[e.p]=out;
-  subxSave();subxSort();render();
-}
-subxApply();subxSort();
-/* 셋 중 하나다: 사용자가 내렸다(1) · 사용자가 되살렸다(0) · 손댄 적 없다.
-   손댄 적 없으면 기본표(SUBD)를 따른다 — 그래야 기본으로 내려 둔 갈래를
-   되살렸을 때 그 선택이 남는다. 지워 버리면 다음 판에 도로 내려간다. */
-function subHidden(k){
-  if(Object.prototype.hasOwnProperty.call(SUBX.hide,k))return !!SUBX.hide[k];
-  return !!SUBD[k];
-}
-/* 쓸 수 있는 근육인가. 예전에는 SUBRX(정규식 표)에 물었는데, 그건 '이름으로
-   추정할 때 쓰는 말' 이지 '있는 근육인가' 가 아니다. 더한 항목은 정규식이
-   없는 것이 정상인데 그걸 없는 근육으로 읽어, 목록엔 보여도 고를 수가
-   없었다. SUBS 에 있고 숨기지 않았으면 쓸 수 있다. */
-function subValid(k){
-  if(!k||subHidden(k))return false;
-  for(var i=0;i<SUBS.length;i++)if(SUBS[i].k===k)return true;
-  return false;
-}
-/* 고쳐 둔 이름에서 부위 낱말을 뗀다. 묶음 머리가 이미 그 말을 하고 있을
-   때만 쓴다 — 저장된 이름 자체는 안 바뀐다. 떼고 나서 아무것도 안 남으면
-   원래 이름을 그대로 쓴다(이름이 부위 낱말 하나뿐인 경우). */
-function subBare(nm,part){
-  var p=TX(PN_KO[part]||'');
-  if(!p||!nm)return nm;
-  var s=String(nm);
-  if(s.length>p.length&&s.slice(0,p.length)===p)s=s.slice(p.length);
-  else if(s.length>p.length&&s.slice(-p.length)===p)s=s.slice(0,s.length-p.length);
-  s=s.replace(/^[\s·]+/,'').replace(/[\s·]+$/,'');
-  return s||nm;
-}
-function subLabel(e){
-  /* 고쳐 놓은 이름은 그 말에서만 쓴다. '가슴 상부' 라고 적어 둔 것을 영어
-     화면에 그대로 두면 뜻이 없고, 사전에 더하는 것으로는 못 푼다 —
-     사용자가 무엇으로 고칠지 알 수 없기 때문이다. 칸을 따로 둔다. */
-  var own=(LANG==='en')?SUBX.renEn[e.k]:SUBX.ren[e.k];
-  if(own)return own;
-  /* 사용자가 지은 이름은 그대로. 기본 항목은 '중하부' 처럼 부위 낱말을 떼고
-     적혀 있어 가슴·어깨를 덧붙이는데, 직접 지은 이름에도 그러니 '상부 안쪽가슴' 이
-     됐다 — 설정에서 더한 근육이 메인에서 다른 이름으로 떴다. */
-  if(e.user)return e.n;
-  /* ns — 이름 자체가 근육을 가리키면 부위 낱말을 안 붙인다. '중하부' 는
-     어느 부위인지 모르니 '중하부가슴' 이 되어야 하지만, '대흉근' 에 붙이면
-     '대흉근가슴' 이다. */
-  if(e.ns)return TX(e.n);
-  var s=e.p==='SHOULDERS'?e.n+'어깨':(e.p==='CHEST'?e.n+'가슴':e.n);
-  /* 사용자가 더한 근육은 이름 자체가 손으로 지은 것이라 사전에 있을 리 없다 */
-  return e.user?s:TX(s);
-}
-(function(){for(var i=0;i<SUBS.length;i++)if(!SUBRX[SUBS[i].k])SUBRX[SUBS[i].k]=SUBS[i].r;})();
-/* 종목명으로 추정한 주동근 */
-function subAuto(m){
-  if(!m||isCard(m.p))return null;
-  var nm=(m.n+' '+(m.ln||'')+' '+(m.b||'')).toLowerCase(),e;
-  /* 숨긴 항목은 추정에서도 빠진다. 목록에서만 감추고 추정은 계속 돌면
-     없앤 근육이 종목 뒤에 계속 붙어 있는 셈이다. */
-  for(e=0;e<EVORD.length;e++){
-    if(subHidden(EVORD[e]))continue;
-    if(SUBRX[EVORD[e]]&&SUBRX[EVORD[e]].test(nm))return EVORD[e];
-  }
-  return null;
-}
-/* 사용자가 지정한 주동근(sk)이 있으면 그것이 절대 기준, 없으면 추정 */
+/* 열둘은 고정이라 더하거나 지우거나 차례를 바꿀 것이 없다. 예전에 있던
+   이름 고침·항목 추가·숨김·차례(SUBX)는 이 체계에서 뜻을 잃어 걷어냈다. */
+function subxApply(){}
+function subxSort(){}
+function subHidden(k){return false;}
+function subValid(k){return !!MMK[k];}
+function subBare(nm,part){return nm;}
+function subLabel(e){return e?TX(e.n):'';}
+/* 부위에서 주동근을 끌어내지 않는다 — 종목이 직접 고른 것만 쓴다 */
+function subAuto(m){return null;}
+/* 종목이 고른 주동근. 고른 적 없으면 null 이고, 그 종목의 세트는 근육별
+   판정에서 빠진다(부위 총합에는 그대로 들어간다). */
 function subOf(m){
-  if(m&&subValid(m.sk))return m.sk;
-  return subAuto(m);
+  var k=m&&m.mm;
+  return (k&&MMK[k])?k:null;
 }
-/* 보조 근육(sk2) — 주동근 다음에 고른 것들. 케이블 푸시다운을 삼두·어깨로
-   골랐으면 삼두가 주동근, 어깨가 보조다. 세트는 절반(SUB_HALF)으로 센다 —
-   전부 세면 한 세트가 두 근육에 두 번 들어가 주 합계가 부풀고, 반씩 나누면
-   주동근이 늘 미달로 보인다. 목록 자리는 주동근 묶음 하나뿐이고 거르개는
-   보조로도 걸린다. */
-var SUB_HALF=0.5;
-/* 보조 목록을 쓸 수 있는 것만 남긴다 — 숨긴 것·주동근과 겹치는 것·중복을 뺀다.
-   폼에서 저장할 때와 저장된 것을 읽을 때 같은 체를 쓴다. */
-function skSecClean(list,pk){
-  var out=[],i,k;
-  for(i=0;i<(list||[]).length;i++){
-    k=list[i];
-    if(k===pk||!subValid(k)||out.indexOf(k)>=0)continue;
-    out.push(k);
-  }
-  return out;
-}
-function subSec(m){
-  if(!m||!m.sk2||!m.sk2.length)return [];
-  return skSecClean(m.sk2,subOf(m));
-}
-/* 주동근이든 보조든 그 근육을 쓰는가 — 거르개·수행일 판단에 쓴다 */
-function subHas(m,k){
-  return !!k&&(subOf(m)===k||subSec(m).indexOf(k)>=0);
-}
-/* 브랜드 묶음 안을 주동근으로 다시 가른다. 차례는 SUBS 에 적힌 순서를
-   따른다 — 화면마다 순서가 달라지면 못 찾는다. 추정이 안 된 것은 맨 아래. */
-/* any — 보조 근육 묶음에도 넣는다. 거르개 칩이 이것을 쓴다: 어깨를 보조로
-   고른 종목이 어깨 칩에서 안 나오면 '고른 근육 어느 것을 눌러도 나온다' 가
-   거짓이 된다. 목록 자체는 주동근 묶음 한 자리에만 둔다(any 없이). */
+/* 보조 주동근은 없다. 위 기준치가 간접 자극을 이미 품고 있어, 한 세트를
+   두 근육에 나눠 얹으면 같은 자극을 두 번 세는 셈이 된다. */
+function subSec(m){return [];}
+function subHas(m,k){return !!k&&subOf(m)===k;}
 function subGroups(items,any){
-  var m={},i,k,q,s2;
+  var m={},i,k;
   for(i=0;i<items.length;i++){
     k=subOf(items[i])||'';
     (m[k]=m[k]||[]).push(items[i]);
-    if(!any)continue;
-    s2=subSec(items[i]);
-    for(q=0;q<s2.length;q++)(m[s2[q]]=m[s2[q]]||[]).push(items[i]);
   }
   var out=[];
   for(i=0;i<SUBS.length;i++){
     k=SUBS[i].k;
-    if(subHidden(k))continue;
     if(m[k])out.push({k:k,n:subLabel(SUBS[i]),items:m[k]});
   }
-  if(m[''])out.push({k:'',n:TX('기타'),items:m['']});
+  if(m[''])out.push({k:'',n:TX('미지정'),items:m['']});
   return out;
 }
 function subName(k){
@@ -5210,7 +5009,7 @@ function bkText(){
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
     subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add,ord:SUBX.ord},
-    lmx:LMX,
+    mmx:MMX,
     /* 섭취와 체중계. 본 키가 아니라 'tl_hc' 에 살아서 통째로 빠져 있었다 —
        앱이 세 군데서 백업하라고 재촉하는데 그 백업에 식단이 없었다.
        안드로이드는 삼성헬스에서 다시 당겨 오지만, 손으로 넣은 값과 되메우기
@@ -5279,7 +5078,7 @@ function applyBackup(o){
         subxApply();subxSort();subxSave();
       }
       /* 기준값은 subx 뒤다 — 더한 근육이 LMK 에 자리를 잡은 다음에 덮어써야 한다 */
-      if(c.lmx&&typeof c.lmx==='object'){LMX=c.lmx;lmxSave();lmxApply();}
+      if(c.mmx&&typeof c.mmx==='object'){MMX=c.mmx;mmxSave();mmxApply();}
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
@@ -5845,49 +5644,48 @@ function partCnt(){
 /* 근육별로 '가벼워서 버린' 세트 수. subCnt 와 같은 창·같은 길로 센다 —
    두 수가 다른 창을 보면 '유효 6 + 가벼움 3 이 MEV 8 을 넘는다' 가 거짓이 된다.
    hardOf 의 반환형은 안 바꾼다(sc 를 쓰는 자리가 여럿이라 전부 깨진다). */
+/* 이번 주 '가벼워서 버린' 세트(RIR 4+). 판정에는 안 들어가지만 '세트가
+   모자란 것' 과 '가볍게 한 것' 을 가르는 데 쓴다. */
 function subEasy(){
-  var now=new Date();var dow=(now.getDay()+6)%7;
-  var mon=new Date(now);mon.setDate(now.getDate()-dow);
-  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
-  var days={},i,t;
-  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
-  var out={},bi;
-  for(bi=0;bi<SUBS.length;bi++)out[SUBS[bi].k]=0;
+  var days=wkDays(),out={},i,k;
+  for(i=0;i<SUBS.length;i++)out[SUBS[i].k]=0;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(isCard(m.p))continue;
-    var k=subOf(m),k2=subSec(m),q2;
-    if(!k&&!k2.length)continue;
-    var a=S.l[m.i]||[],j,e2;
-    for(j=0;j<a.length;j++){
-      if(!days[a[j].d]||!a[j].s.length)continue;
-      e2=hardOf(a[j].s).easy;
-      if(k)out[k]+=e2;
-      for(q2=0;q2<k2.length;q2++)out[k2[q2]]+=e2*SUB_HALF;
-    }
+    k=subOf(m);
+    if(!k)continue;
+    var a=S.l[m.i]||[],j;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[k]+=hardOf(a[j].s).easy;
   }
   return out;
 }
+/* 이번 주(월~일) 날짜표 — 세는 자리가 여럿이라 한 군데서 만든다 */
+function wkDays(){
+  var now=new Date(),dow=(now.getDay()+6)%7,mon=new Date(now),days={},i,t;
+  mon.setDate(now.getDate()-dow);
+  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);
+    days[t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')]=1;}
+  return days;
+}
+/* 이번 주 주동근별 세트. 한 세트는 그 종목이 고른 주동근 하나에만 +1 한다 —
+   기준치가 간접 자극을 이미 품고 있어서, 벤치를 삼두·어깨에도 얹으면 같은
+   자극을 두 번 세는 셈이 된다.
+   RIR 0~3 만 센다. 미입력은 힘들었는지 가벼웠는지 모르는 세트라 판정의
+   분모에서 뺀다(hardOf 의 n 에는 들어 있으므로 unk 를 덜어낸다).
+   주동근을 안 고른 종목은 여기 안 들어온다 — 부위 총합에는 그대로 있다. */
 function subCnt(){
-  var now=new Date();var dow=(now.getDay()+6)%7;
-  var mon=new Date(now);mon.setDate(now.getDate()-dow);
-  function iso(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
-  var days={},i,t;
-  for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
-  var out={},bi2;
-  for(bi2=0;bi2<SUBS.length;bi2++)out[SUBS[bi2].k]=0;
+  var days=wkDays(),out={},i,k;
+  for(i=0;i<SUBS.length;i++)out[SUBS[i].k]=0;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
     if(isCard(m.p))continue;
-    /* 보조 근육은 절반 — subEasy 와 같은 길로 센다 */
-    var k=subOf(m),k2=subSec(m),q2;
-    if(!k&&!k2.length)continue;
-    var a=S.l[m.i]||[],j,n2;
+    k=subOf(m);
+    if(!k)continue;
+    var a=S.l[m.i]||[],j,h;
     for(j=0;j<a.length;j++){
       if(!days[a[j].d]||!a[j].s.length)continue;
-      n2=hardOf(a[j].s).n;
-      if(k)out[k]+=n2;
-      for(q2=0;q2<k2.length;q2++)out[k2[q2]]+=n2*SUB_HALF;
+      h=hardOf(a[j].s);
+      out[k]+=Math.max(0,h.n-h.unk);
     }
   }
   return out;
@@ -6243,8 +6041,8 @@ function pgSubAvg(sk,cx){
     var m2=S.m[i];
     if(isCard(m2.p))continue;
     /* 보조로 쓰는 종목은 절반 — 이번 주 수(subCnt)와 같은 자로 잰다 */
-    var f2=subOf(m2)===sk?1:(subSec(m2).indexOf(sk)>=0?SUB_HALF:0);
-    if(!f2)continue;
+    if(subOf(m2)!==sk)continue;
+    var f2=1;
     var a2=S.l[m2.i]||[];
     for(j=0;j<a2.length;j++)
       if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n*f2;
@@ -6290,7 +6088,7 @@ function pgWhy(m,a,cx,sc){
     return {c:'반복 바뀜',w:TX1('반복 {0}\u2192{1}회 · 다른 반복대의 값',rb,r0),drop:true};
 
   /* 회피 목표 근육에 자극이 쌓였다 — 앱 어디서도 아직 안 잡던 신호다 */
-  if(cx.wk>=40&&sk&&STG[sk]===0&&sv>0)
+  if(false&&cx.wk>=40&&sk&&sv>0)
     return {c:'회피 근육',w:TX1('{0} 회피 목표 · 이번 주 {1}세트',TX(subName(sk)),sv),drop:false};
 
   /* 안 한 것이 과하게 한 것을 이긴다.
@@ -6684,10 +6482,17 @@ function todaySum(){
   return {ex:ex,sets:sets,parts:parts};
 }
 /* ── 분석론 위젯: 리포트 상단 로컬 시각화 ── */
-var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10,16,20],mc:[8,12,20,22],qd:[8,12,18,20],hm:[6,10,16,20],gl:[0,4,12,16],abd:[0,4,10,14],adc:[0,4,8,12],cf:[8,12,16,20],bi:[8,14,20,26],tri:[6,10,14,18],fa:[0,4,8,12],ut:[0,4,8,12],ab:[0,16,20,25],
-  /* 척추기립근을 SUBS 에 넣고 여기에 안 넣어 목록이 깨졌다. 직접 훈련보다
-     다른 종목에서 딸려 오는 몫이 커서 낮게 잡는다. */
-  es:[0,4,8,12]};
+/* 주동근별 기준치 — [MEV, MAV 하한, MAV 상한, MRV]. MV(유지 최소)는 따로 든다.
+   승모·둔근·복근은 MEV 가 0 이다: 다른 종목에서 딸려 오는 몫이 커서 따로
+   최소를 걸 것이 없다는 뜻이고, 그래서 0 세트여도 미달이 아니다. */
+var LMK={
+  chest:[10,12,20,22], back:[10,14,22,25], trap:[0,12,20,26], delt:[8,16,22,26],
+  quad:[8,12,18,20],   ham:[6,10,16,20],   glute:[0,4,12,16], calf:[8,12,16,20],
+  biceps:[8,14,20,26], triceps:[6,10,14,18], forearm:[8,12,16,20], abs:[0,16,20,25]};
+var MVL={chest:8,back:8,trap:0,delt:6,quad:6,ham:4,glute:0,calf:6,
+  biceps:4,triceps:4,forearm:6,abs:0};
+var MVL0={};
+(function(){for(var k in MVL)MVL0[k]=MVL[k];})();
 /* 사용자가 더한 항목의 기준치. LMK 가 subLabel 보다 뒤에 선언돼 있어
    SUBX 를 읽는 자리에서는 아직 없다 — 여기서 채운다. */
 (function(){for(var i=0;i<SUBS.length;i++)if(SUBS[i].user&&!LMK[SUBS[i].k])LMK[SUBS[i].k]=[0,4,8,12];})();
@@ -6699,75 +6504,65 @@ var LMK={sd:[8,16,22,26],ad:[0,6,8,12],pd:[6,16,22,26],lt:[10,14,22,25],tm:[6,10
 (function(){for(var k in LMK)if(!LMK0[k])LMK0[k]=LMK[k].slice();})();
 (function(){
   if(!canLS)return;
-  try{var x=JSON.parse(localStorage.getItem(KEY+'.lmx')||'null');
-    if(x&&typeof x==='object')LMX=x;}catch(e){}
+  try{var x=JSON.parse(localStorage.getItem(KEY+'.mmx')||'null');
+    if(x&&typeof x==='object')MMX=x;}catch(e){}
 })();
-function lmxSave(){
+function mmxSave(){
   if(!canLS)return;
-  try{localStorage.setItem(KEY+'.lmx',JSON.stringify(LMX));}catch(e){}
+  try{localStorage.setItem(KEY+'.mmx',JSON.stringify(MMX));}catch(e){}
 }
-/* 네 수를 쓸 수 있는 꼴로 — 0~60 정수, 오름차순. 뒤집힌 채 두면 MAV 존이
+/* 다섯 수를 쓸 수 있는 꼴로 — 0~60 정수, 오름차순. 뒤집힌 채 두면 MAV 존이
    거꾸로 그려져 막대가 깨진다. 고쳐서 넣고, 고친 것을 칸에 그대로 돌려준다. */
-function lmNorm(a){
+function mmNorm(a){
   var o=[],i,v;
-  for(i=0;i<4;i++){
+  for(i=0;i<5;i++){
     v=Math.floor(+String(a[i]).replace(/[^0-9]/g,''));
     if(!(v>=0))v=0;
     if(v>60)v=60;
     o.push(v);
   }
   o.sort(function(x,y){return x-y;});
-  if(o[3]<1)return null;                 /* MRV 가 0 이면 막대가 성립 안 한다 */
+  if(o[4]<1)return null;                 /* MRV 가 0 이면 막대가 성립 안 한다 */
   return o;
 }
-function lmxApply(){
+function mmxApply(){
   var k;
-  for(k in LMK0)LMK[k]=LMK0[k].slice();
-  for(k in LMX){var v=LMX[k];if(v&&v.length===4&&LMK[k])LMK[k]=v.slice();}
+  for(k in LMK0){LMK[k]=LMK0[k].slice();MVL[k]=MVL0[k];}
+  for(k in MMX){
+    var v=MMX[k];
+    if(v&&v.length===5&&LMK0[k]){MVL[k]=v[0];LMK[k]=[v[1],v[2],v[3],v[4]];}
+  }
 }
-lmxApply();
-/* ── 가슴을 대흉근 하나로 합친 판올림 (한 번만) ──
-   '상부'(uc)를 쓰던 종목·목표·이름 덮어쓰기를 'mc' 로 옮긴다. 표시를 안
-   남기면 켤 때마다 목표를 또 더한다. */
+mmxApply();
+/* ── 주동근을 열둘로 옮기는 판올림 (한 번만) ──
+   부위에서 끌어내는 것이 아니다. 이미 종목마다 골라 두었던 것(sk)을 새 열둘로
+   옮긴다. 열둘에 없던 것 — 전면삼각·중부 능형·척추기립근·외전·내전, 그리고
+   직접 더한 항목 — 은 옮길 자리가 없으니 미지정으로 남고, 분석 화면이 '주동근
+   미지정 n개' 로 알려 준다. 보조 주동근(sk2)은 통째로 버린다: 한 세트는 한
+   근육에만 들어간다. */
 (function(){
   if(!canLS)return;
-  var done=false;
-  try{done=!!localStorage.getItem(KEY+'.mig.pec');}catch(e0){return;}
-  if(done)return;
-  var i,q,chg=false;
+  try{if(localStorage.getItem(KEY+'.mig.mm'))return;}catch(e0){return;}
+  var i,chg=false;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];
-    if(m.sk==='uc'){m.sk='mc';chg=true;}
-    if(m.sk2&&m.sk2.length){
-      var n2=[];
-      for(q=0;q<m.sk2.length;q++){
-        var kk=(m.sk2[q]==='uc')?'mc':m.sk2[q];
-        if(kk!==m.sk&&n2.indexOf(kk)<0)n2.push(kk);
-      }
-      if(n2.length!==m.sk2.length)chg=true;
-      if(n2.length)m.sk2=n2;else{delete m.sk2;chg=true;}
+    if(m.mm===undefined){
+      var nk=(m.sk&&MMOLD[m.sk])?MMOLD[m.sk]:null;
+      if(nk)m.mm=nk;
+      chg=true;
     }
+    if(m.sk!==undefined){delete m.sk;chg=true;}
+    if(m.sk2!==undefined){delete m.sk2;chg=true;}
   }
-  /* 목표는 더한다 — 둘로 나눠 세던 것이 한 근육이 됐다. STG 는 SUBS 를 훑어
-     읽으므로 없어진 열쇠는 메모리에 안 들어와 있다. 저장본에서 꺼낸다. */
-  try{
-    var raw=JSON.parse(localStorage.getItem(KEY+'.st')||'null');
-    var tt=raw?((raw.v===2&&raw.t)?raw.t:raw):null;
-    var ucv=tt?Math.floor(+tt.uc):NaN;
-    if(ucv>0){
-      STG.mc=Math.min(30,(STG.mc>0?STG.mc:0)+ucv);
-      localStorage.setItem(KEY+'.st',JSON.stringify({v:2,t:STG}));
-    }
-  }catch(e1){}
-  /* 고쳐 둔 이름과 기준은 버린다 — '상부'·'중부' 는 합쳐진 근육의 이름이
-     아니고, 예전 기준은 반쪽짜리 근육의 것이다. */
-  delete SUBX.ren.uc;delete SUBX.renEn.uc;delete SUBX.hide.uc;
-  delete SUBX.ren.mc;delete SUBX.renEn.mc;
-  for(var p in SUBX.ord)SUBX.ord[p]=SUBX.ord[p].filter(function(x){return x!=='uc';});
-  delete LMX.uc;delete LMX.mc;
-  subxSave();lmxSave();lmxApply();
   if(chg)save();
-  try{localStorage.setItem(KEY+'.mig.pec','1');}catch(e2){}
+  /* 옛 체계가 쓰던 사용자 설정은 뜻을 잃었다 — 열둘은 이름도 차례도 고정이고,
+     기준치는 새 표(MMX)가 든다. */
+  try{
+    localStorage.removeItem(KEY+'.subx');
+    localStorage.removeItem(KEY+'.lmx');
+    localStorage.removeItem(KEY+'.mig.pec');
+    localStorage.setItem(KEY+'.mig.mm','1');
+  }catch(e1){}
 })();
 var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'LEGS':[10,14,22,26],'ARMS·ETC':[8,12,18,22]};
 /* hideVd — 묶음 머리가 이미 그 판정을 말하고 있으면 줄마다 또 적지 않는다.
@@ -6775,7 +6570,9 @@ var LMKP={'CHEST':[8,12,20,22],'BACK':[10,14,22,25],'SHOULDERS':[12,18,26,30],'L
 /* 셋째 인자 이름이 L 이라 이 함수 안에서 번역 함수 TX() 이 가려져 있었다 — LM 으로 바꾼다 */
 /* goal — 사용자가 정한 주간 세트 목표. 없으면(미추적·회피) 안 그린다. */
 function lmRow(nm,cur,LM,hideVd,easy,goal){
-  var mrv=Math.round(LM[3]*0.8);
+  /* 적어 둔 MRV 가 곧 선이다 — 예전의 0.8 보정은 기준치를 사람이 못 고치던
+     시절의 안전장치였다. 눈금과 판정이 같은 수를 봐야 한다. */
+  var mrv=LM[3];
   /* 감량 보정을 MRV 에만 걸고 존에는 안 걸면, 가슴 19~20세트가 'MAV 존 안'
      이면서 동시에 '보정 MRV 초과' 가 된다. 존을 보정 MRV 에서 끊는다 —
      감량 중에 넘지 말아야 할 선 너머까지 권장 구간으로 칠할 이유가 없다. */
@@ -7022,143 +6819,10 @@ function lbmSplit(b0,b1){
    고치려면 편집 시트를 열어 다섯 걸음을 밟아야 했다. */
 /* 주동근 정리도 이름만 적으면 그립 둘이 같은 줄로 보인다 —
    정작 여기서 그립마다 주동근을 달리 잡는데도. */
-function clsCheckHtml(){
-  var PN4={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
-  var ORD=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'];
-  var byP={},i,q,nbad=0,tot=0;
-  for(i=0;i<S.m.length;i++){
-    var m=S.m[i];
-    if(isCard(m.p))continue;
-    tot++;
-    var k=subOf(m),ep=null;
-    for(q=0;q<SUBS.length;q++)if(SUBS[q].k===k)ep=SUBS[q].p;
-    /* 못 잡은 것과, 잡았지만 이 부위의 근육이 아닌 것을 갈라 센다.
-       뒤엣것은 틀렸다기보다 알려 줄 값이다 — 팔에 넣은 딥스가 가슴으로
-       잡히는 것은 실제로 가슴을 쓰기 때문이다. */
-    var none=!k, oth=(!!k&&ep!==m.p);
-    if(none)nbad++;
-    (byP[m.p]=byP[m.p]||[]).push({m:m,k:k,sn:k?subName(k):'',none:none,oth:oth,
-      manual:subValid(m.sk),s2:subSec(m).map(function(x){return subName(x);})});
-  }
-  if(!tot)return '';
-  /* 손봐야 할 것 = 미분류 + 다른 부위의 근육으로 잡힌 것.
-     이 목록을 보러 오는 이유가 그것이고, 제대로 잡힌 것은 평소에 볼 일이 없다. */
-  var nfix=0,pi0;
-  for(pi0 in byP)byP[pi0].forEach(function(r){if(r.none||r.oth)nfix++;});
-  var all=!!UI.skAll;
-  var h='<div class="sh-l skhd" style="margin-top:16px">'+TX('주동근 정리')
-    +'<span style="font-weight:400;letter-spacing:0;color:'+(nbad?'var(--sig)':'var(--dim)')+'"> '
-    +(nbad?TX1('{0}개 미분류',nbad):(nfix?TX1('{0}개 확인 필요',nfix):TX1('{0}개 전부 분류됨',tot)))+'</span>'
-    +'<button class="sxadd" style="margin-left:auto" data-act="skall">'
-    +(all?TX('접기'):TX1('전체 {0}개',tot))+'</button></div>';
-  if(!all&&!nfix)h+='<div class="note" style="margin:0 0 4px">'+TX('손볼 것이 없음 — 전체를 보려면 위를 누름')+'</div>';
-  for(var pi=0;pi<ORD.length;pi++){
-    var P2=ORD[pi],rows=byP[P2];
-    if(!rows||!rows.length)continue;
-    /* 고칠 것이 먼저 보여야 한다 */
-    rows.sort(function(a,b){
-      var av=(a.none?0:(a.oth?1:2)),bv=(b.none?0:(b.oth?1:2));
-      return av!==bv?av-bv:(a.m.n<b.m.n?-1:1);
-    });
-    /* 펼치지 않았으면 손볼 것만. 부위 머리글도 보여 줄 줄이 있을 때만 —
-       안 그러면 빈 머리글 다섯이 남는다. */
-    var show=all?rows:rows.filter(function(x){return x.none||x.oth;});
-    if(!show.length)continue;
-    h+='<div class="bhd" style="margin-top:11px">'+TX(PN4[P2]||P2)
-      +'<i>'+show.length+(all?'':' / '+rows.length)+'</i></div>';
-    for(i=0;i<show.length;i++){
-      var r=show[i],id=r.m.i,open=(UI.skOpen===id);
-      h+='<div class="ckrow'+(r.none?' bad':(r.oth?' oth':''))+'" data-act="sko" data-v="'+id+'">'
-        +'<span class="nm2">'+esc(r.m.n)+(r.m.b?' '+esc(r.m.b):'')+'</span>'
-        +'<span class="au">'+(r.manual?TX('지정'):TX('자동'))+'</span>'
-        +'<span class="ar">&#8594;</span>'
-        +'<span class="sb">'+(r.sn?esc(r.sn):TX('미분류'))
-        +(r.s2.length?' + '+esc(r.s2.join('½ · '))+'½':'')+'</span></div>';
-      if(open){
-        h+='<div class="skrow"><span class="skcap">'+TX1('{0} — 주동근 고르기',esc(r.m.n))+'</span>'
-          +'<b class="'+(r.manual?'':'on')+'" data-act="skset" data-v="'+id+'|">'+TX('자동')
-          +(r.manual?'':(r.sn?' · '+esc(r.sn):' · '+TX('미분류')))+'</b>';
-        for(q=0;q<SUBS.length;q++){
-          /* 이 부위의 근육을 먼저 보이되, 다른 부위 것도 고를 수 있어야 한다 —
-             팔에 넣은 딥스를 가슴으로 지정하고 싶을 수 있다 */
-          /* 지운 근육은 고를 것에서 뺀다 — 목록에서 내려 놓고 여기서는 고를 수
-             있으면, 고른 뒤에 그 근육이 어느 화면에도 안 나온다. */
-          if(SUBS[q].p!==P2||subHidden(SUBS[q].k))continue;
-          h+='<b class="'+(r.manual&&r.m.sk===SUBS[q].k?'on':'')+'" data-act="skset" data-v="'
-            +id+'|'+SUBS[q].k+'">'+esc(subLabel(SUBS[q]))+'</b>';
-        }
-        h+='<span class="skcap" style="margin-top:4px">'+TX('다른 부위')+'</span>';
-        for(q=0;q<SUBS.length;q++){
-          if(SUBS[q].p===P2||subHidden(SUBS[q].k))continue;
-          h+='<b class="'+(r.manual&&r.m.sk===SUBS[q].k?'on':'')+'" data-act="skset" data-v="'
-            +id+'|'+SUBS[q].k+'">'+esc(subLabel(SUBS[q]))+'</b>';
-        }
-        h+='</div>';
-      }
-    }
-  }
-  return h;
-}
-/* 근육 항목 자체를 고치는 자리. 주동근 정리가 '이 종목은 무슨 근육인가'
-   라면 이쪽은 '근육 목록에 무엇을 둘 것인가' 다. */
-function subEditHtml(){
-  var PN4={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔·기타'};
-  var ORD=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC'],i;
-  /* 지운 것은 목록에서 내리고 맨 아래 칸에 모은다. 예전에는 줄마다 보임/숨김
-     단추가 붙어 지운 것과 남은 것이 같은 줄로 섞여 있었고, 더한 항목에만 지움이
-     더 붙어 한 목록이 두 가지 모양이었다. 단추는 줄마다 똑같이 세 개 — ▲ ▼ 지움. */
-  var nh=0;
-  for(i=0;i<SUBS.length;i++)if(subHidden(SUBS[i].k))nh++;
-  var h='<div class="sh-l skhd" style="margin-top:16px">'+TX('근육 항목')
-    +'<span style="font-weight:400;letter-spacing:0;color:var(--dim)"> '
-    +TX1('{0}개',SUBS.length-nh)+'</span>'
-    /* 손질해 놓고 보니 아니더라 할 때가 있다. 하나씩 되돌리면 이름 고침 ·
-       더한 것 · 지운 것 · 차례 · 기준까지 스무 번을 만져야 한다. */
-    +'<button class="sxadd'+(UI.arm==='sxrst'?' arm':'')+'" style="margin-left:auto" data-act="sxrst">'
-    +TX(UI.arm==='sxrst'?'정말?':'기본값으로')+'</button></div>'
-    +'<div class="note" style="margin:0 0 7px">'
-    /* '메인에 안 뜬다' 는 까닭은 줄마다 되풀이할 말이 아니라 규칙이다.
-       여기 한 번 적고, 줄에는 수만 둔다 — 그래야 모든 줄이 같은 모양이 된다. */
-    +TX('이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.')
-    +'</div>';
-  for(var pi=0;pi<ORD.length;pi++){
-    var P2=ORD[pi];
-    h+='<div class="bhd" style="margin-top:10px">'+TX(PN4[P2]||P2)
-      +'<button class="sxadd" data-act="sxadd" data-v="'+esc(P2)+'">'+TX('＋ 추가')+'</button></div>';
-    for(i=0;i<SUBS.length;i++){
-      var e=SUBS[i];
-      if(e.p!==P2||subHidden(e.k))continue;
-      /* 종목 수는 모든 줄에 적는다 — 세는 규칙은 더한 것이나 기본 것이나 같다 */
-      var nu=0,ui2;
-      for(ui2=0;ui2<S.m.length;ui2++)if(!isCard(S.m[ui2].p)&&subHas(S.m[ui2],e.k))nu++;
-      var arm=(UI.arm==='sxdel'+e.k);
-      h+='<div class="sxrow">'
-        +'<input class="sxnm" id="subn-'+esc(e.k)+'" value="'+esc(subLabel(e))+'" '
-        +'placeholder="'+TX('이름')+'" autocomplete="off" maxlength="12">'
-        +'<span class="tagu'+(nu?'':' zero')+'">'+(nu?TX1('종목 {0}',nu):TX('종목 없음'))+'</span>'
-        +'<button class="sxo" data-act="sxmu" data-v="'+esc(e.k)+'"'+(subCanMove(e.k,-1)?'':' disabled')+' aria-label="Up">▲</button>'
-        +'<button class="sxo" data-act="sxmd" data-v="'+esc(e.k)+'"'+(subCanMove(e.k,1)?'':' disabled')+' aria-label="Down">▼</button>'
-        +'<button class="sxb'+(arm?' arm':'')+'" data-act="sxdel" data-v="'+esc(e.k)+'">'
-        +TX(arm?'정말?':'지움')+'</button>'
-        +'</div>';
-    }
-  }
-  /* 지운 것 — 기본 항목은 판올림 때 코드에서 다시 만들어지므로 진짜로 없앨 수가
-     없다. 목록에서 내려 여기 모으고, 되살릴 길을 남겨 둔다. */
-  if(nh){
-    h+='<div class="bhd" style="margin-top:12px">'+TX('지운 항목')+'<i>'+nh+'</i></div>';
-    for(i=0;i<SUBS.length;i++){
-      var e2=SUBS[i];
-      if(!subHidden(e2.k))continue;
-      h+='<div class="sxrow off">'
-        +'<span class="sxnm ro">'+esc(subLabel(e2))+'</span>'
-        +'<span class="tagu zero">'+TX(PN4[e2.p]||e2.p)+'</span>'
-        +'<button class="sxb" data-act="sxhide" data-v="'+esc(e2.k)+'">'+TX('되살림')+'</button>'
-        +'</div>';
-    }
-  }
-  return h;
-}
+/* '주동근 정리'(이름으로 추정한 것을 훑어 고치는 화면)와 '근육 항목'(이름
+   고침·항목 추가·차례)은 걷어냈다. 주동근은 열둘로 고정이고 추정을 하지
+   않으니, 고를 자리는 종목 편집 한 곳이면 된다.
+   기준치를 손보는 자리는 설정 · GOALS 다. */
 /* 쓰는 곳 13군데가 이미 TX(PN_KO[k]) 로 감싸고 있다 — 표는 한국어로 둔다 */
 var PN_KO={'CHEST':'가슴','BACK':'등','SHOULDERS':'어깨','LEGS':'하체','ARMS·ETC':'팔'};
 /* 부위별 유효 세트 변동 — recov 와 acsm 이 같은 그림을 쓰므로 함수로 뺀다.
@@ -8050,10 +7714,9 @@ function vzBody(tab){
    측면 18 을 시켜 놓고 측면:전면후면 50% 를 요구하면 그 목표를 지킨 주가
    반드시 빨강이 된다. 목표값끼리의 비를 쓰면 그 일이 구조적으로 안 생긴다.
    미추적(−1)은 MV 로 친다: '안 노린다' 이지 '0' 이 아니다. 회피(0)만 0. */
+/* '얼마나 해야 하는가' 는 이제 MEV 가 말한다. 예전에는 주간 목표(STG)를
+   따로 받아 눈금과 따로 놀았다. */
 function gvOf(k){
-  var v=STG[k];
-  if(v===0)return 0;
-  if(v>0)return v;
   var L=LMK[k];
   return L?L[0]:0;
 }
@@ -8138,10 +7801,10 @@ function routeToday(){
   var gap=[],noGear=[];
   for(i=0;i<SUBS.length;i++){
     var sb=SUBS[i],k=sb.k;
-    if(subHidden(k)||STG[k]===0)continue;   /* 숨긴 것과 회피는 애초에 안 온다 */
+    if(subHidden(k))continue;
     /* 미추적(−1)은 LMK 의 MV(유지 최소)를 목표로 친다 — '안 노린다' 이지
        '0 으로 만든다' 가 아니다. 균형 목표(gvOf)와 같은 규칙을 쓴다. */
-    var goal=gvOf(k),expl=(STG[k]>0)?1:0;
+    var goal=gvOf(k),expl=1;
     if(!(goal>0))continue;
     var need=goal-(sc[k]||0);
     if(need<=0)continue;                    /* 이번 주 몫은 이미 채웠다 */
@@ -8341,9 +8004,6 @@ function vzTrain(tab){
     /* 회피 목표(0)는 '안 정한 것' 이 아니라 '0 으로 정한 것' 이다. MEV 도 0 이라
        그냥 두면 '기준 미설정' 으로 떨어지는데, 그쪽은 정하라는 말이고 이쪽은
        이미 정해 둔 것이다. 자극이 들어갔으면 미달이 아니라 넘긴 것이다. */
-    if(STG[sb.k]===0)
-      vz2=(cur>0)?{t:'회피 위반',c:'neg',z:'over'}
-                 :{t:'회피 지킴',c:'',ok:1,z:'avoid'};
     /* 묶음 머리가 '가슴' 인데 줄도 '가슴 중하부' 면 같은 말을 두 번 하고,
        그 길이 때문에 이름이 두 줄로 감긴다. 손으로 고쳐 둔 이름에서도 부위
        낱말을 떼어 보여 준다 — 저장된 이름은 안 건드린다(설정에서 고칠 때는
@@ -8356,7 +8016,7 @@ function vzTrain(tab){
        깨진다 — 이 파일이 예전에 그렇게 깨진 적이 있다. */
     var zk=vz2.z||'ok';
     if(!gb[sb.p])gb[sb.p]={over:[],ok:[],under:[],avoid:[],none:[]};
-    gb[sb.p][zk].push([nm2,cur,L,se[sb.k]||0,STG[sb.k],sb.k]);
+    gb[sb.p][zk].push([nm2,cur,L,se[sb.k]||0,MVL[sb.k],sb.k]);
     if(!vz2.ok)gw[sb.p]=(gw[sb.p]||0)+1;
   }
   /* 앞 셋은 판정, 회피는 '0 이 맞다' 는 뜻, 기준 미설정은 정할 것이다.
@@ -8394,11 +8054,15 @@ function vzTrain(tab){
   }
   /* 그 묶음이 있을 때만 어디서 정하는지 말한다. 늘 적어 두면 정할 것이
      하나도 없는 사람에게도 남는 안내다. */
-  if(hs&&anyNone)hs+='<div class="lmnone">'
-    +TX('<b>기준 미설정</b> — MEV 가 0 이라 판정이 안 나옴. 설정 · GOALS 에서 근육 이름을 눌러 정할 수 있음')+'</div>';
-  if(hs)h+='<div class="lmsec">'+vzCap(TX('세부 근육 · 이번 주 · MEV~MRV'))+hs
+  /* 주동근을 안 고른 종목이 있으면 그 세트는 여기 어디에도 안 들어간다.
+     화면이 조용하면 '다 했다' 로 읽히므로 몇 개인지 적는다. */
+  var nmm=0,nq;
+  for(nq=0;nq<S.m.length;nq++)if(!isCard(S.m[nq].p)&&!subOf(S.m[nq]))nmm++;
+  if(hs&&nmm)hs+='<div class="lmnone">'
+    +TX1('주동근 미지정 종목 {0}개 — 종목 편집에서 설정',nmm)+'</div>';
+  if(hs)h+='<div class="lmsec">'+vzCap(TX('주동근 · 이번 주 · MEV~MRV'))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
-    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>목표 <i class="s3"></i>보정 MRV')+'</div></div>';
+    +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV')+'</div></div>';
   var uk=unkWeek();
   if(uk>0)h+='<div class="lmunk">'
     +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨',uk)+'</div>';
@@ -8822,7 +8486,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 19:40';
+var BUILD='2026-09-18 21:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9651,7 +9315,6 @@ var EN={
 '{0} 초과':'{0} over',
 '{0} 더 먹어도 됨':'{0} still available',
 '단백질':'Protein','탄수':'Carbs','지방':'Fat',
-'적정':'target','최소':'min','충족':'met',
 '{0}{1} 더':'{0}{1} to go',
 '단백질·지방만으로 목표 {0}kcal 를 다 써 <b>탄수 눈금이 없음</b> — 설정 · Macro floors 에서 지방 g/kg 을 낮추면 몫이 생김':'Protein and fat alone use up the {0} kcal target, so <b>carbs have no scale</b> — lower fat g/kg under Settings · Macro floors to make room',
 /* ── 끼니 ── */
@@ -9750,6 +9413,21 @@ var EN={
 '기준 세트 · 주':'Landmarks · sets per week',
 /* 묶음 이름은 소문자로 — 바로 옆 '적정'(target)·'미달'(under) 과 짝을 맞춘다 */
 '기준 미설정':'no landmark',
+'주동근':'Prime mover',
+'미지정':'Not set',
+'가슴':'Chest',
+'등':'Back',
+'승모':'Traps',
+'측면·후면삼각':'Side & rear delt',
+'복근':'Abs',
+'주동근 기준 · 주 세트':'Prime-mover landmarks · sets/week',
+'기준치를 기본값으로 되돌림':'Landmarks restored to defaults',
+'세트는 여기 고른 근육 하나에만 들어감 · 기준치가 간접 자극을 이미 품고 있어 다른 근육에는 안 나눔':'A set counts once, for the muscle chosen here — the landmarks already account for indirect work, so nothing is split off to other muscles',
+'이름 옆 수는 이번 주 유효 세트(RIR 0~3) · 순서가 뒤바뀜면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨':'The number beside each name is this week’s working sets (RIR 0–3) · out-of-order values are sorted ascending · press <b>SAVE GOALS</b> to store',
+'주동근 미지정 종목 {0}개 — 종목 편집에서 설정':'{0} exercises have no prime mover — set it in the exercise editor',
+'주동근 · 이번 주 · MEV~MRV':'Prime mover · this week · MEV–MRV',
+'<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
+'적정':'target','최소':'min','충족':'met',
 '기본값으로':'Reset',
 '근육 항목을 기본값으로 되돌림':'Muscle list restored to defaults',
 '대흉근':'Pecs',
@@ -10451,32 +10129,22 @@ function vzVerdict(cur,goal){
   return {t:TX('목표 미달'),c:'neg'};
 }
 /* 랜드마크는 목표 대비가 아니라 구간 안에 있는지로 본다 */
+/* 판정은 셋뿐이다. MEV 미만이면 미달, MEV~MRV 는 적정, MRV 를 넘으면 초과.
+   MEV 가 0 인 것(승모·둔근·복근)은 미달이 없다 — 0 세트여도 적정이다.
+   예전에는 MRV 에 0.8 을 곱한 '보정 MRV' 로 끊었는데, 기준치를 사람이
+   직접 정하는 지금은 적어 둔 수가 곧 선이다. */
 function vzZone(cur,L,easy){
   cur=+cur||0;easy=+easy||0;
-  var mrv=Math.round(L[3]*0.8);                 /* 감량기 보정 — lmRow 와 같은 식 */
-  var z1=Math.min(L[1],mrv),z2=Math.min(L[2],mrv);
-  /* 어느 랜드마크를 넘고 못 미치는지를 낱말이 말해야 한다 — '초과' 만으로는
-     MEV 를 넘었다는 말인지 MRV 를 넘었다는 말인지 알 수 없다.
-     ok 는 '손댈 것이 아님' 표시다. 이것을 글자로 견주면 이름을 바꾸는 순간
-     조용히 깨진다 — 예전에 그렇게 깨진 적이 있다. */
+  var mev=L[0],mrv=L[3];
   if(cur>mrv)return {t:'MRV 초과',c:'neg',z:'over'};
-  if(cur>=Math.round(mrv*0.9))return {t:'MRV 근접',c:'warn',z:'over'};
-  if(cur<L[0]){
-    /* 유효 세트로는 MEV 를 못 넘는데 버린 세트를 얹으면 넘는다 —
-       세트가 모자란 게 아니라 가벼웠던 것이다. 낱말만 바꾸고 열쇠는
-       under 로 둔다: 묶음은 여전히 '손댈 것' 쪽이라야 한다.
-       다 합쳐도 MEV 미달이면 그건 진짜 볼륨 부족이라 안 건드린다. */
-    if(easy>=2&&cur+easy>=L[0])return {t:'강도 부족',c:'neg',z:'under'};
+  if(mev>0&&cur<mev){
+    /* 유효 세트로는 MEV 를 못 넘는데 버린 세트를 얹으면 넘는다 — 세트가
+       모자란 게 아니라 가벼웠던 것이다. 묶음은 그대로 손댈 것에 둔다. */
+    if(easy>=2&&cur+easy>=mev)return {t:'강도 부족',c:'neg',z:'under'};
     return {t:'MEV 미만',c:'neg',z:'under'};
   }
-  if(cur>=z1&&cur<=z2)return {t:'MAV 안',c:'pos',ok:1,z:'ok'};
-  /* MEV 를 0 으로 둔 근육은 '얼마나 해야 하는지 아직 안 정했다' 는 뜻이다.
-     그런데 MEV 0 은 'cur<L[0]' 을 영원히 거짓으로 만들어, 한 세트도 안 한
-     근육이 '적정' 으로 떨어졌다 — 0 옆에 적정이 붙으면 화면이 거짓말을 한다.
-     정할 일이지 할 일은 아니므로 손댈 것(ok)에는 안 넣고 묶음만 따로 낸다.
-     MAV 구간 안이거나 MRV 를 넘긴 것은 위에서 이미 갈렸으므로 여기 안 온다. */
-  if(!L[0]&&cur<z1)return {t:'기준 미설정',c:'',ok:1,z:'none'};
-  return {t:'유지 구간',c:'',ok:1,z:'ok'};
+  if(cur>=L[1]&&cur<=L[2])return {t:'MAV 안',c:'pos',ok:1,z:'ok'};
+  return {t:'적정',c:'',ok:1,z:'ok'};
 }
 
 /* ── 화면 조각 ──
@@ -10995,7 +10663,7 @@ document.addEventListener('click',function(e){
   var t=e.target.closest('[data-act]');if(!t)return;
   syncFromDom();
   var act=t.getAttribute('data-act'),v=t.getAttribute('data-v');
-  if(act!=='dm'&&act!=='rs'&&act!=='sd'&&act!=='ds'&&act!=='dfdc'&&act!=='sxdel'&&act!=='sxrst')UI.arm=null;
+  if(act!=='dm'&&act!=='rs'&&act!=='sd'&&act!=='ds'&&act!=='dfdc'&&act!=='mmrst')UI.arm=null;
   switch(act){
     case 'ts':
       TMR.b=0;TMR.ts=Date.now();
@@ -11148,13 +10816,13 @@ document.addEventListener('click',function(e){
         S=UNDO.s;if(UNDO.off)OFF=UNDO.off;offSave();UNDO=null;save();render();toast('<em>Restored</em>');
       }
       break;
-    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addMc='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editSk='';UI.editSk2=[];UI.editCt='tread';UI.pickOpen='';render();break;
+    case 'ad':UI.sheet='add';UI.addName='';UI.addBrand='';UI.addLine='';UI.addVar='';UI.addMc='';UI.addPart=UI.filter;UI.editStep=2.5;UI.editRx=12;UI.editAs=false;UI.editMm='';UI.editCt='tread';UI.pickOpen='';render();break;
     case 'ed':
       (function(){
         var m=machById(UI.open);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editSk2=subSec(m);UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editMm=subValid(m.mm)?m.mm:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -11192,7 +10860,7 @@ document.addEventListener('click',function(e){
        그립 칸만 비운다 — 주동근은 일부러 물려주지 않는다: 그립을 바꾸는
        까닭이 보통 근육을 바꾸려는 것이라 자동 추정에 맡기는 편이 낫다. */
     case 'vadd':
-      UI.sheet='add';UI.addVar='';UI.editSk='';UI.editSk2=[];UI.editId=null;
+      UI.sheet='add';UI.addVar='';UI.editMm='';UI.editId=null;
       render();
       break;
     /* 이 기구로 운동 하나 더. 기구·브랜드·라인·부위·증량 설정을 덩이의 첫 줄에서
@@ -11205,7 +10873,7 @@ document.addEventListener('click',function(e){
         UI.sheet='add';UI.editId=null;
         UI.addName='';UI.addVar='';UI.addMc=m0.mc||'';UI.addBrand=m0.b||'';UI.addLine=m0.ln||'';
         UI.addPart=m0.p;UI.editStep=(m0.st>0?m0.st:2.5);UI.editRx=(m0.rx>0?m0.rx:12);
-        UI.editAs=!!m0.as;UI.editSk='';UI.editSk2=[];UI.editCt=cKind(m0);UI.pickOpen='';
+        UI.editAs=!!m0.as;UI.editMm='';UI.editCt=cKind(m0);UI.pickOpen='';
         render();
       })();
       break;
@@ -11354,17 +11022,8 @@ document.addEventListener('click',function(e){
        것이 주동근, 그 뒤는 보조. 고른 것을 다시 누르면 뺀다 — 주동근을 빼면
        첫 보조가 주동근으로 올라온다. 칸은 닫지 않는다: 둘째를 고르러 다시
        열게 하면 두 번 누를 것이 네 번이 된다. */
-    case 'psk':
-      (function(){
-        var s2=(UI.editSk2||[]).slice(),ix=s2.indexOf(v);
-        if(!subValid(v)){UI.editSk='';UI.editSk2=[];UI.pickOpen='';}
-        else if(UI.editSk===v){UI.editSk=s2.length?s2[0]:'';UI.editSk2=s2.slice(1);}
-        else if(ix>=0){s2.splice(ix,1);UI.editSk2=s2;}
-        else if(!UI.editSk)UI.editSk=v;
-        else{s2.push(v);UI.editSk2=s2;}
-        render();
-      })();
-      break;
+    /* 하나만 고른다. 고른 것을 다시 누르면 미지정으로 돌아간다. */
+    case 'pmm':UI.editMm=(UI.editMm===v)?'':(subValid(v)?v:'');render();break;
     case 'pkop':UI.pickOpen=(UI.pickOpen===v)?'':v;render();break;
     case 'pb':UI.addBrand=v;UI.addLine='';UI.pickOpen=v?'line':'';render();break;
     case 'pmc':UI.addMc=(cleanMc(UI.addMc)===v)?'':v;UI.pickOpen='';render();break;
@@ -11437,119 +11096,12 @@ document.addEventListener('click',function(e){
         applyTheme();render();
       }
       break;
-    case 'sxadd':{
-      /* 칸을 따로 띄워 부위와 이름을 받는 것보다 걸음이 적다 — 만들고
-         바로 이름을 고치면 된다 */
-      var mx=0;
-      for(var ai=0;ai<SUBS.length;ai++){
-        var mm2=/^u(\d+)$/.exec(SUBS[ai].k);
-        if(mm2&&+mm2[1]>mx)mx=+mm2[1];
-      }
-      var nk='u'+(mx+1);
-      SUBX.add.push({k:nk,p:v,n:TX('새 근육')});
-      SUBS.push({k:nk,p:v,n:TX('새 근육'),d:0,r:/(?!)/,user:1});
-      /* SUBRX 는 SUBS 에서 파생되는데 그 파생이 켤 때 한 번만 돈다.
-         여기서 같이 안 채우면 쓰다가 더한 항목만 표에서 빠진다. */
-      SUBRX[nk]=/(?!)/;
-      if(!LMK0[nk])LMK0[nk]=[0,4,8,12];
-      if(!LMK[nk])LMK[nk]=LMK0[nk].slice();
-      if(STG[nk]===undefined)STG[nk]=-1;
-      /* 새 항목은 그 부위 맨 끝에 세운다. 안 적어 두면 차례를 한 번이라도
-         손댄 부위에서 새것이 적힌 것들보다 앞으로 튀어 오른다. */
-      SUBX.ord[v]=subOrdKeys(v);
-      subxSave();subxSort();render();
-      var el2=document.getElementById('subn-'+nk);
-      if(el2){el2.focus();el2.select();}
-      break;
-    }
-    /* 근육 항목을 통째로 기본값으로. 주간 목표(STG)는 안 건드린다 —
-       그것은 이 화면이 아니라 GOALS 에서 정한 것이다. */
-    case 'sxrst':
-      if(UI.arm!=='sxrst'){UI.arm='sxrst';render();break;}
-      UI.arm=null;
-      (function(){
-        var gone={},i,k;
-        for(i=0;i<SUBX.add.length;i++)gone[SUBX.add[i].k]=1;
-        for(i=SUBS.length-1;i>=0;i--)if(SUBS[i].user)SUBS.splice(i,1);
-        /* 없어진 근육을 가리키는 종목은 지정을 푼다 — 그대로 두면 어느
-           화면에도 안 나오면서 볼륨에만 남는다 */
-        for(i=0;i<S.m.length;i++){
-          if(gone[S.m[i].sk])delete S.m[i].sk;
-          if(S.m[i].sk2){
-            S.m[i].sk2=S.m[i].sk2.filter(function(x){return !gone[x];});
-            if(!S.m[i].sk2.length)delete S.m[i].sk2;
-          }
-        }
-        for(k in gone){delete SUBRX[k];delete LMK[k];delete LMK0[k];delete STG[k];}
-        SUBX={ren:{},renEn:{},hide:{},add:[],ord:{}};
-        LMX={};
-        subxSave();lmxSave();lmxApply();subxSort();save();
-        UI.skOpen='';UI.lmOpen='';render();
-        toast(TX('근육 항목을 기본값으로 되돌림'));
-      })();
-      break;
-    case 'sxmu':subMove(v,-1);break;
-    case 'sxmd':subMove(v,1);break;
-    /* 지운 것을 되돌린다 — '지운 항목' 칸의 단추 */
-    case 'sxhide':
-      SUBX.hide[v]=subHidden(v)?0:1;
-      subxSave();render();break;
-    case 'sxdel':{
-      /* 기본 항목은 목록에서 내리기만 한다 — 판올림 때 코드에서 다시
-         만들어지므로 배열에서 빼 봐야 다음에 켜면 돌아온다. 내린 것은
-         '지운 항목' 칸에 모여 되살릴 수 있다.
-         내가 더한 것은 진짜로 없앤다. 그쪽은 되돌릴 수 없고 그 근육을 쓰던
-         종목의 지정까지 풀리므로, 한 번 더 묻고 나서 지운다. */
-      var ud=false,uq;
-      for(uq=0;uq<SUBS.length;uq++)if(SUBS[uq].k===v&&SUBS[uq].user)ud=true;
-      if(!ud){
-        SUBX.hide[v]=1;UI.arm=null;
-        subxSave();render();
-        toast(TX1('{0} 지움 — 아래 <b>지운 항목</b> 에서 되살릴 수 있음',esc(subName(v)||v)));
-        break;
-      }
-      if(UI.arm!=='sxdel'+v){UI.arm='sxdel'+v;render();break;}
-      UI.arm=null;
-      SUBX.add=SUBX.add.filter(function(x){return x.k!==v;});
-      delete SUBX.ren[v];delete SUBX.renEn[v];delete SUBX.hide[v];
-      /* 차례 표에서도 뺀다 — 안 빼면 지운 열쇠가 남아, 같은 번호(u3)를 다시
-         만들었을 때 예전 자리로 끌려간다 */
-      for(var ok in SUBX.ord)SUBX.ord[ok]=SUBX.ord[ok].filter(function(x){return x!==v;});
-      for(var di=SUBS.length-1;di>=0;di--)if(SUBS[di].k===v&&SUBS[di].user)SUBS.splice(di,1);
-      delete SUBRX[v];delete LMK[v];delete LMK0[v];delete LMX[v];delete STG[v];
-      lmxSave();
-      /* 그 근육을 손으로 지정해 둔 종목은 자동으로 되돌린다 */
-      for(di=0;di<S.m.length;di++){
-        if(S.m[di].sk===v)delete S.m[di].sk;
-        if(S.m[di].sk2){
-          S.m[di].sk2=S.m[di].sk2.filter(function(x){return x!==v;});
-          if(!S.m[di].sk2.length)delete S.m[di].sk2;
-        }
-      }
-      subxSave();save();render();break;
-    }
-    case 'skall':UI.skAll=!UI.skAll;UI.skOpen='';render();break;
-    /* 누르면 그 자리에서 열린다. 같은 것을 다시 누르면 닫힌다 */
-    case 'sko':UI.skOpen=(UI.skOpen===v?'':v);render();break;
-    case 'skset':{
-      var pp=String(v||'').split('|'),mm=machById(pp[0]);
-      if(mm){
-        /* 빈 값은 '자동' — sk 를 지우면 subAuto 가 다시 돈다. 한번 손으로
-           지정하면 이름을 바꿔도 추정이 안 도는데 풀 길이 없으면 갇힌다. */
-        if(subValid(pp[1]))mm.sk=pp[1];else delete mm.sk;
-        /* 새 주동근이 보조에도 있으면 거기서 뺀다 — 안 그러면 같은 근육이
-           전부와 절반으로 두 번 세인다 */
-        if(mm.sk2){var s2k=skSecClean(mm.sk2,subOf(mm));if(s2k.length)mm.sk2=s2k;else delete mm.sk2;}
-        save();
-      }
-      UI.skOpen='';render();break;
-    }
     case 'em2':
       (function(){
         var m=machById(v);
         if(!m)return;
         UI.sheet='edit';UI.editId=m.i;
-        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editSk=subValid(m.sk)?m.sk:'';UI.editSk2=subSec(m);UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
+        UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editMm=subValid(m.mm)?m.mm:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
       })();
@@ -11636,23 +11188,39 @@ document.addEventListener('click',function(e){
         var fe=document.getElementById('bhFile');if(fe)fe.click();
       })();
       break;
-    case 'lmo':UI.lmOpen=(UI.lmOpen===v?'':v);render();break;
+    /* 근육 항목을 기본 기준치로. 주동근 지정(mm)은 안 건드린다 —
+       그것은 종목마다 고른 것이지 이 화면의 값이 아니다. */
+    case 'mmrst':
+      if(UI.arm!=='mmrst'){UI.arm='mmrst';render();break;}
+      UI.arm=null;MMX={};mmxSave();mmxApply();render();
+      toast(TX('기준치를 기본값으로 되돌림'));
+      break;
     case 'wg':
       (function(){
-        /* 펼쳐 둔 기준값 칸이 있으면 같이 거둔다. 이 화면의 다른 수와 같은
-           단추로 저장돼야 '어느 것은 여기, 어느 것은 저기' 가 안 생긴다. */
-        if(UI.lmOpen){
-          var q0=document.getElementById('lm0'),q1=document.getElementById('lm1'),
-              q2=document.getElementById('lm2'),q3=document.getElementById('lm3');
-          if(q0&&q1&&q2&&q3){
-            var raw=[q0.value,q1.value,q2.value,q3.value];
-            var blank=true,bi3;
-            for(bi3=0;bi3<4;bi3++)if(String(raw[bi3]).trim())blank=false;
-            if(blank)delete LMX[UI.lmOpen];
-            else{var nrm=lmNorm(raw);if(nrm)LMX[UI.lmOpen]=nrm;}
-            lmxSave();lmxApply();
+        /* 주동근 기준치 — 열둘 × 다섯 칸. 이 화면의 다른 수와 같은 단추로
+           저장돼야 '어느 것은 여기, 어느 것은 저기' 가 안 생긴다. */
+        var mi,me;
+        for(mi=0;mi<SUBS.length;mi++){
+          var ids=['mv'+mi,'me'+mi,'ma'+mi,'mb'+mi,'mr'+mi],raw=[],okA=true,z;
+          for(z=0;z<5;z++){
+            me=document.getElementById(ids[z]);
+            if(!me){okA=false;break;}
+            raw.push(me.value);
           }
+          if(!okA)continue;
+          var blank=true,b2;
+          for(b2=0;b2<5;b2++)if(String(raw[b2]).trim())blank=false;
+          if(blank){delete MMX[SUBS[mi].k];continue;}
+          var nrm=mmNorm(raw),kk=SUBS[mi].k;
+          /* 기본값과 같으면 안 적어 둔다. 그냥 적어 두면 손 안 댄 열한 줄까지
+             '고친 값' 이 되어, 기본값이 바뀌어도 영영 안 따라오고 '기본값으로'
+             단추도 할 일이 없어진다. */
+          if(!nrm){continue;}
+          var dfl=[MVL0[kk]].concat(LMK0[kk]),same=true,dq;
+          for(dq=0;dq<5;dq++)if(nrm[dq]!==dfl[dq])same=false;
+          if(same)delete MMX[kk];else MMX[kk]=nrm;
         }
+        mmxSave();mmxApply();
         var ids=['wt0','wt1','wt2','wt3','wt4','wt5'],ks=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC','CARDIO'],i;
         for(i=0;i<ids.length;i++){
           var el=document.getElementById(ids[i]);if(!el)continue;
@@ -11706,15 +11274,6 @@ document.addEventListener('click',function(e){
           if(fv2>=0.3&&fv2<=1.5){FAT_PER_KG=Math.round(fv2*10)/10;
             if(canLS){try{localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));}catch(eF){}}}
         }
-        var si;
-        for(si=0;si<SUBS.length;si++){
-          var sEl=document.getElementById('st'+si);if(!sEl)continue;
-          var sv=String(sEl.value).replace(/[^0-9]/g,'');
-          if(sv===''){STG[SUBS[si].k]=-1;continue;}
-          var sn=Math.floor(+sv);
-          if(sn>=0&&sn<=30)STG[SUBS[si].k]=sn;
-        }
-        if(document.getElementById('st0')&&canLS){try{localStorage.setItem(KEY+'.st',JSON.stringify({v:2,t:STG}));}catch(eS){}}
         var pcEl=document.getElementById('pc0');
         if(pcEl){
           var pw2=parseFloat(String(pcEl.value).replace(',','.'));
@@ -11833,19 +11392,6 @@ document.addEventListener('keydown',function(e){
 
 document.addEventListener('input',function(e){
   if(e.target.id==='q'){UI.q=e.target.value;renderChips();renderList();return;}
-  /* 근육 이름 — 비우면 덧칠을 지워 기본 이름으로 돌아간다 */
-  if(e.target.id&&e.target.id.indexOf('subn-')===0){
-    /* 긴 이름은 알약이 화면을 넘는다. 12자에서 끊는다 */
-    var sk2=e.target.id.slice(5),vv=e.target.value.trim().slice(0,12);
-    /* 지금 보고 있는 말의 칸에 넣는다. 영어 화면에서 고친 이름이 한국어
-       이름을 덮어쓰면, 말을 되돌렸을 때 원래 이름이 사라진다. */
-    var box=(LANG==='en')?SUBX.renEn:SUBX.ren;
-    if(vv)box[sk2]=vv;else delete box[sk2];
-    var ad=SUBX.add.filter(function(x){return x.k===sk2;})[0];
-    if(ad&&vv)ad.n=vv;
-    subxSave();
-    return;
-  }
   if(e.target.id==='inW'){UI.w=e.target.value;syncBtns();hintRefresh();}
   if(e.target.id==='inR'){UI.r=e.target.value;syncBtns();hintRefresh();}
   if(e.target.id==='inI'){UI.ci=e.target.value;hintRefresh();}
