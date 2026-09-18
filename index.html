@@ -4104,7 +4104,7 @@ function renderSheet(){
           hh+='<div class="stpt">'+TX(PN[PO[gi]])+'</div>';
           for(si4=0;si4<SUBS.length;si4++){
             var e2=SUBS[si4];
-            if(e2.p!==PO[gi])continue;
+            if(e2.p!==PO[gi]||subHidden(e2.k))continue;
             var goal=gpStg(e2.k),cur=sc[e2.k];
             var mid;
             if(goal===0){
@@ -6924,13 +6924,15 @@ function clsCheckHtml(){
         for(q=0;q<SUBS.length;q++){
           /* 이 부위의 근육을 먼저 보이되, 다른 부위 것도 고를 수 있어야 한다 —
              팔에 넣은 딥스를 가슴으로 지정하고 싶을 수 있다 */
-          if(SUBS[q].p!==P2)continue;
+          /* 지운 근육은 고를 것에서 뺀다 — 목록에서 내려 놓고 여기서는 고를 수
+             있으면, 고른 뒤에 그 근육이 어느 화면에도 안 나온다. */
+          if(SUBS[q].p!==P2||subHidden(SUBS[q].k))continue;
           h+='<b class="'+(r.manual&&r.m.sk===SUBS[q].k?'on':'')+'" data-act="skset" data-v="'
             +id+'|'+SUBS[q].k+'">'+esc(subLabel(SUBS[q]))+'</b>';
         }
         h+='<span class="skcap" style="margin-top:4px">'+TX('다른 부위')+'</span>';
         for(q=0;q<SUBS.length;q++){
-          if(SUBS[q].p===P2)continue;
+          if(SUBS[q].p===P2||subHidden(SUBS[q].k))continue;
           h+='<b class="'+(r.manual&&r.m.sk===SUBS[q].k?'on':'')+'" data-act="skset" data-v="'
             +id+'|'+SUBS[q].k+'">'+esc(subLabel(SUBS[q]))+'</b>';
         }
@@ -8168,15 +8170,21 @@ function vzTrain(tab){
   for(i=0;i<SUBS.length;i++){
     var sb=SUBS[i],L=LMK[sb.k];
     if(!L)continue;
+    /* 설정의 근육 항목과 같은 것을 보인다. 두 가지가 어긋나 있었다 —
+       지운 근육이 여기에는 그대로 떴고(숨김 검사가 없었다), 목록에 있는데
+       MEV 가 0 이고 이번 주 0 세트면 여기서 빠졌다. 뒤엣것이 하필 직접
+       더한 근육이다(기본값 MEV 0): 애써 만들어 넣고 분석에서는 못 찾는다. */
+    if(subHidden(sb.k))continue;
     var cur=sc[sb.k]||0;
-    if(!cur&&!L[0]&&!(STG[sb.k]===0))continue;
     var vz2=vzZone(cur,L,se[sb.k]||0);
     /* 묶음 머리가 '가슴' 인데 줄도 '가슴 중하부' 면 같은 말을 두 번 하고,
        그 길이 때문에 이름이 두 줄로 감긴다. 손으로 고쳐 둔 이름에서도 부위
        낱말을 떼어 보여 준다 — 저장된 이름은 안 건드린다(설정에서 고칠 때는
        자기가 적은 말이 그대로 보여야 한다). */
-    var own2=(LANG==='en')?SUBX.renEn[sb.k]:SUBX.ren[sb.k];
-    var nm2=own2?subBare(own2,sb.p):(sb.user?sb.n:TX(sb.n));
+    /* 이름은 다른 화면과 같은 길로 낸다(subLabel). 예전에는 고쳐 둔 이름만
+       부위 낱말을 빼고 직접 더한 이름은 안 빼, 같은 나무 안에서 '하부' 와
+       '가슴 하부' 가 나란히 섰다. 주동근 고르개도 같은 짝을 쓴다. */
+    var nm2=subBare(subLabel(sb),sb.p);
     /* 가르는 열쇠는 vz.z 다. 화면 낱말로 견주면 이름을 바꾸는 순간 조용히
        깨진다 — 이 파일이 예전에 그렇게 깨진 적이 있다. */
     var zk=vz2.z||'ok';
@@ -8638,7 +8646,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-18 16:45';
+var BUILD='2026-09-18 17:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
