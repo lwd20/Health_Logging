@@ -1855,7 +1855,10 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .hstep{display:flex;gap:10px;margin-bottom:12px}
 .hstep b{flex:0 0 21px;height:21px;border-radius:50%;background:rgba(var(--acc-rgb),.16);color:var(--acc-br);font-family:var(--mono);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .hstep span{flex:1;min-width:0;font-size:12px;line-height:1.5;color:var(--mut)}
-.hstep span em{font-style:normal;display:block;color:var(--tx);font-weight:700;font-size:13px;margin-bottom:2px}
+/* 제목(첫 em)만 한 줄을 차지한다. 본문 속 <em> 까지 block 이 되어 '종목을 열고 /
+   EDIT / .' 처럼 강조어마다 줄이 끊겼다. 본문 강조는 글 흐름 안에 둔다. */
+.hstep span em.ht{font-style:normal;display:block;color:var(--tx);font-weight:700;font-size:13px;margin-bottom:2px}
+.hstep span em{font-style:normal;color:var(--tx);font-weight:700}
 .hcap{margin:18px 0 8px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--chrome);opacity:.85}
 .htr{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(var(--tx-rgb),.055)}
 .htr:last-child{border-bottom:0}
@@ -1946,8 +1949,11 @@ html{color-scheme:dark}
   border:none;border-bottom:2px solid transparent;border-radius:0;color:var(--dim);
   font-size:9.5px;font-weight:700;letter-spacing:.06em;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
-.hrail{flex:0 0 82px;padding-right:10px;margin-right:12px}
-.hrail .dtb{height:auto;min-height:46px;padding:9px 0 9px 10px;white-space:normal;line-height:1.35;letter-spacing:.01em;font-size:11px}
+/* 도움말 탭 — 여덟 칸이라 한 줄에 다 안 들어간다. 예전 세로 레일 꼴이 남아
+   칸마다 두세 줄로 쪼개졌다('데이 / 터 백 / 업'). 메인 부위 탭처럼 옆으로 민다. */
+.hrail{flex:0 0 auto;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.hrail::-webkit-scrollbar{display:none}
+.hrail .dtb{flex:0 0 auto;min-width:0;height:40px;padding:0 11px;white-space:nowrap;line-height:1;letter-spacing:.02em;font-size:10.5px}
 .drail .dtb.on{border-bottom-color:var(--chrome);color:var(--tx);font-weight:800;
   background:linear-gradient(rgba(var(--acc-rgb),.11),transparent)}
 .dbody{flex:1;min-width:0}
@@ -3518,7 +3524,8 @@ function journalHtml(){
            목록은 'Lv' 로 적어 한 앱이 서로 다른 말을 했다. 게다가 구간마다의
            시간이 빠져 2분 Lv10 + 13분 Lv8 과 그 반대가 똑같이 보였다.
            기록 목록이 쓰는 함수를 그대로 쓴다. */
-        jdt=cardDetail(e.s,jm.n);
+        /* 한 구간이면 분은 바로 옆 머리(jhd)가 이미 적었다 — '35′  35′ 6.5km/h' 가 됐다 */
+        jdt=(e.s.length===1)?cUnitN(e.s[0],jm.n):cardDetail(e.s,jm.n);
       }else{
         /* 보조 머신은 적은 무게가 더 무거운 것이므로 최저값을 대표로 */
         jhd=fmtW(topOfM(jm,e.s))+'kg';
@@ -3721,7 +3728,7 @@ var HTABS=[
   {k:'back',  n:'데이터 백업', t:'기록을 잃지 않으려면'},
   {k:'look',  n:'화면 테마',   t:'색과 질감 바꾸기'}
 ];
-function hStep(n,ttl,txt){return '<div class="hstep"><b>'+n+'</b><span><em>'+ttl+'</em>'+(txt?'<br>'+txt:'')+'</span></div>';}
+function hStep(n,ttl,txt){return '<div class="hstep"><b>'+n+'</b><span><em class="ht">'+ttl+'</em>'+(txt||'')+'</span></div>';}
 function hRow(k,v){return '<div class="htr"><span class="hk">'+k+'</span><span class="hv">'+v+'</span></div>';}
 function hNote(t){return '<div class="hnote">'+t+'</div>';}
 function hCap(t){return '<div class="hcap">'+t+'</div>';}
@@ -3736,10 +3743,10 @@ function helpHtml(){
   if(t==='start'){
     h+=hNote(TX('1~3번만 하면 바로 기록할 수 있음. 나머지는 나중에 채워도 됨.'));
     h+=hStep(1,TX('종목 추가'),TX('부위 탭을 고르고 맨 아래 <em>+ ADD EXERCISE</em>. 프리셋을 누르거나 이름과 브랜드를 직접 입력함.'))
-      +hStep(2,TX('주동근 확인'),TX('종목을 열고 <em>EDIT</em> → Primary muscle. <em>Auto</em> 칩에 앱이 추정한 근육이 적혀 있으므로 틀렸을 때만 바꾸면 됨.'))
+      +hStep(2,TX('세부 부위·주동근 확인'),TX('종목을 열고 <em>EDIT</em>. <em>세부 부위</em>는 메인 목록에서 설 칸, <em>주동근</em>은 MEV~MRV 판정에 쓰임. 둘 다 이름으로 자동 잡히므로 틀렸을 때만 바꾸면 됨.'))
       +hStep(3,TX('어시스트 머신 지정'),TX('친업·딥 어시스트처럼 무게가 클수록 가벼워지는 머신은 같은 화면에서 <em>어시스트</em>로 지정함. 안 하면 성장이 퇴행으로 뒤집혀 계산됨.'))
       +hStep(4,TX('인바디 등록'),TX('설정 · DIET에서 결과지 사진을 올리면 체중과 체지방을 읽어 하루 소비와 목표 칼로리를 계산함. 직접 입력도 됨.'))
-      +hStep(5,TX('주간 목표'),TX('설정 · GOALS에서 부위별·세부별 주간 세트 수와 휴식 요일을 정함.'))
+      +hStep(5,TX('주간 목표'),TX('설정 · GOALS에서 부위별 주간 세트, 주동근별 MEV~MRV 기준, 휴식 요일을 정함.'))
       +hStep(6,TX('AI 키'),TX('설정 · AI에 키를 넣으면 인바디 사진 판독을 쓸 수 있음. 발급 방법은 <em>AI 키</em> 패널에 있음.'));
   }
   if(t==='log'){
@@ -8817,7 +8824,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-19 03:20';
+var BUILD='2026-09-19 04:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10140,6 +10147,9 @@ var EN={
 '좌측 메뉴에서 키 만들기를 누름.':'Press create key in the left menu.',
 '주간 목표':'Weekly goals',
 '주동근 확인':'Check primary muscle',
+'세부 부위·주동근 확인':'Check sub-part and prime mover',
+'종목을 열고 <em>EDIT</em>. <em>세부 부위</em>는 메인 목록에서 설 칸, <em>주동근</em>은 MEV~MRV 판정에 쓰임. 둘 다 이름으로 자동 잡히므로 틀렸을 때만 바꾸면 됨.':'Open the exercise, <em>EDIT</em>. The <em>sub-part</em> decides where it sits in the main list, the <em>prime mover</em> feeds the MEV–MRV verdict. Both are guessed from the name, so change them only when wrong.',
+'설정 · GOALS에서 부위별 주간 세트, 주동근별 MEV~MRV 기준, 휴식 요일을 정함.':'Settings · GOALS sets weekly sets per body part, MEV–MRV landmarks per prime mover, and rest days.',
 '직전 세션 대비 성장률':'Growth against the previous session',
 '직접 하는 백업 · 설정 · DATA':'Manual backup · Settings · DATA',
 '진한 띠':'Dark band',
