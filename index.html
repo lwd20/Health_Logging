@@ -434,7 +434,9 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hit{position:relative}
 .hit::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:max(100%,44px);height:max(100%,44px)}
-.xlink{color:var(--chrome);cursor:pointer;font-size:10px;letter-spacing:.04em}
+.xlink{color:var(--chrome);cursor:pointer;font-size:10px;letter-spacing:.04em;position:relative}
+/* 글 속 링크는 글자만큼만 눌렸다(15px) — 누를 자리만 위아래로 넓힌다 */
+.xlink::after{content:'';position:absolute;left:-4px;right:-4px;top:-9px;bottom:-9px}
 .xlink:active{opacity:.6}
 .stale{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--acc-sf);border:1px solid rgba(var(--acc-rgb),.45);border-radius:3px;padding:2px 6px;margin-left:6px;vertical-align:1px;background:rgba(var(--acc-rgb),.08)}
 .favnote{display:flex;align-items:center;gap:6px;width:100%;margin:8px 0 2px;padding:9px 12px;border:1px solid rgba(var(--acc-rgb),.4);border-radius:3px;background:linear-gradient(180deg,rgba(var(--acc-rgb),.14),rgba(var(--acc-rgb),.08));color:var(--chrome);font-size:11px;font-weight:800;letter-spacing:.1em;text-align:left}
@@ -614,7 +616,7 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
   border:var(--bw) solid rgba(var(--tx-rgb),.07);color:var(--mut);
   font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;
   line-height:1.25}
-.schip i{font-style:normal;font-family:var(--mono);font-size:9.5px;opacity:.55}
+.schip i{font-style:normal;font-family:var(--mono);font-size:9.5px;opacity:.8}
 .schip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .schip.on i{opacity:.85}
 .schip:active{opacity:.6}
@@ -715,10 +717,19 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .frow.chiprow .chip{padding:7px 11px;font-size:11px;font-weight:700}
 /* 설정 시트는 좌측 레일 때문에 본문이 233px로 좁음 — 라벨과 칩을 줄여 한 줄에 맞춤 */
 .dbody .frow{gap:8px;min-height:44px}
+/* 입력칸이 글자 높이(23px)뿐이라 줄의 빈 곳을 누르면 안 잡혔다 — 줄 높이만큼 */
+.frow .fin{align-self:stretch;min-height:36px}
+/* 증량 단위 칩 '1' 이 31px 폭이었다 */
+.frow.chiprow .chip{min-width:40px}
 .dbody .fk{flex:0 0 48px;font-size:11px}
+/* 영어 이름은 길어 'Prime / mover', 'Grip / variant' 로 쪼개졌다 */
+html[lang=en] .fk{flex-basis:84px}
+html[lang=en] .dbody .fk{flex-basis:70px}
 .dbody .frow.chiprow .chip{padding:7px 8px;font-size:10px}
 .frow.pk .fv b{font-size:13px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.frow.pk .fv u{flex:0 0 auto;text-decoration:none;font-size:10px;color:var(--dim);letter-spacing:.02em}
+.frow.pk .fv b{flex:0 0 auto;max-width:72%}
+.frow.pk .fv u{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-decoration:none;font-size:10px;color:var(--dim);letter-spacing:.02em}
 .frow.pk .fv i{flex:0 0 auto;font-style:normal;font-size:13px;color:var(--chrome);width:14px;text-align:center}
 .frow.pk:active{opacity:.6}
 .frow.pk.on{border-bottom-color:transparent}
@@ -746,7 +757,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 /* 고르는 동안 결과가 안 보이면 13,600 가지를 눈감고 고르는 셈이다.
    시트 스크롤 꼭대기에 붙여 두면 무늬 목록 끝까지 내려가도 계속 보인다. */
 /* 탭줄(.drail)이 위에 붙어 있으므로 그 높이만큼 내려서 붙는다 */
-.thprev{position:sticky;top:42px;z-index:6;margin:-2px 0 12px;padding:4px 0 10px;
+.thprev{position:sticky;top:28px;z-index:6;margin:-2px 0 12px;padding:4px 0 10px;
   background:var(--sheet-bg)}
 .tpv{border-radius:var(--rad-l);overflow:hidden;box-shadow:var(--elev)}
 .tpv-top{position:relative;z-index:0;display:flex;align-items:center;gap:8px;
@@ -802,7 +813,7 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
   gap:4px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);
   background:none;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.02em;
   white-space:nowrap;overflow:hidden}
-.dsb u{text-decoration:none;font-family:var(--mono);font-size:9px;font-weight:700;opacity:.7}
+.dsb u{text-decoration:none;font-family:var(--mono);font-size:9px;font-weight:700;opacity:.9}
 .dsb.on{border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
 .dsb:active{opacity:.6}
 .fg1{margin-top:14px}
@@ -1231,6 +1242,7 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
    58px 에 10.5px 를 넣으면 '중부·능형' 이 두 줄로 감긴다. */
 .lmgrp .lmrow .bn{flex-basis:66px;font-size:10.5px;letter-spacing:.02em;color:var(--tx)}
 /* 평면 리스트 — '측면·후면삼각' 이 두 줄로 감겨 그 줄만 키가 컸다 */
+html[lang=en] .lmflat .lmrow .bn{flex-basis:100px}
 .lmflat .lmrow .bn{flex:0 0 84px;font-size:10.5px;letter-spacing:.01em;color:var(--tx);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 초과·적정·미달 세 낱말이 크기도 색도 같아서, 어느 묶음을 보고 있는지를
@@ -1261,12 +1273,12 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .lmflat{padding-left:9px;border-left:2px solid transparent}
 .lmflat.under{border-left-color:var(--acc-br)}
 .lmflat.over{border-left-color:var(--sig)}
-.lmfold{display:flex;align-items:center;gap:6px;width:100%;margin:9px 0 2px;padding:6px 2px;
+.lmfold{display:flex;align-items:center;gap:6px;width:100%;min-height:36px;margin:6px 0 0;padding:6px 2px;
   background:none;border:0;color:var(--dim);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-align:left}
 .lmfold i{font-style:normal;margin-left:auto;font-size:9px}
 .lmfold.on{color:var(--mut)}
 .lmfold:active{opacity:.6}
-.vzfix{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--acc-br)}
+.vzfix{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--acc-br);white-space:nowrap}
 /* 기준 미설정 — 판정이 안 난 것이므로 셋 중 어느 색도 쓰지 않고 물린다.
    조용한 것이 괜찮다는 뜻인 이 파일에서, 이쪽은 '아직 말할 수 없다' 다. */
 /* 회피 — 안 하기로 정한 것이라 0 이 맞다 */
@@ -1885,20 +1897,20 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   background:rgba(var(--tx-rgb),.045)}
 .sxrow.off{opacity:.45}
 .sxnm{flex:1 1 auto;min-width:0;background:none;border:0;outline:0;
-  color:var(--tx);font-size:12px;font-weight:700;font-family:inherit;padding:4px 0}
+  color:var(--tx);font-size:12px;font-weight:700;font-family:inherit;padding:8px 0}
 .sxnm:focus{border-bottom:1px solid var(--acc-br)}
 /* 종목 수 — 모든 줄에 같은 자리. 0 은 '손볼 곳' 이라 색을 달리한다 */
 .sxrow .tagu{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.05em;
   color:var(--acc-br);opacity:.85}
 .sxrow .tagu.zero{color:var(--dim);opacity:1}
-.sxb{flex:0 0 auto;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:700;
+.sxb{flex:0 0 auto;padding:7px 11px;border-radius:100px;font-size:10px;font-weight:700;
   border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);color:var(--mut)}
 .sxb.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .sxb.arm{background:var(--sig);border-color:transparent;color:var(--on-acc)}
 .sxb:active{opacity:.6}
 /* 차례 바꾸기 — 종목 목록의 ▲▼(.ord)와 같은 일이라 같은 모양으로 두되,
    설정 줄은 42px 단추를 세 개 세울 자리가 없어 작게 줄인다. */
-.sxo{flex:0 0 auto;width:26px;height:26px;padding:0;border-radius:var(--rad-s);
+.sxo{flex:0 0 auto;width:32px;height:32px;padding:0;border-radius:var(--rad-s);
   border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--inset);
   color:var(--mut);font-size:9px;line-height:1}
 .sxo:disabled{opacity:.25}
@@ -1908,7 +1920,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   padding:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .skhd{display:flex;align-items:baseline;gap:6px}
 .sxadd.arm{background:var(--sig);border-color:transparent;color:var(--on-acc)}
-.sxadd{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:800;
+.sxadd{padding:7px 11px;border-radius:100px;font-size:10px;font-weight:800;
   border:var(--bw) dashed rgba(var(--tx-rgb),.25);background:none;color:var(--dim)}
 .cdcard{background:var(--sheet-bg);border:1px solid var(--line);border-radius:var(--rad-s);padding:13px 14px 14px;margin-top:10px;box-shadow:inset 0 1px 0 var(--edge),0 2px 8px rgba(0,0,0,.45)}
 .cdcard .t{display:flex;align-items:baseline}
@@ -2089,9 +2101,9 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .pgax .nmx{flex:1 1 0;min-width:0}
 .pgax .spx{flex:0 0 32px}
 .pgax .barx{flex:0 0 56px;display:flex;align-items:center;justify-content:space-between}
-.pgax .barx b{font-family:var(--mono);font-size:7.5px;font-weight:400;color:var(--dim)}
+.pgax .barx b{font-family:var(--mono);font-size:9px;font-weight:400;color:var(--dim)}
 .pgax .barx i{flex:1;height:1px;background:rgba(var(--tx-rgb),.16);margin:0 2px}
-.pgax .vx{flex:0 0 58px;text-align:right;font-size:8px;font-weight:800;
+.pgax .vx{flex:0 0 58px;text-align:right;font-size:9px;font-weight:800;
   letter-spacing:.1em;color:var(--dim)}
 /* 그림이 붙는 줄은 두 칵이다 — 위는 이름·흐름·크기·변화율,
    아래는 절대값. 한 줄에 다 실으면 375px 에서 이름이 세 글자만 남는다. */
@@ -2100,6 +2112,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    이름 길이만큼 막대가 좌우로 밀려, 길이를 견줄 수가 없었다 — 그러면
    그것은 막대가 아니라 무달리다. */
 .pgli.vz>b{flex:1 1 0;min-width:0}
+/* 'Standing Latera…' 처럼 이름이 잘려 무슨 종목인지 몰랐다 — 두 줄까지 보인다 */
+.pgli.vz>b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25}
 .pgli.vz>u{margin-left:0;flex:0 0 58px}
 .pgli b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;font-size:12.5px;font-weight:600;color:var(--tx)}
@@ -2207,7 +2221,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    설명 줄이 길어 세로로 쌓는다 — 375px 에서 한 줄에 다 안 들어간다. */
 .dlw{flex-wrap:wrap}
 .dlw i{flex:1 1 100%;order:3;margin-top:2px}
-.dlw em{cursor:pointer}
+.dlw em{cursor:pointer;min-height:30px;display:inline-flex;align-items:center;padding:0 12px}
 .dlw em.gh{background:transparent;color:var(--mut);border:var(--bw) solid rgba(var(--tx-rgb),.18)}
 .dlw em.gh.armed{background:var(--sig);color:var(--on-acc);border-color:transparent}
 .dlw em:active{opacity:.6}
@@ -2239,7 +2253,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 /* 이름은 줄고 숫자는 온전히 — 잘려도 되는 쪽은 이름이다 */
 .jr{display:flex;justify-content:space-between;align-items:baseline;gap:9px;padding:6px 0;font-size:12px}
 .jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.05)}
-.jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
 /* 그립 — 브랜드 배지와 다른 꼴로 둔다. 브랜드는 누가 만든 기구인가고
    그립은 지금 무엇을 하는가라, 같은 모양이면 둘이 섞인다. */
@@ -2310,12 +2325,16 @@ html{color-scheme:dark}
   font-size:9.5px;font-weight:700;letter-spacing:.06em;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 /* 도움말 탭 — 여덟 칸이라 한 줄에 다 안 들어간다. 예전 세로 레일 꼴이 남아
-   칸마다 두세 줄로 쪼개졌다('데이 / 터 백 / 업'). 메인 부위 탭처럼 옆으로 민다. */
-.hrail{flex:0 0 auto;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.hrail::-webkit-scrollbar{display:none}
-.hrail .dtb{flex:0 0 auto;min-width:0;height:40px;padding:0 11px;white-space:nowrap;line-height:1;letter-spacing:.02em;font-size:10.5px}
+   칸마다 두세 줄로 쪼개졌다('데이 / 터 백 / 업'). 옆으로 밀었더니 오른쪽 세 칸이
+   있는 줄도 모르고, 고른 탭이 화면 밖에 있으면 어느 탭인지도 안 보였다 —
+   네 칸씩 두 줄로 세운다. 칸 안 글자는 한 줄 그대로. */
+.hrail{flex-wrap:wrap;row-gap:0}
+.hrail .dtb{flex:1 0 23%;min-width:0;height:36px;padding:0 3px;white-space:nowrap;line-height:1;letter-spacing:.02em;font-size:10.5px}
 .drail .dtb.on{border-bottom-color:var(--chrome);color:var(--tx);font-weight:800;
   background:linear-gradient(rgba(var(--acc-rgb),.11),transparent)}
+/* 시트는 위에 14px 여백이 있고, 붙박이는 그 여백 아래에 붙는다 — 그 틈으로 밑의
+   글줄이 한 줄 비쳐 보였다. 탭줄을 여백 칸까지 올려 붙인다(미리보기도 같이). */
+.sheet .drail{top:-14px}
 .dbody{flex:1;min-width:0}
 .sheet.tall .dbody{min-height:62dvh}
 .dbody .sh-l:first-child{margin-top:0}
@@ -2575,12 +2594,12 @@ function thPreview(){
   return '<div class="thprev"><div class="tpv">'
     +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
     +'<div class="tpv-body">'
-      +'<div class="tpv-card"><i>\uc12d\ucde8 \uc5ec\uc720</i>'
+      +'<div class="tpv-card"><i>'+TX('\uc12d\ucde8 \uc5ec\uc720')+'</i>'
       +'<b>514<u>kcal</u></b>'
       +'<span class="tpv-bar"><s style="width:62%"></s></span></div>'
       +'<div class="tpv-side">'
         +'<span class="tpv-btn">ANALYZE</span>'
-        +'<span class="tpv-tx">\ubcf8\ubb38<em>\ubcf4\uc870</em><ins>\ud750\ub9bc</ins></span>'
+        +'<span class="tpv-tx">'+TX('\ubcf8\ubb38')+'<em>'+TX('\ubcf4\uc870')+'</em><ins>'+TX('\ud750\ub9bc')+'</ins></span>'
       +'</div>'
     +'</div></div>'
     +'<div class="dsubs">'+tb+'</div></div>';
@@ -4364,7 +4383,7 @@ function helpHtml(){
   }
   if(t==='look'){
     h+=hNote(TX('설정 · DISPLAY에서 <b>색</b>과 <b>질감</b>을 따로 고름. 기록에는 전혀 영향이 없음.'));
-    h+=hCap(TX('질감 17종'))
+    h+=hCap(TX1('질감 {0}종 · 대표',TECHS.length))
       +hRow('Flat',TX('기본 · 얇은 테두리'))
       +hRow('Glass · Mist',TX('반투명에 흐림 효과'))
       +hRow('Depth · Float',TX('떠 있는 그림자'))
@@ -4374,7 +4393,8 @@ function helpHtml(){
       +hRow('Ring · Halo',TX('강조색 테두리 · 발광'))
       +hRow('Pill · Slab',TX('완전히 둥근 · 두툼한 모서리'))
       +hRow('Sharp · Outline · Bare',TX('각지거나 선만 · 장식 없음'));
-    h+=hNote(TX('색 20종과 조합해 340가지. 밝은 배경을 원하면 <b>Paper</b>나 <b>Frost</b>를 고를 것.'));
+    h+=hNote(TX1('색 {0} · 질감 {1} · 무늬 {2}. 밝은 배경은 <b>색</b> 탭의 <b>밝음</b> 묶음에서 고를 것.',PALS.length,TECHS.length,PATS.length));
+    h+=hNote(TX1('종목 목록에서 브랜드를 나누는 모양은 <b>브랜드</b> 탭에서 {0}가지 가운데 고름.',BSTY.length));
   }
   h+='</div></div>';
   return h;
@@ -4469,7 +4489,7 @@ function renderSheet(){
               +'<span class="sw" style="background:'+pp.c[0]+'"></span>'
               +'<span class="sw" style="background:'+pp.c[1]+'"></span>'
               +'<span class="sw" style="background:'+pp.c[2]+'"></span></span>'
-            +'<b>'+esc(PS.n)+'</b><i>'+esc(PS.d)+'</i></button>';
+            +'<b>'+esc(TX(PS.n))+'</b><i>'+esc(TX(PS.d))+'</i></button>';
         }
         h+='</div></div>';
       }
@@ -4512,7 +4532,7 @@ function renderSheet(){
           var T2=TECHS[tj];
           if((T2.f||'평면')!==tfam[tf])continue;
           h+='<button class="thtech'+(TECH===T2.k?' on':'')+'" data-act="techpick" data-v="'+T2.k+'">'
-            +'<b>'+esc(T2.n)+'</b><i>'+esc(T2.d.split(' · ').pop())+'</i></button>';
+            +'<b>'+esc(TX(T2.n))+'</b><i>'+esc(TX(T2.d.split(' · ').pop()))+'</i></button>';
         }
         h+='</div>';
       }
@@ -4530,7 +4550,7 @@ function renderSheet(){
           var PP=PATS[pq];
           if((PP.d?1:0)!==grp[gq][1])continue;
           h+='<button class="psw'+(PAT===PP.k?' on':'')+'" data-act="patpick" data-v="'+PP.k+'"'
-            +' title="'+esc(PP.n)+'"><i></i><b>'+esc(PP.n)+'</b></button>';
+            +' title="'+esc(TX(PP.n))+'"><i></i><b>'+esc(TX(PP.n))+'</b></button>';
         }
         h+='</div>';
       }
@@ -9433,7 +9453,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 01:46';
+var BUILD='2026-09-20 02:06';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10026,7 +10046,7 @@ var EN={
 '주간 점수':'Weekly score',
 '종목 추세':'Exercise trends',
 '기구':'Machine',
-'한 기계로 여러 종목을 할 때만':'Only when one station hosts several exercises',
+'한 기계로 여러 종목을 할 때만':'For multi-exercise stations',
 '예: 케이블 스테이션':'e.g. Cable station',
 '그립·변형':'Grip / variant',
 '비워 두면 기본':'Leave blank for default',
@@ -10354,8 +10374,7 @@ var EN={
 '외전근':'Abductors',
 '이두':'Biceps',
 '이름':'Name',
-'이름을 눌러 고치고, 비우면 기본으로 돌아감. 더한 항목은 이름으로 자동 분류되지 않아 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. Added items are not auto-classified by name — set them in <b>Prime movers</b>',
-'이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>주동근 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Prime movers</b>',
+'이름을 눌러 고치고, 비우면 기본으로 돌아감. <b>종목 없음</b> 인 근육은 메인 화면에 안 나옴 — 더한 항목은 자동 분류되지 않으니 <b>세부 부위 정리</b>에서 지정해야 함.':'Tap a name to edit, clear it to restore the default. A muscle with <b>no exercise</b> does not appear on the main list — added items are not auto-classified, so set them in <b>Sub-part check</b>',
 '종목 없음':'No exercise',
 '기준 세트 · 주':'Landmarks · sets per week',
 /* 묶음 이름은 소문자로 — 바로 옆 '적정'(target)·'미달'(under) 과 짝을 맞춘다 */
@@ -10432,6 +10451,118 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'빗면':'Bevel',
+'액자':'Frame',
+'꼬리표':'Tag',
+'밑광':'Uplit',
+'뒤광':'Backlit',
+'평광':'Flash',
+'교차광':'Duo light',
+'우광':'Rake',
+'스테이플':'Staple',
+'접힘':'Dog-ear',
+'색인탭':'Index tab',
+'영수증':'Receipt',
+'바인더':'Binder',
+'산화막':'Anodized',
+'주물':'Cast',
+'고무':'Rubber',
+'용접':'Weld',
+'경고띠':'Hazard',
+'주사선':'Scanline',
+'픽셀':'Pixel',
+'홀로':'Holo',
+'세그':'Segment',
+'곡면':'CRT',
+'얇은 테두리, 평면':'Thin border, flat',
+'반투명 + 블러':'Translucent + blur',
+'부드러운 양각':'Soft emboss',
+'0 모서리, 두꺼운 선':'Square corners, thick lines',
+'딱딱한 오프셋 그림자':'Hard offset shadow',
+'선만 남김':'Lines only',
+'완전 둥근 컨트롤':'Fully rounded controls',
+'안쪽으로 파인 면':'Carved-in surface',
+'선도 그림자도 없음':'No lines, no shadows',
+'강조색 발광 테두리':'Glowing accent border',
+'넓고 부드러운 그림자':'Wide soft shadow',
+'단단한 윗턱':'Firm top ledge',
+'강조색 테두리 강조':'Accent border',
+'종이가 쌓인 층':'Stacked paper layers',
+'두툼한 큰 모서리':'Thick, big corners',
+'얇게 새긴 홈':'Finely etched groove',
+'왼쪽 밝은 턱, 오른쪽 깎인 각, 옆으로 뻗는 그림자':'Lit left edge, cut right edge, sideways shadow',
+'얇은 선 두 줄 사이에 바탕색 여백, 매트지 테두리':'Double hairline with a mat gap',
+'왼위·오아래 각지고 나머지 둥글게, 자재 태그 실루엣':'Cut top-left and bottom-right, tag silhouette',
+'밑턱이 밝고 그림자는 위로':'Lit bottom edge, shadow upward',
+'가장자리만 새어 나오는 빛':'Light leaking from the edges',
+'방향 없이 사방 얇은 테':'Thin even rim, no direction',
+'왼위 밝고 오아래 되비침':'Lit top-left, reflected bottom-right',
+'오른쪽만 밝고 그림자는 왼쪽':'Lit right, shadow left',
+'왼위 각지고 대각 그림자':'Cut top-left, diagonal shadow',
+'오른위만 크게 접힌 자국':'Big folded top-right corner',
+'위 둥글고 강조 띠':'Rounded top with an accent band',
+'2px 모서리, 얇게 깔림':'2px corners, thin and flat',
+'왼쪽 변이 물린 자국':'Bound left edge',
+'둥근 압출재와 각진 판':'Rounded extrusions, square plates',
+'고르지 않은 모서리':'Uneven edges',
+'두꺼운 이음선 테':'Thick seam rim',
+'아래턱에 녹은 자국':'Melted bead on the bottom edge',
+'왼쪽 경고 띠':'Hazard stripe on the left',
+'위에서 옅어지는 잔상 띠':'Fading scan band from the top',
+'계단식 픽셀 그림자':'Stepped pixel shadow',
+'위아래 가장자리만 발광':'Glowing top and bottom edges',
+'파인 창에 강조색 밑줄':'Inset window with an accent underline',
+'둥근 화면 안쪽 비네트':'Curved screen vignette',
+'양각 격자':'Raised grid',
+'음각 격자':'Engraved grid',
+'리벳 판':'Riveted plate',
+'체커 플레이트':'Checker plate',
+'널링':'Knurling',
+'골판':'Corrugated',
+'주름':'Pleats',
+'접시 구멍':'Countersunk holes',
+'블록':'Blocks',
+'쿠션':'Cushion',
+'네임플레이트':'Nameplate',
+'타공판':'Perforated',
+'헤어라인':'Hairline',
+'원판':'Disc',
+'모눈':'Graph paper',
+'사선':'Hatch',
+'크로스해치':'Crosshatch',
+'아이소메트릭':'Isometric',
+'헤링본':'Herringbone',
+'윈도우페인':'Windowpane',
+'핀스트라이프':'Pinstripe',
+'리브':'Ribs',
+'벌집':'Honeycomb',
+'카본':'Carbon',
+'용접 비드':'Weld bead',
+'리벳':'Rivets',
+'체인':'Chain',
+'케이블':'Cable',
+'셰브론':'Chevron',
+'바코드':'Barcode',
+'파형':'Wave',
+'비늘':'Scales',
+'철망':'Wire mesh',
+'지그재그':'Zigzag',
+'삼각 타일':'Triangle tiles',
+'파선 격자':'Dashed grid',
+'정해야 MEV/MRV 가 잡힘':'Set it to track MEV/MRV',
+'본문':'Body',
+'보조':'Secondary',
+'흐림':'Faint',
+'정비고':'Garage','녹슨 무쇠와 발판':'Rusted iron and tread plate',
+'인광계기':'Phosphor gauge','발광 그린 격자판':'Glowing green grid',
+'용접부':'Weld shop','아크 시안 각진 판':'Arc cyan, sharp plates',
+'가죽벨트':'Leather belt','크림 박음질 가죽':'Cream-stitched leather',
+'제도지':'Drafting paper','무채색 낮 도면지':'Neutral daylight drafting sheet',
+'회복일':'Rest day','포근한 세이지 누빔':'Soft sage quilting',
+'보라알':'Violet beads','동글한 제비꽃 알':'Round violet beads',
+'녹청벽':'Patina wall','산화 구리 음각벽':'Oxidized copper, carved wall',
+'재고표':'Stock tag','무채색 자재 꼬리표':'Neutral material tags',
+'청사진':'Blueprint','선만 남긴 파란 도면':'Blue plan, lines only',
 '제목줄 변형':'Title variations',
 '구간 감싸기':'Section frames',
 '카드 변형':'Card variations',
@@ -10491,9 +10622,9 @@ var EN={
 '주동근 기준 · 주 세트':'Prime-mover landmarks · sets/week',
 '기준치를 기본값으로 되돌림':'Landmarks restored to defaults',
 '세트는 여기 고른 근육 하나에만 들어감 · 기준치가 간접 자극을 이미 품고 있어 다른 근육에는 안 나눔':'A set counts once, for the muscle chosen here — the landmarks already account for indirect work, so nothing is split off to other muscles',
-'이름 옆 수는 이번 주 유효 세트(RIR 0~3) · 순서가 뒤바뀜면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨':'The number beside each name is this week’s working sets (RIR 0–3) · out-of-order values are sorted ascending · press <b>SAVE GOALS</b> to store',
+'이름 옆 수는 이번 주 유효 세트(RIR 0~3) · 순서가 뒤바뀌면 오름차순으로 맞춤 · <b>SAVE GOALS</b> 를 눌러야 저장됨':'The number beside each name is this week’s working sets (RIR 0–3) · out-of-order values are sorted ascending · press <b>SAVE GOALS</b> to store',
 '주동근 미지정 종목 {0}개 — 종목 편집에서 설정':'{0} exercises have no prime mover — set it in the exercise editor',
-'주동근 · 이번 주 · MEV~MRV':'Prime mover · this week · MEV–MRV',
+'주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met',
 '기본값으로':'Reset',
@@ -10812,7 +10943,6 @@ var EN={
 '붙여넣은 백업으로 되돌리기':'Restore from a pasted backup',
 '브라우저가 저장 공간을 임의로 비우지 못하게 함':'Stops the browser from clearing storage on its own',
 '비워두면 무게와 반복만으로 판정함':'Left blank, the app judges on weight and reps alone',
-'색 20종과 조합해 340가지. 밝은 배경을 원하면 <b>Paper</b>나 <b>Frost</b>를 고를 것.':'20 colors make 340 combinations. For a light background pick <b>Paper</b> or <b>Frost</b>.',
 '색과 질감 바꾸기':'Change color and texture',
 '설정 · AI':'Settings · AI',
 '설정 · DIET에서 결과지 사진을 올리면 체중과 체지방을 읽어 하루 소비와 목표 칼로리를 계산함. 직접 입력도 됨.':'Upload a photo of the sheet under Settings · DIET and the app reads weight and body fat, then works out daily burn and target calories. Manual entry works too.',
@@ -10876,7 +11006,9 @@ var EN={
 '직접 하는 백업 · 설정 · DATA':'Manual backup · Settings · DATA',
 '진한 띠':'Dark band',
 '진행이 뒤처진 부위 표시':'Marks a body part falling behind',
-'질감 17종':'17 textures',
+'질감 {0}종 · 대표':'{0} textures · highlights',
+'색 {0} · 질감 {1} · 무늬 {2}. 밝은 배경은 <b>색</b> 탭의 <b>밝음</b> 묶음에서 고를 것.':'{0} colors · {1} textures · {2} patterns. For a light background pick from the <b>light</b> group in the <b>color</b> tab.',
+'종목 목록에서 브랜드를 나누는 모양은 <b>브랜드</b> 탭에서 {0}가지 가운데 고름.':'How brands are split in the exercise list: pick one of {0} in the <b>Brand</b> tab.',
 '처음 설정':'Setup',
 '처음엔 붉게 변하기만 하고 한 번 더 눌러야 지워짐':'First tap only turns it red · a second tap deletes it',
 '총량만큼 빈도도 중요':'Frequency counts as much as total',
