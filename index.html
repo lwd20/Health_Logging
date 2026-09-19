@@ -1345,6 +1345,22 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .lmg{flex:1;height:8px;background:rgba(var(--tx-rgb),.07);border-radius:2px;position:relative;overflow:visible}
 .lmg .zn{position:absolute;top:1px;bottom:1px;background:rgba(var(--acc-rgb),.18);border-radius:1px}
 .lmg .zn.hi{background:rgba(var(--acc-rgb),.36)}
+/* 부위 카드의 합계 줄 — 위 다섯 줄과 같은 칸에 서되, 굵게 갈라 합임을 보인다 */
+/* 값 칸이 부위 줄은 '7', 합계 줄은 '34/77' 이라 폭이 다르다. 줄마다 flex 면
+   줄마다 제 글자만큼만 칸을 잡아 합계 막대만 끝이 안쪽에서 멈춘다. 카드를
+   한 격자로 세워 값 칸을 가장 긴 글자에 맞춘다 — 여섯 막대가 양 끝을 같이 쓴다.
+   글자 폭을 셈(ch)으로 맞춰 봤는데 글꼴이 대체되면 ch 와 실제 폭이 달라 어긋났다.
+   간격은 예전 flex 줄과 같게: 줄 사이 5px, 카드 위아래는 줄 여백 5px 을 더한다. */
+.lmsec.lmpt{display:grid;grid-template-columns:58px 1fr auto;column-gap:8px;row-gap:5px;
+  align-items:center;padding-top:15px;padding-bottom:11px}
+html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
+.lmpt .lmrow{display:contents}
+.lmpt .lmtot::before{content:'';grid-column:1/-1;height:1px;margin:4px 0;background:rgba(var(--tx-rgb),.1)}
+.lmtot .bn{color:var(--tx);font-weight:800}
+.lmtot .lmg .tf{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:rgba(var(--acc-rgb),.5)}
+.lmtot .lmg .tf.ok{background:var(--acc-sf)}
+.lmtot .bv{font-weight:800;color:var(--tx)}
+.lmtot .bv em{font-style:normal;font-size:9.5px;color:var(--dim);font-weight:400}
 /* 밝은 테마 — 어두운 바탕에 맞춘 투명도라 밝은 카드에서 세 층이 한 회색으로 묻혔다 */
 :root[data-pal="paper"] .lmg,:root[data-pal="frost"] .lmg,:root[data-pal="chalk"] .lmg,:root[data-pal="sage"] .lmg,:root[data-pal="iris"] .lmg{background:rgba(var(--tx-rgb),.1)}
 :root[data-pal="paper"] .lmg .zn,:root[data-pal="frost"] .lmg .zn,:root[data-pal="chalk"] .lmg .zn,:root[data-pal="sage"] .lmg .zn,:root[data-pal="iris"] .lmg .zn{background:rgba(var(--acc-rgb),.28)}
@@ -1812,12 +1828,6 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
   height:44px;padding:0 11px;font-size:10px;margin:-9px 0}
 .pgc[data-act]:active{opacity:.6}
 .pgcs{margin-top:12px}
-.ztot{display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:9px;
-  border-top:1px solid rgba(var(--tx-rgb),.16);font-size:10px;font-weight:800;
-  letter-spacing:.12em;color:var(--dim)}
-.ztot .num{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;
-  letter-spacing:0;color:var(--tx)}
-.ztot .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
 /* 말 고르기. 두 칸뿐이라 격자가 아니라 좌우로 가른다 */
 .lgsw{display:flex;gap:7px;margin:9px 0 4px}
 .lgb{flex:1;padding:12px 0;border:var(--bw) solid rgba(var(--tx-rgb),.12);
@@ -8326,19 +8336,28 @@ function vzTrain(tab){
   }
   /* 범례는 안 단다 — 같은 갈래 아래쪽 근육 트리가 같은 눈금을 쓰고 거기에
      이미 달려 있다. 한 화면에 같은 설명이 두 번 뜨면 그것부터 눈에 걸린다. */
-  if(ph2)h+='<div class="lmsec">'+ph2+'</div>';
+  /* 주 합계 — 위 다섯 줄의 합이다. 예전에는 유산소 뒤, 주동근 카드 바로
+     위에 외따로 있어 그 카드의 머리처럼 읽혔고, 막대가 없어 77/78 이
+     얼마만큼인지 숫자로만 셈해야 했다. 부위 카드 맨 아래 합계 줄로 넣고,
+     위 줄들과 같은 폭의 막대를 단다 — 눈이 줄을 따라 내려오다 합에 닿는다. */
   /* 눈금과 숫자 줄을 둘 다 그리면 같은 것을 두 번 본다 — 눈금이 자리로
      보여 주므로 목표 대비는 총계 한 줄이면 된다 */
-  var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
-  h+=vzBar(TX('유산소'),wc.z2,ctg,
-           wc.neat>0?TX1('{0}회 · 걷기 {1}분 별도',wc.days,wc.neat):TX1('{0}회',wc.days),
-           vzVerdict(wc.z2,ctg),false);
   /* '수행 3일' 만 적으면 계획이 5일인데 셋만 한 것인지, 이틀을 쉬기로 해서
      셋이 계획이자 실적인지가 안 보인다 */
   /* 카드 머리(catCtx)가 이미 '훈련 3/5일' 을 적는다. 여기까지 적으면 한 줄
      안에서 라벨이 '3/5', 숫자칸이 '84/110' 이라 서로 다른 분수 둘을 나란히
      내민다 — 단순 중복보다 이쪽이 해롭다. 세트만 말하게 둔다. */
-  h+=vzTotal(TX('주 합계'),tot,tgt);
+  if(ph2){
+    var tp=tgt>0?Math.min(100,Math.round(tot*100/tgt)):0;
+    ph2+='<div class="lmrow lmtot"><span class="bn">'+TX('주 합계')+'</span>'
+      +'<span class="lmg"><i class="tf'+(tgt>0&&tot>=tgt?' ok':'')+'" style="width:'+tp+'%"></i></span>'
+      +'<span class="bv">'+tot+'<em>/'+tgt+'</em></span></div>';
+    h+='<div class="lmsec lmpt">'+ph2+'</div>';
+  }
+  var wc=wkCardio(),ctg=WTGT['CARDIO']||90;
+  h+=vzBar(TX('유산소'),wc.z2,ctg,
+           wc.neat>0?TX1('{0}회 · 걷기 {1}분 별도',wc.days,wc.neat):TX1('{0}회',wc.days),
+           vzVerdict(wc.z2,ctg),false);
   }
   if(tab==='vol'){
   /* 부위로 묶는다. 예전에는 판정('적당 4 / 미만 9')으로 묶었는데, 그러면
@@ -8824,7 +8843,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-19 04:10';
+var BUILD='2026-09-19 16:02';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10561,10 +10580,6 @@ function vzRing(name,kind,cur,goal,unit){
     +(goal<=0?'—':(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit))))+'</div>'
     +'</div>';
   return h;
-}
-function vzTotal(label,cur,goal){
-  return '<div class="ztot"><span>'+esc(label)+'</span>'
-    +'<span class="num">'+(+cur||0)+'<em>/'+(+goal||0)+'</em></span></div>';
 }
 /* 하루 열량을 끼니 칸으로 나눈 막대. 먹은 끼니는 실제 열량으로 채우고,
    남은 끼니는 남은 몫을 고르게 나눈 테두리 칸으로 둔다.
