@@ -5182,6 +5182,13 @@ function wkOffCount(){
     }
   }catch(e){}
 })();
+/* 백업에 무엇이 담겼는지 한 줄로. 파일을 열어 보지 않고는 알 수 없었다 —
+   종목 설정이 들어갔는지 확인할 길이 없으니 매번 의심하게 된다. */
+function bkSum(){
+  var d={},k,n=0;
+  for(k in S.l){var a=S.l[k],j;for(j=0;j<a.length;j++)if(a[j].s&&a[j].s.length){d[a[j].d]=1;n+=a[j].s.length;}}
+  return TX1('종목 {0} · 기록 {1}일 · 세트 {2}',S.m.length,Object.keys(d).length,n);
+}
 function bkText(){
   var S2=DEMO?{m:S.m,l:demoStrip(S.l)}:S;
   return JSON.stringify({v:2,S:S2,cfg:{
@@ -5209,6 +5216,17 @@ function bkText(){
 function applyBackup(o){
   var src=(o&&o.v===2&&o.S)?o.S:o;
   S=migrateLines(src);ensureCardio();
+  /* 되돌린 자료가 주동근(mm) 을 모르는 판이면 여기서 옮긴다. 켤 때 도는
+     옮기기는 한 번 돌고 표시를 남기므로 이 자리에서는 안 돈다 — 옛 백업을
+     되돌리면 종목마다 골라 둔 것이 통째로 비어 있었다. */
+  (function(){
+    var i,mB;
+    for(i=0;i<S.m.length;i++){
+      mB=S.m[i];
+      if(mB.mm===undefined&&mB.sk&&MMOLD[mB.sk])mB.mm=MMOLD[mB.sk];
+      if(mB.sk2!==undefined)delete mB.sk2;
+    }
+  })();
   var c=(o&&o.v===2&&o.cfg)?o.cfg:null;
   if(c){
     try{
@@ -8785,7 +8803,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-19 01:05';
+var BUILD='2026-09-19 02:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -9713,6 +9731,7 @@ var EN={
 /* 묶음 이름은 소문자로 — 바로 옆 '적정'(target)·'미달'(under) 과 짝을 맞춘다 */
 '기준 미설정':'no landmark',
 '직접 운동 불필요 {0}개':'{0} need no direct work',
+'종목 {0} · 기록 {1}일 · 세트 {2}':'{0} exercises · {1} days · {2} sets',
 '손댐 것':'to fix',
 '주동근':'Prime mover',
 '세부 부위':'Sub-part',
@@ -11237,7 +11256,7 @@ document.addEventListener('click',function(e){
       if(window.AndroidFile&&AndroidFile.save){
         try{
           var okS=AndroidFile.save('plus25-'+today()+'.json',bkText());
-          if(okS){if(canLS)localStorage.setItem(KEY+'.bk',today());toast('<em>Saved</em> to Downloads');render();}
+          if(okS){if(canLS)localStorage.setItem(KEY+'.bk',today());toast('<em>Saved</em> '+bkSum());render();}
           else toast('Save failed');
         }catch(e3){toast('Save failed');}
         break;
@@ -11249,7 +11268,7 @@ document.addEventListener('click',function(e){
         al.download='gym-log-'+today()+'.json';
         document.body.appendChild(al);al.click();document.body.removeChild(al);
         setBk();
-        toast('<em>Saved</em> backup file');
+        toast('<em>Saved</em> '+bkSum());
         render();
       }catch(err){
         toast('File save unavailable — use Copy');
