@@ -898,6 +898,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .plusbtn{flex:1.5 1 0;min-width:0;height:48px;border-radius:var(--rad-m);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .plusbtn:active{color:var(--tx);background:rgba(var(--tx-rgb),.1)}
 .plusbtn.dis{opacity:.35}
+/* 첫 세트 — 지금 누를 곳은 이것 하나다. SAVE 와 같은 주 단추 꼴을 빌린다. */
+.plusbtn.go{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);box-shadow:var(--elev2);font-weight:800}
+.plusbtn.go:active{background:var(--acc-dk);box-shadow:none}
 .savebtn{flex:1 1 0;min-width:0;height:48px;border-radius:var(--rad-m);box-shadow:var(--elev2);background:var(--acc-sf);color:var(--on-acc);font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .savebtn:active{background:var(--acc-dk);box-shadow:none}
 .savebtn.dis{background:rgba(var(--tx-rgb),.05);color:var(--dim);border:var(--bw) solid rgba(var(--tx-rgb),.08);box-shadow:none}
@@ -1221,6 +1224,9 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 /* 근육 이름 — 부위보다 작고 판정보다 크다. 칸도 그만큼 넓힌다:
    58px 에 10.5px 를 넣으면 '중부·능형' 이 두 줄로 감긴다. */
 .lmgrp .lmrow .bn{flex-basis:66px;font-size:10.5px;letter-spacing:.02em;color:var(--tx)}
+/* 평면 리스트 — '측면·후면삼각' 이 두 줄로 감겨 그 줄만 키가 컸다 */
+.lmflat .lmrow .bn{flex:0 0 84px;font-size:10.5px;letter-spacing:.01em;color:var(--tx);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 초과·적정·미달 세 낱말이 크기도 색도 같아서, 어느 묶음을 보고 있는지를
    글자를 읽어야 알 수 있었다. 색과 표식을 같이 달아 한 눈에 갈라지게 한다.
    표식이 곰 방향이다 — 위로 넘쳤는지 아래로 모자랐는지. 색만으로 못
@@ -1339,6 +1345,10 @@ html[lang=en] .acsr>i{flex-basis:86px;letter-spacing:.01em}
 .lmg{flex:1;height:8px;background:rgba(var(--tx-rgb),.07);border-radius:2px;position:relative;overflow:visible}
 .lmg .zn{position:absolute;top:1px;bottom:1px;background:rgba(var(--acc-rgb),.18);border-radius:1px}
 .lmg .zn.hi{background:rgba(var(--acc-rgb),.36)}
+/* 밝은 테마 — 어두운 바탕에 맞춘 투명도라 밝은 카드에서 세 층이 한 회색으로 묻혔다 */
+:root[data-pal="paper"] .lmg,:root[data-pal="frost"] .lmg,:root[data-pal="chalk"] .lmg,:root[data-pal="sage"] .lmg,:root[data-pal="iris"] .lmg{background:rgba(var(--tx-rgb),.1)}
+:root[data-pal="paper"] .lmg .zn,:root[data-pal="frost"] .lmg .zn,:root[data-pal="chalk"] .lmg .zn,:root[data-pal="sage"] .lmg .zn,:root[data-pal="iris"] .lmg .zn{background:rgba(var(--acc-rgb),.28)}
+:root[data-pal="paper"] .lmg .zn.hi,:root[data-pal="frost"] .lmg .zn.hi,:root[data-pal="chalk"] .lmg .zn.hi,:root[data-pal="sage"] .lmg .zn.hi,:root[data-pal="iris"] .lmg .zn.hi{background:rgba(var(--acc-rgb),.55)}
 .lmg .mrv{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(var(--sig-rgb),.7)}
 /* 내가 정한 목표. MRV(얇은 빨강, '넘지 마라')와 성격이 반대라 굵기와
    색을 갈라 둔다 — 같은 모양이면 두 선이 같은 뜻으로 읽힌다. */
@@ -1993,7 +2003,7 @@ html{color-scheme:dark}
   color:var(--acc-br)}
 .mmrow.cus .mmn{color:var(--acc-br)}
 .mmrow .stin{flex:0 0 40px;width:40px}
-.strow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--acc-br);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+.strow .stin,.mmrow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--acc-br);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
 .calov{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .calpn{width:min(316px,88vw);background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);box-shadow:0 18px 50px rgba(0,0,0,.7);padding:14px 14px 12px}
 .calhd{display:flex;align-items:center;margin-bottom:10px}
@@ -3082,8 +3092,9 @@ function renderSubChips(){
     +arr.length+'</i></button>';
   for(i=0;i<gs.length;i++){
     var kv=gs[i].k||SUB_ETC;
+    /* 탭이 이미 부위를 말한다 — '상부가슴' 이 아니라 '상부' (subBare, 저장된 이름은 그대로) */
     h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl" data-v="'
-      +esc(kv)+'">'+esc(gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
+      +esc(kv)+'">'+esc(gs[i].k?subBare(gs[i].n,UI.filter):gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
   }
   el.innerHTML=h2;
 }
@@ -3157,7 +3168,10 @@ function renderList(){
         +'</div>';
     }
     if(arr2.length){
-      h+='<div class="shd" style="margin-top:8px">'+UI.filter+(UI.favOnly?' ★':'')+'<i>'+arr2.length+'</i></div>';
+      /* 칩이 서 있으면 고른 탭과 '전체 N' 칩이 이미 같은 말을 한다 — 같은 수가
+         세 번 쌓였다. 칩이 없는 부위(갈래 하나뿐·유산소)에서만 이 머리를 둔다. */
+      if(!document.querySelector('#subchips .schip'))
+        h+='<div class="shd" style="margin-top:8px">'+UI.filter+(UI.favOnly?' ★':'')+'<i>'+arr2.length+'</i></div>';
       if(UI.filter==='CARDIO'){
         /* 러닝머신에 제조사 구분은 뜻이 없다. 대신 배지를 살려 NEAT 를 드러낸다 */
         var cds=favFirst(arr2);
@@ -3173,7 +3187,7 @@ function renderList(){
         var sgs=(UI.sub&&UI.sub!==SUB_ETC)?[{k:UI.sub,n:subName(UI.sub),items:arr2}]:subGroups(arr2),sg,sj;
         for(sj=0;sj<sgs.length;sj++){
           sg=sgs[sj];
-          h+='<div class="bhd">'+esc(sg.n)+'<i>'+sg.items.length+'</i></div><div class="grp">';
+          h+='<div class="bhd">'+esc(sg.k?subBare(sg.n,UI.filter):sg.n)+'<i>'+sg.items.length+'</i></div><div class="grp">';
           var bgs=brandGroups(sg.items),bj;
           /* 갈래가 둘 이상이면 무조건 가른다. 전에는 '종목 셋 이상' 이라는
              조건을 더 걸어 뒀는데, 그러면 같은 화면에서 측면(3개)은 나뉘고
@@ -3418,7 +3432,7 @@ function panelHtml(m){
   }
   var isEd=(UI.esIdx!==null&&draft[UI.esIdx]);
   h+='<div class="btnrow">'
-    +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+'" data-act="as">'+(isEd?'Update':'＋ Set')+'</button>'
+    +'<button class="plusbtn'+(rdy?'':' dis')+(isEd?' upd':'')+((rdy&&!isEd&&!draft.length)?' go':'')+'" data-act="as">'+(isEd?'Update':'＋ Set')+'</button>'
     +'<button class="savebtn'+(draft.length?'':' dis')+'" data-act="sv">Save</button>'
     +'</div>'
     +(isEd?'<button class="cancelbtn" data-act="ec">Cancel</button>':'')
@@ -8803,7 +8817,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-19 02:10';
+var BUILD='2026-09-19 03:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11850,7 +11864,8 @@ function syncBtns(){
   var b=document.querySelector('.plusbtn');if(!b)return;
   var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
   var wasUpd=b.classList.contains('upd');
-  b.className='plusbtn'+(rdy?'':' dis')+(wasUpd?' upd':'');
+  var nd=(UI.draft[UI.open]||[]).length;
+  b.className='plusbtn'+(rdy?'':' dis')+(wasUpd?' upd':'')+((rdy&&!wasUpd&&!nd)?' go':'');
 }
 
 ensureCardio();
