@@ -2126,31 +2126,34 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 /* 같은 순위 부위들 — 이름표를 나란히. 한 줄에 다 안 들어가면 접힌다 */
 .rtps{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
 .rtps .rtpill{flex:0 0 auto;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.rtpill u{text-decoration:none;font-family:var(--mono);font-size:8.5px;
-  margin-left:4px;opacity:.7;vertical-align:1px}
+/* 며칠만 한 것임을 적는 작은 딱지 — 이름의 일부로 안 읽히게 떼어 둔다 */
+.rtpill u,.rtstk>span>u{text-decoration:none;font-family:var(--mono);font-size:8.5px;font-weight:700;
+  margin-left:5px;padding:1px 4px;border-radius:3px;background:rgba(var(--tx-rgb),.09);
+  color:var(--dim);vertical-align:1px;letter-spacing:0}
 .rtp1>i{flex:0 0 auto;margin-left:auto}
 /* 한 순위에 머신이 여럿 — 한 줄에 하나씩 쌓는다 */
-.rtstk{display:flex;flex-direction:column;gap:5px}
+/* 한 순위에 여럿 — 앞에 점을 찍었더니 이름의 시작점이 한 칸씩 어긋났다.
+   점을 빼고 가까움으로 묶는다: 묶음 안은 촘촘히(4px), 묶음 사이는 넓게(줄 여백). */
+.rtstk{display:flex;flex-direction:column;gap:4px}
 .rtstk>span{display:block}
-.rtstk.many>span{position:relative;padding-left:11px}
-.rtstk.many>span::before{content:'·';position:absolute;left:1px;top:-1px;color:var(--dim);font-weight:800}
 /* 부위 머리 — 그 밑 줄들이 누구의 차례인지를 말한다 */
 .rtph{display:flex;align-items:center;gap:7px;margin:10px 2px 1px;min-height:15px;
   font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--chrome)}
 .rtph:first-child{margin-top:2px}
 .rtph i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim)}
 /* 한 수준에 머신이 여럿이면 줄이 길어진다 — 여기서는 접어서 다 보인다 */
-.rtr.rtt{align-items:flex-start;padding:5px 2px}
-.rtr.rtt>u{flex:0 0 18px;padding-top:1px}
+.rtr.rtt{align-items:flex-start;padding:7px 2px}
+.rtr.rtt>u{padding-top:1px}
 .rtr.rtt.rtin{padding-left:11px}
 .rtr.rtt b{white-space:normal;overflow:visible;line-height:1.35}
-.rtr.rtt b u{text-decoration:none;font-family:var(--mono);font-size:8.5px;
-  color:var(--dim);margin-left:3px;vertical-align:2px}
+
 .rtl{margin:2px 0 4px}
 /* 색 막대가 줄 높이를 따라 서야 해서 baseline 을 못 쓴다 — 가운데로 맞추고
    글자끼리의 밑줄은 각자 제 줄칸에서 잡는다. */
 .rtr{display:flex;align-items:center;gap:9px;padding:7px 2px}
-.rtr u{flex:0 0 40px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
+/* 번호 칸은 두 목록이 같은 폭을 쓴다 — 40px 는 시각(17:00)을 담던 자리인데
+   그 목록을 없앴는데도 남아 있어 왼쪽 줄이 서로 안 맞았다. */
+.rtr>u{flex:0 0 18px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
   color:var(--acc-br);font-variant-numeric:tabular-nums}
 .rtr b{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:650;color:var(--tx);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -9386,12 +9389,15 @@ function rtKnown(day){
   return out;
 }
 /* 줄지어 놓인 종목을 부위로 접는다 — 가슴 가슴 등 등 어깨 → 가슴 등 어깨.
-   연달아 같은 부위면 한 덩이다: 사이에 다른 부위가 끼면 다시 센다. */
+   한 날에 한 번씩만 센다. 사이에 다른 부위가 끼어 되돌아와도(가슴 등 가슴)
+   가슴은 처음 나온 자리 하나다 — 두 번 세면 하루인데 '2일치' 가 되고 평균도
+   두 번 들어간다. 이 자리가 묻는 것은 '무엇부터 시작하나' 이기 때문이다. */
 function rtFlow(rows){
-  var out=[],j,p;
+  var out=[],seen={},j,p;
   for(j=0;j<rows.length;j++){
     p=rows[j].m.p;
-    if(!out.length||out[out.length-1]!==p)out.push(p);
+    if(seen[p])continue;
+    seen[p]=1;out.push(p);
   }
   return out;
 }
@@ -9473,7 +9479,7 @@ function vzRout(){
         var pe=ptr[i].items[q];
         /* 며칠만 한 부위를 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 */
         pl+='<b class="rtpill">'+esc(rtPName(pe.p))
-          +((pe.n<pused)?'<u>'+pe.n+'</u>':'')+'</b>';
+          +((pe.n<pused)?'<u>'+TX1('{0}일치',pe.n)+'</u>':'')+'</b>';
       }
       h+='<div class="rtr rtp1"><u>'+(i+1)+'</u><span class="rtps">'+pl+'</span></div>';
     }
@@ -9534,7 +9540,7 @@ function vzRout(){
         var it=tiers[q].items[q2];
         /* 며칠만 한 머신을 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 —
            그 부위를 한 날수보다 적게 나온 것에만 수를 붙인다. */
-        tl+='<span>'+esc(pgName(it.m))+((it.n<(pday[pp]||0))?'<u>'+it.n+'</u>':'')+'</span>';
+        tl+='<span>'+esc(pgName(it.m))+((it.n<(pday[pp]||0))?'<u>'+TX1('{0}일치',it.n)+'</u>':'')+'</span>';
       }
       hp+='<div class="rtr rtt rtin"><u>'+(q+1)+'</u>'
         +'<b class="rtstk'+(many?' many':'')+'">'+tl+'</b></div>';
@@ -10000,7 +10006,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 20:18';
+var BUILD='2026-09-20 20:25';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
