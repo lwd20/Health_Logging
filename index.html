@@ -2129,8 +2129,17 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtno u{color:var(--dim)}
 .rtno i{font-family:inherit;font-size:9.5px;letter-spacing:.02em}
 .rtp1>u{font-weight:700}
-.rtp1>b.rtpill{flex:0 0 auto;max-width:60%;overflow:hidden;text-overflow:ellipsis}
-.rtp1>i{margin-left:auto}
+/* 같은 순위 부위들 — 이름표를 나란히. 한 줄에 다 안 들어가면 접힌다 */
+.rtps{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.rtps .rtpill{flex:0 0 auto;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.rtpill u{text-decoration:none;font-family:var(--mono);font-size:8.5px;
+  margin-left:4px;opacity:.7;vertical-align:1px}
+.rtp1>i{flex:0 0 auto;margin-left:auto}
+/* 한 순위에 머신이 여럿 — 한 줄에 하나씩 쌓는다 */
+.rtstk{display:flex;flex-direction:column;gap:5px}
+.rtstk>span{display:block}
+.rtstk.many>span{position:relative;padding-left:11px}
+.rtstk.many>span::before{content:'·';position:absolute;left:1px;top:-1px;color:var(--dim);font-weight:800}
 /* 부위 머리 — 그 밑 줄들이 누구의 차례인지를 말한다 */
 .rtph{display:flex;align-items:center;gap:7px;margin:10px 2px 1px;min-height:15px;
   font-size:11px;font-weight:800;letter-spacing:.04em;color:hsl(var(--bh) var(--bs) var(--bl))}
@@ -8231,7 +8240,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px;display:fl
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['prog','종목 추세'],['rout','루틴']];
+var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['rout','루틴']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -9460,15 +9469,31 @@ function vzRout(){
   pmiss.sort(function(x,y){return rtPName(x)<rtPName(y)?-1:1;});
   if(pall.length||pmiss.length){
     h+=vzCap(TX('보통 순서')+'<span class="rtsub">'+TX('부위')+' · '+TX1('{0}일치',pused)+'</span>');
+    /* 부위 안 차례와 같은 자로 묶는다 — 평균 자리가 반 칸 안이면 그날그날
+       바뀌었을 뿐 먼저랄 것이 없다. 1 이 둘이면 두 줄로 세울 이유가 없다. */
+    var ptr=[],pcur=null;
+    for(i=0;i<pall.length;i++){
+      if(!pcur||pall[i].avg-pcur.a>=0.5){pcur={a:pall[i].avg,items:[]};ptr.push(pcur);}
+      pcur.items.push(pall[i]);
+    }
     h+='<div class="rtl">';
-    for(i=0;i<pall.length;i++)
-      h+='<div class="rtr rtp1" style="--bh:'+rtHue(pall[i].p)+'">'
-        +'<u>'+(Math.round(pall[i].avg*10)/10)+'</u>'
-        +'<b class="rtpill">'+esc(rtPName(pall[i].p))+'</b><i>'+TX1('{0}일치',pall[i].n)+'</i></div>';
-    for(i=0;i<pmiss.length;i++)
-      h+='<div class="rtr rtp1 rtno" style="--bh:'+rtHue(pmiss[i])+'">'
-        +'<u>–</u><b class="rtpill">'+esc(rtPName(pmiss[i]))+'</b>'
+    for(i=0;i<ptr.length;i++){
+      var pl='';
+      for(q=0;q<ptr[i].items.length;q++){
+        var pe=ptr[i].items[q];
+        /* 며칠만 한 부위를 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 */
+        pl+='<b class="rtpill" style="--bh:'+rtHue(pe.p)+'">'+esc(rtPName(pe.p))
+          +((pe.n<pused)?'<u>'+pe.n+'</u>':'')+'</b>';
+      }
+      h+='<div class="rtr rtp1"><u>'+(i+1)+'</u><span class="rtps">'+pl+'</span></div>';
+    }
+    if(pmiss.length){
+      var ml='';
+      for(i=0;i<pmiss.length;i++)
+        ml+='<b class="rtpill" style="--bh:'+rtHue(pmiss[i])+'">'+esc(rtPName(pmiss[i]))+'</b>';
+      h+='<div class="rtr rtp1 rtno"><u>–</u><span class="rtps">'+ml+'</span>'
         +'<i>'+TX('차례 모름')+'</i></div>';
+    }
     h+='</div>';
     if(pmiss.length)h+=hNote(TX('<b>LOG</b> 에서 그 날 <b>차례</b> 를 눌러 세우면 위 셈에 들어옴'));
   }
@@ -9511,14 +9536,18 @@ function vzRout(){
     hp+='<div class="rtph" style="--bh:'+rtHue(pp)+'">'
       +'<b class="rtpill">'+esc(rtPName(pp))+'</b><i>'+TX1('{0}일치',pday[pp]||0)+'</i></div>';
     for(q=0;q<tiers.length;q++){
-      var tl='';
+      /* 'A · B' 로 이어 붙이면 긴 이름 둘이 감기면서 어디서 끊기는지가
+         안 보였다 — 한 줄에 하나씩 쌓고, 둘 이상일 때만 앞에 점을 찍어
+         '이만큼이 한 순위' 임을 보인다. */
+      var many=tiers[q].items.length>1,tl='';
       for(q2=0;q2<tiers[q].items.length;q2++){
         var it=tiers[q].items[q2];
         /* 며칠만 한 머신을 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 —
            그 부위를 한 날수보다 적게 나온 것에만 수를 붙인다. */
-        tl+=(q2?' · ':'')+esc(pgName(it.m))+((it.n<(pday[pp]||0))?'<u>'+it.n+'</u>':'');
+        tl+='<span>'+esc(pgName(it.m))+((it.n<(pday[pp]||0))?'<u>'+it.n+'</u>':'')+'</span>';
       }
-      hp+='<div class="rtr rtt rtin"><u>'+(q+1)+'</u><b>'+tl+'</b></div>';
+      hp+='<div class="rtr rtt rtin"><u>'+(q+1)+'</u>'
+        +'<b class="rtstk'+(many?' many':'')+'">'+tl+'</b></div>';
     }
   }
   if(hp){
@@ -9552,7 +9581,7 @@ function vzTrain(tab){
   /* 옛 열쇠로 들어와도 화면이 비지 않게 옮겨 준다 */
   /* 강도·회복을 걸어냈으므로 그 열쇠도 세트로 보낸다 — 저장된
      UI.vzt 가 그것이면 열때마다 화면이 통째로 비기 때문이다. */
-  if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal')tab='vol';
+  if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal'||tab==='prog'){tab='vol';UI.vzt='vol';}
   tab=tab||'vol';
   var h='',ws=wkSets(),sc=mmCnt(),i,k;
   if(tab==='rout')return vzRout();
@@ -9663,107 +9692,6 @@ function vzTrain(tab){
   if(uk>0)h+='<div class="lmunk">'
     +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨',uk)+'</div>';
   }
-  if(tab==='prog'){
-  var B=progBuckets(),pr=B.pr,pgi,pgd;
-  /* 손댈 것은 확정된 정체·퇴행 중 원인이 붙은 것뿐이다. 보류로 간 것은
-     애초에 무엇을 손대야 할지 모르는 것들이라 여기 안 온다. */
-  var pgA=[],pgK=[],pgCon=B.dn.concat(B.st);
-  for(pgi=0;pgi<pgCon.length;pgi++){
-    pgd=pgCon[pgi];
-    (pgd.k==='keep'?pgK:pgA).push(pgd);
-  }
-  /* 무엇에 견준 몇 %인지를 캡션이 말한다. 화면 어디에도 그 자가 없어서
-     +40% 가 볼륨인지 톱세트 무게인지 추정 1RM 인지 알 수가 없었다. */
-  h+='<div class="pgsec">'+vzCap(TX('종목 판정 · 추정 1RM · 앞뒤 묶음 평균'));
-  /* 고른 것이 없으면 네 칸만 떠 있고 밑이 통째로 비어, 칸이 무엇을
-     말하려는지가 안 보였다. 손놀 것이 있는 통부터 펼쳐 둔다. */
-  var pgt=UI.pgt||(B.nDn?'dn':(B.nSt?'st':(B.nUp?'up':'hd')));
-  function stt(k,n,lb,cls){
-    return '<span class="stt'+(cls?' '+cls:'')+(pgt===k?' on':'')
-      +'" data-act="pgt" data-v="'+k+'"><b>'+n+'</b><i>'+lb+'</i></span>';
-  }
-  h+='<div class="sttrow four">'+stt('up',B.nUp,TX('진전'),'up2')
-    +stt('st',B.nSt,TX('정체'),'')+stt('dn',B.nDn,TX('퇴행'),'dn2')
-    +stt('hd',B.nHold,TX('보류'),'')+'</div>';
-  function pgPart(id){var mm=id?machById(id):null;return mm?mm.p:'';}
-  /* 값 칸에는 변화율, 그 밑에 절대값. +40% 가 60→84kg 인지 15→21kg 인지가
-     빠지면 그 40% 를 다른 종목의 +5.8% 와 같은 선에 놓을 수가 없다 —
-     시작 무게가 낮으면 퍼센트는 저절로 커진다. */
-  /* 정체·퇴행은 원인을 같이 진다. 그것을 지던 칸이 없어졌으므로,
-     안 옮기면 화면이 '-13.2%' 만 적고 왜인지는 아무 데에도 없다.
-     진전은 안 단다 — 거기 붙는 '오르는 중' 은 타일이 이미 한 말이다. */
-  function pgViz(a2,wc){
-    return a2.map(function(x){
-      return {n:x.n,c:'',gk:x.p||pgPart(x.id),gl:TX(PN_KO[x.p||pgPart(x.id)]||'기타'),
-              pct:x.pct,q:x.q,
-              v:(typeof x.pct==='number'?((x.pct>0?'+':'')+x.pct+'%'):'—'),
-              wy:wc?TX(x.c):'',
-              abs:(x.a0>0&&x.a1>0)?(fmtW(x.a0)+'→'+fmtW(x.a1)+'kg'):''};
-    });
-  }
-  /* 보류는 부위가 아니라 '왜 판정이 안 섰나' 로 묶는다. 스물여덟 중 열여섯이
-     보류인데 전부 '보류' 한 낱말이면, 화면이 절반은 아무 말도 안 하는 것과
-     같다 — 사유가 갈리면 할 일도 갈린다. */
-  var PGH={'기록 부족':0,'차이 미미':1,'반복 바뀜':2};
-  function pgHoldLabel(c){
-    if(c==='기록 부족')return TX('기록 부족 · 4세션부터 판정');
-    if(c==='차이 미미')return TX('변동폭 안 · 움직였다고 못 함');
-    if(c==='반복 바뀜')return TX('반복대 바뀜 · 잣대가 다름');
-    return TX(c);
-  }
-  function pgHoldVal(x){
-    if(x.c==='기록 부족'){
-      var need=Math.max(0,4-(x.ns||0));
-      return need?TX1('{0}/4 · {1}회 더',x.ns||0,need):TX1('{0}/4',x.ns||0);
-    }
-    if(x.c==='차이 미미')return x.thr?TX1('±{0}% 안',x.thr):TX1('{0}세션',x.ns||0);
-    return TX1('{0}세션',x.ns||0);
-  }
-  if(pgt==='up'){
-    h+=pgList(pgViz(B.up),TX('진전 중인 종목 없음'),true);
-  }else if(pgt==='hd'){
-    var hd=B.hold.slice().sort(function(u,v){
-      return (PGH[u.c]===undefined?9:PGH[u.c])-(PGH[v.c]===undefined?9:PGH[v.c]);});
-    h+=pgList(hd.map(function(x){
-      return {n:x.n,c:'',gk:x.c,gl:pgHoldLabel(x.c),pct:null,q:x.q,v:pgHoldVal(x),abs:''};
-    }),TX('보류된 종목 없음'),false);
-  }else if(pgt==='st'||pgt==='dn'){
-    h+=pgList(pgViz((pgt==='dn'?B.dn:B.st).slice(),true),
-      TX(pgt==='dn'?'퇴행 중인 종목 없음':'정체된 종목 없음'),true);
-  }
-  h+='</div>';
-  /* 루틴에서 빠진 종목. 보류에 섞여 있던 것을 떼어 늘 보이게 둔다 —
-     '판정 불가' 가 아니라 '안 하고 있다' 는 사실이고, 그건 행동이 되는
-     정보다. 오래 안 한 것부터. */
-  if(B.idle.length){
-    var idl=B.idle.slice().sort(function(u,v){return (v.ago||0)-(u.ago||0);});
-    h+='<div class="pgsec">'+vzCap(TX1('2주 이상 안 한 종목 {0}',idl.length));
-    h+='<div class="pgl"><div class="pgg">';
-    var IDC=6;
-    for(pgi=0;pgi<idl.length&&pgi<IDC;pgi++)
-      h+='<div class="pgli"><b>'+esc(idl[pgi].n)+'</b>'
-        +'<i>'+esc(TX(PN_KO[idl[pgi].p]||''))+'</i>'
-        +'<u>'+TX1('{0}일 전',idl[pgi].ago)+'</u></div>';
-    h+='</div></div>';
-    if(idl.length>IDC){
-      var idc='';
-      for(pgi=IDC;pgi<idl.length;pgi++)
-        idc+='<span class="pgc">'+esc(idl[pgi].n)+' '+idl[pgi].ago+'d</span>';
-      h+='<div class="pgcs">'+idc+'</div>';
-    }
-    h+='</div>';
-  }
-  if(pgK.length){
-    var pgKn=pgK.slice(0,3).map(function(z){return z.n;}).join(', ');
-    h+=vzLine(TX('감량 중 유지'),TX1('{0}종목',pgK.length),
-      pgK.length>3?TX1('{0} 외 — 적자에서 e1RM 유지는 정상',pgKn)
-                  :TX1('{0} — 적자에서 e1RM 유지는 정상',pgKn),
-      {t:TX('유지 정상'),c:'pos'});
-  }
-  if(!pgA.length&&!pgK.length&&!B.nUp&&!B.nHold&&!B.nIdle)
-    h+=vzLine(TX('판정 대상'),TX('없음'),TX('기록 2회 이하 종목만 있음'),{t:TX('기록 없음'),c:''});
-  }
-
   if(tab==='acsm'){
   /* ACSM 성인 권고를 100점 하나로 답한다. 옛 화면은 유산소 막대·반복 막대·
      격자가 나란히 놓여 있을 뿐이라, 넷 가운데 무엇이 얼마나 모자란지를
@@ -10082,7 +10010,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 19:55';
+var BUILD='2026-09-20 20:08';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10673,7 +10601,6 @@ var LANG='ko';
 var EN={
 '부위별 세트':'Sets by part',
 '주간 점수':'Weekly score',
-'종목 추세':'Exercise trends',
 '기구':'Machine',
 '한 기계로 여러 종목을 할 때만':'For multi-exercise stations',
 '예: 케이블 스테이션':'e.g. Cable station',
