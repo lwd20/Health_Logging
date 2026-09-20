@@ -8226,6 +8226,23 @@ function cumWin(win){
   }
   return {weeks:wk,dfc:dfc};
 }
+/* 최근 한 달 누적. 위의 cumWin 은 주마다 0 으로 되돌리는데(창이 밀면
+   총액이 내려가므로) 한 달은 한 덩이로 센다 — 주 경계가 끼어들 이유가 없다.
+   오늘은 뺀다: 소비는 하루치 전부인데 섭취는 먹은 데까지라 아침에는 적자가
+   부풀어 있어, 한 달 총액에 그 반쪽을 얹으면 수가 늘 조금씩 크다. */
+function cumMonth(){
+  var a=trendRows(30),i,sum=0,n=0,d0=null,d1=null,dfc=0;
+  for(i=0;i<a.length;i++){
+    var r=a[i];
+    if(r.ate==null||r.part)continue;
+    sum+=(r.base+r.ex)-r.ate;n++;
+    if(!d0)d0=r.d;
+    d1=r.d;
+  }
+  if(!n)return null;
+  try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)dfc=Math.round(nf.dailyDeficitTarget);}catch(e){}
+  return {v:Math.round(sum),n:n,goal:dfc*n,dfc:dfc,d0:d0,d:d1};
+}
 /* 줄에 적을 값 — 그림 '이번 주' 칸의 마지막 점과 같은 점이어야 한다.
    오늘을 넣는다. 예전에는 끝난 날만 셌는데, 그러면 월요일에는 이번 주에
    끝난 날이 없어 수가 통째로 안 나왔다 — 정작 물을 것이 '지금 적자냐' 인데.
@@ -8902,6 +8919,20 @@ function vzBody(tab){
         h+=vzBar(TX('전 주 적자'),(cp.v<0?0:cp.v),cp.goal,
           (cp.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cp.d0),md(cp.d),cp.n,Math.abs(cp.v).toLocaleString(),kgOf(cp.v))
                  :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cp.d0),md(cp.d),cp.n,kgOf(cp.v),kgOf(cp.goal))),vdP,false);
+      }
+      /* 주 단위 둘만 있으면 '요즘 어디로 가고 있나' 가 안 잡힌다 — 한 주는
+         한 번 어긋나면 그 주가 통째로 나빠 보이고, 잘 한 주도 그 주에서
+         끝난다. 한 달은 그 흔들림을 눌러 준다. 맨 아래에 둔다: 먼저 볼
+         것은 이번 주고, 이것은 그 수를 놓고 볼 잣대다. */
+      var cm=cumMonth();
+      if(cm&&cm.dfc>0&&cm.n>=3){
+        var bndM=okBand(cm.dfc)*Math.sqrt(cm.n);
+        var vdM=(cm.v<0)?{t:TX('초과'),c:'neg'}
+               :(cm.v>=cm.goal+bndM?{t:TX('목표 이상'),c:'pos'}
+               :(cm.v>=cm.goal-bndM?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
+        h+=vzBar(TX('최근 한 달 누적'),(cm.v<0?0:cm.v),cm.goal,
+          (cm.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cm.d0),md(cm.d),cm.n,Math.abs(cm.v).toLocaleString(),kgOf(cm.v))
+                 :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cm.d0),md(cm.d),cm.n,kgOf(cm.v),kgOf(cm.goal))),vdM,false);
       }
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
@@ -9936,7 +9967,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 19:37';
+var BUILD='2026-09-20 19:39';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10934,6 +10965,7 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'최근 한 달 누적':'Last 30 days',
 '한 달':'1 month',
 '분기':'Quarter',
 '반기':'Half year',
