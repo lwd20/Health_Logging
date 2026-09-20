@@ -2113,16 +2113,10 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtpb.on{border-color:rgba(var(--acc-rgb),.45);color:var(--acc-br);
   background:rgba(var(--acc-rgb),.1);font-weight:800}
 .rtpb:active{opacity:.6}
-/* 부위 색 — 브랜드 색과 같은 자(--bh/--bs/--bl)를 쓴다. 밝은 팔레트에서는
-   같은 색이 바탕에 묻으므로 .bsw 와 같은 곳에서 밝기를 내린다. */
-.rtl{--bl:72%;--bs:42%}
-:root[data-pal="paper"] .rtl,:root[data-pal="frost"] .rtl,:root[data-pal="chalk"] .rtl,
-:root[data-pal="sage"] .rtl,:root[data-pal="iris"] .rtl{--bl:36%}
-/* 부위 이름표 — 색은 거들고 이름이 말한다. 3px 막대만 두었더니 파랑이
-   등인지 팔인지를 외워야 알 수 있었다. */
+/* 부위 이름표 — 구분은 이름이 한다. 부위마다 색을 주었더니 강조색 하나로
+   말하는 다른 화면과 이 탭만 따로 놀았다. 앱이 이미 쓰는 회색 알약으로. */
 .rtpill{flex:0 0 auto;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:800;
-  letter-spacing:.02em;color:hsl(var(--bh) var(--bs) var(--bl));
-  background:hsl(var(--bh) 55% 50% / .15);white-space:nowrap}
+  letter-spacing:.02em;color:var(--tx);background:rgba(var(--tx-rgb),.07);white-space:nowrap}
 /* 부위 머리 밑의 줄은 한 칸 들여쓴다 — 누구에게 딸린 줄인지가 자리로 보인다 */
 .rtin{padding-left:11px;border-left:2px solid rgba(var(--tx-rgb),.09);margin-left:3px}
 /* 차례를 모르는 부위 — 목록에 남되 제 값이 없다는 것이 보이게 */
@@ -2142,7 +2136,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtstk.many>span::before{content:'·';position:absolute;left:1px;top:-1px;color:var(--dim);font-weight:800}
 /* 부위 머리 — 그 밑 줄들이 누구의 차례인지를 말한다 */
 .rtph{display:flex;align-items:center;gap:7px;margin:10px 2px 1px;min-height:15px;
-  font-size:11px;font-weight:800;letter-spacing:.04em;color:hsl(var(--bh) var(--bs) var(--bl))}
+  font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--chrome)}
 .rtph:first-child{margin-top:2px}
 .rtph i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim)}
 /* 한 수준에 머신이 여럿이면 줄이 길어진다 — 여기서는 접어서 다 보인다 */
@@ -9407,10 +9401,6 @@ function rtMed(a){
   var h=Math.floor(a.length/2);
   return a.length%2?a[h]:Math.round((a[h-1]+a[h])/2);
 }
-/* 부위마다 고정된 색. 골든앵글로 뽑으면 이름이 바뀔 때 색도 바뀌어
-   '초록은 하체' 가 안 쌓인다 — 여섯이니 손으로 벌려 둔다. */
-var PHUE={'CHEST':10,'BACK':205,'SHOULDERS':45,'LEGS':145,'ARMS·ETC':280,'CARDIO':320};
-function rtHue(p){return PHUE[p]!=null?PHUE[p]:bHue(p);}
 function rtPName(p){return p==='CARDIO'?TX('유산소'):TX(PN_KO[p]||p);}
 var RTPER=[['w','이번 주'],['m','한 달'],['q','분기'],['h','반기']];
 /* 며칠 전까지 볼까. '이번 주' 만 날수가 아니라 월요일까지다 — 앱의 주간
@@ -9482,7 +9472,7 @@ function vzRout(){
       for(q=0;q<ptr[i].items.length;q++){
         var pe=ptr[i].items[q];
         /* 며칠만 한 부위를 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 */
-        pl+='<b class="rtpill" style="--bh:'+rtHue(pe.p)+'">'+esc(rtPName(pe.p))
+        pl+='<b class="rtpill">'+esc(rtPName(pe.p))
           +((pe.n<pused)?'<u>'+pe.n+'</u>':'')+'</b>';
       }
       h+='<div class="rtr rtp1"><u>'+(i+1)+'</u><span class="rtps">'+pl+'</span></div>';
@@ -9490,7 +9480,7 @@ function vzRout(){
     if(pmiss.length){
       var ml='';
       for(i=0;i<pmiss.length;i++)
-        ml+='<b class="rtpill" style="--bh:'+rtHue(pmiss[i])+'">'+esc(rtPName(pmiss[i]))+'</b>';
+        ml+='<b class="rtpill">'+esc(rtPName(pmiss[i]))+'</b>';
       h+='<div class="rtr rtp1 rtno"><u>–</u><span class="rtps">'+ml+'</span>'
         +'<i>'+TX('차례 모름')+'</i></div>';
     }
@@ -9533,8 +9523,8 @@ function vzRout(){
       if(!cur||mine[q].avg-cur.a>=0.5){cur={a:mine[q].avg,items:[]};tiers.push(cur);}
       cur.items.push(mine[q]);
     }
-    hp+='<div class="rtph" style="--bh:'+rtHue(pp)+'">'
-      +'<b class="rtpill">'+esc(rtPName(pp))+'</b><i>'+TX1('{0}일치',pday[pp]||0)+'</i></div>';
+    hp+='<div class="rtph"><b class="rtpill">'+esc(rtPName(pp))+'</b>'
+      +'<i>'+TX1('{0}일치',pday[pp]||0)+'</i></div>';
     for(q=0;q<tiers.length;q++){
       /* 'A · B' 로 이어 붙이면 긴 이름 둘이 감기면서 어디서 끊기는지가
          안 보였다 — 한 줄에 하나씩 쌓고, 둘 이상일 때만 앞에 점을 찍어
@@ -10010,7 +10000,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 20:08';
+var BUILD='2026-09-20 20:18';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
