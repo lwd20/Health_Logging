@@ -2115,11 +2115,9 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtpb:active{opacity:.6}
 /* 부위 색 — 브랜드 색과 같은 자(--bh/--bs/--bl)를 쓴다. 밝은 팔레트에서는
    같은 색이 바탕에 묻으므로 .bsw 와 같은 곳에서 밝기를 내린다. */
-.rtl,.rtfl{--bl:72%;--bs:42%}
+.rtl{--bl:72%;--bs:42%}
 :root[data-pal="paper"] .rtl,:root[data-pal="frost"] .rtl,:root[data-pal="chalk"] .rtl,
-:root[data-pal="sage"] .rtl,:root[data-pal="iris"] .rtl,
-:root[data-pal="paper"] .rtfl,:root[data-pal="frost"] .rtfl,:root[data-pal="chalk"] .rtfl,
-:root[data-pal="sage"] .rtfl,:root[data-pal="iris"] .rtfl{--bl:36%}
+:root[data-pal="sage"] .rtl,:root[data-pal="iris"] .rtl{--bl:36%}
 /* 부위 이름표 — 색은 거들고 이름이 말한다. 3px 막대만 두었더니 파랑이
    등인지 팔인지를 외워야 알 수 있었다. */
 .rtpill{flex:0 0 auto;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:800;
@@ -2127,22 +2125,12 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   background:hsl(var(--bh) 55% 50% / .15);white-space:nowrap}
 /* 부위 머리 밑의 줄은 한 칸 들여쓴다 — 누구에게 딸린 줄인지가 자리로 보인다 */
 .rtin{padding-left:11px;border-left:2px solid rgba(var(--tx-rgb),.09);margin-left:3px}
-.rtsec{margin-top:12px}
-.rtl>.rtsec:first-child{margin-top:2px}
 /* 차례를 모르는 부위 — 목록에 남되 제 값이 없다는 것이 보이게 */
 .rtno u{color:var(--dim)}
 .rtno i{font-family:inherit;font-size:9.5px;letter-spacing:.02em}
 .rtp1>u{font-weight:700}
 .rtp1>b.rtpill{flex:0 0 auto;max-width:60%;overflow:hidden;text-overflow:ellipsis}
 .rtp1>i{margin-left:auto}
-/* 부위 흐름 — 그 날의 꼴. 알약 사이의 화살표가 차례를 말한다 */
-.rtfl{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:5px 2px 9px}
-.rtfl b{font-size:11px;font-weight:800;letter-spacing:.02em;
-  color:hsl(var(--bh) var(--bs) var(--bl));background:hsl(var(--bh) 55% 50% / .15);
-  border-radius:100px;padding:4px 10px}
-.rtfl i{font-style:normal;font-family:var(--mono);font-size:9px;color:var(--dim)}
-.rtmiss{margin-bottom:2px}
-.rtmiss b{opacity:.55}
 /* 부위 머리 — 그 밑 줄들이 누구의 차례인지를 말한다 */
 .rtph{display:flex;align-items:center;gap:7px;margin:10px 2px 1px;min-height:15px;
   font-size:11px;font-weight:800;letter-spacing:.04em;color:hsl(var(--bh) var(--bs) var(--bl))}
@@ -2164,10 +2152,6 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtr b{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:650;color:var(--tx);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtr i{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
-/* 종목 사이의 틈 — 줄과 줄 사이에 두어 '이만큼 비었다' 가 자리로 보이게 */
-.rtg{display:flex;align-items:center;gap:6px;padding:0 2px 0 6px;
-  font-family:var(--mono);font-size:9px;color:var(--dim)}
-.rtg::before{content:'';flex:0 0 auto;width:1px;height:11px;background:rgba(var(--tx-rgb),.2);margin-left:13px}
 .zrow .num{order:2}
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
@@ -9451,41 +9435,6 @@ function vzRout(){
     h+=hNote(TX('이 기간에는 차례를 아는 날이 없음 — 세트를 올리면 시각이 찍히고, 옛 기록은 <b>LOG</b> 에서 날마다 <b>차례</b> 를 눌러 기억대로 세우면 들어옴.'));
     return h;
   }
-  /* 1) 가장 가까운 세션을 시각 그대로 — 셈보다 먼저 그 날을 보여 준다 */
-  var day=timed[0]||ord[0];
-  h+=vzCap(TX('최근 세션')+'<span class="rtsub">'+esc(jdate(day.d))+'</span>');
-  /* 시각 줄을 훑기 전에 그 날의 꼴을 한 줄로 — 무엇을 어떤 부위 차례로
-     했나가 먼저고, 몇 시에 했나는 그 다음이다. */
-  var fl=rtFlow(rtKnown(day));
-  if(fl.length>1){
-    h+='<div class="rtfl">';
-    for(i=0;i<fl.length;i++)
-      h+=(i?'<i>→</i>':'')+'<b style="--bh:'+rtHue(fl[i])+'">'+esc(rtPName(fl[i]))+'</b>';
-    h+='</div>';
-  }
-  /* 부위가 바뀌는 자리에 머리를 단다. 3px 색 막대만으로는 파랑이 등인지
-     팔인지를 외워야 알 수 있었다 — 구분은 글자가 하고 색은 거든다. */
-  h+='<div class="rtl">';
-  var curp=null,pn=0;
-  for(i=0;i<day.rows.length;i++){
-    var r=day.rows[i];
-    if(r.m.p!==curp){
-      curp=r.m.p;pn=0;
-      for(j=i;j<day.rows.length&&day.rows[j].m.p===curp;j++)pn++;
-      h+='<div class="rtph rtsec" style="--bh:'+rtHue(curp)+'">'
-        +'<b class="rtpill">'+esc(rtPName(curp))+'</b><i>'+TX1('{0}종목',pn)+'</i></div>';
-    }
-    if(i>0&&r.t0!=null&&day.rows[i-1].t1!=null){
-      var gap=r.t0-day.rows[i-1].t1;
-      if(gap>=0&&gap<=600)h+='<div class="rtg">'+TX1('{0}분',gap)+'</div>';
-    }
-    var dur=(r.t0!=null&&r.t1!=null)?(r.t1-r.t0):null;
-    h+='<div class="rtr rtin"><u>'+(r.t0==null?'–':hhmm(r.t0))+'</u>'
-      +'<b>'+esc(pgName(r.m))+'</b>'
-      +'<i>'+(dur==null?TX1('{0}세트',r.s.length):TX1('{0}분',dur))+'</i></div>';
-  }
-  h+='</div>';
-  if(!day.timed)h+=hNote(TX('이 날은 시각이 없어 손으로 세운 차례임'));
   /* 2) 부위 차례 — 종목 하나하나보다 이것이 먼저 읽힌다. 51개를 늘어놓으면
      '보통 어떤 꼴로 하나' 가 안 보인다. 한 부위의 자리는 그 부위가 처음
      나온 자리다: 가슴을 세 종목 했어도 가슴은 한 번 지나간 것이다. */
@@ -10133,7 +10082,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 19:53';
+var BUILD='2026-09-20 19:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
