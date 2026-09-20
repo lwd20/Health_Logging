@@ -1989,6 +1989,21 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .zrow .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
 .zrow .sub{flex:1 0 100%;font-size:10px;color:var(--dim);line-height:1.4}
 .zrow .sub.one{flex:0 0 auto;order:1;font-family:var(--mono);font-size:9.5px;letter-spacing:.03em}
+/* 루틴 — 그 날을 시각 그대로 세로로 늘어놓는다. 막대나 점수로 바꾸면
+   '몇 시에 무엇을' 이라는 원래의 물음이 사라진다. */
+/* 캡션 오른쪽의 작은 셈 — .lmsub 는 세로 레일용 여백을 갖고 있어 여기선 안 맞는다 */
+.lmcap .rtsub{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.04em;text-transform:none}
+.rtl{margin:2px 0 4px}
+.rtr{display:flex;align-items:baseline;gap:9px;padding:7px 2px}
+.rtr u{flex:0 0 40px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--acc-br);font-variant-numeric:tabular-nums}
+.rtr b{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:650;color:var(--tx);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtr i{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
+/* 종목 사이의 틈 — 줄과 줄 사이에 두어 '이만큼 비었다' 가 자리로 보이게 */
+.rtg{display:flex;align-items:center;gap:6px;padding:0 2px 0 6px;
+  font-family:var(--mono);font-size:9px;color:var(--dim)}
+.rtg::before{content:'';flex:0 0 auto;width:1px;height:11px;background:rgba(var(--tx-rgb),.2);margin-left:13px}
 .zrow .num{order:2}
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
@@ -8015,7 +8030,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px;display:fl
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['prog','종목 추세']];
+var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['prog','종목 추세'],['rout','루틴']];
 var VZD=[['today','오늘'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
@@ -9102,6 +9117,120 @@ function vzRoute(R){
   if(R.gap.length)h+='<div class="rtn">'+TX1('어제 쳐서 오늘은 뺌 · {0}',R.gap.join(', '))+'</div>';
   return h;
 }
+/* ── 루틴 ──
+   세트마다 찍힌 분(다섯째 자리)으로 그 날 무엇을 어떤 차례로 했는지를
+   되살린다. 시각이 없는 옛 기록은 일지에서 손으로 세워 둔 차례를 쓴다 —
+   둘 다 없는 날은 차례를 모르는 날이라 셈에서 뺀다. */
+function hhmm(mn){
+  if(mn==null)return '';
+  var h=Math.floor(mn/60)%24,m=((mn%60)+60)%60;
+  return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+}
+function rtDays(){
+  var map=jMap(),out=[],d;
+  for(d in map){
+    var ents=jOrder(d,map[d]),i,rows=[],timed=0;
+    for(i=0;i<ents.length;i++){
+      var t0=firstT(ents[i].s),t1=lastT(ents[i].s);
+      if(t0!=null)timed++;
+      rows.push({m:ents[i].m,s:ents[i].s,t0:t0,t1:t1});
+    }
+    out.push({d:d,rows:rows,timed:timed,man:!!(S.o&&S.o[d])});
+  }
+  out.sort(function(a,b){return a.d<b.d?1:-1;});
+  return out;
+}
+function rtMed(a){
+  if(!a.length)return null;
+  a=a.slice().sort(function(x,y){return x-y;});
+  var h=Math.floor(a.length/2);
+  return a.length%2?a[h]:Math.round((a[h-1]+a[h])/2);
+}
+function vzRout(){
+  var days=rtDays(),h='',i,j,timed=[],ord=[];
+  for(i=0;i<days.length;i++){
+    if(days[i].timed>=2)timed.push(days[i]);
+    /* 차례를 아는 날 — 시각이 둘 이상 찍혔거나, 손으로 세워 둔 날 */
+    if(days[i].rows.length>=2&&(days[i].timed>=2||days[i].man))ord.push(days[i]);
+  }
+  if(!ord.length){
+    h+=hNote(TX('아직 차례를 아는 날이 없음 — 오늘부터 세트마다 시각이 찍힘. 옛 기록은 <b>LOG</b> 에서 날마다 <b>차례</b> 를 눌러 기억대로 세우면 여기에 들어옴.'));
+    return h;
+  }
+  /* 1) 가장 가까운 세션을 시각 그대로 — 셈보다 먼저 그 날을 보여 준다 */
+  var day=timed[0]||ord[0];
+  h+=vzCap(TX('최근 세션')+'<span class="rtsub">'+esc(jdate(day.d))+'</span>');
+  h+='<div class="rtl">';
+  for(i=0;i<day.rows.length;i++){
+    var r=day.rows[i];
+    if(i>0&&r.t0!=null&&day.rows[i-1].t1!=null){
+      var gap=r.t0-day.rows[i-1].t1;
+      if(gap>=0&&gap<=600)h+='<div class="rtg">'+TX1('{0}분',gap)+'</div>';
+    }
+    var dur=(r.t0!=null&&r.t1!=null)?(r.t1-r.t0):null;
+    h+='<div class="rtr"><u>'+(r.t0==null?'–':hhmm(r.t0))+'</u>'
+      +'<b>'+esc(pgName(r.m))+'</b>'
+      +'<i>'+(dur==null?TX1('{0}세트',r.s.length):TX1('{0}분',dur))+'</i></div>';
+  }
+  h+='</div>';
+  if(!day.timed)h+=hNote(TX('이 날은 시각이 없어 손으로 세운 차례임'));
+  /* 2) 늘 어떤 차례로 하나 — 날마다의 자리를 평균 낸다 */
+  var pos={},nm={},k,used=0;
+  for(i=0;i<ord.length;i++){
+    /* 자리를 아는 종목만 센다. 시각이 안 찍힌 종목은 그 날 목록 끝에 붙어
+       있을 뿐이라 '다섯째로 했다' 가 아니다 — 세면 없는 사실이 생긴다. */
+    var dd=ord[i],known=[],ol=dd.man?(S.o[dd.d]||[]):null;
+    for(j=0;j<dd.rows.length;j++){
+      var rr=dd.rows[j];
+      if(ol?(ol.indexOf(rr.m.i)>=0):(rr.t0!=null))known.push(rr);
+    }
+    if(known.length)used++;
+    for(j=0;j<known.length;j++){
+      k=known[j].m.i;
+      (pos[k]=pos[k]||[]).push(j+1);
+      nm[k]=known[j].m;
+    }
+  }
+  var list=[];
+  for(k in pos){
+    var a=pos[k],sum=0;
+    for(i=0;i<a.length;i++)sum+=a[i];
+    list.push({k:k,m:nm[k],avg:sum/a.length,n:a.length});
+  }
+  list.sort(function(x,y){return (x.avg-y.avg)||(y.n-x.n);});
+  /* .zrow 로 그렸더니 이름·자리·날수가 서로 밀려 한 종목이 세 줄을 먹었다.
+     위 타임라인과 같은 꼴로 한 줄에 — 왼쪽이 자리, 오른쪽이 날수다. */
+  h+=vzCap(TX('보통 순서')+'<span class="rtsub">'+TX('평균 자리')+' · '+TX1('{0}일치',used)+'</span>');
+  h+='<div class="rtl">';
+  for(i=0;i<list.length&&i<8;i++){
+    var e=list[i];
+    h+='<div class="rtr"><u>'+(Math.round(e.avg*10)/10)+'</u>'
+      +'<b>'+esc(pgName(e.m))+'</b><i>'+TX1('{0}일치',e.n)+'</i></div>';
+  }
+  h+='</div>';
+  /* 3) 세션 — 시각이 찍힌 날만 셀 수 있다 */
+  if(timed.length){
+    var lens=[],starts=[],gaps=[];
+    for(i=0;i<timed.length;i++){
+      var rows=timed[i].rows,a0=null,a1=null;
+      for(j=0;j<rows.length;j++){
+        if(rows[j].t0!=null&&(a0==null||rows[j].t0<a0))a0=rows[j].t0;
+        if(rows[j].t1!=null&&(a1==null||rows[j].t1>a1))a1=rows[j].t1;
+        if(j>0&&rows[j].t0!=null&&rows[j-1].t1!=null){
+          var g=rows[j].t0-rows[j-1].t1;
+          if(g>=0&&g<=600)gaps.push(g);
+        }
+      }
+      if(a0!=null)starts.push(a0);
+      if(a0!=null&&a1!=null&&a1>a0)lens.push(a1-a0);
+    }
+    h+=vzCap(TX('세션')+'<span class="rtsub">'+TX1('시각 있는 {0}일',timed.length)+'</span>');
+    if(lens.length)h+=vzLine(TX('길이'),TX1('{0}분',rtMed(lens)),'',null);
+    if(starts.length)h+=vzLine(TX('시작'),hhmm(rtMed(starts)),'',null);
+    if(gaps.length)h+=vzLine(TX('종목 간 틈'),TX1('{0}분',rtMed(gaps)),'',null);
+  }
+  return h;
+}
 function vzTrain(tab){
   /* 옛 열쇠로 들어와도 화면이 비지 않게 옮겨 준다 */
   /* 강도·회복을 걸어냈으므로 그 열쇠도 세트로 보낸다 — 저장된
@@ -9109,6 +9238,7 @@ function vzTrain(tab){
   if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal')tab='vol';
   tab=tab||'vol';
   var h='',ws=wkSets(),sc=mmCnt(),i,k;
+  if(tab==='rout')return vzRout();
   if(tab==='vol'){
   /* 세부에는 눈금이 있는데 부위에는 없을 이유가 없다 — LMKP 가 이미
      다섯 부위의 랜드마크를 갖고 있다. 목표 대비는 숫자로, 구간은 눈금으로. */
@@ -9635,7 +9765,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 18:24';
+var BUILD='2026-09-20 18:31';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10633,6 +10763,20 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'{0}일치':'{0}d',
+'평균 자리':'Avg place',
+'루틴':'Routine',
+'최근 세션':'Last session',
+'보통 순서':'Usual order',
+'세션':'Session',
+'길이':'Length',
+'시작':'Start',
+'종목 간 틈':'Between exercises',
+'{0}분':'{0} min',
+'{0}번째':'#{0}',
+'시각 있는 {0}일':'{0} days with times',
+'이 날은 시각이 없어 손으로 세운 차례임':'No times that day — order set by hand',
+'아직 차례를 아는 날이 없음 — 오늘부터 세트마다 시각이 찍힘. 옛 기록은 <b>LOG</b> 에서 날마다 <b>차례</b> 를 눌러 기억대로 세우면 여기에 들어옴.':'No day has an order yet — sets are stamped from today. For older days, tap <b>Order</b> on a day in <b>LOG</b> to set it from memory.',
 '차례':'Order',
 '마침':'Done',
 '지움':'Clear',
