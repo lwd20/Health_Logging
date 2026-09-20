@@ -2271,6 +2271,24 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jdh i{font-family:var(--mono);font-size:10px;color:var(--dim)}
 .jgo{margin-left:auto;min-height:34px;display:flex;align-items:center;font-size:10px;font-weight:700;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 11px;color:var(--mut);letter-spacing:.08em}
 .jgo:active{color:var(--tx);border-color:var(--mut)}
+/* 차례 고치기 — 옛 기록에는 시각이 없어 기억으로 세우는 수밖에 없다 */
+.jso{margin-left:auto;min-height:34px;display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+  border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 10px;color:var(--mut);letter-spacing:.06em}
+.jso+.jso{margin-left:0}
+.jso.on{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.45)}
+.jso u{text-decoration:none;font-size:9px;color:var(--acc-br)}
+.jmv{flex:0 0 auto;display:flex;gap:3px}
+.jmv button{width:32px;height:32px;padding:0;border:var(--bw) solid rgba(var(--tx-rgb),.12);
+  border-radius:var(--rad-s);background:none;color:var(--mut);font-size:10px;line-height:1}
+.jmv button:active{color:var(--tx);border-color:var(--mut)}
+.jmv button[disabled]{opacity:.22}
+/* 이름을 'ord' 로 두었더니 앱에 이미 있던 .ord(42x42 차례 단추)가 줄에
+   걸려 줄 너비가 42px 로 접혔다. 줄 수식어는 제 이름을 쓴다. */
+.jr.oedit{align-items:center}
+/* 차례를 세울 때 필요한 것은 이름이다. 무게 칸(최소 104px)을 그대로 두면
+   화살표 둘에 밀려 이름 자리가 0 이 되어 무엇을 옮기는지가 안 보였다. */
+.jr.oedit .jrv{display:none}
+.jr.oedit .jn2{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
 /* 이름은 줄고 숫자는 온전히 — 잘려도 되는 쪽은 이름이다 */
 .jr{display:flex;justify-content:space-between;align-items:baseline;gap:9px;padding:6px 0;font-size:12px}
 .jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.05)}
@@ -2997,7 +3015,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',bflt:{},btab:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',bflt:{},btab:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -4096,7 +4114,37 @@ function spark(list){
     +'<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="3"/></svg>';
 }
 /* ── 일지 ── */
-function journalHtml(){
+/* 그 세션에서 가장 이른 세트 시각. 세트는 올린 차례로 쌓이지만 고친 것이
+   섞일 수 있어 제일 작은 값을 쓴다. 시각이 하나도 없으면 null. */
+function firstT(ss){
+  var t=null,i,v;
+  for(i=0;i<ss.length;i++){v=ss[i][4];if(v!=null&&(t==null||v<t))t=v;}
+  return t;
+}
+function lastT(ss){
+  var t=null,i,v;
+  for(i=0;i<ss.length;i++){v=ss[i][4];if(v!=null&&(t==null||v>t))t=v;}
+  return t;
+}
+/* 하루 안 종목 차례. 손으로 정해 둔 날은 그 차례, 아니면 첫 세트 시각순,
+   둘 다 없으면 지금까지처럼 종목 목록 차례 그대로. 셋을 섞어 재지 않는다 —
+   차례 번호(0,1,2)와 분(1064)을 한 자로 견주면 뜻 없는 수가 나온다. */
+function jOrder(d,ents){
+  var ord=(S.o&&S.o[d])||null,i,p,t;
+  for(i=0;i<ents.length;i++)ents[i]._i=i;
+  for(i=0;i<ents.length;i++){
+    if(ord&&ord.length){
+      p=ord.indexOf(ents[i].m.i);
+      ents[i]._k=(p<0)?1e9+ents[i]._i:p;
+    }else{
+      t=firstT(ents[i].s);
+      ents[i]._k=(t==null)?1e9+ents[i]._i:t;
+    }
+  }
+  ents.sort(function(a,b){return (a._k-b._k)||(a._i-b._i);});
+  return ents;
+}
+function jMap(){
   var map={},i,j,a,m;
   for(i=0;i<S.m.length;i++){
     m=S.m[i];a=sess(m.i);
@@ -4105,6 +4153,27 @@ function journalHtml(){
       (map[a[j].d]=map[a[j].d]||[]).push({m:m,s:a[j].s});
     }
   }
+  return map;
+}
+/* 위아래로 옮기기 — 지금 보이는 차례를 그대로 집어 두 칸을 바꾼다.
+   시각이 있는 날을 손으로 옮겨도 그 날은 손으로 정한 차례가 이긴다. */
+function jMove(v,dir){
+  var p=String(v).split('|'),d=p[0],id=p[1];
+  var ents=jOrder(d,jMap()[d]||[]),ord=[],i;
+  for(i=0;i<ents.length;i++)ord.push(ents[i].m.i);
+  i=ord.indexOf(id);
+  var j=i+dir;
+  if(i<0||j<0||j>=ord.length)return;
+  var t=ord[i];ord[i]=ord[j];ord[j]=t;
+  S.o=S.o||{};S.o[d]=ord;
+  save();renderSheet();
+}
+function jClear(d){
+  if(S.o){delete S.o[d];save();}
+  renderSheet();
+}
+function journalHtml(){
+  var map=jMap(),i,j,e2;
   var dates=[],k;
   for(k in map)dates.push(k);
   dates.sort();dates.reverse();
@@ -4113,10 +4182,16 @@ function journalHtml(){
   if(dates.length>60)dates=dates.slice(0,60);
   var h='',d,ents,ns,e;
   for(i=0;i<dates.length;i++){
-    d=dates[i];ents=map[d];ns=0;
+    d=dates[i];ents=jOrder(d,map[d]);ns=0;
     for(j=0;j<ents.length;j++)ns+=ents[j].s.length;
+    /* 차례 고치기 — 시각이 없는 옛 기록은 기억으로만 되살릴 수 있다.
+       종목이 하나뿐인 날은 바꿀 것이 없으므로 단추도 안 낸다. */
+    var ordOn=(UI.jord===d),hasOrd=!!(S.o&&S.o[d]);
     h+='<div class="jd"><div class="jdh"><b>'+jdate(d)+'</b><i>'+ents.length+' ex · '+ns+' set'+(ns>1?'s':'')+'</i>'
-      +'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button></div>';
+      +(ents.length>1?'<button class="jso'+(ordOn?' on':'')+'" data-act="jord" data-v="'+d+'">'
+        +TX(ordOn?'마침':'차례')+(hasOrd&&!ordOn?'<u>✓</u>':'')+'</button>':'')
+      +(ordOn&&hasOrd?'<button class="jso" data-act="jocl" data-v="'+d+'">'+TX('지움')+'</button>':'')
+      +(ordOn?'':'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button>')+'</div>';
     for(j=0;j<ents.length;j++){
       e=ents[j];
       var jm=e.m,jhd,jdt;
@@ -4140,7 +4215,11 @@ function journalHtml(){
         jdt=detailOf(e.s);
       }
       var jln=cleanLine(jm.ln);
-      h+='<div class="jr"><span class="jn2">'+esc(jm.n)
+      h+='<div class="jr'+(ordOn?' oedit':'')+'">'
+        +(ordOn?'<span class="jmv">'
+          +'<button data-act="jmu" data-v="'+d+'|'+jm.i+'"'+(j===0?' disabled':'')+'>▲</button>'
+          +'<button data-act="jmd" data-v="'+d+'|'+jm.i+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
+        +'<span class="jn2">'+esc(jm.n)
         +(jm.v?'<u class="vg2">'+esc(jm.v)+'</u>':'')
         +(jm.b?'<i>'+esc(jm.b)+'</i>':'')+(jln&&!jm.v?'<i>'+esc(jln)+'</i>':'')+'</span>'
         +'<span class="jrv"><b>'+jhd+'</b><em>'+jdt+'</em></span></div>';
@@ -5017,8 +5096,16 @@ function fillNext(){
    오늘 것에만 찍는다: 지난 날짜를 손으로 채워 넣을 때의 '지금' 은 그 날
    그 세트를 한 시각이 아니라 적고 있는 시각이라, 순서를 거꾸로 만든다. */
 function setStamp(set){
-  if(UI.wd!==today())return;
-  var n=new Date(),mn=n.getHours()*60+n.getMinutes();
+  /* 시계 시각이 아니라 '그 날 자정부터 센 분' 이다. 밤 11시에 시작해 자정을
+     넘기면 시계로는 1410 다음이 5 라 순서가 거꾸로 뒤집히는데, 이렇게 세면
+     1410 다음이 1445 로 이어진다. 지난 날짜를 손으로 채워 넣을 때는 값이
+     창을 한참 넘어가 안 찍힌다 — 그때의 '지금' 은 그 세트를 한 시각이 아니다.
+     앞으로 잡은 날짜는 음수라 역시 안 찍힌다. */
+  var p=String(UI.wd||'').split('-');
+  if(p.length!==3)return;
+  var base=new Date(+p[0],p[1]-1,+p[2]).getTime();
+  var mn=Math.floor((Date.now()-base)/60000);
+  if(!(mn>=0&&mn<=1800))return;
   while(set.length<4)set.push(null);
   set[4]=mn;
 }
@@ -9548,7 +9635,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 17:45';
+var BUILD='2026-09-20 18:24';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10546,6 +10633,9 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'차례':'Order',
+'마침':'Done',
+'지움':'Clear',
 '빗면':'Bevel',
 '액자':'Frame',
 '꼬리표':'Tag',
@@ -12174,6 +12264,10 @@ document.addEventListener('click',function(e){
       break;
     case 'ps':UI.editStep=parseFloat(v);render();break;
     case 'jn':UI.sheet='log';render();break;
+    case 'jord':UI.jord=(UI.jord===v?'':v);renderSheet();break;
+    case 'jmu':jMove(v,-1);break;
+    case 'jmd':jMove(v,1);break;
+    case 'jocl':jClear(v);break;
     case 'jw':
       if(setWd(v)){UI.sheet=null;render();}
       break;
