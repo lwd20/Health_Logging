@@ -2154,6 +2154,9 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    묶음 머리(.rtph) 바로 다음 줄에는 안 긋는다: 머리가 이미 끊고 있다. */
 .rtr{display:flex;align-items:center;gap:9px;padding:7px 2px}
 .rtr+.rtr{border-top:1px solid rgba(var(--tx-rgb),.07)}
+/* 셈 한 줄 — 왼쪽은 이름, 오른쪽은 값. 값은 순위 숫자와 같은 강조색이다 */
+.rtr.rts>i{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--acc-br);
+  font-variant-numeric:tabular-nums}
 /* 번호 칸은 두 목록이 같은 폭을 쓴다 — 40px 는 시각(17:00)을 담던 자리인데
    그 목록을 없앴는데도 남아 있어 왼쪽 줄이 서로 안 맞았다. */
 .rtr>u{flex:0 0 18px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
@@ -9569,10 +9572,15 @@ function vzRout(){
       if(a0!=null)starts.push(a0);
       if(a0!=null&&a1!=null&&a1>a0)lens.push(a1-a0);
     }
+    /* 이 셋만 .zrow 로 그렸더니 한 탭 안에서 줄 모양이 둘이었다 — 위 목록과
+       같은 줄을 쓰고, 번호 칸은 비워 두어 왼쪽 끝이 맞게 한다. */
     h+=vzCap(TX('세션')+'<span class="rtsub">'+TX1('시각 있는 {0}일',timed.length)+'</span>');
-    if(lens.length)h+=vzLine(TX('길이'),TX1('{0}분',rtMed(lens)),'',null);
-    if(starts.length)h+=vzLine(TX('시작'),hhmm(rtMed(starts)),'',null);
-    if(gaps.length)h+=vzLine(TX('종목 간 틈'),TX1('{0}분',rtMed(gaps)),'',null);
+    var sr='';
+    function srow(lb,v){return '<div class="rtr rts"><u></u><b>'+lb+'</b><i>'+v+'</i></div>';}
+    if(lens.length)sr+=srow(TX('길이'),TX1('{0}분',rtMed(lens)));
+    if(starts.length)sr+=srow(TX('시작'),hhmm(rtMed(starts)));
+    if(gaps.length)sr+=srow(TX('종목 간 틈'),TX1('{0}분',rtMed(gaps)));
+    if(sr)h+='<div class="rtl">'+sr+'</div>';
   }
   return h;
 }
@@ -10009,7 +10017,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 20:29';
+var BUILD='2026-09-20 21:22';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
