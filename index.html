@@ -2150,7 +2150,10 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .rtl{margin:2px 0 4px}
 /* 색 막대가 줄 높이를 따라 서야 해서 baseline 을 못 쓴다 — 가운데로 맞추고
    글자끼리의 밑줄은 각자 제 줄칸에서 잡는다. */
+/* 순위와 순위 사이에 가는 선 — 여백만으로는 어디서 끊기는지가 안 잡혔다.
+   묶음 머리(.rtph) 바로 다음 줄에는 안 긋는다: 머리가 이미 끊고 있다. */
 .rtr{display:flex;align-items:center;gap:9px;padding:7px 2px}
+.rtr+.rtr{border-top:1px solid rgba(var(--tx-rgb),.07)}
 /* 번호 칸은 두 목록이 같은 폭을 쓴다 — 40px 는 시각(17:00)을 담던 자리인데
    그 목록을 없앴는데도 남아 있어 왼쪽 줄이 서로 안 맞았다. */
 .rtr>u{flex:0 0 18px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
@@ -9464,7 +9467,7 @@ function vzRout(){
   for(sk in seen)if(!ppos[sk])pmiss.push(sk);
   pmiss.sort(function(x,y){return rtPName(x)<rtPName(y)?-1:1;});
   if(pall.length||pmiss.length){
-    h+=vzCap(TX('보통 순서')+'<span class="rtsub">'+TX('부위')+' · '+TX1('{0}일치',pused)+'</span>');
+    h+=vzCap(TX('보통 순서')+'<span class="rtsub">'+TX('부위')+' · '+TX1('최근 {0}일',pused)+'</span>');
     /* 부위 안 차례와 같은 자로 묶는다 — 평균 자리가 반 칸 안이면 그날그날
        바뀌었을 뿐 먼저랄 것이 없다. 1 이 둘이면 두 줄로 세울 이유가 없다. */
     var ptr=[],pcur=null;
@@ -9479,7 +9482,7 @@ function vzRout(){
         var pe=ptr[i].items[q];
         /* 며칠만 한 부위를 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 */
         pl+='<b class="rtpill">'+esc(rtPName(pe.p))
-          +((pe.n<pused)?'<u>'+TX1('{0}일치',pe.n)+'</u>':'')+'</b>';
+          +'<u>'+pe.n+'/'+pused+'</u></b>';
       }
       h+='<div class="rtr rtp1"><u>'+(i+1)+'</u><span class="rtps">'+pl+'</span></div>';
     }
@@ -9530,7 +9533,7 @@ function vzRout(){
       cur.items.push(mine[q]);
     }
     hp+='<div class="rtph"><b class="rtpill">'+esc(rtPName(pp))+'</b>'
-      +'<i>'+TX1('{0}일치',pday[pp]||0)+'</i></div>';
+      +'<i>'+(pday[pp]||0)+'/'+pused+TX('일')+'</i></div>';
     for(q=0;q<tiers.length;q++){
       /* 'A · B' 로 이어 붙이면 긴 이름 둘이 감기면서 어디서 끊기는지가
          안 보였다 — 한 줄에 하나씩 쌓고, 둘 이상일 때만 앞에 점을 찍어
@@ -9540,7 +9543,7 @@ function vzRout(){
         var it=tiers[q].items[q2];
         /* 며칠만 한 머신을 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 —
            그 부위를 한 날수보다 적게 나온 것에만 수를 붙인다. */
-        tl+='<span>'+esc(pgName(it.m))+((it.n<(pday[pp]||0))?'<u>'+TX1('{0}일치',it.n)+'</u>':'')+'</span>';
+        tl+='<span>'+esc(pgName(it.m))+'<u>'+it.n+'/'+(pday[pp]||0)+'</u></span>';
       }
       hp+='<div class="rtr rtt rtin"><u>'+(q+1)+'</u>'
         +'<b class="rtstk'+(many?' many':'')+'">'+tl+'</b></div>';
@@ -10006,7 +10009,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 20:25';
+var BUILD='2026-09-20 20:29';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11003,6 +11006,8 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'최근 {0}일':'Last {0} days',
+'일':'d',
 '탭 변형':'Tab variants',
 '칩 변형':'Chip variants',
 '목차 변형':'Index variants',
