@@ -4985,27 +4985,32 @@ function openRow(id){
     if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,4));
     UI.draft[id]=c;
   }
-  var d=UI.draft[id],src=null;
-  if(d.length)src=d[d.length-1];
-  else{
-    var all=sess(id);
-    for(var j=0;j<all.length;j++){if(all[j].d<UI.wd&&all[j].s.length){src=all[j].s[all[j].s.length-1];break;}}
-  }
+  var src=lastSet(id);
   UI.w=src?fmtW(src[0]):'';UI.r=src?String(src[1]):'';
   UI.ci=(src&&src[2]>0)?fmtW(src[2]):'';
-  /* 지시가 나오면 그것으로 채운다. 지난 세트를 그대로 베끼면 '지난번과
-     똑같이' 가 앱의 답이 되는데, 그건 답이 아니라 회피다. */
-  var rx0=nextRx(id,d.length);
-  if(rx0){UI.w=fmtW(rx0.w);UI.r=String(rx0.r);}
 }
-/* 세트를 넣거나 무른 뒤 다음 자리의 지시로 칸을 다시 채운다.
+/* 칸을 채울 값 — 지난번에 실제로 든 세트. 오늘 이미 넣은 것이 있으면 그
+   마지막 세트, 없으면 지난 세션의 마지막 세트다.
+   한때는 증량 제안(nextRx)을 칸에 미리 적어 두었는데, 손에 쥔 무게와 다른
+   수가 칸에 들어 있어 넣기 전에 매번 고쳐야 했다. 제안은 칸 바로 위
+   지시줄에 그대로 있다 — 올릴지는 보고 ＋ 로 정한다. */
+function lastSet(id){
+  var d=UI.draft[id]||[],all,j;
+  if(d.length)return d[d.length-1];
+  all=sess(id);
+  for(j=0;j<all.length;j++)if(all[j].d<UI.wd&&all[j].s.length)return all[j].s[all[j].s.length-1];
+  return null;
+}
+/* 세트를 넣거나 무른 뒤 칸을 다시 채운다 — 지운 세트의 값이 칸에 남아
+   ＋ Set 이 지운 것을 그대로 다시 올리는 일이 없게.
    세트를 고치는 중이면 절대 안 건드린다 — 라벨은 62.5x8 인데 칸에는 60/10 이
    들어 있는 화면이 나온다. */
 function fillNext(){
   if(UI.esIdx!==null)return;
-  var d=UI.draft[UI.open]||[];
-  var r=nextRx(UI.open,d.length);
-  if(r){UI.w=fmtW(r.w);UI.r=String(r.r);}
+  var src=lastSet(UI.open);
+  if(!src)return;
+  UI.w=fmtW(src[0]);UI.r=String(src[1]);
+  if(isCardId(UI.open))UI.ci=(src[2]>0)?fmtW(src[2]):'';
 }
 function addSet(){
   var cd=isCardId(UI.open);
@@ -5048,9 +5053,8 @@ function addSet(){
     if(!cd){TMR.b=0;TMR.ts=Date.now();tmrMark=0;tmrSave();tmrDraw();restNotify();}
   }
   UI.dirty[UI.open]=true;
-  /* 칸에 방금 넣은 값이 그대로 남아 다음 세트도 같은 값으로 들어가기 쉬웠다.
-     다음 자리의 지시로 채운다 — 세션 안에서도 '지난번과 똑같이' 가 반복되지
-     않게. 고치는 중이면 fillNext 가 스스로 빠진다. */
+  /* 다음 세트 칸은 방금 넣은 세트로 채운다 — 이어서 넣을 때 손에 쥔 무게가
+     이미 적혀 있다. 고치는 중이면 fillNext 가 스스로 빠진다. */
   fillNext();
   saveDraft();render();
   /* 세트가 쌓이면 목록이 길어져 ＋ Set·Save 줄이 판 아래로 밀려난다. 한 세트
@@ -5226,6 +5230,9 @@ function editSet(i){
 }
 function editCancel(){
   UI.esIdx=null;UI.rirHold=null;UI.w='';UI.r='';UI.ci='';
+  /* 고치기를 무르면 칸이 빈 채로 남아, 이어서 한 세트 더 넣으려면 무게를
+     처음부터 다시 쳐야 했다 — 다음 세트의 기본값으로 되돌린다. */
+  fillNext();
   render();
 }
 function saveMachine(){
@@ -9524,7 +9531,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 11:19';
+var BUILD='2026-09-20 14:23';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
