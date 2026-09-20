@@ -574,9 +574,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   .tmain b,.hsc b{font-size:19px}
   .hsc.eat b{font-size:22px}
   .hstat{gap:5px 9px}
-  /* 오른쪽 고정 칸이 그대로면 이름이 69px 까지 눌린다 */
-  .rr{flex:0 0 92px}
-  .rr .rp{flex:0 0 36px}
+  /* 두 줄로 세운 뒤로도 좁은 화면에서는 조금 더 */
+  .rr{min-width:52px}
   .grp{padding:0 10px}
 }
 .mbtn.qbtn::before{content:'?';display:flex;align-items:center;justify-content:center;width:21px;height:21px;border:1px solid rgba(var(--tx-rgb),.22);border-radius:50%;font-size:11px;font-weight:800;line-height:1}
@@ -685,11 +684,24 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .bd{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--chrome);opacity:.85;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(var(--acc-rgb),.35);border-radius:var(--rad-s);padding:2px 6px;background:rgba(var(--acc-rgb),.1);box-shadow:none}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
-.rr{flex:0 0 106px;display:flex;align-items:baseline;justify-content:flex-end;font-family:var(--mono);white-space:nowrap}
-.rr .rw{flex:0 0 62px;min-width:0;text-align:right;white-space:nowrap}
-.rr .rp{flex:0 0 44px;min-width:0;text-align:right;white-space:nowrap}
+/* 무게와 증감률이 한 줄에 나란히 서느라 오른쪽 칸이 106px 였다 — 이름이 그만큼
+   눌려 'Arm Curl/Bic…' 로 잘렸다. 큰 숫자를 위, 증감을 그 밑에 작게 세우면
+   칸이 64px 로 줄고 남는 42px 는 이름이 가져간다. 읽는 차례도 이쪽이 맞다 —
+   먼저 얼마를 들었나, 그 다음이 지난번보다 늘었나다. */
+/* 두 줄로 세우면 줄이 9px 씩 두꺼워져 한 화면에 들어가는 종목이 줄어든다 —
+   줄 사이를 붙이고 아랫줄의 글줄 높이를 제 글자에 맞춰 51px 를 지킨다.
+   (.rp 는 물려받은 15px 로 줄칸을 잡고 있었다. 안의 글자는 10px 인데) */
+/* 칸을 64px 로 못 박아 두면 '112.5kg' (66px) 이 밖으로 새고, '22.5kg' 에서는
+   안 쓰는 자리를 붙들고 있어 이름이 두 글자 모자라 잘린다 — 바닥만 정해 두고
+   내용에 맞춘다. 숫자는 오른쪽 맞춤이라 칸이 변해도 끝은 한 줄로 선다. */
+.rr{flex:0 0 auto;min-width:54px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;
+  font-family:var(--mono);white-space:nowrap}
+.rr .rw{flex:0 0 auto;min-width:0;text-align:right;white-space:nowrap;line-height:1}
+.rr .rp{flex:0 0 auto;min-width:0;text-align:right;white-space:nowrap;font-size:10px;line-height:1}
+/* 빈 증감 칸이 줄 높이를 밀지 않게 */
+.rr .rp:empty{display:none}
 .rr .rp .ago{font-style:normal;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.03em}
-.rr .none{flex:1;text-align:right}
+.rr .none{flex:0 0 auto;text-align:right}
 .fav{flex:0 0 auto;width:44px;height:46px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--dim);margin-left:-13px;margin-right:3px;opacity:.75}
 .fav.on{color:var(--chrome);opacity:1;text-shadow:0 0 8px rgba(var(--acc-rgb),.35)}
 .w{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
@@ -1976,6 +1988,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   color:var(--mut);font-variant-numeric:tabular-nums}
 .zrow .num em{font-style:normal;font-size:11px;color:var(--dim);font-weight:400}
 .zrow .sub{flex:1 0 100%;font-size:10px;color:var(--dim);line-height:1.4}
+.zrow .sub.one{flex:0 0 auto;order:1;font-family:var(--mono);font-size:9.5px;letter-spacing:.03em}
+.zrow .num{order:2}
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
 .zrow.warn .num,.zrow.warn .st{color:var(--acc-br)}
@@ -2285,7 +2299,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   color:var(--dim)}
 /* 덩이 머리의 '+ 운동'. 줄마다가 아니라 기계마다 하나라, 운동이 여럿인
    기계에만 있다. 누를 자리는 덤칸으로 넓힌다 — 썼는 날 없으니 쓰는 날에 눈에 걸리지 않게. */
-.mch button.mcadd{position:relative;margin-left:9px;padding:2px 7px;font-size:9.5px;font-weight:800;
+.mch button.mcadd{flex:0 0 auto;position:relative;margin-left:9px;padding:2px 7px;font-size:9.5px;font-weight:800;
   letter-spacing:.04em;color:var(--chrome);border:1px solid rgba(var(--tx-rgb),.18);border-radius:2px;
   background:none;white-space:nowrap}
 .mch button.mcadd::after{content:'';position:absolute;left:-6px;right:-6px;top:-8px;bottom:-8px}
@@ -9510,7 +9524,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 10:47';
+var BUILD='2026-09-20 11:19';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11430,7 +11444,9 @@ function vzBar(name,cur,goal,sub,vd,mark){
     +(vd&&vd.t?'<span class="st">'+esc(vd.t)+'</span>':'')
     /* 네 자리가 되면 1645 는 한눈에 안 잡힌다. 세 자리 이하는 그대로다 */
     +'<span class="num">'+cur.toLocaleString()+'<em>/'+goal.toLocaleString()+'</em></span>'
-    +(sub?('<span class="sub">'+esc(sub)+'</span>'):'')
+    /* '2회' 한 마디가 제 줄을 통째로 차지하고 앉아 아래 칸에 붙은 것처럼
+       보였다. 짧은 것은 이름 옆에 붙이고, 긴 설명만 아랫줄에 둔다. */
+    +(sub?('<span class="sub'+(String(sub).length<=6?' one':'')+'">'+esc(sub)+'</span>'):'')
     +'</div>';
 }
 /* 목표 열량에서 탄단지 눈금을 뽑는다. 감량기 표준 순서 — 단백질을 먼저
