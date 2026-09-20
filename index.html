@@ -4982,7 +4982,7 @@ function openRow(id){
   UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
   if(!UI.draft[id]){
     var ts=sessOn(id,UI.wd),c=[];
-    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,4));
+    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,5));
     UI.draft[id]=c;
   }
   var src=lastSet(id);
@@ -5011,6 +5011,16 @@ function fillNext(){
   if(!src)return;
   UI.w=fmtW(src[0]);UI.r=String(src[1]);
   if(isCardId(UI.open))UI.ci=(src[2]>0)?fmtW(src[2]):'';
+}
+/* 세트에 올린 시각을 적는다 — 다섯째 자리, 자정부터 센 분(0~1439).
+   무게·반복·RIR·휴식 자리 뒤에 붙이므로 옛 기록과 옛 백업이 그대로 읽힌다.
+   오늘 것에만 찍는다: 지난 날짜를 손으로 채워 넣을 때의 '지금' 은 그 날
+   그 세트를 한 시각이 아니라 적고 있는 시각이라, 순서를 거꾸로 만든다. */
+function setStamp(set){
+  if(UI.wd!==today())return;
+  var n=new Date(),mn=n.getHours()*60+n.getMinutes();
+  while(set.length<4)set.push(null);
+  set[4]=mn;
 }
 function addSet(){
   var cd=isCardId(UI.open);
@@ -5042,9 +5052,16 @@ function addSet(){
     var rs=Math.round(tmrMs()/1000);
     if(rs>=5&&rs<=3600){while(set.length<3)set.push(null);set[3]=rs;}
   }
+  /* 올린 시각(자정부터 센 분). 어떤 순서로 했는지는 세트에 시각이 없으면
+     되살릴 길이 없다 — 저장할 때가 아니라 올릴 때 찍어야 맞다.
+     지난 날짜를 채워 넣을 때는 '지금' 이 그 날의 시각이 아니므로 비운다. */
+  if(UI.esIdx===null)setStamp(set);
   if(UI.esIdx!==null&&UI.draft[UI.open][UI.esIdx]){
-    var prevR=UI.draft[UI.open][UI.esIdx][3];
+    var old=UI.draft[UI.open][UI.esIdx];
+    var prevR=old[3];
     if(prevR!=null&&!cd){while(set.length<3)set.push(null);set[3]=prevR;}
+    /* 고친 세트는 처음 올린 시각을 지킨다 — 고친 시각으로 덮으면 순서가 바뀐다 */
+    if(old[4]!=null){while(set.length<4)set.push(null);set[4]=old[4];}
     UI.draft[UI.open][UI.esIdx]=set;
     UI.esIdx=null;
   }else{
@@ -5264,7 +5281,7 @@ function saveMachine(){
     render();
     return;
   }
-  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,4));
+  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,5));
   upsertSess(id,UI.wd,copy);
   /* 기기에 못 썼으면 판을 닫지 않는다. 닫고 'Saved' 를 띄우면 새로고침
      한 번에 그 세트가 통째로 없어진다 — 백업을 받을 기회조차 없다. */
@@ -9531,7 +9548,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 14:23';
+var BUILD='2026-09-20 17:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12068,7 +12085,7 @@ document.addEventListener('click',function(e){
         /* 판을 연 채로 지웠으면 draft 도 같이 되살린다. 안 그러면 'Restored'
            만 뜨고 화면은 빈 채로 남아, 다음 Save 가 방금 되살린 세션을 덮는다. */
         if(UNDO.wd&&UNDO.wd===UI.wd&&UNDO.e&&UNDO.e.s&&UI.open===UNDO.id){
-          var rc=[];for(var ri=0;ri<UNDO.e.s.length;ri++)rc.push(UNDO.e.s[ri].slice(0,4));
+          var rc=[];for(var ri=0;ri<UNDO.e.s.length;ri++)rc.push(UNDO.e.s[ri].slice(0,5));
           /* 지운 뒤에 새로 넣은 세트가 있으면 그 위에 덮지 않는다 — 덮으면
              방금 친 세트가 'Restored' 라는 말과 함께 조용히 사라진다.
              되살린 세션이 먼저, 그 뒤에 새로 넣은 것이 붙는다. */
