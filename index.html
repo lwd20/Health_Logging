@@ -760,6 +760,13 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .thprev{position:sticky;top:28px;z-index:6;margin:-2px 0 12px;padding:4px 0 10px;
   background:var(--sheet-bg)}
 .tpv{border-radius:var(--rad-l);overflow:hidden;box-shadow:var(--elev)}
+/* 브랜드 미리보기 — 목록을 그대로 줄여 그린다. 누르는 것은 목록에서 하고
+   여기서는 보기만 한다(설정 화면에서 종목이 열리면 놀란다). */
+.bprev{border-radius:var(--rad-l);overflow:hidden;box-shadow:var(--elev);background:var(--bg);
+  padding:9px 11px 11px;pointer-events:none}
+.bprev>.bhd{margin-top:0}
+.bprev .bsw,.bprev>.bhd{zoom:.64}
+.bprev .mc .row{min-height:44px}
 .tpv-top{position:relative;z-index:0;display:flex;align-items:center;gap:8px;
   padding:9px 12px;background:linear-gradient(rgba(var(--tx-rgb),.055),rgba(var(--tx-rgb),.055)),var(--bg);
   border-bottom:1px solid rgba(var(--tx-rgb),.18)}
@@ -2582,6 +2589,54 @@ var PSETS=[
 function psetOf(k){for(var i=0;i<PSETS.length;i++)if(PSETS[i].k===k)return PSETS[i];return null;}
 /* 지금 고른 조합을 실제 토큰으로 그린 작은 화면. 상단 판·카드·버튼·글자 세 단계가
    한 눈에 들어와야 색과 질감과 무늬가 같이 판단된다. */
+/* 설정 · DISPLAY · 브랜드에서 고르는 동안 결과를 보여 주는 붙박이 미리보기.
+   색·질감·무늬가 그러하듯, 브랜드도 이름만 봐서는 무엇이 달라지는지 모른다.
+   제 종목으로 그린다 — 남의 예시로는 제 목록이 어떻게 보일지 알 수 없다.
+   브랜드가 둘 이상인 묶음 하나를 골라 셋(2·1·1종목)만 줄여 쓴다: 합치기·
+   카드·색 같은 시안이 무엇을 하는지는 이만큼이면 드러난다. */
+function bPrevPick(){
+  var order=[UI.filter].concat(PARTS),seen={},i,j,p,arr,sgs,bgs,sc,best=null,top=-1;
+  for(i=0;i<order.length;i++){
+    p=order[i];
+    if(!p||seen[p]||isCard(p))continue;
+    seen[p]=1;
+    arr=[];
+    for(j=0;j<S.m.length;j++)if(S.m[j].p===p)arr.push(S.m[j]);
+    if(arr.length<2)continue;
+    sgs=subGroups(arr);
+    for(j=0;j<sgs.length;j++){
+      bgs=brandGroups(sgs[j].items);
+      if(bgs.length<2)continue;
+      /* 아무 묶음이나 집으면 브랜드마다 종목이 하나씩뿐이라, 합치기나 기계 묶기
+         같은 시안이 무엇을 하는지 미리보기에 안 나타난다 — 브랜드도 여럿이고
+         한 브랜드에 종목도 여럿인 묶음을 고른다. 보고 있던 부위가 먼저. */
+      sc=Math.min(bgs.length,3)*2+(bgs[0].items.length>1?3:0)+(i===0?2:0);
+      if(sc>top){top=sc;best={sg:sgs[j],bgs:bgs,p:p};}
+    }
+  }
+  return best;
+}
+/* 종목이 없거나 브랜드가 하나뿐인 사람에게도 보여 줄 것이 있어야 한다 */
+function bPrevSample(){
+  var p=UI.filter&&!isCard(UI.filter)?UI.filter:'CHEST';
+  var mk=function(i,n,b){return {i:'__bp'+i,n:n,p:p,b:b};};
+  var it=[mk(1,'Chest Press','GYM80'),mk(2,'Incline Press','GYM80'),mk(3,'Pec Deck','WATSON'),mk(4,'Cable Fly','PRIME')];
+  return {sg:{k:'',n:TX(PN_KO[p]||p),items:it},bgs:brandGroups(it),p:p};
+}
+function bPrevHtml(){
+  var pick=bPrevPick()||bPrevSample(),i;
+  /* 셋까지, 첫 브랜드만 두 줄 — 붙박이가 화면의 반을 먹으면 정작 고를 자리가 없다 */
+  var gs=[],tot=0;
+  for(i=0;i<pick.bgs.length&&i<3;i++){
+    var it=pick.bgs[i].items.slice(0,i===0?2:1);
+    tot+=it.length;
+    gs.push({n:pick.bgs[i].n,items:it});
+  }
+  var sg={k:pick.sg.k,n:pick.sg.n,items:[]};
+  for(i=0;i<gs.length;i++)sg.items=sg.items.concat(gs[i].items);
+  return '<div class="bprev" inert><div class="bhd">'+esc(sg.k?subBare(sg.n,pick.p):sg.n)+'<i>'+tot+'</i></div>'
+    +brandSecs(sg,gs,'p')+'</div>';
+}
 function thPreview(){
   /* 고른 축만 그리므로 어디에 뭐가 몇 개 있는지 탭에 적어 둔다 */
   var TB=[['set',TX('시안'),PSETS.length],['pal',TX('색'),PALS.length],
@@ -2591,6 +2646,8 @@ function thPreview(){
   for(ti=0;ti<TB.length;ti++)
     tb+='<button class="dsb'+(sub===TB[ti][0]?' on':'')+'" data-act="dsub" data-v="'+TB[ti][0]+'">'
       +TB[ti][1]+'<u>'+TB[ti][2]+'</u></button>';
+  /* 브랜드 탭에서는 테마 대신 목록을 보여 준다 — 그 탭이 바꾸는 것이 목록이다 */
+  if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   return '<div class="thprev"><div class="tpv">'
     +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
     +'<div class="tpv-body">'
@@ -9453,7 +9510,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-20 02:06';
+var BUILD='2026-09-20 10:47';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
