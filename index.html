@@ -610,7 +610,9 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 #chips{overflow-x:auto;-webkit-overflow-scrolling:touch;
   scrollbar-width:none;-ms-overflow-style:none}
 #chips::-webkit-scrollbar{display:none}
-.schip{flex:0 0 auto;display:inline-flex;align-items:baseline;gap:4px;
+/* 줄을 다 쓰게 늘린다 — 셋이 왼쪽에 몰려 있으면 남은 자리가 빈 칸으로
+   보인다. 넘칠 때는 줄이지 않고 옆으로 민다(1 0 auto). */
+.schip{flex:1 0 auto;justify-content:center;display:inline-flex;align-items:baseline;gap:4px;
   padding:6px 11px;border-radius:100px;background:var(--inset);
   border:var(--bw) solid rgba(var(--tx-rgb),.07);color:var(--mut);
   font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;
@@ -10018,7 +10020,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-21 19:51';
+var BUILD='2026-09-21 19:56';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
