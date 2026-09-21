@@ -600,10 +600,10 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 /* nav 에 justify-content:space-between 이 걸려 있다(584줄). 안 덮으면
    알약이 폭 전체로 벌어져 '전체' 와 '기타' 사이가 화면만큼 떨어진다.
    왼쪽부터 붙여 늘어놓고 넘치면 옆으로 민다. */
-#subchips{display:flex;justify-content:flex-start;align-items:center;
+.schips{display:flex;justify-content:flex-start;align-items:center;
   gap:6px;overflow-x:auto;padding:0 13px 9px;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
-#subchips::-webkit-scrollbar{display:none}
+.schips::-webkit-scrollbar{display:none}
 #subchips:empty{display:none}
 /* 부위 칩도 넘치면 옆으로 밀리게. #subchips 에는 있는데 여기만 없어서
    큰 글꼴 설정에서 마지막 부위(CARDIO)가 잘린 채 손에 안 닿았다. */
@@ -621,6 +621,118 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 .schip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .schip.on i{opacity:.85}
 .schip:active{opacity:.6}
+/* ── 세부 부위 칩 50가지 ───────────────────────────────────────────
+   틀(.schips/.schip)과 고르는 짓은 그대로 두고 겉만 바꾼다.
+   바탕을 건드리는 시안은 고른 칩(.on)도 반드시 같이 정한다 — 여기 규칙이
+   기본보다 뒤에 있어, 안 정하면 고른 칩의 강조색까지 지워진다. */
+.cprev{border-radius:var(--rad-l);overflow:hidden;box-shadow:var(--elev);
+  background:var(--bg);padding:13px 0 5px;pointer-events:none}
+.cprev .schips{overflow:visible}
+/* 알약 */
+.cs2 .schip{background:none;border-color:rgba(var(--tx-rgb),.18)}
+.cs2 .schip.on{background:none;border-color:var(--acc-br);color:var(--acc-br)}
+.cs3 .schip{background:rgba(var(--tx-rgb),.1);border-color:transparent}
+.cs3 .schip.on{background:var(--acc-sf);color:var(--on-acc)}
+.cs4 .schip{border-color:transparent;box-shadow:var(--elev)}
+.cs5 .schip{background:none;border-width:2px;border-color:rgba(var(--tx-rgb),.2)}
+.cs5 .schip.on{background:none;border-color:var(--acc-br);color:var(--acc-br)}
+.cs6 .schip{padding:9px 14px;font-size:12px}
+.cs7 .schip{padding:4px 9px;font-size:10px}
+.cs8 .schip{padding:3px 11px;font-size:10.5px;background:none;border-color:rgba(var(--tx-rgb),.12)}
+.cs8 .schip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
+/* 네모 */
+.cs9 .schip{border-radius:0}
+.cs10 .schip{border-radius:var(--rad-m)}
+.cs11 .schip{border-radius:2px}
+.cs12 .schip{border-radius:var(--rad-s);background:none;border-color:rgba(var(--tx-rgb),.18)}
+.cs12 .schip.on{background:none;border-color:var(--acc-br);color:var(--acc-br)}
+.cs13 .schip{border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.1);border-color:transparent}
+.cs13 .schip.on{background:var(--acc-sf);color:var(--on-acc)}
+.cs14 .schip{border-radius:var(--rad-s) var(--rad-s) 0 0}
+.cs15{padding-bottom:0;margin-bottom:9px;border-bottom:1px solid rgba(var(--tx-rgb),.12)}
+.cs15 .schip{border-radius:var(--rad-s) var(--rad-s) 0 0;border-bottom:0;background:none;
+  border-color:rgba(var(--tx-rgb),.12)}
+.cs15 .schip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
+.cs16 .schip{border-radius:var(--rad-s);border-color:transparent;box-shadow:var(--elev)}
+/* 분절 — 틈 없이 한 덩이로 붙인다 */
+.cs17,.cs19,.cs20,.cs21,.cs22{gap:0}
+.cs17 .schip{border-radius:0;border-left-width:0}
+.cs17 .schip:first-child{border-radius:100px 0 0 100px;border-left-width:var(--bw)}
+.cs17 .schip:last-child{border-radius:0 100px 100px 0}
+.cs18{gap:0}
+.cs18 .schip{background:none;border:0;border-radius:0;
+  border-right:1px solid rgba(var(--tx-rgb),.14)}
+.cs18 .schip:last-child{border-right:0}
+.cs18 .schip.on{background:none;color:var(--acc-br);font-weight:800}
+.cs19 .schip{border-radius:0;border:0;background:rgba(var(--tx-rgb),.07)}
+.cs19 .schip:first-child{border-radius:var(--rad-s) 0 0 var(--rad-s)}
+.cs19 .schip:last-child{border-radius:0 var(--rad-s) var(--rad-s) 0}
+.cs19 .schip.on{background:var(--acc-sf);color:var(--on-acc)}
+.cs20 .schip{border-radius:0;background:none;border-color:rgba(var(--tx-rgb),.18);
+  margin-left:calc(var(--bw) * -1)}
+.cs20 .schip:first-child{margin-left:0;border-radius:var(--rad-s) 0 0 var(--rad-s)}
+.cs20 .schip:last-child{border-radius:0 var(--rad-s) var(--rad-s) 0}
+.cs20 .schip.on{background:none;border-color:var(--acc-br);color:var(--acc-br);z-index:1}
+.cs21 .schip{border-radius:0;border-left-width:0}
+.cs21 .schip:first-child{border-radius:var(--rad-m) 0 0 var(--rad-m);border-left-width:var(--bw)}
+.cs21 .schip:last-child{border-radius:0 var(--rad-m) var(--rad-m) 0}
+.cs22 .schip{border-radius:0;border-left-width:0}
+.cs22 .schip:first-child{border-left-width:var(--bw)}
+/* 밑줄 */
+.cs23 .schip,.cs24 .schip,.cs26 .schip{background:none;border:0;border-radius:0;padding:6px 8px;
+  border-bottom:2px solid transparent}
+.cs23 .schip.on,.cs24 .schip.on,.cs26 .schip.on{background:none;color:var(--tx);border-bottom-color:var(--acc-br)}
+.cs24 .schip{border-bottom-width:3px}
+.cs26 .schip{border-bottom-style:dashed}
+.cs25 .schip{background:none;border:0;border-radius:0;padding:6px 8px;border-top:2px solid transparent}
+.cs25 .schip.on{background:none;color:var(--tx);border-top-color:var(--acc-br)}
+.cs27 .schip{background:none;border:0;border-radius:0;padding:6px 8px 9px;position:relative}
+.cs27 .schip.on{background:none;color:var(--tx)}
+.cs27 .schip.on::after{content:'';position:absolute;left:50%;bottom:2px;transform:translateX(-50%);
+  width:18px;height:2px;border-radius:2px;background:var(--acc-br)}
+.cs28 .schip{background:none;border:0;border-radius:0;padding:6px 8px}
+.cs28 .schip.on{background:none;color:var(--tx);text-decoration:underline;text-underline-offset:4px;
+  text-decoration-thickness:2px;text-decoration-color:var(--acc-br)}
+/* 글자만 */
+.cs29 .schip,.cs30 .schip,.cs31 .schip,.cs32 .schip,.cs33 .schip,.cs34 .schip{
+  background:none;border:0;border-radius:0;padding:6px 9px}
+.cs29 .schip.on,.cs30 .schip.on,.cs31 .schip.on,.cs33 .schip.on,.cs34 .schip.on{
+  background:none;color:var(--acc-br)}
+.cs30 .schip.on{font-weight:900}
+.cs31 .schip{letter-spacing:.14em}
+.cs32 .schip{color:var(--dim)}
+.cs32 .schip.on{background:none;color:var(--tx);font-weight:900}
+.cs33 .schip+.schip::before{content:'·';position:absolute;left:-5px;color:var(--dim);font-weight:800}
+.cs33 .schip{position:relative}
+.cs34 .schip{position:relative}
+.cs34 .schip+.schip::before{content:'';position:absolute;left:-4px;top:7px;bottom:7px;width:1px;
+  background:rgba(var(--tx-rgb),.16)}
+/* 개수 */
+.cs35 .schip i{padding:1px 5px;border-radius:999px;background:rgba(var(--tx-rgb),.13);opacity:1}
+.cs35 .schip.on i{background:rgba(255,255,255,.25)}
+.cs36 .schip{flex-direction:column;align-items:center;gap:0;padding:5px 11px}
+.cs36 .schip i{order:-1;font-size:12.5px;font-weight:700;opacity:1}
+.cs37 .schip{flex-direction:column;align-items:center;gap:0;padding:5px 11px}
+.cs37 .schip i{font-size:9px;opacity:.7}
+.cs38 .schip i::before{content:'('}
+.cs38 .schip i::after{content:')'}
+.cs39 .schip i{display:none}
+.cs40 .schip i{font-size:12.5px;font-weight:700;opacity:1}
+.cs41 .schip i{opacity:.4}
+.cs42 .schip i{order:-1}
+/* 강조 */
+.cs43 .schip.on{font-size:12.5px;padding:8px 14px}
+.cs44 .schip.on{background:none;border-color:transparent;color:var(--acc-br);font-weight:900}
+.cs45 .schip.on::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;
+  align-self:center;margin-right:2px}
+.cs46 .schip.on{background:none;color:var(--tx);box-shadow:inset 0 -2px 0 var(--acc-br)}
+.cs47 .schip.on{background:none;border-color:var(--acc-br);border-width:2px;color:var(--acc-br)}
+.cs48 .schip.on{box-shadow:var(--elev)}
+.cs49 .schip{opacity:.45}
+.cs49 .schip.on{opacity:1}
+.cs50 .schip{flex:0 0 auto}
+.cs50 .schip.on{flex:1 0 auto}
+
 /* 상태 점은 글자 위에 얹음 — 한 줄이라 옆에 둘 자리가 없음 */
 #chips .chip.stale::after,#chips .chip.hot::after{top:7px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px}
 /* ★는 부위 선택이 아니라 보기 전환이라 맨 앞에 따로 둠 */
@@ -2656,7 +2768,7 @@ html{color-scheme:dark}
     <div id="henrg"></div>
   </div>
   <nav id="chips"></nav>
-  <nav id="subchips"></nav>
+  <nav id="subchips" class="schips"></nav>
 </div>
 
 <main id="list"></main>
@@ -2849,17 +2961,26 @@ function bPrevHtml(){
   return '<div class="bprev" inert><div class="bhd">'+esc(sg.k?subBare(sg.n,pick.p):sg.n)+'<i>'+tot+'</i></div>'
     +brandSecs(sg,gs,'p')+'</div>';
 }
+/* 칩 줄 미리보기 — 실제 줄과 같은 클래스를 써서 고른 시안이 그대로 보인다 */
+function cPrevHtml(){
+  var ex=[[TX('상부'),4,0],[TX('중부'),4,1],[TX('하부'),3,0]],h='',i;
+  for(i=0;i<ex.length;i++)
+    h+='<button class="schip'+(ex[i][2]?' on':'')+'">'+esc(ex[i][0])+'<i>'+ex[i][1]+'</i></button>';
+  return '<div class="cprev" inert><nav class="schips cs'+cstOf()+'">'+h+'</nav></div>';
+}
 function thPreview(){
   /* 고른 축만 그리므로 어디에 뭐가 몇 개 있는지 탭에 적어 둔다 */
   var TB=[['set',TX('시안'),PSETS.length],['pal',TX('색'),PALS.length],
           ['tech',TX('질감'),TECHS.length],['pat',TX('무늬'),PATS.length],
-          ['brand',TX('브랜드'),BSTY.length]];
+          ['brand',TX('브랜드'),BSTY.length],['chip',TX('칩'),CSTY.length]];
   var sub=UI.dsub||'set',tb='',ti;
   for(ti=0;ti<TB.length;ti++)
     tb+='<button class="dsb'+(sub===TB[ti][0]?' on':'')+'" data-act="dsub" data-v="'+TB[ti][0]+'">'
       +TB[ti][1]+'<u>'+TB[ti][2]+'</u></button>';
   /* 브랜드 탭에서는 테마 대신 목록을 보여 준다 — 그 탭이 바꾸는 것이 목록이다 */
   if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
+  /* 칩 탭에서는 칩 줄을 그대로 줄여 보여 준다 — 그 탭이 바꾸는 것이 그 줄이다 */
+  if(sub==='chip')return '<div class="thprev">'+cPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   return '<div class="thprev"><div class="tpv">'
     +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
     +'<div class="tpv-body">'
@@ -2918,7 +3039,7 @@ var TECHS=[
 var PATS=[{k:'emgrid',n:'양각 격자',d:1},{k:'engrid',n:'음각 격자',d:1},{k:'dome',n:'리벳 판',d:1},{k:'tread3',n:'체커 플레이트',d:1},{k:'knurl3',n:'널링',d:1},{k:'corr',n:'골판',d:1},{k:'pleat',n:'주름',d:1},{k:'csink',n:'접시 구멍',d:1},{k:'brick',n:'블록',d:1},{k:'quilt',n:'쿠션',d:1},{k:'plate',n:'네임플레이트'},{k:'knurl',n:'널링'},{k:'tread',n:'체커 플레이트'},{k:'perf',n:'타공판'},{k:'hair',n:'헤어라인'},{k:'disc',n:'원판'},{k:'graph',n:'모눈'},{k:'blue',n:'청사진'},{k:'hatch',n:'사선'},{k:'cross',n:'크로스해치'},{k:'iso',n:'아이소메트릭'},{k:'herr',n:'헤링본'},{k:'pane',n:'윈도우페인'},{k:'pin',n:'핀스트라이프'},{k:'rib',n:'리브'},{k:'hex',n:'벌집'},{k:'carbon',n:'카본'},{k:'bead',n:'용접 비드'},{k:'stud',n:'리벳'},{k:'chain',n:'체인'},{k:'cable',n:'케이블'},{k:'chev',n:'셰브론'},{k:'barcode',n:'바코드'},{k:'wave',n:'파형'},{k:'scale',n:'비늘'},{k:'mesh',n:'철망'},{k:'zig',n:'지그재그'},{k:'tri',n:'삼각 타일'},{k:'dash',n:'파선 격자'},{k:'none',n:'없음'}];
 var PAL='bronze',TECH='flat',PAT='plate';
 /* 종목 목록의 브랜드 구분 시안(설정 · DISPLAY · 브랜드). 번호는 시안 페이지와 같다 */
-var BST=9;
+var BST=9,CST=1;
 function patOk(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return true;return false;}
 function patOf(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return PATS[i];return PATS[0];}
 function palOk(t){for(var i=0;i<PALS.length;i++)if(PALS[i].k===t)return true;return false;}
@@ -2956,7 +3077,11 @@ function applyTheme(){
     if(b2&&techOk(b2))TECH=b2;
     if(c2&&patOk(c2))PAT=c2;
     var d2=localStorage.getItem(KEY+'.bst');
-    if(d2&&+d2>=1&&+d2<=100)BST=Math.floor(+d2);
+    /* 상한을 100 으로 박아 두어 101~150 을 고르면 새로 켤 때 풀렸다.
+       BSTY 는 여기보다 아래에 있어 길이를 못 보므로 넉넉히 받고 bstOf 가 자른다. */
+    if(d2&&+d2>=1&&+d2<=999)BST=Math.floor(+d2);
+    var e2=localStorage.getItem(KEY+'.cst');
+    if(e2&&+e2>=1&&+e2<=999)CST=Math.floor(+e2);
   }}catch(e){}
   applyTheme();
 })();
@@ -3195,7 +3320,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,bflt:{},btab:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -3756,6 +3881,7 @@ function renderSubChips(){
     h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl" data-v="'
       +esc(kv)+'">'+esc(gs[i].k?subBare(gs[i].n,UI.filter):gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
   }
+  el.className='schips cs'+cstOf();
   el.innerHTML=h2;
 }
 function favFirst(arr){
@@ -4899,6 +5025,38 @@ function renderSheet(){
 
       /* 종목 목록에서 브랜드가 둘 이상인 묶음을 어떻게 가를지 — 번호는 시안 페이지와
          같아서, 거기서 본 번호를 여기서 그대로 찾는다 */
+      if(dsub==='chip'){
+        h+='<div class="fgrp"><div class="ft">'+TX('칩 모양')+' <span class="ftn">'+TX('세부 부위 줄')+'</span></div>';
+        var cgrps=[],ccnt={},cq,cgs;
+        for(cq=0;cq<CSTY.length;cq++){
+          cgs=CSTY[cq][0];
+          if(!ccnt[cgs]){ccnt[cgs]=0;cgrps.push(cgs);}
+          ccnt[cgs]++;
+        }
+        var ccg=UI.cgrp;
+        if(ccg==null)ccg=CSTY[cstOf()-1][0];
+        h+='<div class="bglist">'
+          +'<button class="bgc'+(ccg===''?' on':'')+'" data-act="cgrp" data-v="">'
+          +TX('전체')+'<i>'+CSTY.length+'</i></button>';
+        for(cq=0;cq<cgrps.length;cq++)
+          h+='<button class="bgc'+(ccg===cgrps[cq]?' on':'')+'" data-act="cgrp" data-v="'+esc(cgrps[cq])+'">'
+            +esc(TX(cgrps[cq]))+'<i>'+ccnt[cgrps[cq]]+'</i></button>';
+        h+='</div>';
+        var cgq='',copen=false;
+        for(cq=0;cq<CSTY.length;cq++){
+          if(ccg!==''&&CSTY[cq][0]!==ccg)continue;
+          if(CSTY[cq][0]!==cgq){
+            if(copen)h+='</div>';
+            cgq=CSTY[cq][0];copen=true;
+            h+=(ccg===''?'<div class="patsub">'+esc(TX(cgq))+'</div>':'')+'<div class="techgrid bstgrid">';
+          }
+          var cno=cq+1;
+          h+='<button class="thtech'+(cstOf()===cno?' on':'')+'" data-act="cstpick" data-v="'+cno+'">'
+            +'<b><u>'+(cno<10?'0':'')+cno+'</u> '+esc(TX(CSTY[cq][1]))+'</b></button>';
+        }
+        if(copen)h+='</div>';
+        h+='</div>';
+      }
       if(dsub==='brand'){
         h+='<div class="fgrp"><div class="ft">'+TX('브랜드 구분')+' <span class="ftn">'+TX('종목 목록')+'</span></div>';
         /* 150가지를 한 자리에 늘어놓으면 고르는 것이 아니라 훑는 일이 된다 —
@@ -5466,6 +5624,27 @@ var BSTY=[
    m: 'one' 한 카드(기본) · 'sec' 브랜드마다 카드 · 'body' 제목은 카드 밖
    nh: 제목줄 없음 · row: 줄 표식 · x: 카드 위·안에 더 그릴 것 · mg: 1개짜리 합치기
    mcb: 기구 덩이 머리에 브랜드를 적음(제목줄이 없어 줄이 말해야 할 때) */
+/* 세부 부위 칩 줄의 겉모양 50가지. 고르는 짓과 자료는 그대로 두고 모양만 바꾼다. */
+var CSTY=[
+ ['알약','기본 알약'],['알약','테두리만'],['알약','채운 알약'],
+ ['알약','그림자 알약'],['알약','두꺼운 테두리'],['알약','큰 알약'],
+ ['알약','작은 알약'],['알약','얇은 알약'],['네모','네모'],
+ ['네모','둥근 네모'],['네모','각진 네모'],['네모','테두리 네모'],
+ ['네모','채운 네모'],['네모','윗모서리 탭'],['네모','아래 붙은 탭'],
+ ['네모','그림자 네모'],['분절','한 덩이'],['분절','구분선'],
+ ['분절','채움'],['분절','테두리'],['분절','둥근'],
+ ['분절','각진'],['밑줄','밑줄'],['밑줄','굵은 밑줄'],
+ ['밑줄','윗줄'],['밑줄','점선 밑줄'],['밑줄','짧은 밑줄'],
+ ['밑줄','밑줄만'],['글자만','글자만'],['글자만','굵게'],
+ ['글자만','넓은 자간'],['글자만','고른 것만 진하게'],['글자만','가운데 점 구분'],
+ ['글자만','세로선 구분'],['개수','개수 알약'],['개수','개수 위'],
+ ['개수','개수 아래'],['개수','개수 괄호'],['개수','개수 없음'],
+ ['개수','개수 크게'],['개수','개수 흐리게'],['개수','개수 앞으로'],
+ ['강조','고른 것만 크게'],['강조','고른 것만 색 글자'],['강조','고른 것에 점'],
+ ['강조','고른 것에 밑줄'],['강조','고른 것 테두리'],['강조','고른 것 그림자'],
+ ['강조','안 고른 것 흐리게'],['강조','고른 것만 꽉 참']
+];
+function cstOf(){var n=Math.floor(+CST)||1;return (n>=1&&n<=CSTY.length)?n:1;}
 var BSD={19:{m:'sec'},20:{m:'body'},21:{m:'sec'},22:{m:'sec'},23:{m:'sec'},24:{m:'body'},25:{m:'sec'},
   26:{m:'sec',mg:1},27:{nh:1,row:'badge',mcb:1},28:{nh:1,row:'eye'},29:{nh:1,row:'eye1'},
   32:{nh:1,row:'ini'},33:{nh:1,row:'dot',x:'legend'},34:{nh:1,row:'tag',mcb:1},42:{mg:1},
@@ -6247,7 +6426,7 @@ function bkText(){
        DEMO 일 때 가짜 6건을 돌려주므로(4622행), 그대로 담으면 자기 기록은
        없이 남의 감량 곡선만 든 파일이 나온다 — 되돌리면 그것이 실측이 되어
        체중·기초대사·단백질 목표가 전부 거기서 나온다. */
-    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
@@ -6290,6 +6469,10 @@ function applyBackup(o){
         if(c.tech&&techOk(c.tech))TECH=c.tech;
         if(canLS){try{localStorage.setItem(KEY+'.pal',PAL);localStorage.setItem(KEY+'.tech',TECH);}catch(eT2){}}
         applyTheme();
+      }
+      if(+c.cst>=1&&+c.cst<=CSTY.length){
+        CST=Math.floor(+c.cst);
+        if(canLS){try{localStorage.setItem(KEY+'.cst',String(CST));}catch(eC2){}}
       }
       if(+c.bst>=1&&+c.bst<=BSTY.length){
         BST=Math.floor(+c.bst);
@@ -10020,7 +10203,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-21 19:56';
+var BUILD='2026-09-21 20:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11017,6 +11200,62 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'칩':'Chip',
+'칩 모양':'Chip shape',
+'세부 부위 줄':'Sub-part row',
+'알약':'Pill',
+'네모':'Square',
+'분절':'Segmented',
+'밑줄':'Underline',
+'글자만':'Text only',
+'개수':'Count',
+'강조':'Selected',
+'기본 알약':'Default pill',
+'테두리만':'Outline',
+'채운 알약':'Filled pill',
+'그림자 알약':'Shadow pill',
+'두꺼운 테두리':'Thick outline',
+'큰 알약':'Large pill',
+'작은 알약':'Small pill',
+'얇은 알약':'Slim pill',
+'둥근 네모':'Rounded square',
+'각진 네모':'Sharp square',
+'테두리 네모':'Outlined square',
+'채운 네모':'Filled square',
+'윗모서리 탭':'Tab corners',
+'아래 붙은 탭':'Attached tabs',
+'그림자 네모':'Shadow square',
+'한 덩이':'One block',
+'구분선':'Divider',
+'채움':'Filled',
+'테두리':'Outline',
+'둥근':'Rounded',
+'각진':'Sharp',
+'굵은 밑줄':'Thick underline',
+'윗줄':'Top line',
+'점선 밑줄':'Dashed underline',
+'짧은 밑줄':'Short underline',
+'밑줄만':'Underline only',
+'굵게':'Bold',
+'넓은 자간':'Wide tracking',
+'고른 것만 진하게':'Selected darker',
+'가운데 점 구분':'Dot separator',
+'세로선 구분':'Line separator',
+'개수 알약':'Count pill',
+'개수 위':'Count above',
+'개수 아래':'Count below',
+'개수 괄호':'Count in parens',
+'개수 없음':'No count',
+'개수 흐리게':'Faint count',
+'개수 앞으로':'Count first',
+'고른 것만 크게':'Selected larger',
+'고른 것만 색 글자':'Selected in color',
+'고른 것에 점':'Selected dot',
+'고른 것에 밑줄':'Selected underline',
+'고른 것 테두리':'Selected outline',
+'고른 것 그림자':'Selected shadow',
+'안 고른 것 흐리게':'Others faint',
+'고른 것만 꽉 참':'Selected fills',
 '최근 {0}일':'Last {0} days',
 '일':'d',
 '탭 변형':'Tab variants',
@@ -12950,6 +13189,16 @@ document.addEventListener('click',function(e){
         if(canLS){try{localStorage.setItem(KEY+'.tech',TECH);}catch(eT){}}
         applyTheme();render();
       }
+      break;
+    case 'cgrp':UI.cgrp=v;renderSheet();break;
+    case 'cstpick':
+      (function(){
+        var n=Math.floor(+v)||1;
+        if(n<1||n>CSTY.length)return;
+        CST=n;
+        if(canLS){try{localStorage.setItem(KEY+'.cst',String(n));}catch(eC){}}
+        renderSheet();render();
+      })();
       break;
     case 'bgrp':UI.bgrp=v;renderSheet();break;
     case 'bstpick':
