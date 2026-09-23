@@ -512,6 +512,9 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   border:var(--bw) solid rgba(var(--tx-rgb),.14);color:var(--dim);font-family:inherit;
   font-size:10px;font-weight:700;letter-spacing:.04em}
 .dlite.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+/* 켜져 있을 때만 붙는 주 범위 — 이 표시가 하루가 아니라 주에 걸린다는 말 */
+.dlite i{font-style:normal;margin-left:5px;font-family:var(--mono);font-size:9px;
+  font-weight:700;letter-spacing:0;opacity:.72}
 .dlite:active{opacity:.6}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:var(--rad-s);padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.06em}
@@ -1456,6 +1459,9 @@ html[lang=en] .lmflat .lmrow .bn{flex-basis:100px}
 .lmfold.on{color:var(--mut)}
 .lmfold:active{opacity:.6}
 .vzfix{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--acc-br);white-space:nowrap}
+/* 이번 주가 디로딩이라는 표시 — 판정이 아니라 상태라 손댈 것과 색을 나눈다 */
+.vzdl{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--dim);
+  border:var(--bw) solid rgba(var(--tx-rgb),.18);border-radius:999px;padding:1px 7px;white-space:nowrap}
 /* 기준 미설정 — 판정이 안 난 것이므로 셋 중 어느 색도 쓰지 않고 물린다.
    조용한 것이 괜찮다는 뜻인 이 파일에서, 이쪽은 '아직 말할 수 없다' 다. */
 /* 회피 — 안 하기로 정한 것이라 0 이 맞다 */
@@ -3364,7 +3370,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -3815,7 +3821,8 @@ function render(){
     +'<span class="dsum">'
     +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'')
     +'<button class="dlite'+(isDeload(UI.wd)?' on':'')+'" data-act="wkdl"'
-    +' aria-pressed="'+(isDeload(UI.wd)?'true':'false')+'">'+TX('디로딩')+'</button>'
+    +' aria-pressed="'+(isDeload(UI.wd)?'true':'false')+'">'+TX('디로딩')
+    +(isDeload(UI.wd)?'<i>'+wkSpan(UI.wd)+'</i>':'')+'</button>'
     /* 디로딩 주에는 그 주 모든 날이 이미 '가볍게' 취급이라 하루 표시가
        할 일이 없다 — 안 낸다. 줄도 한 줄에 들어간다. */
     /* 켜 둔 날의 세트를 다 지우면 단추가 사라져 표시만 남았다 — 안 보이는
@@ -3939,29 +3946,42 @@ var SUB_ETC='·etc';
    있으면 여기서 푼다 — 가슴에서 '광배' 를 고른 채 등으로 갈 수 있다. */
 /* 지금 부위에 실제로 있는 근육만 알약으로 낸다. 없는 것을 고르고 있으면
    여기서 푼다 — 가슴에서 '광배' 를 고른 채 등으로 갈 수 있기 때문이다. */
+/* 지금 부위의 세부 부위 갈래 */
+function subOfPart(){
+  var arr=[],i;
+  for(i=0;i<S.m.length;i++)if(S.m[i].p===UI.filter)arr.push(S.m[i]);
+  return subGroups(arr,true);
+}
+/* 무엇이 켜져 있는지를 정한다. 한 번도 안 고른 부위는 첫 갈래를 켠다 —
+   '가슴' 을 누르자마자 그 부위 기구가 통째로 쏟아지던 것이 이 줄 때문이다.
+   손으로 풀면('') 그때가 전체다. 브랜드 줄과 같은 규칙이고, 부위마다 따로
+   기억한다: 가슴에서 고른 것이 등까지 따라가면 엉뚱한 것이 켜진다.
+   '기타'(추정 실패)는 키가 빈 문자열이라 전체(빈 값)와 겹친다 —
+   겹칠 수 없는 표(SUB_ETC)를 준다. */
+function subResolve(gs){
+  var q=String(UI.q||'').trim(),i;
+  if(q||UI.filter==='CARDIO'||!gs||gs.length<2){UI.sub='';return;}
+  var want=UI.subP?UI.subP[UI.filter]:null,ok=false;
+  for(i=0;i<gs.length;i++)if((gs[i].k||SUB_ETC)===want)ok=true;
+  UI.sub=ok?want:((want==null)?(gs[0].k||SUB_ETC):'');
+}
 function renderSubChips(){
   var el=document.getElementById('subchips');
   if(!el)return;
   var q=String(UI.q||'').trim();
   if(q||UI.filter==='CARDIO'){el.innerHTML='';UI.sub='';return;}
-  var arr=[],i;
-  for(i=0;i<S.m.length;i++)if(S.m[i].p===UI.filter)arr.push(S.m[i]);
-  var gs=subGroups(arr,true);
+  var gs=subOfPart(),i;
+  subResolve(gs);
   /* 하나뿐이면 고를 것이 없는데 줄만 는다 */
-  if(gs.length<2){el.innerHTML='';UI.sub='';return;}
-  /* '기타'(추정 실패)는 키가 빈 문자열인데 '전체' 도 빈 값이라, 아무것도
-     안 고른 상태에서 기타까지 골라진 것처럼 보였다. 실제 주동근 키와는
-     겹칠 수 없는 표(SUB_ETC)를 준다. */
-  var ok=false;
-  for(i=0;i<gs.length;i++)if((gs[i].k||SUB_ETC)===UI.sub)ok=true;
-  if(UI.sub&&!ok)UI.sub='';
+  if(gs.length<2){el.innerHTML='';return;}
   /* '전체' 칩은 두지 않는다 — 아무 칩도 안 켜진 것이 곧 전체이고, 켠 칩을
      한 번 더 누르면 풀린다(sl 은 같은 값이면 비운다). 칸도 하나 준다. */
   var h2='';
   for(i=0;i<gs.length;i++){
     var kv=gs[i].k||SUB_ETC;
     /* 탭이 이미 부위를 말한다 — '상부가슴' 이 아니라 '상부' (subBare, 저장된 이름은 그대로) */
-    h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl" data-v="'
+    h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl"'
+      +(UI.sub===kv?' data-on="1"':'')+' data-v="'
       +esc(kv)+'">'+esc(gs[i].k?subBare(gs[i].n,UI.filter):gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
   }
   el.className='schips cs'+cstOf();
@@ -3981,6 +4001,9 @@ function matchQ(m,q){
       ||(m.v||'').toLowerCase().indexOf(q)>=0;
 }
 function renderList(){
+  /* 그리기 전에 무엇이 켜졌는지부터 정한다 — 칩 줄이 먼저 돌지만,
+     목록만 따로 다시 그리는 길이 둘 있다(검색 칸·되돌리기). */
+  subResolve(subOfPart());
   /* 처음 켠 사람은 69일치 표본을 제 기록으로 읽는다. 알리는 것이 켤 때 뜨는
      토스트 하나뿐이라 두 초 뒤에는 표시가 아무 데도 없었다 — 성장률도 증량
      지시도 남의 것인데 그대로 믿게 된다. 줄마다 표를 달지 않고(줄이 마흔인
@@ -10074,6 +10097,9 @@ function vzTrain(tab){
     +TX1('주동근 미지정 종목 {0}개 — 종목 편집에서 설정',nmm)+'</div>';
   if(hs)h+='<div class="lmsec">'
     +vzCap(TX('주동근 · 이번 주 · MEV~MRV')
+      /* 줄마다 '디로딩' 이 붙는 것은 MEV 미만인 근육뿐이라, 왜 전체가 낮은지는
+         머리에서 한 번 말해야 읽힌다 */
+      +(isDeload()?'<em class="vzdl">'+TX('디로딩')+'</em>':'')
       +(nfix?'<em class="vzfix">'+TX('손댈 것')+' '+nfix+'</em>':''))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV')+'</div></div>';
@@ -10482,7 +10508,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 00:10';
+var BUILD='2026-09-24 01:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11478,6 +11504,10 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐':'<em>Deload</em> {0} · no load increase · no low-set warning · this week is skipped as next week&#39;s baseline',
+'디로딩 해제':'Deload off',
+'<em>가볍게</em> 이 날 무게는 평소 날의 기준에서 빠짐':'<em>Light day</em> this day is skipped as a baseline for normal days',
+'가볍게 해제':'Light day off',
 ' · 가볍게 간 {0}세션 제외':' · {0} light session(s) excluded',
 '가볍게':'Light day',
 '디로딩 · 유지':'Deload · hold',
@@ -12359,6 +12389,15 @@ function liteSet(ds,on){
 }
 /* 그 날 기록한 무게를 평소 날의 기준으로 쓰면 안 되는가.
    디로딩 주에 든 날이거나, 하루 표시를 켠 날이다. */
+/* 그 주의 월~일. '디로딩' 세 글자만으로는 하루인지 주인지가 안 보인다 —
+   켜져 있을 때 범위를 같이 적으면 '가볍게'(하루)와 눈으로 갈라진다. */
+function wkSpan(ds){
+  var mon=wkMon(ds),p=mon.split('-');
+  if(p.length!==3)return '';
+  var t=new Date(+p[0],p[1]-1,+p[2]);
+  t.setDate(t.getDate()+6);
+  return md(mon)+'\u2013'+(t.getMonth()+1)+'/'+t.getDate();
+}
 function isSoft(ds){return isLite(ds)||isDeload(ds);}
 /* 그 날에 진전 판정을 안 다는 까닭. 화면 여러 곳이 같은 낱말을 써야
    '왜 퍼센트가 없지' 를 한 번만 배운다. 아니면 빈 문자열이라
@@ -13107,17 +13146,29 @@ document.addEventListener('click',function(e){
         save();render();
       })();
       break;
-    case 'fl':UI.filter=v;UI.sub='';
+    /* 부위마다 고른 것을 따로 기억하므로 여기서 비우지 않는다 — 비우면
+       돌아올 때마다 첫 갈래로 되돌아간다. subResolve 가 정한다. */
+    case 'fl':UI.filter=v;
       if(UI.q){UI.q='';var qe=document.getElementById('q');if(qe)qe.value='';}
       render();break;
-    /* 같은 것을 다시 누르면 풀린다 — 전체로 돌아가려고 '전체' 를 찾아
-       누르지 않아도 되게 */
-    case 'sl':UI.sub=(UI.sub===v?'':v);render();break;
+    /* 켜진 것을 다시 누르면 풀린다(=전체). 켜졌는지는 그린 쪽이 data-on 으로
+       알려 준다 — 저장값과 견주면, 처음 열려 첫 갈래가 켜져 있는 상태(저장값
+       없음)에서 그것을 눌렀을 때 '새로 고른 것' 이 되어 안 풀린다. */
+    case 'sl':
+      UI.subP=UI.subP||{};
+      UI.subP[UI.filter]=(t.getAttribute('data-on')==='1')?'':(v||'');
+      render();break;
     case 'help':UI.sheet='help';render();break;
     case 'tg':
       openRow(v);UI.sheet='ex';render();
       break;
-    case 'lite':liteSet(UI.wd,!isLite(UI.wd));render();break;
+    case 'lite':
+      (function(){
+        var on=!isLite(UI.wd);
+        liteSet(UI.wd,on);render();
+        toast(on?TX('<em>가볍게</em> 이 날 무게는 평소 날의 기준에서 빠짐'):TX('가볍게 해제'));
+      })();
+      break;
     case 'd-':shiftDay(-1);break;
     case 'd+':shiftDay(1);break;
     case 'd0':if(setWd(today()))render();break;
@@ -13679,7 +13730,14 @@ document.addEventListener('click',function(e){
       /* 보고 있는 날이 든 주다. wkMon() 은 오늘 주라서, 지난주로 넘겨 놓고
          누르면 단추는 지난주 상태를 보이면서 이번 주가 켜졌다 —
          그리는 자(isDeload(UI.wd))와 쓰는 자가 서로 다른 주를 봤다. */
-      (function(){var m=wkMon(UI.wd),w=wkCfg(m)||{};wkSet(m,'d',w.d?0:1);renderSheet();render();})();
+      (function(){
+        var m=wkMon(UI.wd),w=wkCfg(m)||{},on=!w.d;
+        wkSet(m,'d',on?1:0);renderSheet();render();
+        /* 켜도 알약 하나가 채워질 뿐이라 무엇이 달라졌는지 알 길이 없었다.
+           바뀌는 것 셋을 한 줄로 말한다 — 이 표시의 값어치가 거기 있다. */
+        toast(on?TX1('<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐',wkSpan(UI.wd))
+                :TX('디로딩 해제'));
+      })();
       break;
     case 'anlcat':
       if(isCat(v)){ANLC=v;anlSave();renderSheet();}
