@@ -2216,6 +2216,21 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   border-radius:var(--rad-m);background:none;color:var(--mut);
   font-size:13.5px;font-weight:700;letter-spacing:.02em}
 .catb:active{opacity:.6}
+/* 이번 주 표시 — 분류 단추 바로 밑. 켜 두면 아래 판정이 그것을 알고 센다 */
+.wkm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:9px 0 0}
+.wkm>b{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-right:2px}
+.wkb{min-height:32px;padding:0 12px;border-radius:999px;background:var(--surf);
+  border:var(--bw) solid rgba(var(--tx-rgb),.12);color:var(--mut);
+  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.02em}
+.wkb.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.wkb:active{opacity:.6}
+.wkd{display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+.wkd button{width:30px;height:30px;padding:0;border-radius:var(--rad-s);background:none;
+  border:var(--bw) solid rgba(var(--tx-rgb),.14);color:var(--mut);font-family:inherit;font-size:13px;line-height:1}
+.wkd button:active{opacity:.6}
+.wkd i{font-style:normal;font-family:var(--mono);font-size:12px;font-weight:700;
+  color:var(--acc-br);min-width:38px;text-align:center;font-variant-numeric:tabular-nums}
+.wkd u{text-decoration:none;font-size:9px;color:var(--dim)}
 .catb.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc);font-weight:800}
 /* 갈래 — 눈금이 아니라 보기 전환이므로 가볍게 */
 .vzts{display:flex;gap:2px;margin:0 0 4px}
@@ -4917,6 +4932,7 @@ function renderSheet(){
       h+='<button class="catb'+(ANLC===CATS[cgi].k?' on':'')+'" data-act="anlcat" data-v="'
         +CATS[cgi].k+'">'+TX(CATS[cgi].n)+'</button>';
     h+='</div>';
+    h+=wkModeRow();
     var vlist=catTabs(ANLC),vcur=catCur(ANLC);
     /* '오늘 루트' 카드를 뺐다(지우라는 요청). 셈(routeToday·vzRoute·rtWarm·
        rtLast·rtDone)과 CSS 는 남겨 둔다 — 지우면 되살릴 때 다시 짜야 하고,
@@ -8573,14 +8589,15 @@ function cumWin(win){
   /* v 는 그릴 값 = 목표와의 차이. a 는 실제 누적, g 는 목표 누적 — 줄이 쓴다.
      차이를 그리면 0선이 곧 목표라 점선을 따로 안 긋고, 축이 담아야 하는 폭이
      확 줄어 기울기가 보인다. 하루 509 를 팠다면 목표 550 과의 차이는 −41 이다. */
-  var wk=[],cur=null,mk='',sum=0,cnt=0,i;
+  var wk=[],cur=null,mk='',sum=0,cnt=0,i,wdfc=dfc;
   for(i=0;i<a.length;i++){
     var m=monOf(a[i].d);
-    if(m!==mk){mk=m;sum=0;cnt=0;cur={mon:m,pts:[]};wk.push(cur);}
+    /* 눈금은 주마다 다를 수 있다 — 감량주로 표시한 주는 그 주 목표로 잰다 */
+    if(m!==mk){mk=m;sum=0;cnt=0;wdfc=wkDfc(m,dfc);cur={mon:m,pts:[],dfc:wdfc};wk.push(cur);}
     sum+=(a[i].base+a[i].ex)-a[i].ate;cnt++;
     /* v 가 곧 그리는 값 = 그 주에 쌓은 적자. g 는 같은 자리의 목표 누적이라
        점선으로 나란히 긋는다 — 둘 사이 간격이 '기대치와의 차이' 다. */
-    cur.pts.push({d:a[i].d,a:Math.round(sum),g:dfc*cnt,v:Math.round(sum),
+    cur.pts.push({d:a[i].d,a:Math.round(sum),g:wdfc*cnt,v:Math.round(sum),
                   n:cnt,part:!!a[i].part});
   }
   return {weeks:wk,dfc:dfc};
@@ -8600,7 +8617,15 @@ function cumMonth(){
   }
   if(!n)return null;
   try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)dfc=Math.round(nf.dailyDeficitTarget);}catch(e){}
-  return {v:Math.round(sum),n:n,goal:dfc*n,dfc:dfc,d0:d0,d:d1};
+  /* 눈금은 날마다 그 주 값으로 센다 — 한 달 안에 감량주가 끼면 평소 값으로
+     곱한 총액이 주 단위 줄과 어긋난다(같은 화면에서 목표가 둘이 된다). */
+  var gsum=0;
+  for(i=0;i<a.length;i++){
+    var r2=a[i];
+    if(r2.ate==null||r2.part)continue;
+    gsum+=wkDfc(wkMon(r2.d),dfc);
+  }
+  return {v:Math.round(sum),n:n,goal:Math.round(gsum),dfc:dfc,d0:d0,d:d1};
 }
 /* 줄에 적을 값 — 그림 '이번 주' 칸의 마지막 점과 같은 점이어야 한다.
    오늘을 넣는다. 예전에는 끝난 날만 셌는데, 그러면 월요일에는 이번 주에
@@ -8614,7 +8639,7 @@ function cumNow(){
   if(monOf(todayISO())!==w.mon)return null;
   if(!w.pts.length)return null;
   var p=w.pts[w.pts.length-1];
-  return {v:p.a,n:p.n,goal:p.g,dfc:c.dfc,d:p.d,part:!!p.part};
+  return {v:p.a,n:p.n,goal:p.g,dfc:w.dfc||c.dfc,d:p.d,part:!!p.part,cut:isCut(p.d)};
 }
 /* 전 주가 얼마로 끝났는지. 이번 주 수 하나만으로는 좋은지 나쁜지가 안
    정해진다 — 바로 앞 주가 그 잣대다. 창이 2주라 전 주가 통째로 안 들어올
@@ -8626,7 +8651,7 @@ function cumPrev(){
     var fin=c.weeks[i].pts.filter(function(p){return !p.part;});
     if(!fin.length)return null;
     return {v:fin[fin.length-1].a,n:fin[fin.length-1].n,goal:fin[fin.length-1].g,
-            dfc:c.dfc,d0:fin[0].d,d:fin[fin.length-1].d};
+            dfc:c.weeks[i].dfc||c.dfc,d0:fin[0].d,d:fin[fin.length-1].d,cut:isCut(fin[0].d)};
   }
   return null;
 }
@@ -9251,10 +9276,12 @@ function vzBody(tab){
            아침엔 '목표 이상' 이었다가 저녁엔 '미달' 로 뒤집힌다.
            0 은 넘긴 것이 아니라 못 판 것이다. <=0 으로 두면 딱 0 인 날에
            '초과' 라 적으면서 부제는 초과량을 안 적어 한 줄이 두 말을 한다. */
+        /* 감량주에는 목표를 그 주 값으로 이미 올려 잡았다. 그러고도 더 팠으면
+           '목표 이상' 이 아니라 그렇게 하기로 한 주라고 적는다. */
         var vdC=cn.part?{t:TX('진행 중'),c:''}
                :((cn.v<0)?{t:TX('초과'),c:'neg'}
-               :(cn.v>=cn.goal+bndC?{t:TX('목표 이상'),c:'pos'}
-               :(cn.v>=cn.goal-bndC?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'})));
+               :(cn.v>=cn.goal+bndC?{t:TX(cn.cut?'감량주':'목표 이상'),c:cn.cut?'':'pos'}
+               :(cn.v>=cn.goal-bndC?{t:cn.cut?TX('감량주'):'',c:''}:{t:TX('목표 미달'),c:'warn'})));
         /* 끝값이 창 전체 누적이므로 '1주간' 이라 적을 수 없다 — 창을 적는다 */
         /* kcal 을 kg 으로 옮겨 적는다(kgOf). '하루 목표 550' 은 뺐다:
            위 칸 점선이 이미 그 기울기이고 분모가 그것의 날수 배다. */
@@ -10049,15 +10076,20 @@ function macroWeek(nf){
   var tk=ap*4+ac*4+af*9,mg=(tgt>0)?macroGoals(tgt):null;
   /* vzLine 으로 그렸더니 이름·설명·값이 서로 밀려 한 macro 가 세 줄을 먹었다.
      눈금이 있으면 앱이 이미 쓰는 막대 줄로 — '125/156' 이 한 자리에 온다. */
-  function row(nm,gm,goal,kc){
+  /* 감량주에는 탄수·지방 눈금을 판정에 쓰지 않는다 — 열량을 줄이는 주에
+     '탄수 미달' 은 잘못이 아니라 그렇게 하기로 한 것이다. 단백질만 눈금으로
+     잰다: 줄여야 하는 주일수록 근육을 지키는 값이라 더 중요해진다. */
+  function row(nm,gm,goal,kc,prot){
     var pc=TX1('열량의 {0}%',Math.round(kc*100/(tk||1)));
-    if(goal>0)return vzBar(nm,gm,goal,pc,null,false);
-    return vzLine(nm,gm+' g',pc,{t:'',c:''});
+    if(goal>0&&(prot||!cutWk))return vzBar(nm,gm,goal,pc,null,false);
+    return vzLine(nm,gm+' g',cutWk&&goal>0?TX1('{0} · 감량주라 눈금 안 봄',pc):pc,{t:'',c:''});
   }
-  h+=vzCap(TX('하루 평균')+'<span class="rtsub">'+TX1('기록 {0}일',nd)+'</span>')
-    +row(TX('단백질'),ap,mg?mg.p:0,ap*4)
-    +row(TX('탄수'),ac,mg?mg.c:0,ac*4)
-    +row(TX('지방'),af,mg?mg.f:0,af*9);
+  var cutWk=isCut();
+  h+=vzCap(TX('하루 평균')+'<span class="rtsub">'
+      +(cutWk?TX('감량주')+' · ':'')+TX1('기록 {0}일',nd)+'</span>')
+    +row(TX('단백질'),ap,mg?mg.p:0,ap*4,true)
+    +row(TX('탄수'),ac,mg?mg.c:0,ac*4,false)
+    +row(TX('지방'),af,mg?mg.f:0,af*9,false);
   return h;
 }
 function vzDiet(tab){
@@ -10304,7 +10336,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 00:10';
+var BUILD='2026-09-23 19:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11301,6 +11333,10 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'디로딩':'Deload',
+'감량주':'Cut week',
+'하루':'Daily',
+'{0} · 감량주라 눈금 안 봄':'{0} · no target on a cut week',
 '주간':'Week',
 '탄단지':'Macros',
 '이번 주 · 월~일':'This week · Mon–Sun',
@@ -12142,6 +12178,59 @@ var MEAL_END={breakfast:11,lunch:16,dinner:24};
    바닥 150 은 목표가 낮은 사람 몫이다 — 1,200 의 10% 는 120 이라 도로 좁다.
    세 군데(날짜 세기·평균 판정·칸 표식)가 이 하나를 본다. 흩어 두면 세는
    수와 그리는 칸이 갈라진다. */
+/* ── 의도한 주 ────────────────────────────────────────────────────
+   디로딩 주·감량주는 '못 한 주' 가 아니라 '그렇게 하기로 한 주' 다. 표시가
+   없으면 앱은 둘을 구분할 길이 없어 계획대로 한 주에 빨간 판정을 단다.
+   주는 월요일로 잡는다 — 이 앱의 주간 셈이 모두 월요일에 0 으로 돌아간다.
+   S.wk[월요일] = {d:디로딩, c:감량주, cd:그 주 하루 적자 목표} */
+/* 평소 하루 적자 목표 — 감량주 기본값을 여기서 뽑는다 */
+function dfcBase(){
+  try{var nf=nutriFacts();if(nf&&nf.dailyDeficitTarget>0)return Math.round(nf.dailyDeficitTarget);}catch(e){}
+  return Math.round(WR*7700/7)||0;
+}
+/* 분류 단추 바로 밑 한 줄. 세 갈래 어디서 보든 같은 자리에 있고, 이 표시가
+   바꾸는 판정 바로 위다 — 켜고 아래를 보면 무엇이 달라졌는지 같이 보인다. */
+function wkModeRow(){
+  var mon=wkMon(),w=wkCfg(mon)||{};
+  var h='<div class="wkm"><b>'+TX('이번 주')+'</b>'
+    +'<button class="wkb'+(w.d?' on':'')+'" data-act="wkdl" aria-pressed="'+(w.d?'true':'false')+'">'
+    +TX('디로딩')+'</button>'
+    +'<button class="wkb'+(w.c?' on':'')+'" data-act="wkct" aria-pressed="'+(w.c?'true':'false')+'">'
+    +TX('감량주')+'</button>';
+  /* 감량주를 켜면 그 주 눈금을 같이 보인다 — 안 보이면 무엇을 기준으로
+     판정이 바뀌었는지 알 수가 없다. ± 로 고친다(칸을 쓰면 저장 단추가 필요). */
+  if(w.c)h+='<span class="wkd"><button data-act="wkcd-">−</button><i>'
+    +(w.cd||dfcBase()).toLocaleString()+'</i><u>kcal</u><button data-act="wkcd+">＋</button></span>';
+  return h+'</div>';
+}
+function wkMon(ds){
+  var p=String(ds||todayISO()).split('-');
+  if(p.length!==3)return '';
+  var t=new Date(+p[0],p[1]-1,+p[2]);
+  t.setDate(t.getDate()-((t.getDay()+6)%7));
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+function wkCfg(mon){
+  var w=S.wk&&S.wk[mon||wkMon()];
+  return w||null;
+}
+function wkSet(mon,k,v){
+  S.wk=S.wk||{};
+  var w=S.wk[mon]||{};
+  w[k]=v;
+  /* 둘 다 끄고 값도 없으면 자리를 지운다 — 빈 껍데기가 백업마다 쌓인다 */
+  if(!w.d&&!w.c)delete S.wk[mon];
+  else S.wk[mon]=w;
+  save();
+}
+/* 그 주 하루 적자 목표. 감량주가 아니면 평소 값. */
+function wkDfc(mon,base){
+  var w=wkCfg(mon);
+  if(w&&w.c&&w.cd>0)return Math.round(w.cd);
+  return base;
+}
+function isDeload(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.d);}
+function isCut(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.c);}
 function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
 var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
 /* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
@@ -12337,6 +12426,9 @@ function vzZone(cur,L,easy){
   cur=+cur||0;easy=+easy||0;
   var mev=L[0],mrv=L[3];
   if(cur>mrv)return {t:'MRV 초과',c:'neg',z:'over'};
+  /* 디로딩 주에는 세트가 적은 것이 실패가 아니라 계획이다. 넘친 것은
+     그대로 말한다 — 덜 하기로 한 주에 MRV 를 넘겼으면 그건 알아야 한다. */
+  if(mev>0&&cur<mev&&isDeload())return {t:'디로딩',c:'',ok:1,z:'ok'};
   if(mev>0&&cur<mev){
     /* 유효 세트로는 MEV 를 못 넘는데 버린 세트를 얹으면 넘는다 — 세트가
        모자란 게 아니라 가벼웠던 것이다. 묶음은 그대로 손댈 것에 둔다. */
@@ -13450,6 +13542,28 @@ document.addEventListener('click',function(e){
         UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editMm=mmValid(m.mm)?m.mm:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
+      })();
+      break;
+    case 'wkdl':
+      (function(){var m=wkMon(),w=wkCfg(m)||{};wkSet(m,'d',w.d?0:1);renderSheet();render();})();
+      break;
+    case 'wkct':
+      (function(){
+        var m=wkMon(),w=wkCfg(m)||{},on=w.c?0:1;
+        wkSet(m,'c',on);
+        /* 켤 때 눈금이 없으면 평소의 1.4배로 잡아 둔다 — 0 에서 시작하면
+           판정이 통째로 뒤집히고, 얼마로 할지는 ± 로 고치면 된다. */
+        if(on&&!(wkCfg(m)&&wkCfg(m).cd>0))wkSet(m,'cd',Math.round(dfcBase()*1.4/10)*10);
+        renderSheet();render();
+      })();
+      break;
+    case 'wkcd-':
+    case 'wkcd+':
+      (function(){
+        var m=wkMon(),w=wkCfg(m)||{};
+        var v=(w.cd||dfcBase())+(act==='wkcd+'?50:-50);
+        if(v<100)v=100;if(v>2000)v=2000;
+        wkSet(m,'cd',v);renderSheet();render();
       })();
       break;
     case 'anlcat':
