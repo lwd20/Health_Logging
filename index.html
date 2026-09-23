@@ -505,6 +505,15 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .dnav:active{color:var(--tx)}
 .dnav:disabled{opacity:.25}
 .dtxt{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+/* '가볍게' — 기록이 있는 날에만. 켜 두면 그 날 무게가 평소 날의 기준에서 빠진다 */
+/* 날짜 줄은 space-between + wrap 이라 칸이 셋이 되면 하나가 아랫줄로
+   떨어진다 — 오른쪽 둘(세트 요약·가볍게)을 한 덩이로 묶는다. */
+.dsum{display:inline-flex;align-items:center;gap:0;min-width:0}
+.dlite{margin-left:7px;min-height:28px;padding:0 10px;border-radius:999px;background:none;
+  border:var(--bw) solid rgba(var(--tx-rgb),.14);color:var(--dim);font-family:inherit;
+  font-size:10px;font-weight:700;letter-spacing:.04em}
+.dlite.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.dlite:active{opacity:.6}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:var(--rad-s);padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.06em}
 .hbtns{display:flex;align-items:center;gap:2px;flex:0 0 auto;white-space:nowrap;margin-top:2px}
@@ -3771,7 +3780,12 @@ function render(){
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
     /* 기록이 없는 날에만 나온다 — 세트가 있으면 쉰 날이 아니므로 고를
        것도 없다. 눌러서 '계획해서 쉬었다' 와 '그냥 안 했다' 를 가른다. */
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
+    /* 기록이 있는 날에는 이 자리가 세트 요약뿐이라 비어 있었다. '일부러
+       가볍게 간 날' 은 기록하면서 켜는 것이므로 여기가 가장 짧은 길이다.
+       주 단위(디로딩·감량주)는 분석에 있다 — 범위가 다르니 자리도 다르다. */
+    +(tc?'<span class="dsum"><em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
+        +'<button class="dlite'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
+        +' aria-pressed="'+(isLite(UI.wd)?'true':'false')+'">'+TX('가볍게')+'</button></span>'
         :'<button class="doff'+(isOff(UI.wd)?' on':'')+'" data-act="off">'
           +(isOff(UI.wd)?TX('쉬는 날'):TX('운동 없음'))+'</button>');
   document.getElementById('henrg').innerHTML=
@@ -4314,8 +4328,11 @@ function panelHtml(m){
   var statsHtml='';
   if(UI.wd!==today())h+='<div class="pdate">✎ Editing '+jdate(UI.wd)+'</div>';
   /* 직전 세션 — 성장률 비교 기준 (요약 표시는 시트 헤더가 담당) */
-  var past=[],all=sess(id);
-  for(var i=0;i<all.length;i++)if(all[i].d<UI.wd)past.push(all[i]);
+  var past=[],all=sess(id),softNow=isSoft(UI.wd);
+  /* 견줄 대상에서도 뺀다 — 디로딩 주 기록을 기준으로 삼으면 그 다음 주에
+     가짜 '+8%' 가 뜬다. 가볍게 간 날에 볼 때는 그대로 다 본다. */
+  for(var i=0;i<all.length;i++)
+    if(all[i].d<UI.wd&&(softNow||!isSoft(all[i].d)))past.push(all[i]);
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
     h+='<div class="setwrap">';
@@ -5426,8 +5443,18 @@ function nextRx(id,n){
   if(isCardId(id))return null;                 /* 유산소는 증량 개념이 없다 */
   var m=machById(id);
   if(!m)return null;
-  var all=sess(id),prev=null,i;
-  for(i=0;i<all.length;i++){if(all[i].d<UI.wd&&all[i].s.length){prev=all[i];break;}}
+  /* 일부러 가볍게 간 날(디로딩 주·가볍게 표시)의 무게를 평소 날의 기준으로
+     쓰면, 디로딩 다음 주가 가벼운 데서 다시 올라가기 시작한다. 평소 날에서는
+     건너뛴다 — 가볍게 간 날끼리는 서로를 본다. 건너뛰다 아무것도 안 남으면
+     그때는 가장 가까운 것을 쓴다: 기준이 없는 것보다 낫다. */
+  var all=sess(id),prev=null,i,soft=isSoft(UI.wd),fb=null;
+  for(i=0;i<all.length;i++){
+    if(!(all[i].d<UI.wd&&all[i].s.length))continue;
+    if(!fb)fb=all[i];
+    if(!soft&&isSoft(all[i].d))continue;
+    prev=all[i];break;
+  }
+  if(!prev)prev=fb;
   if(!prev)return null;
   /* 지난 세션에 그 자리가 없으면 마지막 세트로 떨어뜨린다 — 세트를 늘리는 날은
      기준이 없으니 가장 무거웠던 자리를 이어받는 게 맞다. */
@@ -5482,11 +5509,18 @@ function openRow(id){
    수가 칸에 들어 있어 넣기 전에 매번 고쳐야 했다. 제안은 칸 바로 위
    지시줄에 그대로 있다 — 올릴지는 보고 ＋ 로 정한다. */
 function lastSet(id){
-  var d=UI.draft[id]||[],all,j;
+  var d=UI.draft[id]||[],all,j,soft=isSoft(UI.wd),fb=null;
   if(d.length)return d[d.length-1];
   all=sess(id);
-  for(j=0;j<all.length;j++)if(all[j].d<UI.wd&&all[j].s.length)return all[j].s[all[j].s.length-1];
-  return null;
+  /* 칸에 채우는 값도 같은 자를 쓴다 — 지시줄은 평소 무게를 말하는데 칸에는
+     디로딩 무게가 들어 있으면 둘이 어긋난다. */
+  for(j=0;j<all.length;j++){
+    if(!(all[j].d<UI.wd&&all[j].s.length))continue;
+    if(!fb)fb=all[j].s[all[j].s.length-1];
+    if(!soft&&isSoft(all[j].d))continue;
+    return all[j].s[all[j].s.length-1];
+  }
+  return fb;
 }
 /* 세트를 넣거나 무른 뒤 칸을 다시 채운다 — 지운 세트의 값이 칸에 남아
    ＋ Set 이 지운 것을 그대로 다시 올리는 일이 없게.
@@ -10341,7 +10375,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 19:55';
+var BUILD='2026-09-23 20:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11338,6 +11372,7 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'가볍게':'Light day',
 '디로딩 · 유지':'Deload · hold',
 '디로딩':'Deload',
 '감량주':'Cut week',
@@ -12235,6 +12270,18 @@ function wkDfc(mon,base){
   if(w&&w.c&&w.cd>0)return Math.round(w.cd);
   return base;
 }
+/* 하루 단위 '일부러 가볍게 간 날'. 주 단위 디로딩과 범위가 다르다 —
+   디로딩 주가 아닌 주에도 하루만 가볍게 가는 날이 있다.
+   S.lt[날짜]=1 */
+function isLite(ds){return !!(S.lt&&S.lt[ds||UI.wd]);}
+function liteSet(ds,on){
+  S.lt=S.lt||{};
+  if(on)S.lt[ds]=1;else delete S.lt[ds];
+  save();
+}
+/* 그 날 기록한 무게를 평소 날의 기준으로 쓰면 안 되는가.
+   디로딩 주에 든 날이거나, 하루 표시를 켠 날이다. */
+function isSoft(ds){return isLite(ds)||isDeload(ds);}
 function isDeload(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.d);}
 function isCut(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.c);}
 function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
@@ -12988,6 +13035,7 @@ document.addEventListener('click',function(e){
     case 'tg':
       openRow(v);UI.sheet='ex';render();
       break;
+    case 'lite':liteSet(UI.wd,!isLite(UI.wd));render();break;
     case 'off':
       /* 세트가 있는 날에는 단추가 안 나오지만, 그 사이 기록이 들어왔을
          수도 있으므로 한 번 더 막는다 */
