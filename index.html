@@ -488,6 +488,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .rr i.up,.rr i.dn,.rr i.eq{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
 .rr i.eq{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.04em}
 .rr i.up{color:var(--pos)}
+/* 계획해서 가볍게 간 날 — 빨강도 초록도 아니다. 판정이 아니라 상태다 */
+.rr i.soft{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--acc-br)}
 .rr i.dn{color:var(--neg)}
 .setr .sv{margin-left:auto;display:flex;align-items:baseline;gap:7px;font-size:10px;color:var(--dim);letter-spacing:.02em}
 .setr .sv u{text-decoration:none;font-size:10px;color:var(--dim)}
@@ -1306,6 +1308,8 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .exsub{margin-top:7px;font-family:var(--mono);font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px}
 .exsub em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--dim);font-variant-numeric:tabular-nums}
 .exsub u{text-decoration:none;color:var(--dim)}
+.exsub .sfx,.hr2 em.sfx{flex:0 0 auto;font-style:normal;font-family:var(--sans);font-size:9px;
+  font-weight:800;letter-spacing:.04em;color:var(--acc-br);white-space:nowrap}
 /* 한 줄 — 라벨 왼쪽, 값 오른쪽. 이 앱이 다른 곳에서 쓰는 짝이다 */
 .e1r{display:flex;align-items:baseline;gap:7px;margin-top:11px;padding-top:12px;
   border-top:1px solid rgba(var(--tx-rgb),.08)}
@@ -1317,6 +1321,7 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 증감은 폭을 고정해 종목을 옮겨 다녀도 숫자 오른쪽 끝이 안 흔들린다 */
 .e1r s{text-decoration:none;flex:0 0 auto;min-width:56px;text-align:right;font-family:var(--mono);
   font-size:11px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
+.e1r s.soft{font-family:var(--sans);font-size:10px;font-weight:800;letter-spacing:.04em;color:var(--acc-br)}
 .e1r s.up{color:var(--pos)}
 .e1r s.dn{color:var(--sig)}
 .sh-l{font-size:10px;font-weight:800;color:var(--dim);margin:16px 0 8px;letter-spacing:.2em;text-transform:uppercase}
@@ -3547,8 +3552,22 @@ function topDetail(s){
   for(i=0;i<s.length;i++)if(s[i][0]===t)r.push(s[i][1]);
   return fmtW(t)+'×'+r.join('·');
 }
-/* ds 이전의 가장 최근 세션 (sess는 최신순) */
-function prevSess(id,ds){var a=sess(id);for(var i=0;i<a.length;i++)if(a[i].d<ds&&a[i].s.length)return a[i];return null;}
+/* ds 이전의 가장 최근 세션 (sess는 최신순)
+   일부러 가볍게 간 날(디로딩 주·가볍게)은 건너뛴다 — 계획해서 내린 무게를
+   기준으로 삼으면 그 다음 세션에 가짜 상승이 뜬다. 40 → 50 이 '+25%' 다.
+   되돌릴 것이 없으면 null 이다: 여기를 쓰는 곳은 성장률 배지뿐이고,
+   아무 말도 안 하는 편이 틀린 퍼센트보다 낫다(무게를 채워야 하는 nextRx 는
+   제 안에서 가장 가까운 것으로 되돌린다 — 기준이 없는 것보다 낫기 때문이다).
+   기준 날 자신이 가볍게 간 날이면 안 거른다 — 가벼운 날끼리는 서로를 본다. */
+function prevSess(id,ds){
+  var a=sess(id),soft=isSoft(ds),i;
+  for(i=0;i<a.length;i++){
+    if(!(a[i].d<ds&&a[i].s.length))continue;
+    if(!soft&&isSoft(a[i].d))continue;
+    return a[i];
+  }
+  return null;
+}
 /* 세션 전체 기준 성장률 배지 */
 function gainTag(cur,prev){
   var g=e1rmGain(cur,prev);
@@ -3774,7 +3793,9 @@ function render(){
     +' aria-pressed="'+(isDeload(UI.wd)?'true':'false')+'">'+TX('디로딩')+'</button>'
     /* 디로딩 주에는 그 주 모든 날이 이미 '가볍게' 취급이라 하루 표시가
        할 일이 없다 — 안 낸다. 줄도 한 줄에 들어간다. */
-    +((tc&&!isDeload(UI.wd))?'<button class="dlite'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
+    /* 켜 둔 날의 세트를 다 지우면 단추가 사라져 표시만 남았다 — 안 보이는
+       표시가 판정을 흔든다. 켜져 있으면 기록이 없어도 보인다: 끌 수 있어야 한다. */
+    +(((tc||isLite(UI.wd))&&!isDeload(UI.wd))?'<button class="dlite'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
         +' aria-pressed="'+(isLite(UI.wd)?'true':'false')+'">'+TX('가볍게')+'</button>':'')
     +(tc?'':'<em class="doff">'+TX('운동 없음')+'</em>')
     +'</span>';
@@ -4219,7 +4240,8 @@ function rowHtml(m,noBadge,inMc,dc){
       right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
-      right=rgt(fmtW(t),'kg',dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d)):'');
+      right=rgt(fmtW(t),'kg',softTag(UI.wd)
+        ||(dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d)):''));
     }else{
       right='<span class="none">—</span>';
     }
@@ -4242,8 +4264,10 @@ function rowHtml(m,noBadge,inMc,dc){
         sub='<span class="sub">'+cSpdSum(la.s,m.n)+(kmv>0?' · '+kmv+'km':'')
           +(badC?' <i class="badv">'+TX('확인')+'</i>':'')+'</span>';
       }else{
+        /* 계획해서 내린 무게에 빨간 '▼18%' 를 다는 것은 틀린 말이다 —
+           그 줄이 말할 것은 하락이 아니라 '디로딩' 이다. */
         var lp=prevSess(m.i,la.d);
-        var gt=lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d)):'';
+        var gt=softTag(la.d)||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d)):'');
         right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
@@ -4307,9 +4331,13 @@ function lastLine(m){
   for(i=0;i<a.length;i++)if(a[i].d<UI.wd&&a[i].s&&a[i].s.length){p=a[i];break;}
   if(!p)return '<div class="exsub"><span class="none">'+TX('첫 기록')+'</span></div>';
   var cd=isCard(m.p);
+  /* 이 줄은 '지난번 40kg' 이라 적는데 바로 밑 지시줄은 50 을 낸다 — 둘이
+     다른 세션을 보고 있어서다(지시는 가볍게 간 날을 건너뛴다). 그 까닭을
+     이 줄에 붙인다. 안 붙이면 어긋난 두 수만 남는다. */
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
     +(cd?('<span>'+cardDetail(p.s,m.n)+'</span>')
-        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailOf(p.s)+'</u>'))+'</div>';
+        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailOf(p.s)+'</u>'))
+    +(softWhy(p.d)?'<i class="sfx">'+TX(softWhy(p.d))+'</i>':'')+'</div>';
 }
 function panelHtml(m){
   var id=m.i,draft=UI.draft[id]||[],h='<div class="panel">';
@@ -4366,9 +4394,13 @@ function panelHtml(m){
         +'<b>'+fmtW(de)+'<u>kg</u></b>'
         /* 증감이 없는 첫 기록에서도 자리는 잡아 둔다 — 안 그러면 종목을 옮길 때
            숫자 오른쪽 끝이 63px 씩 튄다 */
-        +'<s class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">'
-        +(g2?((g2.pct>0?'▲ ':(g2.pct<0?'▼ ':''))
-             +(g2.pct?Math.abs(g2.pct)+'%':TX('유지'))):'–')+'</s>'
+        /* 디로딩 첫날은 평소 세션과 견줘 '▼25%' 가 된다. 계획대로 된 것을
+           퇴행이라 적는 꼴이라, 그 날은 ±% 자리에 까닭을 놓는다. */
+        +(softWhy(UI.wd)
+          ?'<s class="soft">'+TX(softWhy(UI.wd))+'</s>'
+          :('<s class="'+(g2?(g2.pct>0?'up':(g2.pct<0?'dn':'')):'')+'">'
+            +(g2?((g2.pct>0?'▲ ':(g2.pct<0?'▼ ':''))
+                 +(g2.pct?Math.abs(g2.pct)+'%':TX('유지'))):'–')+'</s>'))
         +'</div>';   /* 그리는 자리는 저장 버튼 아래 */
     }else{
       var sk=kcalSess(draft,m),skm=0;
@@ -4445,7 +4477,9 @@ function panelHtml(m){
     if(!all.length)h+='<div class="empty">No records</div>';
     for(var q=0;q<all.length;q++){
       var x=all[q];
-      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailOf(x.s))+'</span><button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
+      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailOf(x.s))+'</span>'
+        +(softWhy(x.d)?'<em class="sfx">'+TX(softWhy(x.d))+'</em>':'')
+        +'<button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
     }
     h+='</div>';
   }
@@ -5460,7 +5494,9 @@ function nextRx(id,n){
     var dr=UI.draft[id]||[],pv=dr[n-1],ref=prev.s[Math.min(n-1,prev.s.length-1)];
     if(pv&&ref&&((+pv[0]||0)!==(+ref[0]||0)||(+pv[1]||0)!==(+ref[1]||0))){
       var pw=+pv[0]||0,pr=+pv[1]||0;
-      if(pw>0&&pr>0)return {w:pw,r:pr,up:false};
+      /* 디로딩 표시를 여기서도 실어 보낸다 — 안 실으면 1세트에만 '디로딩 ·
+         유지' 가 뜨고 2세트부터 사라진다. 한 화면에서 같은 주가 두 말을 한다. */
+      if(pw>0&&pr>0)return {w:pw,r:pr,up:false,dl:isDeload(UI.wd)};
     }
   }
   var src=prev.s[Math.min(n,prev.s.length-1)];
@@ -7417,6 +7453,13 @@ function heroProg(onDate){
     var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
     if(a.length<2)continue;
     if(onDate&&a[0].d!==onDate)continue;   /* 그날 수행한 종목만 */
+    /* 일부러 가볍게 간 날은 진전 셈에 안 쓴다. 디로딩 주에는 종목마다
+       '하락' 이 붙고, 그 다음 주에는 같은 무게로 돌아온 것이 '진전' 으로
+       세어진다 — 한 번 가볍게 간 값이 판정을 두 번 흔든다.
+       빼되 종목을 없애지는 않는다: 보류로 넣어야 네 칸 합이 종목 수와 맞다. */
+    if(isSoft(a[0].d)){holdL.push({i:m.i,n:m.n,why:softWhy(a[0].d)});continue;}
+    a=a.filter(function(x){return !isSoft(x.d);});
+    if(a.length<2){holdL.push({i:m.i,n:m.n,why:'기록 2회'});continue;}
     /* 예전에는 조용히 버려서 카운터 합과 실제 종목 수가 안 맞았다 */
     /* g 는 화면이 제 언어로 다시 적으려고 든 수다. why 는 AI 페이로드 몫이라 그대로 둔다 */
     if(gapD(a[0],a[1])>14){holdL.push({i:m.i,n:m.n,g:gapD(a[0],a[1]),why:'간격 '+gapD(a[0],a[1])+'일'});continue;}
@@ -7468,7 +7511,7 @@ function pgGapD(x,y){return Math.round((new Date(x.d)-new Date(y.d))/86400000);}
    '세트 감소' 가 찍힌다. 창 안 최소 세트 수만큼 윗세트 평균을 쓴다.
    변형과 무관하게 원래 있던 결함이다: 다섯째 세트를 더하기만 해도 같다. */
 function pgSess(m){
-  var src=S.l[m.i]||[],a=[],q=[],i,skip=0;
+  var src=S.l[m.i]||[],a=[],q=[],i,skip=0,dl=0;
   /* 세션 거르는 조건을 heroProg 와 같게 둔다. 여기서만 e1RM 0 인 세션을 빼면
      타일이 센 것과 아래가 센 것이 서로 다른 세션을 보게 되고, 셈이 닫힌다는
      말이 도리어 모순으로 읽힌다. 수열에서만 빼고 그 사실을 적는다.
@@ -7478,6 +7521,10 @@ function pgSess(m){
   for(i=0;i<src.length&&i<16&&a.length<PG_N;i++){
     var x=src[i];
     if(!(x&&x.s&&x.s.length))continue;
+    /* 가볍게 간 날을 수열에 두면 묶음 평균이 한 번 꺼졌다 도로 오른다 —
+       앞뒤를 견주는 판정에는 그것이 '퇴행 뒤 회복' 으로 보인다.
+       몇 개를 뺐는지는 아래에서 적는다: 말없이 줄이면 세션 수가 안 맞는다. */
+    if(isSoft(x.d)){dl++;continue;}
     var ef=effSets(m,x.s,x.d);
     if(!(e1rmAvg(ef)>0)){skip++;continue;}
     a.push(x);es.push(ef);
@@ -7486,7 +7533,7 @@ function pgSess(m){
   if(!K)K=1;
   for(i=0;i<es.length;i++)q.push(e1rmTopN(es[i],K));
   q.reverse();                       /* a 는 최신이 앞, q 는 오래된 것이 앞 */
-  return {a:a,q:q,skip:skip,k:K};
+  return {a:a,q:q,skip:skip,dl:dl,k:K};
 }
 /* 세션 간 변화율의 SD 에서 한 점의 변동폭을 낸다 — 차의 SD 는 sigma 곱하기
    루트2 다. 진짜 추세가 섞여 과대추정되지만 그쪽이 헛경보를 줄이는 방향이다. */
@@ -7724,7 +7771,8 @@ function pgDiag(x,kind,cx,sc){
     d.ago=daysAgo(fd||a[0].d);d.ns=q.length;d.q=q.slice(-6);
   }
   if(a.length<2)return d;
-  var pskip=ss.skip?TX1(' · e1RM 미산출 {0}세션 제외',ss.skip):'';
+  var pskip=(ss.skip?TX1(' · e1RM 미산출 {0}세션 제외',ss.skip):'')
+    +(ss.dl?TX1(' · 가볍게 간 {0}세션 제외',ss.dl):'');
   var sig=pgSigma(q),bl=pgBlock(q);
   var span=pgGapD(a[0],a[a.length-1]);
   d.n=pgName(m);
@@ -7732,7 +7780,9 @@ function pgDiag(x,kind,cx,sc){
   /* 스파크라인은 판정이 쓰는 바로 그 수열이다 — 다른 수를 그리면
      한 줄이 두 말을 한다 */
   d.q=q.slice(-6);
-  d.ago=daysAgo(a[0].d);
+  /* 집안의 마지막 날로 잰다. 여기만 a[0] 를 쓰면, 가볍게 간 날을 수열에서
+     뺀 종목이 어제 한 것인데도 '2주 이상 안 함' 으로 내려간다. */
+  d.ago=daysAgo(fd||a[0].d);
   d.wk=Math.max(1,Math.round(span/7));
   d.sub=TX1('{0}세션 {1}주',q.length,d.wk);
   /* 세션 두 개 뺄셈은 표본이 2다. 반복 한 회가 Epley 로 2.4~2.9% 인데 그
@@ -7959,9 +8009,13 @@ function progBuckets(){
 }
 function deloadSignal(){
   var hits=[],names=[],i;
+  /* 이미 디로딩 주라고 적어 둔 주에는 아무 말도 안 한다 — 하고 있는 것을
+     하라고 시키는 꼴이다. 세션도 가볍게 간 날은 빼고 본다: 계획해서 내린
+     무게와 그래서 남아도는 RIR 이 이 함수에게는 그대로 피로 신호로 읽힌다. */
+  if(isDeload())return null;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
-    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
+    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length&&!isSoft(x.d);});
     if(a.length<3)continue;
     if(Math.round((new Date(a[0].d)-new Date(a[2].d))/86400000)>21)continue;
     var g=e1rmGain(effSets(m,a[0].s,a[0].d),effSets(m,a[2].s,a[2].d));
@@ -10358,7 +10412,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 21:54';
+var BUILD='2026-09-23 22:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11354,6 +11408,7 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+' · 가볍게 간 {0}세션 제외':' · {0} light session(s) excluded',
 '가볍게':'Light day',
 '디로딩 · 유지':'Deload · hold',
 '디로딩':'Deload',
@@ -12233,6 +12288,11 @@ function liteSet(ds,on){
 /* 그 날 기록한 무게를 평소 날의 기준으로 쓰면 안 되는가.
    디로딩 주에 든 날이거나, 하루 표시를 켠 날이다. */
 function isSoft(ds){return isLite(ds)||isDeload(ds);}
+/* 그 날에 진전 판정을 안 다는 까닭. 화면 여러 곳이 같은 낱말을 써야
+   '왜 퍼센트가 없지' 를 한 번만 배운다. 아니면 빈 문자열이라
+   softTag(d)||평소판정 으로 이어 붙이면 그대로 평소 판정이 나온다. */
+function softWhy(ds){return isDeload(ds)?'디로딩':(isLite(ds)?'가볍게':'');}
+function softTag(ds){var w=softWhy(ds);return w?'<i class="eq soft">'+TX(w)+'</i>':'';}
 function isDeload(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.d);}
 function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
 var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
@@ -13539,7 +13599,10 @@ document.addEventListener('click',function(e){
       })();
       break;
     case 'wkdl':
-      (function(){var m=wkMon(),w=wkCfg(m)||{};wkSet(m,'d',w.d?0:1);renderSheet();render();})();
+      /* 보고 있는 날이 든 주다. wkMon() 은 오늘 주라서, 지난주로 넘겨 놓고
+         누르면 단추는 지난주 상태를 보이면서 이번 주가 켜졌다 —
+         그리는 자(isDeload(UI.wd))와 쓰는 자가 서로 다른 주를 봤다. */
+      (function(){var m=wkMon(UI.wd),w=wkCfg(m)||{};wkSet(m,'d',w.d?0:1);renderSheet();render();})();
       break;
     case 'anlcat':
       if(isCat(v)){ANLC=v;anlSave();renderSheet();}
