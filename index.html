@@ -410,7 +410,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   background:linear-gradient(90deg,var(--acc-br),var(--line) 42%,transparent)}
 /* 여섯 줄이 같은 간격으로 놓이면 무엇이 한 덩어리인지 알 수 없다.
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
-.hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
+.hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;max-width:100%}
+.hdate .drow{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
 /* '운동 없음' 은 이제 글자다 — 누르는 단추가 아니다.
    테두리를 준다 — 켜지면 강조색으로 채워 한눈에 갈린다(틴트로는 팔레트에
@@ -507,15 +508,21 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* '가볍게' — 기록이 있는 날에만. 켜 두면 그 날 무게가 평소 날의 기준에서 빠진다 */
 /* 날짜 줄은 space-between + wrap 이라 칸이 셋이 되면 하나가 아랫줄로
    떨어진다 — 오른쪽 둘(세트 요약·가볍게)을 한 덩이로 묶는다. */
-.dsum{display:inline-flex;align-items:center;gap:0;min-width:0;flex-wrap:wrap;justify-content:flex-end}
-.dlite{margin-left:7px;min-height:28px;padding:0 10px;border-radius:999px;background:none;
-  border:var(--bw) solid rgba(var(--tx-rgb),.14);color:var(--dim);font-family:inherit;
-  font-size:10px;font-weight:700;letter-spacing:.04em}
-.dlite.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.dsum{display:inline-flex;align-items:center;gap:0;min-width:0;justify-content:flex-end}
+/* 누르는 줄 — 날짜 줄 바로 아래, 늘 같은 자리 */
+.dtog{display:flex;align-items:center;gap:7px;margin-top:7px}
+.dtg{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:0 13px;
+  border-radius:999px;background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.22);
+  color:var(--mut);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.04em}
+/* 켜짐/꺼짐을 동그라미가 말한다 — 글자 색만으로는 상태인지 단추인지 안 갈린다 */
+.dtg::before{content:'';flex:0 0 auto;width:8px;height:8px;border-radius:50%;
+  border:1.5px solid rgba(var(--tx-rgb),.38);background:none}
+.dtg.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+.dtg.on::before{background:var(--on-acc);border-color:var(--on-acc)}
 /* 켜져 있을 때만 붙는 주 범위 — 이 표시가 하루가 아니라 주에 걸린다는 말 */
-.dlite i{font-style:normal;margin-left:5px;font-family:var(--mono);font-size:9px;
-  font-weight:700;letter-spacing:0;opacity:.72}
-.dlite:active{opacity:.6}
+.dtg i{font-style:normal;font-family:var(--mono);font-size:9.5px;
+  font-weight:700;letter-spacing:0;opacity:.75}
+.dtg:active{opacity:.6}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:var(--rad-s);padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.06em}
 .hbtns{display:flex;align-items:center;gap:2px;flex:0 0 auto;white-space:nowrap;margin-top:2px}
@@ -3805,8 +3812,12 @@ function render(){
   }
   /* 날짜가 워드마크 바로 아래 왼쪽에 선다 — 아래 모든 숫자가 '어느 날' 것인지의
      전제이므로 가장 먼저 읽혀야 한다. 세트 요약은 같은 줄 오른쪽. */
+  /* 두 줄로 가른다. 한 줄에 몰면 칸이 모자라 어떤 날은 알약이 아랫줄로
+     떨어지고 어떤 날은 안 떨어져, 같은 단추가 매번 다른 자리에 있었다.
+     위는 '언제 · 얼마나'(읽는 것), 아래는 '이 날·이 주를 어떻게 볼까'(누르는 것).
+     자리가 고정되면 무엇이 단추인지도 자리로 배운다. */
   document.getElementById('hdate').innerHTML=
-    '<span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
+    '<div class="drow"><span class="dgrp"><button class="dnav" data-act="d-">◀</button>'
     +'<span class="dtxt'+(isT?'':' past')+'">'+jdate(UI.wd)+'</span>'
     +'<button class="dnav" data-act="d+"'+(isT?' disabled':'')+'>▶</button>'
     +(isT?'':'<button class="dtoday" data-act="d0">Today</button>')+'</span>'
@@ -3819,18 +3830,20 @@ function render(){
        두 표시가 한 자리에 붙어 있어 이름으로 구분된다. 디로딩은 그 날 기록이
        있든 없든 이번 주의 성격이므로 늘 나온다. */
     +'<span class="dsum">'
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>':'')
-    +'<button class="dlite'+(isDeload(UI.wd)?' on':'')+'" data-act="wkdl"'
+    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
+        :'<em class="doff">'+TX('운동 없음')+'</em>')
+    +'</span></div>'
+    /* 아래 줄 — 누르는 것만. 동그라미가 켜짐/꺼짐을 말한다: 글자만 있으면
+       눌러도 되는 것인지 적어 둔 상태인지 알 수 없다. */
+    +'<div class="dtog">'
+    +'<button class="dtg'+(isDeload(UI.wd)?' on':'')+'" data-act="wkdl"'
     +' aria-pressed="'+(isDeload(UI.wd)?'true':'false')+'">'+TX('디로딩')
     +(isDeload(UI.wd)?'<i>'+wkSpan(UI.wd)+'</i>':'')+'</button>'
-    /* 디로딩 주에는 그 주 모든 날이 이미 '가볍게' 취급이라 하루 표시가
-       할 일이 없다 — 안 낸다. 줄도 한 줄에 들어간다. */
-    /* 켜 둔 날의 세트를 다 지우면 단추가 사라져 표시만 남았다 — 안 보이는
-       표시가 판정을 흔든다. 켜져 있으면 기록이 없어도 보인다: 끌 수 있어야 한다. */
-    +(((tc||isLite(UI.wd))&&!isDeload(UI.wd))?'<button class="dlite'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
+    /* 디로딩 주에는 그 주 모든 날이 이미 '가볍게' 취급이라 하루 표시가 할 일이
+       없다 — 안 낸다. 켜 둔 날의 세트를 다 지워도 보인다: 끌 수 있어야 한다. */
+    +(((tc||isLite(UI.wd))&&!isDeload(UI.wd))?'<button class="dtg'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
         +' aria-pressed="'+(isLite(UI.wd)?'true':'false')+'">'+TX('가볍게')+'</button>':'')
-    +(tc?'':'<em class="doff">'+TX('운동 없음')+'</em>')
-    +'</span>';
+    +'</div>';
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">'+TX('첫 인바디 기록 추가 ▸')+'</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
@@ -3963,7 +3976,10 @@ function subResolve(gs){
   if(q||UI.filter==='CARDIO'||!gs||gs.length<2){UI.sub='';return;}
   var want=UI.subP?UI.subP[UI.filter]:null,ok=false;
   for(i=0;i<gs.length;i++)if((gs[i].k||SUB_ETC)===want)ok=true;
-  UI.sub=ok?want:((want==null)?(gs[0].k||SUB_ETC):'');
+  /* 늘 하나가 켜져 있다 — 두 번 눌러 전체로 가는 길은 없앴다. 그 길이 있으면
+     같은 화면에 '좁혀 보는 줄' 과 '다 보는 줄' 두 가지 상태가 생기고,
+     무엇이 켜졌는지가 아니라 몇 번 눌렀는지를 기억해야 한다. */
+  UI.sub=ok?want:(gs[0].k||SUB_ETC);
 }
 function renderSubChips(){
   var el=document.getElementById('subchips');
@@ -3980,8 +3996,7 @@ function renderSubChips(){
   for(i=0;i<gs.length;i++){
     var kv=gs[i].k||SUB_ETC;
     /* 탭이 이미 부위를 말한다 — '상부가슴' 이 아니라 '상부' (subBare, 저장된 이름은 그대로) */
-    h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl"'
-      +(UI.sub===kv?' data-on="1"':'')+' data-v="'
+    h2+='<button class="schip'+(UI.sub===kv?' on':'')+'" data-act="sl" data-v="'
       +esc(kv)+'">'+esc(gs[i].k?subBare(gs[i].n,UI.filter):gs[i].n)+'<i>'+gs[i].items.length+'</i></button>';
   }
   el.className='schips cs'+cstOf();
@@ -4187,7 +4202,7 @@ function brandSecs(sg,bgs,sj){
   if(d.x==='chip'||d.x==='tab'){
     want=(d.x==='chip')?(UI.bflt&&UI.bflt[gk]):(UI.btab&&UI.btab[gk]);
     for(i=0;i<gs.length;i++)if(gs[i].n===want){only=want;got=true;}
-    if(!got&&want==null)only=gs[0]?gs[0].n:null;
+    if(!got)only=gs[0]?gs[0].n:null;
   }
   /* 갈래가 하나면 고를 것이 없는데 줄만 는다 — 줄도 안 내고 다 보인다 */
   if(gs.length<2)only=null;
@@ -4261,7 +4276,6 @@ function bChips(gs,gk,only){
   if(gs.length<2)return '';
   for(i=0;i<gs.length;i++)
     h+='<button class="bfc'+(only===gs[i].n?' on':'')+'" data-act="bflt" data-k="'+esc(gk)+'"'
-      +(only===gs[i].n?' data-on="1"':'')
       +' data-v="'+esc(gs[i].n)+'" data-ini="'+esc(bIni(gs[i].n))+'">'
       +'<b>'+esc(gs[i].n)+'</b><i>'+gs[i].items.length+'</i></button>';
   return '<div class="bflt">'+h+'</div>';
@@ -4271,7 +4285,6 @@ function bTabs(gs,gk,only){
   if(gs.length<2)return '';
   for(i=0;i<gs.length;i++)
     h+='<button class="btb'+(only===gs[i].n?' on':'')+'" data-act="btab" data-k="'+esc(gk)+'"'
-      +(only===gs[i].n?' data-on="1"':'')
       +' data-v="'+esc(gs[i].n)+'" data-ini="'+esc(bIni(gs[i].n))+'">'
       +'<b>'+esc(gs[i].n)+'</b><i>'+gs[i].items.length+'</i></button>';
   return '<div class="btabs">'+h+'</div>';
@@ -10508,7 +10521,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 01:05';
+var BUILD='2026-09-24 01:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13151,12 +13164,10 @@ document.addEventListener('click',function(e){
     case 'fl':UI.filter=v;
       if(UI.q){UI.q='';var qe=document.getElementById('q');if(qe)qe.value='';}
       render();break;
-    /* 켜진 것을 다시 누르면 풀린다(=전체). 켜졌는지는 그린 쪽이 data-on 으로
-       알려 준다 — 저장값과 견주면, 처음 열려 첫 갈래가 켜져 있는 상태(저장값
-       없음)에서 그것을 눌렀을 때 '새로 고른 것' 이 되어 안 풀린다. */
+    /* 고른 것을 그대로 켠다. 다시 눌러 푸는 길은 없다 — 하나는 늘 켜져 있다. */
     case 'sl':
       UI.subP=UI.subP||{};
-      UI.subP[UI.filter]=(t.getAttribute('data-on')==='1')?'':(v||'');
+      UI.subP[UI.filter]=v||'';
       render();break;
     case 'help':UI.sheet='help';render();break;
     case 'tg':
@@ -13593,25 +13604,20 @@ document.addEventListener('click',function(e){
         render();
       })();
       break;
-    /* 브랜드 필터 칩 — 켜진 것을 다시 누르면 전체로 돌아간다(세부 부위 칩과 같다).
-       켜졌는지는 그린 쪽이 알려 준다(data-on). 저장된 값과 견주면, 처음 열려
-       첫 갈래가 켜져 있는 상태(저장값 없음)에서 그것을 눌렀을 때 '새로 고른 것'
-       이 되어 아무 일도 안 일어난다 — 눌러도 안 풀린다. */
+    /* 브랜드 칩 — 고른 것을 켠다. 세부 부위 줄과 같이 하나는 늘 켜져 있다. */
     case 'bflt':
       (function(){
         var k=t.getAttribute('data-k')||'';
         UI.bflt=UI.bflt||{};
-        UI.bflt[k]=(t.getAttribute('data-on')==='1')?'':(v||'');
+        UI.bflt[k]=v||'';
         render();
       })();
       break;
-    /* 칩과 같게 — 켠 탭을 다시 누르면 전체로 돌아간다. '전체' 탭을 없앴으므로
-       여기가 유일한 길이다. '' 는 '손으로 풀었다' 라서 첫 갈래로 안 돌아간다. */
     case 'btab':
       (function(){
         var k=t.getAttribute('data-k')||'';
         UI.btab=UI.btab||{};
-        UI.btab[k]=(t.getAttribute('data-on')==='1')?'':(v||'');
+        UI.btab[k]=v||'';
         render();
       })();
       break;
