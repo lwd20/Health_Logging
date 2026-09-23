@@ -802,6 +802,11 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
 .rl{flex:1 1 auto;min-width:0}
 .nm{display:flex;align-items:baseline;gap:7px;font-size:15px;font-weight:600;color:var(--mut);letter-spacing:-.005em;min-width:0}
 .nm b{font-weight:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 목록의 이름은 안 자른다 — 'Cable Art Chest in Sh…' 는 내가 지은 이름인데
+   앱이 반을 먹은 것이다. 두 줄이 되더라도 온전한 편이 낫고, 그만큼 긴 이름은
+   쉰 개 중 둘뿐이라 목록의 결이 흔들리지 않는다. 띄어쓰기가 없어 줄을 못
+   바꾸는 이름은 그래도 넘치는데, 그때는 trimBadges 가 배지를 빼서 자리를 넘긴다. */
+#list .nm b{white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all}
 /* 자리가 모자라면 이 라벨이 먼저 줄어야 한다 — 종목 이름이 아니라.
    같은 클래스에 규칙을 두 번 쓰면 뒤엣것이 flex 를 덮어써서 반대로 동작한다. */
 .ln{flex:0 100 auto;min-width:0;max-width:40%;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -810,7 +815,9 @@ html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y
    가리키는 것은 이름이고, 브랜드는 묶음 머리와 옆 줄들이 이미 말하고 있다.
    2px 가 모자라 'Cable Art Back Muscl…' 이 되는 일이 자료가 바뀔 때마다
    되살아났다. 여백을 깎는 대신 누가 양보할지를 정해 둔다. */
-.nm .bd{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.11em;padding:2px 5px}
+/* 배지는 온전하거나 없거나 둘 중 하나다 — 줄이면 'G' 한 글자가 남는다.
+   자리가 모자란 줄에서 배지를 빼는 일은 trimBadges 가 재 보고 한다. */
+.nm .bd{flex:0 0 auto;white-space:nowrap;letter-spacing:.11em;padding:2px 5px}
 .sub{display:block;margin-top:3px;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.02em}
 .sub em{color:var(--chrome);font-weight:700}
 /* 무게와 증감률이 한 줄에 나란히 서느라 오른쪽 칸이 106px 였다 — 이름이 그만큼
@@ -2824,6 +2831,13 @@ html{color-scheme:dark}
 var KEY='gymlog.v2';
 var PARTS=['CHEST','BACK','SHOULDERS','LEGS','ARMS·ETC','CARDIO'];
 function isCard(p){return p==='CARDIO';}
+/* 그 세션이 유산소로 적힌 것인가. 종목의 '지금' 부위가 아니라 세션에 적어 둔
+   종류(c)를 본다 — 부위를 바꾸면 과거가 통째로 다른 뜻이 되기 때문이다.
+   로잉머신을 등에서 유산소로 옮겼더니 60kg×12 세 세트가 '유산소 180분 ·
+   1,720kcal' 이 되고 주간 점수가 49 → 79 로 뛰었다. 무게 칸을 분으로 읽은 것이다.
+   c 가 없는 옛 기록만 지금 부위로 떨어뜨린다 — 그때는 그것이 유일하게 아는 값이다.
+   dayExKcal 만 이 자를 쓰고 있었다. 세는 자리가 스물이라 한 군데로 모은다. */
+function sesCard(m,x){return (x&&x.c!=null)?(x.c===1):isCard(m&&m.p);}
 function isCardId(id){var m=machById(id);return !!(m&&m.p==='CARDIO');}
 /* [name, part, brand, line?] */
 var SEED=[
@@ -3117,6 +3131,7 @@ function applyTheme(){
 var mem=null;
 var saveWarned=false;
 function save(){
+  bwFlush();
   demoClear();
   autoSnap();
   widgetSync();
@@ -3387,6 +3402,16 @@ function isAssist(m){return !!(m&&m.as);}
 /* 그 날짜에 가장 가까운 인바디 체중. 어시스트 유효무게는 체중이 기준이라
    지금 체중으로 옛 기록을 다시 계산하면 감량 중에 같은 기록이 계속 가벼워진
    것으로 바뀐다 — 80에서 75kg 이 되면 -12.6% 퇴행으로 찍힌다. */
+/* 날짜별 체중·체지방 사본. 21일치 판정이 날마다 bwOn 을 부르면 그때마다
+   인바디 기록을 JSON 으로 다시 읽는다 — 한 번 읽고 나눠 쓴다.
+   자료가 바뀌면 save·bhSave·hcSave 가 비운다(bwFlush). */
+var BWC={};
+function bwFlush(){BWC={};}
+function bwOf(ds){
+  var v=BWC[ds];
+  if(!v)v=BWC[ds]={w:bwOn(ds),f:bfOn(ds)};
+  return v;
+}
 function bwOn(ds){
   var fb=(BW>0?BW:70);
   if(!ds)return fb;
@@ -4055,6 +4080,26 @@ function renderList(){
     }
   }
   document.getElementById('list').innerHTML=h;
+  trimBadges();
+}
+/* 이름이 잘린 줄에서는 브랜드 배지를 뺀다.
+   배지의 flex-shrink 가 100 이라 자리가 모자라면 스스로 찌부러졌는데, 그
+   결과가 'GYM80' 이 아니라 'G' 한 글자였다 — 46px 짜리가 10px 로 남아 뜻은
+   없고 자리만 먹었고, 그 옆에서 이름은 'Cable Art Back Mu…' 로 잘렸다.
+   글자 수로 어림하면 한글과 영문의 폭이 달라 또 어긋난다: 그려 놓고 잰다.
+   배지를 빼면 56px 가 이름으로 간다. 그래도 모자라면 거기까지다 —
+   이름이 브랜드보다 먼저다(브랜드는 대개 바로 위 묶음 머리가 이미 적었다).
+   읽기와 쓰기를 갈라 돌린다 — 한 줄씩 번갈아 하면 줄마다 다시 그린다. */
+function trimBadges(){
+  var nms=document.querySelectorAll('#list .nm'),i,pair=[];
+  for(i=0;i<nms.length;i++){
+    var b=nms[i].querySelector('b'),bd=nms[i].querySelector('.bd');
+    if(!b||!bd)continue;
+    bd.style.display='';
+    pair.push([b,bd]);
+  }
+  for(i=0;i<pair.length;i++)
+    if(pair[i][0].scrollWidth>pair[i][0].clientWidth+1)pair[i][1].style.display='none';
 }
 /* 백업이 오래되면 상단에 눈에 띄는 배너를 띄움 */
 function bkBanner(){
@@ -6728,6 +6773,8 @@ function setKcal(p,reps,rest){
    운동한 분수만큼의 기본 소비를 빼야 '운동으로 더 쓴 몫'이 된다. */
 function dayExKcal(ds){
   var k=0,mn=0,i,j,q;
+  /* 그 날의 몸으로 센다 — 체중은 MET 식에도, 아래에서 빼는 기초대사에도 든다 */
+  var bwd=bwOf(ds);
   for(i=0;i<S.m.length;i++){
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
@@ -6736,9 +6783,9 @@ function dayExKcal(ds){
       /* 종목의 지금 부위가 아니라 그 세션에 적힌 종류를 본다. 안 그러면
          부위를 바꾸는 순간 과거가 다른 뜻이 된다. c 가 없는 옛 기록은
          migrateLines 가 채우지만, 거기 못 닿은 것은 지금 부위로 떨어뜨린다. */
-      var isC=(a[j].c!=null)?(a[j].c===1):isCard(S.m[i].p);
+      var isC=sesCard(S.m[i],a[j]);
       if(isC){
-        k+=kcalSess(st,S.m[i]);
+        k+=kcalSess(st,S.m[i],bwd.w);
         for(q=0;q<st.length;q++)mn+=Math.min(+st[q][0]||0,CARDIO_LIM.minMax);
         continue;
       }
@@ -6753,7 +6800,7 @@ function dayExKcal(ds){
       var met=SMET[S.m[i].p]||4.5;
       for(q=0;q<st.length;q++){
         var sm=setWorkMin(st[q][1])+(q>0?setRestMin(st[q][3]):0);
-        k+=met*3.5*BW/200*sm;
+        k+=met*3.5*bwd.w/200*sm;
         mn+=sm;
       }
     }
@@ -6767,7 +6814,7 @@ function dayExKcal(ds){
   /* 뺄 값은 이 앱이 실제로 쓰는 기본 소비율이어야 한다(1 MET 가 아니라).
      MET 식이 내장한 1 MET 기준선은 이 체중에서 하루 1,993kcal 인데
      기초대사는 1,737 이다 — 기초대사만 빼면 이중계상이 남는다. */
-  var b=bmr(BW,BF);
+  var b=bmr(bwd.w,bwd.f);
   if(b>0)k-=b*ACT/1440*mn;
   return Math.max(0,Math.round(k));
 }
@@ -6791,9 +6838,9 @@ function kcalWeek(back){
     var t=new Date(mon);t.setDate(mon.getDate()+i);
     var ds=kcalISO(t);
     if(ds>td){days.push({d:ds,future:true});continue;}
-    var e=dayExKcal(ds);
-    days.push({d:ds,base:base,ex:e,tot:base+e,today:ds===td});
-    tot+=base+e;ex+=e;n++;
+    var e=dayExKcal(ds),bd2=bwOf(ds),bb=Math.round((bmr(bd2.w,bd2.f)||b)*ACT);
+    days.push({d:ds,base:bb,ex:e,tot:bb+e,today:ds===td});
+    tot+=bb+e;ex+=e;n++;
   }
   return {mon:kcalISO(mon),days:days,tot:tot,ex:ex,n:n,avg:n?Math.round(tot/n):0,base:base};
 }
@@ -6843,7 +6890,9 @@ function kcalHtml(){
 }
 
 function dayTDEE(ds){
-  var b=bmr(BW,BF);
+  /* 그 날의 몸으로 낸다. 오늘 체중으로 3주 전 소비를 세면, 그 주의 '목표'
+     까지 같이 움직여 이미 지나간 날의 판정이 오늘 바뀐다. */
+  var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
   if(!b)return 0;
   return Math.round(b*ACT+dayExKcal(ds));
 }
@@ -6854,6 +6903,7 @@ function bhLoad(){
   return a;
 }
 function bhSave(a){
+  bwFlush();
   if(!canLS)return;
   try{localStorage.setItem(KEY+'.bh',JSON.stringify(a.slice(-24)));}catch(e){}
 }
@@ -7052,7 +7102,11 @@ function cardioOut(st,name){
   var vm=isTreadName(name)?CARDIO_LIM.vTread:CARDIO_LIM.vStair;
   return (v>vm)||(inc>CARDIO_LIM.incMax*100)||((+st[0]||0)>CARDIO_LIM.minMax);
 }
-function kcalSet(st,name){
+/* bw — 그 세션 날의 체중. 안 주면 지금 체중이다(오늘 입력을 미리 보는 자리).
+   지난 날을 오늘 체중으로 세면, 살이 빠질 때마다 지난 기록의 소비가
+   소급해 움직인다 — 다시 열어 보면 어제와 다른 수가 적혀 있다. */
+function kcalSet(st,name,bw){
+  var W=(bw>0?bw:BW);
   var min=+st[0]||0,v=+st[1]||0,inc=(+st[2]||0)/100;
   if(!(min>0)||!(v>0))return 0;
   min=Math.min(min,CARDIO_LIM.minMax);
@@ -7061,7 +7115,7 @@ function kcalSet(st,name){
   var fm=fixedMet(name);
   if(fm>0){
     /* 1 MET = 3.5 mL/kg/min, 5 kcal per L O2 */
-    perMin=fm*3.5*BW/200;
+    perMin=fm*3.5*W/200;
     perMin=Math.max(0,Math.min(CARDIO_LIM.perMinMax,perMin));
     return perMin*min;
   }
@@ -7076,7 +7130,7 @@ function kcalSet(st,name){
     var rn3=3.5+0.2*mmin+0.9*mmin*inc;        /* 달리기 */
     var mix=v<=6?0:(v>=8?1:(v-6)/2);
     var vo2=wk3+(rn3-wk3)*mix;
-    perMin=vo2*BW/1000*5;                     /* mL/kg/min -> L/min -> kcal (5kcal/L) */
+    perMin=vo2*W/1000*5;                     /* mL/kg/min -> L/min -> kcal (5kcal/L) */
   }else{
     /* 회전 계단(Matrix ClimbMill 기준) — 레벨 1~25 가 분당 24~162 걸음,
        계단 높이 8인치(0.2032m). 오르기만 하고 내려오는 일은 기계가 하므로
@@ -7085,13 +7139,13 @@ function kcalSet(st,name){
     v=Math.max(0.5,Math.min(CARDIO_LIM.vStair,v));
     var spm=Math.min(162,24+5.75*(v-1));
     var vo2s=3.5+1.8*STAIR_H*spm;
-    perMin=vo2s*BW/1000*5;
+    perMin=vo2s*W/1000*5;
   }
   perMin=Math.max(0,Math.min(CARDIO_LIM.perMinMax,perMin));
   return perMin*min;
 }
-function kcalSess(sets,name){
-  var k=0,i;for(i=0;i<sets.length;i++)k+=kcalSet(sets[i],name);
+function kcalSess(sets,name,bw){
+  var k=0,i;for(i=0;i<sets.length;i++)k+=kcalSet(sets[i],name,bw);
   return Math.round(k);
 }
 /* 이름으로 종류를 알아내는 규칙. 헬스장에서 실제로 쓰는 말들을 담는다 —
@@ -7187,7 +7241,7 @@ function partCnt(){
     var m=S.m[i];
     if(isCard(m.p)||typeof out[m.p]==='undefined')continue;
     var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[m.p]+=hardOf(a[j].s).n;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length&&!sesCard(m,a[j]))out[m.p]+=hardOf(a[j].s).n;
   }
   out.CARDIO=wkCardio().z2;
   return out;
@@ -7206,7 +7260,7 @@ function mmEasy(){
     k=mmOf(m);
     if(!k)continue;
     var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)out[k]+=hardOf(a[j].s).easy;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length&&!sesCard(m,a[j]))out[k]+=hardOf(a[j].s).easy;
   }
   return out;
 }
@@ -7234,7 +7288,7 @@ function mmCnt(){
     if(!k)continue;
     var a=S.l[m.i]||[],j,h;
     for(j=0;j<a.length;j++){
-      if(!days[a[j].d]||!a[j].s.length)continue;
+      if(!days[a[j].d]||!a[j].s.length||sesCard(m,a[j]))continue;
       h=hardOf(a[j].s);
       out[k]+=Math.max(0,h.n-h.unk);
     }
@@ -7307,18 +7361,24 @@ function wkCardio(){
   for(i=0;i<7;i++){t=new Date(mon);t.setDate(mon.getDate()+i);days[iso(t)]=1;}
   var z2=0,nt=0,kc=0,km=0,dset={},k,j;
   for(i=0;i<S.m.length;i++){
-    if(!isCard(S.m[i].p))continue;
+    /* 종목의 지금 부위로 거르지 않는다 — 유산소로 적어 둔 세션은 그 종목을
+       나중에 근력으로 옮겨도 그 날 한 유산소다. 거르는 일은 세션 단위로
+       아래에서 한다. 반대쪽(근력 세션)은 그 날 어느 부위였는지가 기록에
+       없어 되살릴 수 없으므로, 세는 데서 빠지는 것까지가 할 수 있는 전부다. */
     var wk2=isWalkName(S.m[i]),tr2=isTreadName(S.m[i]);
     var a=S.l[S.m[i].i]||[];
     for(j=0;j<a.length;j++){
       if(!days[a[j].d]||!a[j].s.length)continue;
+      /* 부위만 유산소로 바뀐 옛 근력 세션 — 무게가 분으로 읽혀 주간 유산소와
+         점수를 통째로 부풀린다. 세션에 적힌 종류를 따른다. */
+      if(!sesCard(S.m[i],a[j]))continue;
       for(k=0;k<a[j].s.length;k++){
         var mn2=+a[j].s[k][0]||0,sp2=+a[j].s[k][1]||0;
         if(wk2)nt+=mn2;else{z2+=mn2;dset[a[j].d]=1;}
         if(tr2&&!wk2&&sp2>0)km+=mn2/60*sp2;
       }
       /* 걷기 열량은 nt(NEAT)로 따로 잡으므로 유산소 합계에 또 넣지 않는다 */
-      if(!wk2)kc+=kcalSess(a[j].s,S.m[i]);
+      if(!wk2)kc+=kcalSess(a[j].s,S.m[i],bwOf(a[j].d).w);
     }
   }
   var d=0;for(k in dset)d++;
@@ -7355,7 +7415,7 @@ function hasTodayStrength(){
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
     var m=pid[k];if(!m||isCard(m.p))continue;
-    for(i=0;i<S.l[k].length;i++)if(S.l[k][i].d===td&&S.l[k][i].s.length)return true;
+    for(i=0;i<S.l[k].length;i++)if(S.l[k][i].d===td&&S.l[k][i].s.length&&!sesCard(m,S.l[k][i]))return true;
   }
   return false;
 }
@@ -7391,7 +7451,7 @@ function unkWeek(){
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=S.l[m.i]||[];
-    for(j=0;j<a.length;j++)if(days[a[j].d])tot+=hardOf(a[j].s).unk;
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&!sesCard(m,a[j]))tot+=hardOf(a[j].s).unk;
   }
   return tot;
 }
@@ -7406,7 +7466,7 @@ function wkSets(){
   for(k in S.l){
     var m=pid[k];if(!m||isCard(m.p))continue;
     for(i=0;i<S.l[k].length;i++){
-      if(!days[S.l[k][i].d])continue;
+      if(!days[S.l[k][i].d]||sesCard(m,S.l[k][i]))continue;
       cnt[m.p]=(cnt[m.p]||0)+hardOf(S.l[k][i].s).n;
     }
   }
@@ -7417,7 +7477,7 @@ function heroStreak(){
   for(i=0;i<S.m.length;i++)pid[S.m[i].i]=S.m[i];
   for(k in S.l){
     var m=pid[k];if(!m||isCard(m.p))continue;
-    for(i=0;i<S.l[k].length;i++)if(S.l[k][i].s.length)days[daysAgo(S.l[k][i].d)]=1;
+    for(i=0;i<S.l[k].length;i++)if(S.l[k][i].s.length&&!sesCard(m,S.l[k][i]))days[daysAgo(S.l[k][i].d)]=1;
   }
   /* 용어판이 '오늘 포함 연속 훈련일' 이라 적어 두었는데 오늘이 비면
      어제부터 세고 있었다. 계획된 휴식일마다 '연속 3일 · 회복 시급' 이 떴다 */
@@ -7450,7 +7510,7 @@ function heroProg(onDate){
   }
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
-    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length;});
+    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length&&!sesCard(m,x);});
     if(a.length<2)continue;
     if(onDate&&a[0].d!==onDate)continue;   /* 그날 수행한 종목만 */
     /* 일부러 가볍게 간 날은 진전 셈에 안 쓴다. 디로딩 주에는 종목마다
@@ -7520,7 +7580,7 @@ function pgSess(m){
   var es=[],K=0;
   for(i=0;i<src.length&&i<16&&a.length<PG_N;i++){
     var x=src[i];
-    if(!(x&&x.s&&x.s.length))continue;
+    if(!(x&&x.s&&x.s.length)||sesCard(m,x))continue;
     /* 가볍게 간 날을 수열에 두면 묶음 평균이 한 번 꺼졌다 도로 오른다 —
        앞뒤를 견주는 판정에는 그것이 '퇴행 뒤 회복' 으로 보인다.
        몇 개를 뺐는지는 아래에서 적는다: 말없이 줄이면 세션 수가 안 맞는다. */
@@ -7607,7 +7667,7 @@ function pgSubAvg(sk,cx){
     var f2=1;
     var a2=S.l[m2.i]||[];
     for(j=0;j<a2.length;j++)
-      if(a2[j].d>=li&&a2[j].s&&a2[j].s.length)t+=hardOf(a2[j].s).n*f2;
+      if(a2[j].d>=li&&a2[j].s&&a2[j].s.length&&!sesCard(m2,a2[j]))t+=hardOf(a2[j].s).n*f2;
   }
   /* 늘 4로 나누면 한 주를 통째로 쉬었을 때 평균이 실제의 4분의 3으로
      희석돼 MEV 미만으로 오진된다. 훈련할 수 있었던 날이 하나도 없던 주는
@@ -8015,7 +8075,7 @@ function deloadSignal(){
   if(isDeload())return null;
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
-    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length&&!isSoft(x.d);});
+    var a=(S.l[m.i]||[]).filter(function(x){return x.s&&x.s.length&&!isSoft(x.d)&&!sesCard(m,x);});
     if(a.length<3)continue;
     if(Math.round((new Date(a[0].d)-new Date(a[2].d))/86400000)>21)continue;
     var g=e1rmGain(effSets(m,a[0].s,a[0].d),effSets(m,a[2].s,a[2].d));
@@ -8040,7 +8100,7 @@ function todaySum(){
     var m=pid[k];if(!m||isCard(m.p))continue;
     var a=S.l[k];
     for(i=0;i<a.length;i++){
-      if(a[i].d!==td||!a[i].s.length)continue;
+      if(a[i].d!==td||!a[i].s.length||sesCard(m,a[i]))continue;
       var hs=hardOf(a[i].s);
       ex++;sets+=hs.n;
       parts[m.p]=(parts[m.p]||0)+hs.n;
@@ -8193,7 +8253,7 @@ function wkDaysBySub(){
     var ks=[],sk=mmOf(m),q3;if(sk)ks=[sk];
     if(!ks.length)continue;
     var a=S.l[m.i]||[],j;
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length)
+    for(j=0;j<a.length;j++)if(days[a[j].d]&&a[j].s.length&&!sesCard(m,a[j]))
       for(q3=0;q3<ks.length;q3++)(out[ks[q3]]=out[ks[q3]]||{})[a[j].d]=1;
   }
   var cnt={},k;for(k in out)cnt[k]=Object.keys(out[k]).length;
@@ -8211,7 +8271,7 @@ function wkDaysByPart(){
     var m=pid[k];if(!m||isCard(m.p))continue;
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
-      if(!days[e.d]||!e.s.length)continue;
+      if(!days[e.d]||!e.s.length||sesCard(m,e))continue;
       (out[m.p]=out[m.p]||{})[e.d]=1;
     }
   }
@@ -8236,7 +8296,7 @@ function wkPartDays(dz){
     var m=pid[k];if(!m||isCard(m.p))continue;
     for(i=0;i<S.l[k].length;i++){
       var e=S.l[k][i];
-      if(!days[e.d]||!e.s.length)continue;
+      if(!days[e.d]||!e.s.length||sesCard(m,e))continue;
       (out[m.p]=out[m.p]||{})[e.d]=1;
     }
   }
@@ -8276,7 +8336,7 @@ function fatigueDrop(){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=S.l[m.i]||[];
     for(j=0;j<a.length;j++){
-      if(!days[a[j].d]||a[j].s.length<2)continue;
+      if(!days[a[j].d]||a[j].s.length<2||sesCard(m,a[j]))continue;
       var ss=a[j].s,mx=0,q2;
       for(q2=0;q2<ss.length;q2++)mx=Math.max(mx,+ss[q2][1]||0);
       var last=+ss[ss.length-1][1]||0;
@@ -8307,7 +8367,7 @@ function repZone(lo,hi){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=S.l[m.i]||[];
     for(j=0;j<a.length;j++){
-      if(!days[a[j].d])continue;
+      if(!days[a[j].d]||sesCard(m,a[j]))continue;
       for(k=0;k<a[j].s.length;k++){
         var r=+a[j].s[k][1]||0;
         if(!(r>0))continue;
@@ -10412,7 +10472,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 22:40';
+var BUILD='2026-09-23 23:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -10475,7 +10535,7 @@ function swLast(){
   for(k in HC.w)if(swDay(k)>0&&k>last)last=k;
   return last;
 }
-function hcSave(){try{localStorage.setItem('tl_hc',JSON.stringify(HC));}catch(e){}}
+function hcSave(){bwFlush();try{localStorage.setItem('tl_hc',JSON.stringify(HC));}catch(e){}}
 function hcPull(days){try{if(hcOn())AndroidHealth.pull(days||14);}catch(e){}}
 window.hcNative=function(r){
   if(!r||!r.ok){HC.why=(r&&r.why)||'?';hcSave();return;}
@@ -12279,7 +12339,9 @@ function wkSet(mon,k,v){
 /* 하루 단위 '일부러 가볍게 간 날'. 주 단위 디로딩과 범위가 다르다 —
    디로딩 주가 아닌 주에도 하루만 가볍게 가는 날이 있다.
    S.lt[날짜]=1 */
-function isLite(ds){return !!(S.lt&&S.lt[ds||UI.wd]);}
+/* 인자를 안 주면 오늘이다 — isDeload 와 같은 자리를 가리켜야 isSoft() 가
+   하루는 보고 있는 날, 주는 이번 주 하는 식으로 갈라지지 않는다. */
+function isLite(ds){return !!(S.lt&&S.lt[ds||todayISO()]);}
 function liteSet(ds,on){
   S.lt=S.lt||{};
   if(on)S.lt[ds]=1;else delete S.lt[ds];
