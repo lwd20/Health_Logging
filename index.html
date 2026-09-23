@@ -412,7 +412,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    묶음 안은 좁게, 묶음 사이는 넓게 — 정체 / 오늘 / 조작 세 덩어리로 읽히게. */
 .hdate{font-family:var(--mono);font-size:13px;color:var(--tx);margin:10px 0 0;padding:0 18px;display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;max-width:100%}
 .dgrp{display:flex;align-items:center;gap:2px;min-width:0}
-/* '운동 없음' 은 누르면 '쉬는 날' 이 된다. 글자만 두면 눌리는 줄 모르므로
+/* '운동 없음' 은 이제 글자다 — 누르는 단추가 아니다.
    테두리를 준다 — 켜지면 강조색으로 채워 한눈에 갈린다(틴트로는 팔레트에
    따라 켜진 티가 안 난다). 세로 여백은 음수 마진으로 되돌려 줄 높이를
    안 늘리면서 누를 자리만 넓힌다. */
@@ -421,11 +421,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    높이뿐이고 상자 자체는 40px 로 커져 아래 칸까지 내려왔다 — 헤더에서
    가장 무거운 덩어리가 정작 상태 표시였다.
    상자는 줄에 맞추고, 누를 자리는 안 보이는 덤칸으로 넓힌다. */
-.doff{position:relative;border:1px solid rgba(var(--tx-rgb),.22);border-radius:var(--rad-s);
-  padding:4px 9px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.04em}
-.doff::after{content:'';position:absolute;left:-6px;right:-6px;top:-9px;bottom:-9px}
-.doff:active{opacity:.6}
-.doff.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc)}
+/* 이제 누르는 것이 아니라 상태를 적은 글자다 — 테두리도 누를 덤칸도 없다 */
+.hdate em.doff{font-style:normal;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.04em}
 /* 강조색이 한 화면에 넷이면 어느 것도 강조가 아니다.
    이 줄은 아래 큰 숫자에 자리를 내주고 물러난다. */
 .hdate em{font-size:11px;color:var(--dim);font-weight:700;margin-left:3px}
@@ -3779,9 +3776,7 @@ function render(){
        할 일이 없다 — 안 낸다. 줄도 한 줄에 들어간다. */
     +((tc&&!isDeload(UI.wd))?'<button class="dlite'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
         +' aria-pressed="'+(isLite(UI.wd)?'true':'false')+'">'+TX('가볍게')+'</button>':'')
-    +(tc?''
-        :'<button class="doff'+(isOff(UI.wd)?' on':'')+'" data-act="off">'
-          +(isOff(UI.wd)?TX('쉬는 날'):TX('운동 없음'))+'</button>')
+    +(tc?'':'<em class="doff">'+TX('운동 없음')+'</em>')
     +'</span>';
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">'+TX('첫 인바디 기록 추가 ▸')+'</b><i class="tag"></i><i></i></div>':'')
@@ -6421,7 +6416,12 @@ function dayLogged(ds){
   }
   return false;
 }
-function isOff(ds){return !!(OFF[ds]&&!dayLogged(ds));}
+/* '쉬는 날' 을 없앴다 — 계획해서 완전히 쉬는 날이 없고, 대신 무게를 한두
+   단계 낮춰 하는 날이 그 자리다(그건 '가볍게' 가 맡는다).
+   이미 표시해 둔 날의 자료(OFF)는 지우지 않는다: 지우면 되돌릴 수 없고,
+   백업에 남아 있으면 나중에 되살릴 수 있다. 대신 여기서 늘 거짓을 돌려
+   어느 판정에도 안 끼게 한다 — 보이지 않는 표시가 셈을 흔드는 것이 제일 나쁘다. */
+function isOff(ds){return false;}
 /* daysAgo 의 역 — n일 전의 날짜 */
 function dsAgo(n){
   var d=new Date();d.setDate(d.getDate()-n);
@@ -10353,7 +10353,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 20:26';
+var BUILD='2026-09-23 20:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11242,7 +11242,6 @@ var EN={
 '기타':'Other',
 '백업 {0}일 경과':'Backup {0}d ago',
 '섭취 여유':'To eat',
-'쉬는 날':'Rest day',
 '어제':'1d ago',
 '오늘':'Today',
 '운동':'Exercise',
@@ -12151,12 +12150,9 @@ var EN={
 /* ── 6000+ ── */
 '<em>복구됨</em> 기기 저장소가 비어 있어 사본에서 되살림':'<em>Restored</em> device storage was empty — brought back from the copy',
 '<em>새 버전</em>이 나왔음 — <button class="tundo" data-act="rlod">새로고침</button>':'<em>New version</em> is out — <button class="tundo" data-act="rlod">RELOAD</button>',
-'<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐':'<em>Rest day</em> dropped from training-day count and pace',
 'JSON 없음':'No JSON in response',
-'기록이 있는 날은 쉬는 날로 둘 수 없음':'A day with logged sets cannot be a rest day',
 '사용 가능한 모델 없음':'No usable model',
 '샘플 데이터 표시 중 — 실제 기록 저장 시 사라짐':'Showing sample data — it goes away once you log something real',
-'쉬는 날 해제':'Rest day cleared',
 '요청 시간 초과 {0}초':'Request timed out after {0}s',
 '판독 실패':'Scan failed',
 };
@@ -12985,16 +12981,6 @@ document.addEventListener('click',function(e){
       openRow(v);UI.sheet='ex';render();
       break;
     case 'lite':liteSet(UI.wd,!isLite(UI.wd));render();break;
-    case 'off':
-      /* 세트가 있는 날에는 단추가 안 나오지만, 그 사이 기록이 들어왔을
-         수도 있으므로 한 번 더 막는다 */
-      if(dayLogged(UI.wd)){toast(TX('기록이 있는 날은 쉬는 날로 둘 수 없음'));break;}
-      if(OFF[UI.wd])delete OFF[UI.wd];else OFF[UI.wd]=1;
-      offSave();render();
-      toast(OFF[UI.wd]
-        ?TX('<em>쉬는 날</em> 훈련일 셈과 페이스에서 빠짐')
-        :TX('쉬는 날 해제'));
-      break;
     case 'd-':shiftDay(-1);break;
     case 'd+':shiftDay(1);break;
     case 'd0':if(setWd(today()))render();break;
