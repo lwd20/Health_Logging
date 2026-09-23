@@ -4318,11 +4318,16 @@ function panelHtml(m){
   var statsHtml='';
   if(UI.wd!==today())h+='<div class="pdate">✎ Editing '+jdate(UI.wd)+'</div>';
   /* 직전 세션 — 성장률 비교 기준 (요약 표시는 시트 헤더가 담당) */
-  var past=[],all=sess(id),softNow=isSoft(UI.wd);
-  /* 견줄 대상에서도 뺀다 — 디로딩 주 기록을 기준으로 삼으면 그 다음 주에
-     가짜 '+8%' 가 뜬다. 가볍게 간 날에 볼 때는 그대로 다 본다. */
-  for(var i=0;i<all.length;i++)
-    if(all[i].d<UI.wd&&(softNow||!isSoft(all[i].d)))past.push(all[i]);
+  var past=[],pastAll=[],all=sess(id),softNow=isSoft(UI.wd);
+  /* 견줄 대상에서는 뺀다 — 디로딩 주 기록을 기준으로 삼으면 그 다음 주에
+     가짜 '+25%' 가 뜬다. 가볍게 간 날에 볼 때는 그대로 다 본다.
+     세는 것과 견주는 것은 다르다: History 수는 실제로 있는 세션 수여야 한다.
+     그 수만 걸러 놓으면 펼친 목록과 어긋나 '있는데 없다고 적힌' 꼴이 된다. */
+  for(var i=0;i<all.length;i++){
+    if(!(all[i].d<UI.wd))continue;
+    pastAll.push(all[i]);
+    if(softNow||!isSoft(all[i].d))past.push(all[i]);
+  }
   /* 작업 날짜 세트 (작성분) — 탭하면 입력칸으로 불러와 수정 */
   if(draft.length){
     h+='<div class="setwrap">';
@@ -4421,7 +4426,7 @@ function panelHtml(m){
   /* 하단 */
   var armed=UI.arm==='dm'+id;
   h+='<div class="prow">'
-    +'<button class="ghost" data-act="hi">History '+past.length+(UI.hist?' ▴':' ▾')+'</button>'
+    +'<button class="ghost" data-act="hi">History '+pastAll.length+(UI.hist?' ▴':' ▾')+'</button>'
     +'<span class="pract">'
     +'<button class="ord" data-act="mu"'+(canMove(id,-1)?'':' disabled')+' aria-label="Up">▲</button>'
     +'<button class="ord" data-act="md"'+(canMove(id,1)?'':' disabled')+' aria-label="Down">▼</button>'
@@ -10353,7 +10358,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 20:35';
+var BUILD='2026-09-23 21:54';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
