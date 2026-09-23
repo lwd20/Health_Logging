@@ -4383,6 +4383,7 @@ function panelHtml(m){
           적으니 화살표는 위를 가리키는데 수는 내려갔다. 까닭을 적은 '보조 무게' 안내는
           지시가 없을 때만 나와서, 둘이 같이 눈에 들어올 자리가 없었다. */
        return '<div class="izl nx">'+fmtW(rx.w)+' \u00d7 '+rx.r
+         +(rx.dl?'<b> '+TX('디로딩 · 유지')+'</b>':'')
          +(rx.up?(isAssist(m)?'<b> \u2193 '+TX('보조 줄임')+'</b>'
                              :'<b> \u2191 '+TX('증량')+'</b>'):'')
          /* 올리라는 지시가 있을 때는 '보조 줄임' 이 이미 같은 말을 한다 —
@@ -5446,6 +5447,10 @@ function nextRx(id,n){
   if(!(w>0)||!(r>0))return null;
   var rx=(m.rx>0)?m.rx:12;
   var st=machStep(id);
+  /* 디로딩 주에는 올리라고 하지 않는다 — 덤 하기로 한 주다. 줄이라고도
+     안 한다: 이 앱의 디로딩 표시는 세트를 줄이는 주를 뜻하게 만들었으므로
+     (미달 판정을 누른다) 무게는 유지가 짝이다. 반복도 안 늘린다. */
+  if(isDeload(UI.wd))return {w:w,r:r,up:false,dl:true};
   /* 어시스트는 설정 무게가 클수록 가벼워진다 — 진전은 빼는 쪽이다.
      안 뒤집으면 앱이 약해지라고 시킨다. */
   var dir=isAssist(m)?-1:1;
@@ -10336,7 +10341,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-23 19:50';
+var BUILD='2026-09-23 19:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11333,6 +11338,7 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'디로딩 · 유지':'Deload · hold',
 '디로딩':'Deload',
 '감량주':'Cut week',
 '하루':'Daily',
