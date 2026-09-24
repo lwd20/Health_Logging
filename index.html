@@ -9520,7 +9520,12 @@ function vzBody(tab){
            위 칸 점선이 이미 그 기울기이고 분모가 그것의 날수 배다. */
         /* 오늘이 들었다는 말은 판정 칩('진행 중')이 이미 한다 — 부제에 또
            적었더니 한 줄에 같은 말이 두 번 나오고 줄이 두 줄로 감겼다. */
-        h+=vzBar(TX('이번 주 적자'),(cn.v<0?0:cn.v),cn.goal,
+        /* 넘긴 주에 값을 0 으로 깎아 넣고 있었다. 칩은 '초과', 부제는
+           '1,240kcal 초과' 라 적는데 정작 큰 수가 '0 / 3,850' 이라 한 줄이
+           세 말을 했다. 0 은 '아무것도 안 팠다' 는 뜻이지 '거꾸로 갔다' 가
+           아니다. 음수를 그대로 준다 — vzBar 는 막대 길이를 0 으로 깎으므로
+           그림은 그대로고 수만 사실대로 적힌다. */
+        h+=vzBar(TX('이번 주 적자'),cn.v,cn.goal,
           (cn.v<0?TX1('월~오늘 {0}일 · {1}kcal 초과 · 체중 {2}',cn.n,Math.abs(cn.v).toLocaleString(),kgOf(cn.v))
                  :TX1('월~오늘 {0}일 · 체중 {1} (목표 {2})',cn.n,kgOf(cn.v),kgOf(cn.goal))),vdC,false);
       }
@@ -9535,7 +9540,7 @@ function vzBody(tab){
         var vdP=(cp.v<0)?{t:TX('초과'),c:'neg'}
                :(cp.v>=cp.goal+bndP?{t:TX('목표 이상'),c:'pos'}
                :(cp.v>=cp.goal-bndP?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
-        h+=vzBar(TX('전 주 적자'),(cp.v<0?0:cp.v),cp.goal,
+        h+=vzBar(TX('전 주 적자'),cp.v,cp.goal,
           (cp.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cp.d0),md(cp.d),cp.n,Math.abs(cp.v).toLocaleString(),kgOf(cp.v))
                  :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cp.d0),md(cp.d),cp.n,kgOf(cp.v),kgOf(cp.goal))),vdP,false);
       }
@@ -9549,7 +9554,7 @@ function vzBody(tab){
         var vdM=(cm.v<0)?{t:TX('초과'),c:'neg'}
                :(cm.v>=cm.goal+bndM?{t:TX('목표 이상'),c:'pos'}
                :(cm.v>=cm.goal-bndM?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
-        h+=vzBar(TX('최근 한 달 누적'),(cm.v<0?0:cm.v),cm.goal,
+        h+=vzBar(TX('최근 한 달 누적'),cm.v,cm.goal,
           (cm.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cm.d0),md(cm.d),cm.n,Math.abs(cm.v).toLocaleString(),kgOf(cm.v))
                  :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cm.d0),md(cm.d),cm.n,kgOf(cm.v),kgOf(cm.goal))),vdM,false);
       }
@@ -10573,7 +10578,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 05:35';
+var BUILD='2026-09-24 06:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12689,7 +12694,9 @@ function vzZone(cur,L,easy){
 function vzBar(name,cur,goal,sub,vd,mark){
   cur=+cur||0;goal=+goal||0;
   var over=goal>0&&cur>goal;
-  var mx=Math.max(goal,cur)||1;
+  /* 거꾸로 간 값(음수)도 받는다 — 막대는 0 으로 비고 수만 사실대로 적힌다.
+     mx 에 음수가 들어가면 눈금이 뒤집히므로 0 아래로는 안 내려가게 둔다. */
+  var mx=Math.max(goal,cur,0)||1;
   var fill=Math.max(0,Math.min(100,Math.round(cur*100/mx)));
   var gp=Math.max(0,Math.min(100,Math.round(goal*100/mx)));
   var mk='';
