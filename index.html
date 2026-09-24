@@ -2658,9 +2658,13 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
 /* 브랜드와 라인은 위계가 다르다 — 집안(GYM80)과 그 안의 갈래(CORE).
    같은 색·같은 굵기로 나란히 두니 'GYM80 CORE' 가 한 낱말로 읽혔다.
-   목록 줄이 이미 쓰는 자를 그대로 가져온다: 브랜드는 금속색, 라인은 물린 회색. */
-.jr .jn2 i.jb{color:var(--chrome);opacity:.9;font-weight:800}
-.jr .jn2 i.jl{color:var(--dim);opacity:1;font-weight:600;letter-spacing:.06em;margin-left:4px}
+   색과 굵기만 달리해 보았는데 9px 에서는 그것도 '똑같다' 였다 — 모양을
+   가른다. 브랜드는 목록 줄과 같이 테두리 두른 표식, 라인은 맨 글자다.
+   글자꼴이 아니라 상자 유무라 멀리서도 갈린다. */
+.jr .jn2 i.jb{color:var(--chrome);opacity:1;font-weight:800;font-size:8.5px;letter-spacing:.1em;
+  border:var(--bw) solid rgba(var(--acc-rgb),.32);border-radius:var(--rad-s);
+  padding:1px 5px;background:rgba(var(--acc-rgb),.09);white-space:nowrap}
+.jr .jn2 i.jl{color:var(--dim);opacity:1;font-weight:600;font-size:9px;letter-spacing:.05em;margin-left:5px}
 /* 그립 — 브랜드 배지와 다른 꼴로 둔다. 브랜드는 누가 만든 기구인가고
    그립은 지금 무엇을 하는가라, 같은 모양이면 둘이 섞인다. */
 .jr .jn2 u.vg2{text-decoration:none;margin-left:6px;font-size:9.5px;font-weight:800;
@@ -10569,7 +10573,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 04:40';
+var BUILD='2026-09-24 05:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
