@@ -10123,9 +10123,15 @@ function vzTrain(tab){
       +(nfix?'<em class="vzfix">'+TX('손댈 것')+' '+nfix+'</em>':''))+hs
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV')+'</div></div>';
-  var uk=unkWeek();
+  /* 디로딩 주에는 안 띄운다 — 그 주에는 RIR 이 어느 판정에도 안 쓰인다
+     (증량 지시·피로 신호·진전 셈이 전부 그 주를 건너뛴다). 쓰이지도 않는
+     것을 안 적었다고 나무라는 줄이 된다. */
+  var uk=isDeload()?0:unkWeek();
   if(uk>0)h+='<div class="lmunk">'
-    +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨',uk)+'</div>';
+    /* '세트에 포함은 됨' 이라 적혀 있었는데, 바로 위 눈금(mmCnt)은 미입력을
+       빼고 센다 — 줄이 제 위의 막대를 두고 거짓을 말하고 있었다.
+       RIR 3세트를 RIR 없이 적으면 저 막대가 3이 아니라 0이다. */
+    +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 세트로 못 셈 — 위 눈금에서 빠짐(부위별 세트에는 들어감)',uk)+'</div>';
   }
   if(tab==='acsm'){
   /* ACSM 성인 권고를 100점 하나로 답한다. 옛 화면은 유산소 막대·반복 막대·
@@ -10528,7 +10534,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 02:40';
+var BUILD='2026-09-24 03:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12062,7 +12068,7 @@ var EN={
 '유지 정상':'holding',
 '유효 세트 {0}→{1} · 기준선 70% 밑':'effective sets {0}→{1} · below 70% of baseline',
 '유효 세트 변동 · 페이스 대비':'Effective sets · vs pace',
-'이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 여부가 확인되지 않음 — 세트에 포함은 됨':'<b>{0} sets</b> this week have no RIR, so effectiveness is unconfirmed — still counted',
+'이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 세트로 못 셈 — 위 눈금에서 빠짐(부위별 세트에는 들어감)':'<b>{0} sets</b> this week have no RIR, so they cannot count as hard sets — left out of the bars above (still in sets-by-part)',
 '자극 공백':'stimulus gap',
 '적당':'ok',
 '정체':'Stalled',
