@@ -2664,7 +2664,6 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jn2 i.jb{color:var(--chrome);opacity:1;font-weight:800;font-size:8.5px;letter-spacing:.1em;
   border:var(--bw) solid rgba(var(--acc-rgb),.32);border-radius:var(--rad-s);
   padding:1px 5px;background:rgba(var(--acc-rgb),.09);white-space:nowrap}
-.jr .jn2 i.jl{color:var(--dim);opacity:1;font-weight:600;font-size:9px;letter-spacing:.05em;margin-left:5px}
 /* 그립 — 브랜드 배지와 다른 꼴로 둔다. 브랜드는 누가 만든 기구인가고
    그립은 지금 무엇을 하는가라, 같은 모양이면 둘이 섞인다. */
 .jr .jn2 u.vg2{text-decoration:none;margin-left:6px;font-size:9.5px;font-weight:800;
@@ -4745,7 +4744,6 @@ function journalHtml(){
       var jm=e.m,jhd,jdt;
       jhd=TX(PN_KO[jm.p]||'유산소');
       jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',e.s.length);
-      var jln=cleanLine(jm.ln);
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -4753,8 +4751,10 @@ function journalHtml(){
           +'<button data-act="jmd" data-v="'+d+'|'+jm.i+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
         +'<span class="jn2">'+esc(jm.n)
         +(jm.v?'<u class="vg2">'+esc(jm.v)+'</u>':'')
-        +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')
-        +(jln&&!jm.v?'<i class="jl">'+esc(jln)+'</i>':'')+'</span>'
+        /* 라인(제품 갈래)은 안 적는다 — 이 탭이 답하는 물음은 '어떤 차례로
+           지나갔나' 이고, 거기에 라인은 아무 말도 안 보탠다. 같은 자리에서
+           브랜드와 붙어 한 낱말로 읽히기만 했다. 종목을 열면 거기 있다. */
+        +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')+'</span>'
         +'<span class="jro"><b>'+jhd+'</b><em>'+jdt+'</em></span></div>';
     }
     h+='</div>';
@@ -10573,7 +10573,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 05:10';
+var BUILD='2026-09-24 05:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
