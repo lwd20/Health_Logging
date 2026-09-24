@@ -2656,6 +2656,11 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
+/* 브랜드와 라인은 위계가 다르다 — 집안(GYM80)과 그 안의 갈래(CORE).
+   같은 색·같은 굵기로 나란히 두니 'GYM80 CORE' 가 한 낱말로 읽혔다.
+   목록 줄이 이미 쓰는 자를 그대로 가져온다: 브랜드는 금속색, 라인은 물린 회색. */
+.jr .jn2 i.jb{color:var(--chrome);opacity:.9;font-weight:800}
+.jr .jn2 i.jl{color:var(--dim);opacity:1;font-weight:600;letter-spacing:.06em;margin-left:4px}
 /* 그립 — 브랜드 배지와 다른 꼴로 둔다. 브랜드는 누가 만든 기구인가고
    그립은 지금 무엇을 하는가라, 같은 모양이면 둘이 섞인다. */
 .jr .jn2 u.vg2{text-decoration:none;margin-left:6px;font-size:9.5px;font-weight:800;
@@ -4153,15 +4158,19 @@ function renderList(){
    이름이 브랜드보다 먼저다(브랜드는 대개 바로 위 묶음 머리가 이미 적었다).
    읽기와 쓰기를 갈라 돌린다 — 한 줄씩 번갈아 하면 줄마다 다시 그린다. */
 function trimBadges(){
-  var nms=document.querySelectorAll('#list .nm'),i,pair=[];
+  var nms=document.querySelectorAll('#list .nm'),i,pair=[],lns=[];
   for(i=0;i<nms.length;i++){
-    var b=nms[i].querySelector('b'),bd=nms[i].querySelector('.bd');
-    if(!b||!bd)continue;
-    bd.style.display='';
-    pair.push([b,bd]);
+    var b=nms[i].querySelector('b'),bd=nms[i].querySelector('.bd'),ln=nms[i].querySelector('.ln');
+    if(bd){bd.style.display='';if(b)pair.push([b,bd]);}
+    if(ln){ln.style.display='';lns.push(ln);}
   }
   for(i=0;i<pair.length;i++)
     if(pair[i][0].scrollWidth>pair[i][0].clientWidth+1)pair[i][1].style.display='none';
+  /* 라인도 같은 자로 잰다. 'SIGNUM' 이 'SI…' 로 남으면 어느 라인인지 알 수
+     없고 이름 옆에서 잡음만 된다 — 안 보이는 편이 낫다.
+     배지를 먼저 치우고 재는 차례라, 배지가 빠져 자리가 생겼으면 라인은 산다. */
+  for(i=0;i<lns.length;i++)
+    if(lns[i].scrollWidth>lns[i].clientWidth+1)lns[i].style.display='none';
 }
 /* 백업이 오래되면 상단에 눈에 띄는 배너를 띄움 */
 function bkBanner(){
@@ -4740,7 +4749,8 @@ function journalHtml(){
           +'<button data-act="jmd" data-v="'+d+'|'+jm.i+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
         +'<span class="jn2">'+esc(jm.n)
         +(jm.v?'<u class="vg2">'+esc(jm.v)+'</u>':'')
-        +(jm.b?'<i>'+esc(jm.b)+'</i>':'')+(jln&&!jm.v?'<i>'+esc(jln)+'</i>':'')+'</span>'
+        +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')
+        +(jln&&!jm.v?'<i class="jl">'+esc(jln)+'</i>':'')+'</span>'
         +'<span class="jro"><b>'+jhd+'</b><em>'+jdt+'</em></span></div>';
     }
     h+='</div>';
@@ -10559,7 +10569,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 04:05';
+var BUILD='2026-09-24 04:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
