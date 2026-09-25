@@ -509,23 +509,20 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 날짜 줄은 space-between + wrap 이라 칸이 셋이 되면 하나가 아랫줄로
    떨어진다 — 오른쪽 둘(세트 요약·가볍게)을 한 덩이로 묶는다. */
 .dsum{display:inline-flex;align-items:center;gap:0;min-width:0;justify-content:flex-end}
-/* 누르는 줄 — 날짜 줄 바로 아래, 늘 같은 자리 */
-.dtog{display:flex;align-items:center;gap:7px;margin-top:7px}
-.dtg{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:0 13px;
-  border-radius:999px;background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.22);
-  color:var(--mut);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.04em}
-/* 켜짐/꺼짐을 동그라미가 말한다 — 글자 색만으로는 상태인지 단추인지 안 갈린다 */
-.dtg::before{content:'';flex:0 0 auto;width:8px;height:8px;border-radius:50%;
-  border:1.5px solid rgba(var(--tx-rgb),.38);background:none}
-.dtg.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
-.dtg.on::before{background:var(--on-acc);border-color:var(--on-acc)}
-/* 켜져 있을 때만 붙는 주 범위 — 이 표시가 하루가 아니라 주에 걸린다는 말 */
-/* 무엇에 걸리는지 — 주 범위(9/21-9/27)와 하루(9/24). 켜짐이 아니라 범위라
-   꺼져 있을 때는 더 물린다 */
-.dtg i{font-style:normal;font-family:var(--mono);font-size:9.5px;
-  font-weight:700;letter-spacing:0;opacity:.5}
-.dtg.on i{opacity:.8}
-.dtg:active{opacity:.6}
+/* 이 날을 어떻게 볼까 — 한 덩이에서 하나만 켜진다. 홈에 파인 자리 안에
+   켜진 칸만 떠 있는 꼴이라, 고르는 것임이 모양으로 읽힌다. */
+.dseg{display:flex;align-items:stretch;gap:2px;margin-top:8px;padding:2px;
+  background:rgba(var(--tx-rgb),.05);border:var(--bw) solid rgba(var(--tx-rgb),.12);
+  border-radius:999px}
+.dsg{flex:1 1 auto;min-height:30px;display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:0 9px;border:0;border-radius:999px;background:none;color:var(--dim);
+  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.dsg.on{background:var(--acc-sf);color:var(--on-acc);font-weight:800}
+/* 주 범위 — 디로딩 칸에만 붙는다. 그 표시만 화면에 보이는 날보다 넓다 */
+.dsg i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:0;opacity:.55}
+.dsg.on i{opacity:.8}
+.dsg:active{opacity:.6}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:var(--rad-s);padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.06em}
 .hbtns{display:flex;align-items:center;gap:2px;flex:0 0 auto;white-space:nowrap;margin-top:2px}
@@ -3861,21 +3858,21 @@ function render(){
     +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
         :'<em class="doff">'+TX('운동 없음')+'</em>')
     +'</span></div>'
-    /* 아래 줄 — 누르는 것만. 동그라미가 켜짐/꺼짐을 말한다: 글자만 있으면
-       눌러도 되는 것인지 적어 둔 상태인지 알 수 없다. */
-    +'<div class="dtog">'
-    /* 범위는 켜져 있을 때만 붙었다. 그러면 정작 누르기 전에는 이것이 주에
-       걸리는지 하루에 걸리는지 알 수가 없다 — 알아야 할 때는 누르기 전이다.
-       늘 적고, 꺼져 있을 때는 흐리게 둔다: 켜짐은 동그라미가 말한다. */
-    +'<button class="dtg'+(isDeload(UI.wd)?' on':'')+'" data-act="wkdl"'
-    +' aria-pressed="'+(isDeload(UI.wd)?'true':'false')+'">'+TX('디로딩')
-    +'<i>'+wkSpan(UI.wd)+'</i></button>'
-    /* 디로딩 주에는 그 주 모든 날이 이미 '가볍게' 취급이라 하루 표시가 할 일이
-       없다 — 안 낸다. 켜 둔 날의 세트를 다 지워도 보인다: 끌 수 있어야 한다. */
-    +(((tc||isLite(UI.wd))&&!isDeload(UI.wd))?'<button class="dtg'+(isLite(UI.wd)?' on':'')+'" data-act="lite"'
-        +' aria-pressed="'+(isLite(UI.wd)?'true':'false')+'">'+TX('가볍게')
-        +'<i>'+md(UI.wd)+'</i></button>':'')
-    +'</div>';
+    /* 아래 줄 — 이 날을 어떻게 볼까. 셋 중 하나가 늘 켜져 있으므로 '무엇이
+       켜졌나' 가 아니라 '어느 칸에 있나' 로 읽힌다. 칸이 셋이라 누르는
+       것임도 모양으로 드러난다(단추 하나는 글자와 구별이 안 됐다). */
+    +(function(){
+       var md0=dayMode(UI.wd);
+       function sg(k,lb,ext){
+         return '<button class="dsg'+(md0===k?' on':'')+'" data-act="dmode" data-v="'+k+'"'
+           +' aria-pressed="'+(md0===k?'true':'false')+'">'+lb+(ext?'<i>'+ext+'</i>':'')+'</button>';
+       }
+       return '<div class="dseg" role="group" aria-label="'+esc(TX('이 날'))+'">'
+         +sg('n',TX('평소'),'')
+         +sg('l',TX('가볍게'),'')
+         +sg('d',TX('디로딩'),wkSpan(UI.wd))
+         +'</div>';
+     })();
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">'+TX('첫 인바디 기록 추가 ▸')+'</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
@@ -10578,7 +10575,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-24 06:05';
+var BUILD='2026-09-25 09:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11574,6 +11571,8 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'평소':'Normal',
+'이 날':'This day',
 '되돌리기':'UNDO',
 '<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐':'<em>Deload</em> {0} · no load increase · no low-set warning · this week is skipped as next week&#39;s baseline',
 '디로딩 해제':'Deload off',
@@ -12469,6 +12468,21 @@ function wkSpan(ds){
   t.setDate(t.getDate()+6);
   return md(mon)+'\u2013'+(t.getMonth()+1)+'/'+t.getDate();
 }
+/* 그 날의 성격은 셋 중 하나다 — 평소(n) · 가볍게(l) · 디로딩(d).
+   스위치를 둘로 두었더니 둘 다 켤 수 있는 것처럼 보였다. 실제로는 디로딩이
+   가볍게를 가려 버리므로 한 덩이에서 하나만 고르는 것이 사실에 맞다.
+   범위는 다르다: 가볍게는 그 날, 디로딩은 그 주. 그래서 디로딩 칸에만
+   주 범위를 적는다 — 화면에 보이는 날보다 넓을 때만 범위를 말한다. */
+function dayMode(ds){return isDeload(ds)?'d':(isLite(ds)?'l':'n');}
+/* 고른 대로 세운다. 되돌리기도 이 길을 쓴다 — 토글로 만들면
+   '디로딩 → 가볍게' 처럼 둘이 한꺼번에 바뀐 것을 못 되돌린다. */
+function dayModeSet(ds,mode){
+  var m=wkMon(ds);
+  if(isDeload(ds)&&mode!=='d')wkSet(m,'d',0);
+  if(isLite(ds)&&mode!=='l')liteSet(ds,0);
+  if(mode==='d'&&!isDeload(ds))wkSet(m,'d',1);
+  if(mode==='l'&&!isLite(ds))liteSet(ds,1);
+}
 function isSoft(ds){return isLite(ds)||isDeload(ds);}
 /* 그 날에 진전 판정을 안 다는 까닭. 화면 여러 곳이 같은 낱말을 써야
    '왜 퍼센트가 없지' 를 한 번만 배운다. 아니면 빈 문자열이라
@@ -13233,22 +13247,29 @@ document.addEventListener('click',function(e){
     case 'tg':
       openRow(v);UI.sheet='ex';render();
       break;
-    /* 토스트의 '되돌리기'. 무엇을 되돌릴지 값으로 받는다 — wkdl·lite 를 다시
-       부르면 그 사이 날짜를 넘겼을 때 엉뚱한 주·날이 뒤집힌다. */
-    case 'sund':
+    /* 이 날을 어떻게 볼까 — 평소 · 가볍게 · 디로딩. 고른 것이 이미 켜져
+       있으면 아무 일도 안 한다(두 번 눌러 풀리는 자리가 아니다). */
+    case 'dmode':
       (function(){
-        var p=String(v||'').split('|'),x=p[1]||'';
-        if(p[0]==='w'){var w=wkCfg(x)||{};wkSet(x,'d',w.d?0:1);}
-        else liteSet(x,!isLite(x));
-        renderSheet();render();
+        var ds=UI.wd,was=dayMode(ds);
+        if(v===was)return;
+        dayModeSet(ds,v);renderSheet();render();
+        /* 무엇이 달라지는지 한 줄로. 디로딩은 주에 걸리므로 그 범위까지 적는다.
+           되돌리기를 같이 낸다: 기록은 안 건드리지만, 잘못 눌렀을 때
+           '되돌릴 수 있다' 는 것이 보이는 것과 안 보이는 것은 다르다.
+           되돌릴 곳은 '그 전 상태' 를 값으로 들고 간다 — 토글로 만들면
+           디로딩에서 가볍게로 건너뛴 것처럼 둘이 같이 바뀐 것을 못 되돌린다. */
+        var msg=(v==='d')?TX1('<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐',wkSpan(ds))
+               :(v==='l')?TX('<em>가볍게</em> 이 날 무게는 평소 날의 기준에서 빠짐')
+               :((was==='d')?TX('디로딩 해제'):TX('가볍게 해제'));
+        toast(msg+' <button class="tundo" data-act="dmund" data-v="'+ds+'|'+was+'">'+TX('되돌리기')+'</button>',6000);
       })();
       break;
-    case 'lite':
+    case 'dmund':
       (function(){
-        var on=!isLite(UI.wd),dd=UI.wd;
-        liteSet(dd,on);render();
-        toast((on?TX('<em>가볍게</em> 이 날 무게는 평소 날의 기준에서 빠짐'):TX('가볍게 해제'))
-          +' <button class="tundo" data-act="sund" data-v="d|'+dd+'">'+TX('되돌리기')+'</button>',6000);
+        var p=String(v||'').split('|');
+        if(p.length!==2)return;
+        dayModeSet(p[0],p[1]);renderSheet();render();
       })();
       break;
     case 'd-':shiftDay(-1);break;
@@ -13801,22 +13822,6 @@ document.addEventListener('click',function(e){
         UI.addName=m.n;UI.addBrand=m.b||'';UI.addLine=m.ln||'';UI.addVar=m.v||'';UI.addMc=m.mc||'';UI.addPart=m.p;UI.editRx=(m.rx>0?m.rx:12);UI.editMm=mmValid(m.mm)?m.mm:'';UI.editAs=!!m.as;UI.editCt=cKind(m);UI.pickOpen='';
         UI.editStep=(m.st>0)?m.st:2.5;
         render();
-      })();
-      break;
-    case 'wkdl':
-      /* 보고 있는 날이 든 주다. wkMon() 은 오늘 주라서, 지난주로 넘겨 놓고
-         누르면 단추는 지난주 상태를 보이면서 이번 주가 켜졌다 —
-         그리는 자(isDeload(UI.wd))와 쓰는 자가 서로 다른 주를 봤다. */
-      (function(){
-        var m=wkMon(UI.wd),w=wkCfg(m)||{},on=!w.d;
-        wkSet(m,'d',on?1:0);renderSheet();render();
-        /* 켜도 알약 하나가 채워질 뿐이라 무엇이 달라졌는지 알 길이 없었다.
-           바뀌는 것 셋을 한 줄로 말한다 — 이 표시의 값어치가 거기 있다.
-           되돌리기를 같이 낸다: 기록은 안 건드리지만, 잘못 눌렀을 때
-           '되돌릴 수 있다' 는 것이 보이는 것과 안 보이는 것은 다르다. */
-        toast((on?TX1('<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐',wkSpan(UI.wd))
-                 :TX('디로딩 해제'))
-          +' <button class="tundo" data-act="sund" data-v="w|'+m+'">'+TX('되돌리기')+'</button>',6000);
       })();
       break;
     case 'anlcat':
