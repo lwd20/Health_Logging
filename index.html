@@ -10550,8 +10550,25 @@ function vzDiet(tab){
     var mw=macroWeek(nf);
     h+=vzCap(TX('탄단지')+'<span class="rtsub">'+TX('이번 주 · 월~일')+'</span>');
     if(mw)h+=mw;
-    else h+=vzLine(TX('이번 주'),TX('기록 없음'),
-      TX('식사가 하루라도 들어오면 여기에 쌓임 · 삼성헬스에서 넘어옴'),{t:'',c:''});
+    else{
+      /* 섭취가 아예 없는 것과, 섭취는 왔는데 영양소가 안 붙어 온 것은 다른
+         일이다. 둘을 같이 '기록 없음' 이라 적으면 먹은 것을 적어 둔 사람에게
+         안 적었다고 말하는 꼴이고, 그러면 왜 그래프가 없는지도 알 수 없다.
+         열량만 오는 것은 흔하다 — 삼성헬스에 음식이 아니라 열량만 적힌 날이다. */
+      var mwN=(function(){
+        var n0=new Date(),dw0=(n0.getDay()+6)%7,mo=new Date(n0),q,c0=0;
+        mo.setDate(n0.getDate()-dw0);
+        for(q=0;q<7;q++){var t0=new Date(mo);t0.setDate(mo.getDate()+q);
+          var d0=HC.days&&HC.days[kcalISO(t0)];
+          if(d0&&d0.n>0&&(+d0.kcal||0)>0)c0++;}
+        return c0;
+      })();
+      h+=mwN
+        ?vzLine(TX('이번 주'),TX('탄단지 없음'),
+          TX1('{0}일치 섭취는 들어왔는데 탄·단·지가 안 적혀 있음 — 삼성헬스에 열량만 있는 날임',mwN),{t:'',c:''})
+        :vzLine(TX('이번 주'),TX('기록 없음'),
+          TX('식사가 하루라도 들어오면 여기에 쌓임 · 삼성헬스에서 넘어옴'),{t:'',c:''});
+    }
   }
   if(tab==='avg'&&nf.completedDaysCount>0){
     /* 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못 말한다. 같은 +122 가
@@ -10646,7 +10663,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-27 15:20';
+var BUILD='2026-09-28 09:40';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11637,6 +11654,8 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'탄단지 없음':'No macros',
+'{0}일치 섭취는 들어왔는데 탄·단·지가 안 적혀 있음 — 삼성헬스에 열량만 있는 날임':'{0} day(s) of intake arrived without protein/carb/fat — those days only have calories in Samsung Health',
 'kg/주':'kg/wk',
 '목표 체지방':'Target body fat',
 '감량 속도':'Loss pace',
