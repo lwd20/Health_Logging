@@ -2810,6 +2810,9 @@ html{color-scheme:dark}
    이름은 글자만큼, 남는 자리는 점선이 먹는다. */
 .strow.wide .stnm{flex:0 0 auto;white-space:nowrap}
 .strow.wide .stin{flex:0 0 auto;width:58px}
+/* 단위 — 이름이 아니라 값에 붙는 것이라 값 바로 앞에, 물린 색으로 */
+.strow .stu{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;font-weight:700;
+  color:var(--dim);letter-spacing:0;margin-right:1px}
 .strow.wide .stin.dt{width:104px;letter-spacing:-.02em}
 /* 한꺼번에 적는 입력칸 — 설정 줄보다 작게. 값 셋을 나란히 두는 자리다 */
 .wtg.sm input{padding:7px 0;font-size:15px}
@@ -5423,17 +5426,22 @@ function renderSheet(){
                목표 탭(GOALS)이 이미 줄 꼴을 쓴다 — 설정은 같은 꼴이어야 한다.
                이름·점선·값 한 줄이면 46px 가 30px 가 되고, 점선이 이름과
                값을 이어 줘 어느 값이 무엇의 값인지도 한눈에 붙는다. */
-            function srow(id,lb,val,ml){
+            /* 'GOAL · %' 는 무엇의 목표인지, 'ACTIVITY ×' 는 무엇에 곱하는
+               수인지 줄 자체가 말하지 않았다 — 이미 셈을 아는 사람만 읽히는
+               이름이다. 이름은 무엇인지를 말하고, 단위는 값 옆에 물려 둔다.
+               새 값을 지어내지 않는다: 같은 칸, 같은 수, 이름만 제 이름으로. */
+            function srow(id,lb,unit,val,ml){
               return '<div class="strow wide"><b class="stnm">'+lb+'</b><div class="strest"></div>'
+                +(unit?'<i class="stu">'+unit+'</i>':'')
                 +'<input id="'+id+'" class="stin" inputmode="decimal" maxlength="'+(ml||4)+'" value="'+val+'"></div>';
             }
-            hh+=srow('gf0','GOAL · %',GF)
-              +srow('pc0',TX('PACE · KG/주'),WR)
-              +srow('ac0','ACTIVITY ×',ACT)
+            hh+=srow('gf0',TX('목표 체지방'),'%',GF)
+              +srow('pc0',TX('감량 속도'),TX('kg/주'),WR)
+              +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
-              +srow('pp0',TX('단백질 G/KG'),PRO_PER_KG)
-              +srow('fp0',TX('지방 G/KG'),FAT_PER_KG)
+              +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG)
+              +srow('fp0',TX('지방 최소'),'g/kg',FAT_PER_KG)
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG)+'</div>'
               +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
@@ -7204,7 +7212,10 @@ function bodyLine(bw,bf,gf,hrm,act){
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
   if(!(bw>0&&bf>0))return 'Zone2 '+z1+'–'+z2+' bpm';
   var fat=bw*bf/100,lbm=bw-fat;
-  var out=TX1('제지방 <b>{0}</b>kg · 기초 <b>{1}</b> × {2} = <b>{3}</b> kcal',lbm.toFixed(1),(bmr(bw,bf)||0).toLocaleString(),act,Math.round((bmr(bw,bf)||0)*act).toLocaleString());
+  /* 식을 먼저 적고 답이 끝에 붙어 있었다 — 게다가 그 답이 무엇인지(하루 소비)
+     는 어디에도 안 적혀 있었다. 답을 앞에 놓고 식은 뒤에 물린다. */
+  var out=TX1('하루 소비 <b>{0}</b>kcal — 제지방 <b>{1}</b>kg · 기초 <b>{2}</b> × 활동 {3}',
+    Math.round((bmr(bw,bf)||0)*act).toLocaleString(),lbm.toFixed(1),(bmr(bw,bf)||0).toLocaleString(),act);
   /* 어디서 온 값인지 밝힌다 — 인바디가 없으면 체지방은 기본값 20% 이고,
      그걸 실측처럼 보여 주면 하루 소비가 남의 숫자로 나오는 것을 모른다 */
   var sc=bwSrc();
@@ -10635,7 +10646,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-27 14:40';
+var BUILD='2026-09-27 15:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11626,6 +11637,13 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'kg/주':'kg/wk',
+'목표 체지방':'Target body fat',
+'감량 속도':'Loss pace',
+'활동 계수':'Activity factor',
+'단백질 최소':'Protein floor',
+'지방 최소':'Fat floor',
+'하루 소비 <b>{0}</b>kcal — 제지방 <b>{1}</b>kg · 기초 <b>{2}</b> × 활동 {3}':'Daily burn <b>{0}</b>kcal — LBM <b>{1}</b>kg · BMR <b>{2}</b> × activity {3}',
 '디로딩 주':'Deload week',
 '바꾸기':'Change',
 '평소':'Normal',
@@ -12009,7 +12027,6 @@ var EN={
 '<em>WT·FAT%</em> 확인 필요':'Check <em>WT·FAT%</em>',
 'API 키 필요 — 수동 입력 요망':'API key needed — enter values manually',
 'GEMINI 혼잡 — {0}차 재시도 중…':'GEMINI busy — retry {0}…',
-'PACE · KG/주':'PACE · KG/WK',
 '{0} — 주동근 고르기':'{0} — pick prime mover',
 '{0}개 미분류':'{0} unassigned',
 '{0}개 전부 분류됨':'all {0} assigned',
@@ -12019,7 +12036,6 @@ var EN={
 '다른 모델 탐색 중…':'Looking for another model…',
 '다른 부위':'Other parts',
 '단백질 <b>{0}</b>g · 지방 <b>{1}</b>g':'Protein <b>{0}</b>g · fat <b>{1}</b>g',
-'단백질 G/KG':'PROTEIN G/KG',
 '등':'Back',
 '레드':'Red',
 '레드=과자극 경고(연속 수행), 골드=방치 경고(미수행) · 오늘 수행한 부위엔 표시 안 함':'Red = overload warning (trained in a row), gold = neglect warning (untrained) · not shown on parts trained today',
@@ -12055,9 +12071,7 @@ var EN={
 '재시도 중… ({0})':'Retrying… ({0})',
 '전체 {0}개':'All {0}',
 '접기':'Collapse',
-'제지방 <b>{0}</b>kg · 기초 <b>{1}</b> × {2} = <b>{3}</b> kcal':'LBM <b>{0}</b>kg · BMR <b>{1}</b> × {2} = <b>{3}</b> kcal',
 '주동근 정리':'Prime movers',
-'지방 G/KG':'FAT G/KG',
 '지방을 <b>0.1</b> 올리면 탄수가 <b>{0}g</b> 줄어듦':'Raising fat by <b>0.1</b> cuts carbs by <b>{0}g</b>',
 '지정':'set',
 '질감':'Texture',
