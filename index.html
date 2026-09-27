@@ -509,19 +509,23 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 날짜 줄은 space-between + wrap 이라 칸이 셋이 되면 하나가 아랫줄로
    떨어진다 — 오른쪽 둘(세트 요약·가볍게)을 한 덩이로 묶는다. */
 .dsum{display:inline-flex;align-items:center;gap:0;min-width:0;justify-content:flex-end}
-/* 이 날을 어떻게 볼까 — 한 덩이에서 하나만 켜진다. 홈에 파인 자리 안에
-   켜진 칸만 떠 있는 꼴이라, 고르는 것임이 모양으로 읽힌다. */
-.dseg{display:flex;align-items:stretch;gap:2px;margin-top:8px;padding:2px;
-  background:rgba(var(--tx-rgb),.05);border:var(--bw) solid rgba(var(--tx-rgb),.12);
-  border-radius:999px}
-.dsg{flex:1 1 auto;min-height:30px;display:flex;align-items:center;justify-content:center;gap:5px;
-  padding:0 9px;border:0;border-radius:999px;background:none;color:var(--dim);
-  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
-.dsg.on{background:var(--acc-sf);color:var(--on-acc);font-weight:800}
+/* 이 날을 어떻게 볼까 — 셋 중 하나.
+   분석 탭의 갈래 단추(.catb)와 같은 꼴로 둔다. 이 앱에서 '셋 중 하나' 는
+   이미 그 모양이고, 무엇보다 테두리·모서리·그림자를 시안 토큰에서 받아 와야
+   어느 시안을 골라도 겉돌지 않는다 — 앞엣것은 999px 알약과 손으로 박은
+   회색이라 시안을 바꿔도 혼자 안 바뀌어, 그 줄만 남의 앱처럼 보였다. */
+.dseg{display:flex;gap:4px;margin-top:9px}
+.dsg{flex:1 1 0;min-width:0;min-height:38px;display:flex;align-items:center;
+  justify-content:center;gap:5px;padding:0 6px;
+  border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-m);
+  background:var(--btn-bg);color:var(--mut);font-family:inherit;
+  font-size:12px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.dsg.on{border-color:var(--acc-sf);background:var(--acc-sf);color:var(--on-acc);
+  font-weight:800;box-shadow:var(--elev-p)}
 /* 주 범위 — 디로딩 칸에만 붙는다. 그 표시만 화면에 보이는 날보다 넓다 */
 .dsg i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;
-  letter-spacing:0;opacity:.55}
-.dsg.on i{opacity:.8}
+  letter-spacing:0;color:var(--dim)}
+.dsg.on i{color:var(--on-acc);opacity:.72}
 .dsg:active{opacity:.6}
 .dtxt.past{color:var(--sig);font-weight:700}
 .dtoday{border:1px solid var(--sig);color:var(--sig);border-radius:var(--rad-s);padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.06em}
@@ -10575,7 +10579,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-25 09:20';
+var BUILD='2026-09-27 10:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
