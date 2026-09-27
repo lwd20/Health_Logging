@@ -2797,7 +2797,17 @@ html{color-scheme:dark}
 .stpt::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.35),var(--line) 40%,transparent)}
 .stpt:first-of-type{margin-top:7px}
 .strow.off .strest{opacity:.22}
-.strest{flex:1;border-bottom:1px dotted var(--line);height:11px;opacity:.5}
+/* 이름과 값을 이어 주는 점선. --line(.10) 에 opacity .5 를 또 곱하니 밝은
+   판에서는 흰 바탕에 아무것도 안 보였다 — 이어 주는 일을 못 하면 없는 것과 같다 */
+.strest{flex:1;border-bottom:1px dotted rgba(var(--tx-rgb),.22);height:11px}
+/* 이름이 긴 설정 줄 — 58px 로 못박으면 'PACE · KG/주' 가 두 줄로 감긴다.
+   이름은 글자만큼, 남는 자리는 점선이 먹는다. */
+.strow.wide .stnm{flex:0 0 auto;white-space:nowrap}
+.strow.wide .stin{flex:0 0 auto;width:58px}
+.strow.wide .stin.dt{width:104px;letter-spacing:-.02em}
+/* 한꺼번에 적는 입력칸 — 설정 줄보다 작게. 값 셋을 나란히 두는 자리다 */
+.wtg.sm input{padding:7px 0;font-size:15px}
+.wtg.sm b{font-size:8.5px;margin-bottom:3px}
 .stband{flex:1;font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--dim);border-bottom:1px dashed var(--line);padding-bottom:3px;text-align:center}
 .stband.viol{color:var(--neg);border-bottom-color:rgba(var(--sig-rgb),.3)}
 .strow.avoid .stv{color:var(--dim)}
@@ -5392,17 +5402,23 @@ function renderSheet(){
           {
             /* 다섯을 한 줄에 밀어 넣으면 9px 라벨이 폰에서 깨진다. 하는 일로 가른다 —
                위 셋은 하루 열량을 정하고, 아래 둘은 그 열량을 무엇으로 채울지를 정한다. */
-            hh+='<div class="wtg">'
-              +'<div><b>GOAL · %</b><input id="gf0" inputmode="decimal" maxlength="4" value="'+GF+'"></div>'
-              +'<div><b>'+TX('PACE · KG/주')+'</b><input id="pc0" inputmode="decimal" maxlength="4" value="'+WR+'"></div>'
-              +'<div><b>ACTIVITY ×</b><input id="ac0" inputmode="decimal" maxlength="4" value="'+ACT+'"></div>'
-              +'</div>'
+            /* 상자 다섯이 쌓여 있었다. 네 글자짜리 수 하나에 46px 짜리 칸을
+               주니 화면의 절반이 빈자리였고, 한 화면에 같은 크기 덩이만
+               늘어서 무엇이 무엇인지 눈이 안 붙었다.
+               목표 탭(GOALS)이 이미 줄 꼴을 쓴다 — 설정은 같은 꼴이어야 한다.
+               이름·점선·값 한 줄이면 46px 가 30px 가 되고, 점선이 이름과
+               값을 이어 줘 어느 값이 무엇의 값인지도 한눈에 붙는다. */
+            function srow(id,lb,val,ml){
+              return '<div class="strow wide"><b class="stnm">'+lb+'</b><div class="strest"></div>'
+                +'<input id="'+id+'" class="stin" inputmode="decimal" maxlength="'+(ml||4)+'" value="'+val+'"></div>';
+            }
+            hh+=srow('gf0','GOAL · %',GF)
+              +srow('pc0',TX('PACE · KG/주'),WR)
+              +srow('ac0','ACTIVITY ×',ACT)
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
-              +'<div class="wtg">'
-              +'<div><b>'+TX('단백질 G/KG')+'</b><input id="pp0" inputmode="decimal" maxlength="4" value="'+PRO_PER_KG+'"></div>'
-              +'<div><b>'+TX('지방 G/KG')+'</b><input id="fp0" inputmode="decimal" maxlength="4" value="'+FAT_PER_KG+'"></div>'
-              +'</div>'
+              +srow('pp0',TX('단백질 G/KG'),PRO_PER_KG)
+              +srow('fp0',TX('지방 G/KG'),FAT_PER_KG)
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG)+'</div>'
               +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
@@ -5426,10 +5442,12 @@ function renderSheet(){
             +'<button data-act="bhd" data-v="'+a[i].d+'" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:15px;min-width:38px;min-height:36px;padding:0">×</button></div>';
         }
         hh+='</div>';
-        hh+='<div class="wtg" style="margin-top:6px">'
-          +'<div style="flex:1"><b>DATE</b><input id="bhD" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
-          +'</div>'
-          +'<div class="wtg" style="margin-top:8px">'
+        /* 날짜 하나에 폭 전체짜리 상자를 주고 있었다 — 값은 열 글자인데 칸은
+           343px 였다. 줄로 내린다. 아래 셋은 한꺼번에 적는 입력이라 나란히
+           두되, 키를 46 에서 38 로 낮춘다. */
+        hh+='<div class="strow wide" style="margin-top:8px"><b class="stnm">DATE</b><div class="strest"></div>'
+          +'<input id="bhD" class="stin dt" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
+          +'<div class="wtg sm" style="margin-top:6px">'
           /* 힌트가 고정 숫자면 옆의 실제 기록과 어긋나 보인다 — 지금 값을 비춘다 */
           +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="'+fmtW(BW)+'"></div>'
           +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="'+fmtW(BF)+'"></div>'
@@ -10626,7 +10644,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-27 12:30';
+var BUILD='2026-09-27 13:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
