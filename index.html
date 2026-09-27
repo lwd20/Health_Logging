@@ -928,7 +928,7 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .gridchips.c3>.chip:last-child:nth-child(3n+2){grid-column:span 2}
 .gridchips .chip i{font-size:9px;opacity:.6;margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pickbody .namerow{margin-top:9px}
-.pickbody .namein{padding:9px 11px;border-radius:var(--rad-s);background:var(--sunk);border-color:rgba(var(--tx-rgb),.08)}
+.pickbody .namein{padding:9px 11px;border-radius:var(--rad-s)}
 /* 16px 미만이면 iOS 사파리가 입력할 때 화면을 확대해 버린다 */
 .pickbody .namein input{font-size:17px}
 .pickbody .note{margin-top:9px;font-size:11px}
@@ -1408,14 +1408,18 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .gmpop button.on{color:var(--acc-br);background:rgba(var(--acc-rgb),.08)}
 .gmpop button.on::after{content:'';margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--chrome);box-shadow:0 0 6px rgba(var(--acc-rgb),.6)}
 .namerow{display:flex;gap:8px;margin-top:2px}
-.namein{flex:1;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-size:17px}
+.namein{flex:1;background:rgba(var(--tx-rgb),.045);border:var(--bw) solid rgba(var(--tx-rgb),.18);
+  border-radius:var(--rad-s);padding:11px 13px;font-size:17px}
+.namein:focus{outline:0;border-color:var(--acc-sf);box-shadow:0 0 0 2px rgba(var(--acc-rgb),.2);background:var(--plate)}
 .namein input::placeholder{color:var(--dim)}
 .okbtn{flex:0 0 auto;min-height:42px;padding:0 18px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);font-weight:700;font-size:11px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
 .okbtn.rdy,.okbtn.pri{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
 /* 한 덩이에 으뜸은 하나다. 다 같은 회색이면 무엇을 눌러야 끝나는지가
    화면에 안 적혀 있는 것과 같다 — 밝은 판에서는 그 회색이 '꺼짐' 으로도 읽힌다. */
 .okbtn.pri:active{opacity:.75}
-.akin{width:100%;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-s);padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);margin:8px 0}
+.akin{width:100%;background:rgba(var(--tx-rgb),.045);border:var(--bw) solid rgba(var(--tx-rgb),.18);
+  border-radius:var(--rad-s);padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);margin:8px 0}
+.akin:focus{outline:0;border-color:var(--acc-sf);box-shadow:0 0 0 2px rgba(var(--acc-rgb),.2);background:var(--plate)}
 .ai-bar{position:relative;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.1);margin-top:7px}
 .ai-bar b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--acc-dk),var(--acc-br));transition:width .7s cubic-bezier(.2,.75,.25,1)}
 .ai-bar .mk{position:absolute;top:-2.5px;bottom:-2.5px;width:1px;background:rgba(var(--tx-rgb),.5);opacity:.5}
@@ -2596,7 +2600,9 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 /* 어느 칸을 고치고 있는지 — 기본 포커스 테는 판마다 색이 달라 안 보이기도 한다 */
 .wtg input:focus{outline:0;border-color:var(--acc-sf);
   box-shadow:0 0 0 2px rgba(var(--acc-rgb),.2);background:var(--plate)}
-.ta{width:100%;height:110px;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--mut);resize:none;outline:0}
+.ta{width:100%;height:110px;background:rgba(var(--tx-rgb),.045);
+  border:var(--bw) solid rgba(var(--tx-rgb),.18);border-radius:var(--rad-s);padding:12px;
+  font-family:var(--mono);font-size:11px;color:var(--mut);resize:none;outline:0}
 .iorow{display:flex;gap:8px;margin-top:9px}
 .iorow .okbtn{flex:1;height:46px}
 .reset{width:100%;margin-top:16px;padding:12px;font-size:11px;font-weight:800;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
@@ -2842,7 +2848,16 @@ html{color-scheme:dark}
   color:var(--acc-br)}
 .mmrow.cus .mmn{color:var(--acc-br)}
 .mmrow .stin{flex:0 0 40px;width:40px}
-.strow .stin,.mmrow .stin{width:40px;height:30px;background:var(--inset);border:1px solid var(--line);border-radius:3px;color:var(--acc-br);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+/* 파 놓은 칸(안쪽 그림자)을 걷는다. 검은 그림자를 안에 깔면 밝은 판에서는
+   흰 바탕에 회색 얼룩이 지고, 모서리 3px·테두리는 시안 토큰을 안 받아
+   그 칸만 다른 앱에서 온 것처럼 보였다.
+   위 입력칸(.wtg input)과 같은 자를 쓴다 — 평평한 면에 테두리 하나. */
+.strow .stin,.mmrow .stin{width:40px;height:30px;
+  background:rgba(var(--tx-rgb),.045);border:var(--bw) solid rgba(var(--tx-rgb),.18);
+  border-radius:var(--rad-s);color:var(--acc-br);font-family:var(--mono);
+  font-size:12px;font-weight:700;text-align:center}
+.strow .stin:focus,.mmrow .stin:focus{outline:0;border-color:var(--acc-sf);
+  box-shadow:0 0 0 2px rgba(var(--acc-rgb),.2);background:var(--plate)}
 .calov{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .calpn{width:min(316px,88vw);background:var(--sheet-bg);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-m);box-shadow:0 18px 50px rgba(0,0,0,.7);padding:14px 14px 12px}
 .calhd{display:flex;align-items:center;margin-bottom:10px}
@@ -10644,7 +10659,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-27 13:20';
+var BUILD='2026-09-27 14:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
