@@ -432,7 +432,9 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hit{position:relative}
 .hit::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:max(100%,44px);height:max(100%,44px)}
-.xlink{color:var(--chrome);cursor:pointer;font-size:10px;letter-spacing:.04em;position:relative}
+/* 화살표가 낱말에서 떨어져 다음 줄로 넘어가 '새로고침' 과 '▸' 가 갈라졌다 —
+   링크는 한 덩이로 둔다(짧은 글귀라 줄을 밀어낼 걱정이 없다) */
+.xlink{color:var(--chrome);cursor:pointer;font-size:10px;letter-spacing:.04em;position:relative;white-space:nowrap}
 /* 글 속 링크는 글자만큼만 눌렸다(15px) — 누를 자리만 위아래로 넓힌다 */
 .xlink::after{content:'';position:absolute;left:-4px;right:-4px;top:-9px;bottom:-9px}
 .xlink:active{opacity:.6}
@@ -1409,7 +1411,10 @@ html[lang=en] .gbrow .bn,html[lang=en] .lmrow .bn,html[lang=en] .dvrow .bn{
 .namein{flex:1;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-size:17px}
 .namein input::placeholder{color:var(--dim)}
 .okbtn{flex:0 0 auto;min-height:42px;padding:0 18px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);font-weight:700;font-size:11px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
-.okbtn.rdy{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
+.okbtn.rdy,.okbtn.pri{background:var(--acc-sf);border-color:transparent;color:var(--on-acc);font-weight:800}
+/* 한 덩이에 으뜸은 하나다. 다 같은 회색이면 무엇을 눌러야 끝나는지가
+   화면에 안 적혀 있는 것과 같다 — 밝은 판에서는 그 회색이 '꺼짐' 으로도 읽힌다. */
+.okbtn.pri:active{opacity:.75}
 .akin{width:100%;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-s);padding:11px 12px;font-family:var(--mono);font-size:12px;color:var(--tx);margin:8px 0}
 .ai-bar{position:relative;height:3px;border-radius:2px;background:rgba(var(--tx-rgb),.1);margin-top:7px}
 .ai-bar b{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--acc-dk),var(--acc-br));transition:width .7s cubic-bezier(.2,.75,.25,1)}
@@ -2578,8 +2583,19 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .lgb.on{background:var(--acc-br);border-color:transparent;color:var(--on-acc)}
 .wtg{display:flex;gap:7px;margin:9px 0 8px}
 .wtg>div{flex:1;text-align:center}
-.wtg b{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
-.wtg input{width:100%;background:var(--sunk);border:var(--bw) solid rgba(var(--tx-rgb),.08);border-radius:var(--rad-s);padding:10px 0;text-align:center;font-family:var(--mono);font-size:17px;font-weight:700;color:var(--tx)}
+/* 라벨이 --dim 이라 밝은 팔레트에서는 흰 바탕에 흐린 회색이 되어 안 읽혔다 */
+.wtg b{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--mut);margin-bottom:4px}
+/* 칸 바탕을 --sunk 으로 깔았는데, 어두운 판에서는 rgba(0,0,0,.3) 라 파여
+   보이지만 밝은 판에서는 rgba(0,0,0,.045) 라 흰 바탕에 거의 안 보인다.
+   테두리도 .08 이라 같이 사라져, 고칠 수 있는 칸이 '꺼진 칸' 처럼 보였다.
+   글자색 기준으로 깔면 어느 판에서든 같은 세기로 보인다 — 어두운 판에서는
+   옅은 빛, 밝은 판에서는 옅은 먹이다. */
+.wtg input{width:100%;background:rgba(var(--tx-rgb),.045);
+  border:var(--bw) solid rgba(var(--tx-rgb),.18);border-radius:var(--rad-s);
+  padding:10px 0;text-align:center;font-family:var(--mono);font-size:17px;font-weight:700;color:var(--tx)}
+/* 어느 칸을 고치고 있는지 — 기본 포커스 테는 판마다 색이 달라 안 보이기도 한다 */
+.wtg input:focus{outline:0;border-color:var(--acc-sf);
+  box-shadow:0 0 0 2px rgba(var(--acc-rgb),.2);background:var(--plate)}
 .ta{width:100%;height:110px;background:var(--inset);border:1px solid var(--line);border-radius:3px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--mut);resize:none;outline:0}
 .iorow{display:flex;gap:8px;margin-top:9px}
 .iorow .okbtn{flex:1;height:46px}
@@ -2620,6 +2636,10 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .hnote{margin-top:11px;padding:10px 12px;border-radius:var(--rad-s);background:rgba(var(--tx-rgb),.04);font-size:11px;line-height:1.65;color:var(--mut)}
 .hnote b{color:var(--tx);font-weight:700}
 .note{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.5}
+/* 인바디 기록 한 줄 */
+.bhr{display:flex;align-items:center;gap:8px;padding:6px 2px;font-family:var(--mono);
+  font-size:11px;color:var(--mut)}
+.bhr+.bhr{border-top:1px solid rgba(var(--tx-rgb),.07)}
 
 /* ── 일지 ── */
 .jd{background:rgba(var(--tx-rgb),.03);border:0;border-radius:var(--rad-s);margin-bottom:9px;padding:11px 12px}
@@ -5384,7 +5404,7 @@ function renderSheet(){
               +'<div><b>'+TX('지방 G/KG')+'</b><input id="fp0" inputmode="decimal" maxlength="4" value="'+FAT_PER_KG+'"></div>'
               +'</div>'
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG)+'</div>'
-              +'<button class="okbtn" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
+              +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
           return hh;
       })()
@@ -5398,7 +5418,8 @@ function renderSheet(){
           +'</div>';
         hh+='<div style="'+(open?'max-height:180px;overflow-y:auto;':'')+'margin:0 -2px;padding:0 2px">';
         for(i=0;i<a.length;i++){
-          hh+='<div style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:var(--mono);font-size:11px;color:var(--mut)">'
+          /* 줄 사이에 가는 선을 둔다 — 네댓 줄이 붙어 있으면 한 덩이 글로 읽힌다 */
+          hh+='<div class="bhr">'
             +'<span style="color:var(--dim)">'+a[i].d.slice(2)+'</span>'
             +'<b style="color:var(--acc-br)">'+fmtW(a[i].w)+'kg</b><span>'+fmtW(a[i].f)+'%</span>'
             +(a[i].m>0?('<span style="opacity:.8">SMM '+fmtW(a[i].m)+'</span>'):'')
@@ -5415,7 +5436,7 @@ function renderSheet(){
           +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
           +'</div>'
           +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
-          +'<button class="okbtn" data-act="bha" style="flex:1;font-size:11px;font-weight:800;letter-spacing:.22em">ADD RECORD</button>'
+          +'<button class="okbtn pri" data-act="bha" style="flex:1;font-size:11px;letter-spacing:.22em">ADD RECORD</button>'
           +'<button class="okbtn" data-act="bhoc" style="flex:1;font-size:11px;font-weight:800;letter-spacing:.22em">SCAN INBODY</button>'
           +'</div>'
           +'<input type="file" id="bhFile" accept="image/*" style="display:none">'
@@ -5436,7 +5457,7 @@ function renderSheet(){
           +'<div><b>'+TX('탄수')+' G</b><input id="mnC" inputmode="numeric" maxlength="4" placeholder="-"></div>'
           +'<div><b>'+TX('지방')+' G</b><input id="mnF" inputmode="numeric" maxlength="4" placeholder="-"></div>'
           +'</div>'
-          +'<button class="okbtn" data-act="mna" style="width:100%;margin:8px 0 12px;'
+          +'<button class="okbtn pri" data-act="mna" style="width:100%;margin:8px 0 12px;'
           +'font-size:11px;font-weight:800;letter-spacing:.22em">'+TX('넣기')+'</button>';
         return hh;
       })();
@@ -10605,7 +10626,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-27 11:15';
+var BUILD='2026-09-27 12:30';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
