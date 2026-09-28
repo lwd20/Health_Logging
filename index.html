@@ -9104,6 +9104,8 @@ function chartCum(win){
     for(k=0;k<ps0.length;k++){q=ps0[k];
       if(q.v>chi)chi=q.v;if(q.v<clo)clo=q.v;if(q.g>chi)chi=q.g;}
   }
+  /* 목표선을 이레 끝까지 그리므로 자도 거기까지 담아야 한다 */
+  if(C.dfc>0&&C.dfc*7>chi)chi=C.dfc*7;
   if(!(chi>clo))chi=clo+100;
   if(chi<0)chi=0;
   if(clo>0)clo=0;
@@ -9173,22 +9175,33 @@ function chartCum(win){
     for(k=0;k<dl2.length;k++)if(dl2[k].on)
       g+='<text class="'+(dl2[k].fut?'fut':'')+'" x="'+dl2[k].x.toFixed(1)+'" y="'+(CBOT+13)
         +'" text-anchor="'+dl2[k].an+'">'+dl2[k].t+'</text>';
-    /* 선 · 칠 · 점선 */
+    /* 목표선은 미리 긋는다 — 주가 시작될 때 이미 정해져 있는 값이다
+       (하루 목표 × 그 주의 몇째 날). 예전에는 점이 생길 때마다 점끼리
+       이어 그렸다. 그래서 월요일에는 점 하나뿐이라 선이 아예 없었고,
+       칸이 통째로 빈 것처럼 보였다. 선을 먼저 그어 두면 점 하나도
+       '계획보다 위인지 아래인지' 로 읽힌다. */
+    function GC(d){return C.dfc*(Math.round((new Date(d)-new Date(mon))/86400000)+1);}
+    function GY(d){return CY(GC(d));}
+    if(C.dfc>0){
+      var rx0=x0+PAD,rx1=x0+PAD+IW,ry0=CY(C.dfc),ry1=CY(C.dfc*7);
+      g+='<polyline class="lRamp" points="'+rx0.toFixed(1)+','+ry0.toFixed(1)
+        +' '+rx1.toFixed(1)+','+ry1.toFixed(1)+'"/>';
+      CSEG.push([rx0,ry0,rx1,ry1]);
+    }
+    /* 선 · 칠 */
     var fin=[],tail=null;
     for(k=0;k<pts.length;k++){if(pts[k].part)tail=pts[k];else fin.push(pts[k]);}
-    var pc=[],pg=[];
-    for(k=0;k<fin.length;k++){
-      pc.push(PX(fin[k].d).toFixed(1)+','+CY(fin[k].v).toFixed(1));
-      pg.push(PX(fin[k].d).toFixed(1)+','+CY(fin[k].g).toFixed(1));
-    }
+    var pc=[];
+    for(k=0;k<fin.length;k++)pc.push(PX(fin[k].d).toFixed(1)+','+CY(fin[k].v).toFixed(1));
     if(fin.length>=2){
       for(k=1;k<fin.length;k++){
         var f0=fin[k-1],f1=fin[k];
         var fx0=PX(f0.d),fx1=PX(f1.d);
-        var fy0=CY(f0.v),fy1=CY(f1.v),gy0=CY(f0.g),gy1=CY(f1.g);
-        var e0=f0.v-f0.g,e1=f1.v-f1.g;      /* 목표와의 차이 */
+        var fy0=CY(f0.v),fy1=CY(f1.v),gy0=GY(f0.d),gy1=GY(f1.d);
+        /* 칠하는 넓이도 그 선을 기준으로 잰다 — 그리는 선과 재는 선이
+           다르면 칠이 선 밖으로 비어져 나온다 */
+        var e0=f0.v-GC(f0.d),e1=f1.v-GC(f1.d);
         CSEG.push([fx0,fy0,fx1,fy1]);
-        if(C.dfc>0)CSEG.push([fx0,gy0,fx1,gy1]);
         /* 선과 점선 사이를 칠한다 — 그 넓이가 곧 목표에 모자란 양이다.
            부호가 바뀌는 구간은 교차점에서 자른다. */
         function fq(cl,xa,ya,ga,xb,yb,gb){
@@ -9205,7 +9218,6 @@ function chartCum(win){
           fq((e1>=0?'cFill':'cFillN'),fxc,fyc,fyc,fx1,fy1,gy1);
         }
       }
-      if(C.dfc>0)g+='<polyline class="lRamp" points="'+pg.join(' ')+'"/>';
       g+='<polyline class="lCum" points="'+pc.join(' ')+'"/>';
     }else if(fin.length===1){
       g+='<circle class="dCum" cx="'+PX(fin[0].d).toFixed(1)+'" cy="'+CY(fin[0].v).toFixed(1)+'" r="2"/>';
@@ -9215,13 +9227,9 @@ function chartCum(win){
     if(tail){
       if(fin.length){
         var pv=fin[fin.length-1];
-        g+='<g class="tdy">'
-          +(C.dfc>0?'<polyline class="lRamp" points="'+PX(pv.d).toFixed(1)+','+CY(pv.g).toFixed(1)
-            +' '+PX(tail.d).toFixed(1)+','+CY(tail.g).toFixed(1)+'"/>':'')
-          +'<polyline class="lCum" points="'+PX(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
+        g+='<g class="tdy"><polyline class="lCum" points="'+PX(pv.d).toFixed(1)+','+CY(pv.v).toFixed(1)
           +' '+PX(tail.d).toFixed(1)+','+CY(tail.v).toFixed(1)+'"/></g>';
         CSEG.push([PX(pv.d),CY(pv.v),PX(tail.d),CY(tail.v)]);
-        if(C.dfc>0)CSEG.push([PX(pv.d),CY(pv.g),PX(tail.d),CY(tail.g)]);
       }
       g+='<circle class="dCumO" cx="'+PX(tail.d).toFixed(1)+'" cy="'+CY(tail.v).toFixed(1)+'" r="3"/>';
     }
@@ -10662,7 +10670,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-28 15:50';
+var BUILD='2026-09-28 16:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
