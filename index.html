@@ -1148,6 +1148,10 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .trg .gr{stroke:var(--line);stroke-width:1}
 .trg .vg{stroke:var(--line);stroke-width:1;opacity:.5}
 .trg .tk{stroke:var(--dim);stroke-width:1;opacity:.5}
+/* 아직 안 온 날 — 자리는 잡아 두되 물려 둔다. 그래야 빈 오른쪽이
+   '기록이 빠졌다' 가 아니라 '아직 안 왔다' 로 읽힌다 */
+.trg .tk.fut{opacity:.2}
+.trg text.fut{opacity:.35}
 .trg text{fill:var(--dim);font-family:var(--mono);font-size:8.5px}
 /* 적자는 accent 로 옅게 깔고 넘긴 날만 --sig. --pos 초록은 면적이 커서
    강조가 아니라 배경이 되고, 팔레트를 바꾸면 더 어긋난다.
@@ -9136,24 +9140,29 @@ function chartCum(win){
           +'" x2="'+x1.toFixed(1)+'" y2="'+ticks[k].y.toFixed(1)+'"/>';
     g+='<line class="zr" x1="'+x0.toFixed(1)+'" y1="'+cz.toFixed(1)+'" x2="'+x1.toFixed(1)
       +'" y2="'+cz.toFixed(1)+'"/>';
-    /* 날짜 — 그 주의 이레를 적는다. 이번 주는 오늘까지만(안 온 날을 적으면
-       기록이 빠진 날처럼 읽힌다). */
-    var lastOff=6;
-    if(mon===tMon)lastOff=Math.round((new Date(td)-new Date(mon))/86400000);
+    /* 날짜 — 그 주의 이레를 다 적는다.
+       예전에는 이번 주를 오늘까지만 적었다. '안 온 날을 적으면 기록이 빠진
+       날처럼 읽힌다' 는 까닭이었는데, 월요일에는 눈금 하나에 점 하나만 남아
+       칸이 통째로 빈 채로 보였다 — 고장으로 읽힌다.
+       이레를 다 그리되 안 온 날은 물려 둔다. 그러면 빈 오른쪽이 '아직 안 온
+       날' 로 읽힌다(이 칸이 원래 말하려던 것이 그것이다). */
+    var lastOff=6,todOff=99;
+    if(mon===tMon)todOff=Math.round((new Date(td)-new Date(mon))/86400000);
     /* 날짜를 먼저 재 둔다. 달은 맨 왼쪽 칸의 첫날과 달이 바뀌는 날에만
        붙인다 — 'M/D'(18px)는 칸 간격(20.3px)보다 커서 옆 날짜와 닿는다.
        닿는 것은 뺀다. 양끝은 그 주가 언제부터 언제까지인지를 말하므로 남긴다. */
     var dl2=[];
     for(k=0;k<=lastOff;k++){
       var dd=new Date(new Date(mon).getTime()+k*86400000),xx=x0+PAD+IW*k/6;
-      g+='<line class="tk" x1="'+xx.toFixed(1)+'" y1="'+CBOT+'" x2="'+xx.toFixed(1)
+      var ftu=(k>todOff);
+      g+='<line class="tk'+(ftu?' fut':'')+'" x1="'+xx.toFixed(1)+'" y1="'+CBOT+'" x2="'+xx.toFixed(1)
         +'" y2="'+(CBOT+3)+'"/>';
       var dt=((i===0&&k===0)||dd.getUTCDate()===1)
         ?((dd.getUTCMonth()+1)+'/'+dd.getUTCDate()):String(dd.getUTCDate());
       var an2=(k===0?'start':(k===lastOff&&lastOff===6?'end':'middle'));
       var dw2=dt.length*4.9;
       var dx0=(an2==='start')?xx:((an2==='end')?xx-dw2:xx-dw2/2);
-      dl2.push({x:xx,t:dt,an:an2,x0:dx0,x1:dx0+dw2,on:true});
+      dl2.push({x:xx,t:dt,an:an2,x0:dx0,x1:dx0+dw2,on:true,fut:ftu});
     }
     var prevR=dl2[0];
     for(k=1;k<dl2.length-1;k++){
@@ -9162,8 +9171,8 @@ function chartCum(win){
       prevR=dl2[k];
     }
     for(k=0;k<dl2.length;k++)if(dl2[k].on)
-      g+='<text x="'+dl2[k].x.toFixed(1)+'" y="'+(CBOT+13)+'" text-anchor="'
-        +dl2[k].an+'">'+dl2[k].t+'</text>';
+      g+='<text class="'+(dl2[k].fut?'fut':'')+'" x="'+dl2[k].x.toFixed(1)+'" y="'+(CBOT+13)
+        +'" text-anchor="'+dl2[k].an+'">'+dl2[k].t+'</text>';
     /* 선 · 칠 · 점선 */
     var fin=[],tail=null;
     for(k=0;k<pts.length;k++){if(pts[k].part)tail=pts[k];else fin.push(pts[k]);}
@@ -10653,7 +10662,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-28 13:10';
+var BUILD='2026-09-28 15:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
