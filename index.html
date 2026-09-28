@@ -4583,11 +4583,18 @@ function panelHtml(m){
          평균, 배지는 상위 n세트라 서로를 부정하고 있었다 — 5세트째를 가볍게
          얹으면 숫자는 내려가는데 배지는 '유지' 다.
          견줄 것이 없으면(첫 기록) 전 세트 평균이 그 세션의 정직한 값이다. */
-      var de=g2?g2.cur:e1rmAvg(ed);
+      /* 큰 수는 배지와 같은 자로 잰다 — 배지가 상위 n세트로 견주는데 숫자가
+         전 세트 평균이면 한 상자가 두 말을 한다. 그런데 일부러 가볍게 간 날에는
+         배지 자리에 '디로딩' 이 들어가 견줌이 아예 없다. 그때까지 n 을 맞추면,
+         오늘 기록이 똑같은데 앞 세션이 2세트냐 3세트냐에 따라 오늘의 e1RM 이
+         56.7 과 51.1 사이를 오간다 — 앞 세션이 오늘 숫자를 정하는 꼴이다.
+         견줄 것이 화면에 없으면 오늘 것만으로 잰다. */
+      var deSoft=!!softWhy(UI.wd);
+      var de=(!deSoft&&g2)?g2.cur:e1rmAvg(ed);
       var isPR=(function(){
         /* 과거 최고도 같은 n 으로 다시 잰다. 옛 값과 새 값을 섞어 견주면
            갱신일 자리에 가짜 PR 이 한 번 뜬다. */
-        var nn=g2?g2.n:0,pb=0,pi;
+        var nn=(!deSoft&&g2)?g2.n:0,pb=0,pi;
         for(pi=0;pi<past.length;pi++){
           var pv=nn?e1rmTopN(effSets(m,past[pi].s,past[pi].d),nn)
                    :e1rmAvg(effSets(m,past[pi].s,past[pi].d));
@@ -10670,7 +10677,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-28 16:35';
+var BUILD='2026-09-28 17:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
