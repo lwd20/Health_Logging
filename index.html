@@ -7275,8 +7275,67 @@ function paceCalc(bw,bf,gf){
   }
   return r;
 }
-/* paceInfo() 는 정의만 있고 부르는 데가 없어 뺐다 — 같은 값은
-   식단 카드의 .dfoot 과 몸 갈래가 각자 그린다 */
+/* 위 주석은 '같은 값을 식단 카드의 .dfoot 과 몸 갈래가 각자 그린다' 였다.
+   낡은 말이다 — .dfoot 은 CSS 만 남고 그리는 데가 없어졌고, 몸 갈래는
+   체중·체지방·골격근의 변화량만 적지 목표까지 얼마인지는 안 적는다.
+   그래서 paceCalc 가 내는 값이 안드로이드 위젯에만 살아 있었다. 감량의
+   첫 물음(얼마 남았나 · 언제 닿나 · 지금 속도가 안전한가)이 정작 감량
+   갈래에는 없었던 셈이다. 두 줄로 되돌린다.
+
+   새 탭을 파지 않고 추세 맨 위에 둔다. 탭을 하나 더 만들면 이 값이 두 번째
+   누름 뒤로 숨는데, 이건 갈래를 열자마자 볼 결론이지 찾아 들어갈 세부가
+   아니다. 지금은 날마다 섭취·소비 그림이 첫 자리를 갖고 있었다 — 결론보다
+   세부가 먼저였다. */
+function paceHtml(){
+  if(!bmr(BW,BF))return '';
+  var pc=paceCalc(BW,BF,GF);
+  /* 목표 체지방이 지금보다 높게 잡혀 있으면 뺄 것이 없다 — 줄을 안 그린다.
+     '0kg 남음' 을 적으면 목표를 잘못 넣은 것을 달성으로 읽게 된다. */
+  if(!(pc.tw<BW)&&!pc.done)return '';
+  var h=vzCap(TX('목표 · 남은 거리와 속도'));
+  /* 진행률은 처음 잰 인바디를 출발선으로 삼는다(위젯이 쓰는 그 자).
+     인바디가 없으면 출발선이 없다 — 막대 대신 남은 거리만 적는다. */
+  var bh=bhLoad(),sw=bh.length?bh[0].w:0,span=sw>0?Math.round((sw-pc.tw)*10)/10:0;
+  var goneKg=Math.round(Math.max(0,sw-BW)*10)/10;
+  var sub=TX1('{0} → {1}kg · 체지방 {2} → {3}% · {4}kg 남음',
+    fmtW(BW),fmtW(pc.tw),BF.toFixed(1),GF,fmtW(pc.remain));
+  if(pc.done)
+    /* 닿은 판에 '77.8 → 77.8kg · 체지방 20.0 → 25%' 를 적고 있었다. 화살표가
+       앞으로 갈 길을 뜻하는 자리라, 목표를 지금보다 느슨하게 잡아 둔 사람은
+       '살을 더 찌우라' 는 말로 읽는다. 닿았으면 길이 없다 — 지금 자리만 적는다. */
+    h+=vzLine(TX('감량 진행'),TX('목표 달성'),
+      TX1('체중 {0}kg · 체지방 {1}% (목표 {2}%)',fmtW(BW),BF.toFixed(1),GF),
+      {t:TX('달성'),c:'pos'});
+  else if(span>0)
+    h+=vzBar(TX('감량 진행'),goneKg,span,sub,{t:'',c:''},false);
+  else
+    h+=vzLine(TX('목표까지'),fmtW(pc.remain)+' kg',sub,{t:'',c:''});
+  if(pc.done)return h;
+  /* 판정은 속도에 대한 말이라 속도가 적힌 줄에 붙인다. 과속만 경고색을 준다 —
+     이 앱에서 서두르다 잃는 것은 근육이고, 그것이 1순위로 막는 일이다. */
+  if(!pc.ok)
+    return h+vzLine(TX('예상 도착'),TX('기록 부족'),
+      TX('체중을 이레 이상 걸쳐 두 번 넘게 재면 나옴'),{t:'',c:''});
+  var vd=(pc.tag.indexOf('과속')>=0)?{t:TX('과속 — 근손실 주의'),c:'neg'}
+        :(pc.tag.indexOf('증량')>=0?{t:TX('증량 추세'),c:'warn'}
+        :(pc.tag.indexOf('변화')>=0?{t:TX('변화 없음'),c:'warn'}
+        :(pc.tag.indexOf('부족')>=0?{t:TX('페이스 부족'),c:'warn'}
+        :{t:TX('페이스 양호'),c:'pos'})));
+  /* 무엇을 얼마나 보고 낸 값인지 밝힌다 — 84일치 기울기를 '지금' 으로 읽으면
+     안 된다. 창을 넓혀야 했던 판(stale)은 그 사실까지 적는다. */
+  var how=TX1('실측 {0}kg/주 (목표 -{1}) · {2}',
+    (pc.rate>0?'+':'')+pc.rate.toFixed(2),WR,pc.how)
+    +(pc.stale?TX(' · 최근 기록 성김'):'');
+  /* 늘거나 멈춘 판에는 도착이 없다. 빈 날짜 대신 왜 없는지를 적는다 —
+     '—' 만 두면 앱이 계산을 못 한 것처럼 읽힌다. */
+  if(!(pc.rate<0))
+    return h+vzLine(TX('예상 도착'),TX('지금 속도로는 없음'),how,vd);
+  /* pc.eta 는 '01-20' 꼴인데 앱은 어디서나 md() 의 '1/20' 을 쓴다. 한 화면에
+     두 날짜 표기가 섞이면 같은 자로 안 읽힌다 — 날수에서 다시 낸다. */
+  var e=new Date();e.setDate(e.getDate()+pc.days);
+  return h+vzLine(TX('예상 도착'),
+    TX1('{0} · {1}주',(e.getMonth()+1)+'/'+e.getDate(),pc.weeks),how,vd);
+}
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
   var z1=Math.round(hrm*0.6),z2=Math.round(hrm*0.7);
@@ -9633,6 +9692,9 @@ function vzBody(tab){
   tab=tab||'chg';
   var h='';
   if(tab==='chg'){
+    /* 결론이 맨 위다 — 얼마 남았나 · 언제 닿나 · 지금 속도가 안전한가.
+       아래 그림들은 그 수가 어떻게 나왔는지를 푸는 자리다. */
+    h+=paceHtml();
     /* 요청은 '매일 먹는 음식, 매일 하는 운동의 추이' 였다. 그것부터 그린다 —
        체중을 언제 쟀는지와 무관하게 날마다 있는 자료다. */
     /* 창을 한 번 잡아 두 그림과 요약이 나눠 쓴다 */
@@ -10837,7 +10899,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:02';
+var BUILD='2026-10-01 00:10';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11652,6 +11714,25 @@ var EN={
 '먹을 수 있는 양':'Can eat today',
 '오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
 '단백질 목표':'Protein target',
+/* 목표 줄 — 남은 거리와 속도 */
+'목표 · 남은 거리와 속도':'Goal · distance and pace',
+'감량 진행':'Cut progress',
+'목표까지':'To goal',
+'목표 달성':'Goal reached',
+'달성':'Reached',
+'{0} → {1}kg · 체지방 {2} → {3}% · {4}kg 남음':'{0} → {1}kg · body fat {2} → {3}% · {4}kg to go',
+'체중 {0}kg · 체지방 {1}% (목표 {2}%)':'{0}kg · body fat {1}% (goal {2}%)',
+'예상 도착':'Arrival',
+'{0} · {1}주':'{0} · {1} wks',
+'지금 속도로는 없음':'Not at this pace',
+'체중을 이레 이상 걸쳐 두 번 넘게 재면 나옴':'Needs 2+ weigh-ins spanning a week or more',
+'실측 {0}kg/주 (목표 -{1}) · {2}':'Measured {0}kg/wk (target -{1}) · {2}',
+' · 최근 기록 성김':' · recent records sparse',
+'과속 — 근손실 주의':'Too fast — muscle at risk',
+'증량 추세':'Gaining',
+'변화 없음':'No change',
+'페이스 부족':'Behind pace',
+'페이스 양호':'On pace',
 /* 적자 줄 — 잣대(전 주·전 달)를 부제 괄호로 접은 꼴 */
 ' (전 주 {0})':' (prev wk {0})',
 ' (전 달 {0})':' (prev mo {0})',
