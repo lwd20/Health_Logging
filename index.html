@@ -497,6 +497,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .setr .sv{margin-left:auto;display:flex;align-items:baseline;gap:7px;font-size:10px;color:var(--dim);letter-spacing:.02em}
 .setr .sv u{text-decoration:none;font-size:10px;color:var(--dim)}
 .lmunk{margin:8px 2px 0;font-size:10px;color:var(--dim);line-height:1.45}
+/* 어디서 까먹었는지 — 안내문 아래 한 칸 들여 붙인다. 수를 적은 줄과 같은
+   크기로 두면 둘이 같은 급으로 보이는데, 이쪽은 그 줄의 명세다. */
+.lmwho{margin:3px 0 0 1px;font-family:var(--mono);font-size:9.5px;
+  color:var(--mut);line-height:1.5;letter-spacing:-.01em}
 /* 도달일이 안 나오는 상태 — 날짜 배지 자리에 이유가 들어가므로 색을 달리한다 */
 /* 배경을 깔면 --sig 가 밀려 올라가 5개 팔레트에서 4.5 아래로 떨어졌다(최저 3.87).
    평소 배지와 같은 모양에 색만 바꾼다 — 이미 검증된 조합이다. */
@@ -5085,7 +5089,7 @@ function helpHtml(){
       +hRow(TX('세트 누르기'),TX('값을 불러와 수정 · 버튼이 <em>Update</em>로 바뀜 · 다시 누르면 취소'))
       +hRow(TX('× 누르기'),TX('처음엔 붉게 변하기만 하고 한 번 더 눌러야 지워짐'))
       +hRow(TX('RIR 원'),TX('누를 때마다 미입력 → 0 → 1 → 2 → 3 → 4+ 순환'))
-      +hRow(TX('유효 세트'),TX('RIR 3 이하만 볼륨으로 셈. 4+ 는 안 셈. 미입력은 세되 미확인으로 표시함'));
+      +hRow(TX('유효 세트'),TX('RIR 3 이하만 볼륨으로 셈. 4+ 는 안 셈. 미입력은 부위별 세트에는 들되 주동근 눈금에서는 빠짐'));
     h+=hCap(TX('RIR · 남은 반복'))
       +hRow(TX('안 넣어도 됨'),TX('비워두면 무게와 반복만으로 판정함'))
       +hRow('0~1',TX('실패 직전까지 밀어붙임 · 붉게 표시'))
@@ -7771,13 +7775,24 @@ function unkWeek(){
   function is3(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
   var days={},q,t;
   for(q=0;q<7;q++){t=new Date(mon);t.setDate(mon.getDate()+q);days[is3(t)]=1;}
-  var tot=0,i,j;
+  /* 개수만 돌려주고 있었다 — '이번 주 3세트 미입력' 을 읽은 사람이 할 수 있는
+     일이 LOG 를 날마다 열어 보는 것뿐이었다. 앱은 어느 날 어느 종목인지 이미
+     알고 있으면서 안 말했다. 찾아가야 고칠 수 있으니 어디인지 같이 낸다.
+     수를 쓰던 자리는 그대로 두고(.n) 명세를 붙인다. */
+  var tot=0,i,j,who=[];
   for(i=0;i<S.m.length;i++){
     var m=S.m[i];if(isCard(m.p))continue;
     var a=S.l[m.i]||[];
-    for(j=0;j<a.length;j++)if(days[a[j].d]&&!sesCard(m,a[j]))tot+=hardOf(a[j].s).unk;
+    for(j=0;j<a.length;j++){
+      if(!days[a[j].d]||sesCard(m,a[j]))continue;
+      var u=hardOf(a[j].s).unk;
+      if(!u)continue;
+      tot+=u;who.push({d:a[j].d,n:m.n,u:u});
+    }
   }
-  return tot;
+  /* 가까운 날부터 — 어제 까먹은 것이 지지난 주 것보다 기억에 남아 있다 */
+  who.sort(function(x,y){return x.d<y.d?1:(x.d>y.d?-1:0);});
+  return {n:tot,who:who};
 }
 function wkSets(){
   var nowd=new Date(),dw=(nowd.getDay()+6)%7;
@@ -10519,12 +10534,22 @@ function vzTrain(tab){
   /* 디로딩 주에는 안 띄운다 — 그 주에는 RIR 이 어느 판정에도 안 쓰인다
      (증량 지시·피로 신호·진전 셈이 전부 그 주를 건너뛴다). 쓰이지도 않는
      것을 안 적었다고 나무라는 줄이 된다. */
-  var uk=isDeload()?0:unkWeek();
-  if(uk>0)h+='<div class="lmunk">'
+  var ukw=isDeload()?{n:0,who:[]}:unkWeek();
+  if(ukw.n>0){
     /* '세트에 포함은 됨' 이라 적혀 있었는데, 바로 위 눈금(mmCnt)은 미입력을
        빼고 센다 — 줄이 제 위의 막대를 두고 거짓을 말하고 있었다.
        RIR 3세트를 RIR 없이 적으면 저 막대가 3이 아니라 0이다. */
-    +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 세트로 못 셈 — 위 눈금에서 빠짐(부위별 세트에는 들어감)',uk)+'</div>';
+    h+='<div class="lmunk">'
+      +TX1('이번 주 <b>{0}세트</b>는 RIR 미입력이라 유효 세트로 못 셈 — 위 눈금에서 빠짐(부위별 세트에는 들어감)',ukw.n);
+    /* 어디인지 적는다. 다섯을 넘으면 목록이 되어 안내가 아니라 표가 된다 —
+       가까운 날 넷만 적고 나머지는 수로 남긴다. */
+    var uh='',uq,un=Math.min(4,ukw.who.length);
+    for(uq=0;uq<un;uq++)
+      uh+=(uh?' · ':'')+md(ukw.who[uq].d)+' '+esc(ukw.who[uq].n)
+        +(ukw.who[uq].u>1?' '+ukw.who[uq].u:'');
+    if(ukw.who.length>un)uh+=TX1(' 외 {0}곳',ukw.who.length-un);
+    h+='<div class="lmwho">'+uh+'</div></div>';
+  }
   }
   if(tab==='acsm'){
   /* ACSM 성인 권고를 100점 하나로 답한다. 옛 화면은 유산소 막대·반복 막대·
@@ -10934,7 +10959,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:16';
+var BUILD='2026-10-01 00:22';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11749,6 +11774,7 @@ var EN={
 '먹을 수 있는 양':'Can eat today',
 '오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
 '단백질 목표':'Protein target',
+' 외 {0}곳':' +{0} more',
 /* 목표 줄 — 남은 거리와 속도 */
 '목표 · 남은 거리와 속도':'Goal · distance and pace',
 '감량 진행':'Cut progress',
@@ -12595,7 +12621,7 @@ var EN={
 'Gemini · 권장':'Gemini · recommended',
 'MAV 구간':'The MAV range',
 'MEV에서 MAV까지':'MEV up to MAV',
-'RIR 3 이하만 볼륨으로 셈. 4+ 는 안 셈. 미입력은 세되 미확인으로 표시함':'Only RIR 3 or under counts as volume. 4+ does not. Blank counts but is flagged unconfirmed',
+'RIR 3 이하만 볼륨으로 셈. 4+ 는 안 셈. 미입력은 부위별 세트에는 들되 주동근 눈금에서는 빠짐':'Only RIR 3 or under counts as volume. 4+ does not. Blank counts in sets-by-part but is left out of the per-muscle bars',
 'RIR · 남은 반복':'RIR · reps in reserve',
 'RIR 원':'RIR circle',
 'n세트 배지':'n-set badge',
