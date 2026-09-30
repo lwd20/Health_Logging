@@ -1212,6 +1212,22 @@ html[lang=en] .dbody .fk{flex-basis:70px}
    경고가 된다. 칸이 클수록 조용하게, 내가 움직인 몫만 밝게. */
 /* 목표 트랙 — 출발·지금·목표를 한 자 위에 놓는다. '2.2/6.8' 로 적으면 그 둘을
    나눠 어디쯤인지를 머리로 그려야 하는데, 거리는 눈이 먼저 안다. */
+/* 단백질 일별 — 0 에서 키운 막대를 먼저 그려 봤더니 스무 날이 전부 목표선에
+   붙어 버렸다. 오가는 폭이 108~172g 인데 눈금이 0 부터라, 정작 볼 구간이 위쪽
+   30% 에 눌려 앉은 것이다. 눈금을 잘라 펴는 길도 있지만 그러면 10% 모자란 날이
+   60% 모자란 날처럼 보인다.
+   기준선을 0 이 아니라 목표에 둔다. 막대는 모자란 만큼만 아래로 드리운다 —
+   채운 날은 선에 붙은 짧은 토막이고, 무너진 날만 길게 떨어진다. 넘긴 날을 위로
+   안 올리는 까닭은 단백질에서 초과가 잘못이 아니기 때문이다. 그릴 것이 없다. */
+.prwrap{margin:9px 2px 2px}
+.prbars{position:relative;display:flex;align-items:flex-start;gap:2px;height:46px;
+  padding-top:1px;border-top:1px dashed rgba(var(--tx-rgb),.38)}
+.prbars>span{flex:1 1 0;min-width:0;display:flex;align-items:flex-start;height:100%}
+.prbars>span>i{display:block;width:100%;border-radius:0 0 2px 2px;background:var(--sig)}
+.prbars>span.ok>i{background:rgba(var(--acc-rgb),.5)}
+.prax{display:flex;justify-content:space-between;margin-top:4px;
+  font-family:var(--mono);font-size:9px;color:var(--dim)}
+.prax b{font-weight:700;color:var(--mut)}
 .pctr{margin:10px 2px 2px}
 .pcb{position:relative;display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--inset)}
 .pcb>i{display:block;height:100%}
@@ -3498,7 +3514,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'wk',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -8999,7 +9015,7 @@ var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['rout','루틴']];
 /* '오늘' 은 감량 갈래로 옮겼다 — 오늘 얼마를 먹을 수 있나는 식단 분석이
    아니라 오늘 할 일이고, 감량 갈래를 여는 까닭이 그것이다. 여기 남는 둘은
    지나간 섭취를 되짚는 자리라 성격이 한 덩어리로 맞는다. */
-var VZD=[['wk','주간'],['avg','평균']];
+var VZD=[['pro','단백질'],['eat','섭취']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
 /* 식단 갈래를 '평균' 으로 바꿔 '추이' 와의 엉킴이 없어졌다 */
@@ -10732,6 +10748,88 @@ function macroWeek(nf){
     +row(TX('지방'),af,mg?mg.f:0,af*9);
   return h;
 }
+/* 단백질만 따로 세는 자리. 칼로리는 날마다 지켰는지 세면서(daysOnTarget/
+   Over/Under) 단백질은 completedDaysAvgProtein 하나, 곧 평균만 있었다.
+   평균 150g 은 200·200·50 일 수도 있는데, 근손실 방어에서 그 셋은 전혀
+   다른 일이다. 날짜별 값(byDay[].protein)은 이미 있었고 안 쓰였을 뿐이다.
+
+   칼로리 격자를 그대로 못 쓴다. 저쪽은 초과와 부족이 둘 다 벌점이라 위아래로
+   솟는 칸인데, 단백질은 더 먹어서 나쁠 것이 없다 — 채웠나 못 채웠나 한 쪽뿐이다.
+   방향이 다른 자를 같은 그림에 쓰면 읽는 사람이 초과를 잘못으로 읽는다. */
+function proDays(nf){
+  if(!nf||!nf.byDay)return null;
+  var k,a=[];
+  for(k in nf.byDay){
+    var r=nf.byDay[k];
+    if(r.partial)continue;                 /* 오늘은 아직 안 끝났다 */
+    if(!(r.protein>0)&&!(r.kcal>0))continue;
+    a.push({d:k,p:Math.round(r.protein||0)});
+  }
+  a.sort(function(x,y){return x.d<y.d?-1:1;});
+  return a.length?a:null;
+}
+function proHtml(nf){
+  var a=proDays(nf);
+  var goal=(BW>0)?Math.round(BW*PRO_PER_KG):0;
+  if(!a||!(goal>0))
+    return vzLine(TX('단백질'),TX('기록 부족'),
+      TX('끼니 기록과 설정 체중이 있어야 날마다 셈'),{t:'',c:''});
+  /* 딱 맞춰 먹는 사람은 없다. 목표에서 조금 모자란 날까지 미달로 세면
+     매일이 빨강이 되어 '어느 날이 진짜 무너졌나' 가 안 보인다. 5% 를 둔다 —
+     160g 에서 8g, 계란 하나가 조금 넘는 폭이다. */
+  var band=Math.max(5,Math.round(goal*0.05));
+  var i,ok=0,miss=[],sum=0,wd=[0,0,0,0,0,0,0],wdN=[0,0,0,0,0,0,0];
+  for(i=0;i<a.length;i++){
+    sum+=a[i].p;
+    var w=(new Date(a[i].d).getDay()+6)%7;   /* 월=0 */
+    wdN[w]++;
+    if(a[i].p>=goal-band)ok++;
+    else{miss.push(a[i]);wd[w]++;}
+  }
+  var n=a.length,avg=Math.round(sum/n);
+  var h=vzCap(TX1('단백질 · 최근 {0}일',n)
+    +'<span class="rtsub">'+TX1('목표 {0}g',goal)+'</span>');
+  /* 날마다 한 칸. 기준선이 목표라 드리운 길이가 곧 모자란 g 이다.
+     눈금은 가장 크게 모자랐던 날에 맞춘다 — 목표의 절반까지는 봐 준다.
+     한 번도 안 무너진 주에 눈금을 그날들에 맞추면 2g 모자란 날이 바닥까지
+     떨어져 보이므로, 바닥을 목표의 15% 로 깔아 둔다. */
+  var worst=0;
+  for(i=0;i<n;i++)if(goal-a[i].p>worst)worst=goal-a[i].p;
+  var mx=Math.max(worst,goal*0.15);
+  var bars='';
+  for(i=0;i<n;i++){
+    var sh=goal-a[i].p,met=(a[i].p>=goal-band);
+    /* 채운 날도 칸을 그린다 — 안 그리면 기록이 없는 날과 구분이 안 된다 */
+    var pct=met?6:Math.max(10,Math.min(100,sh/mx*100));
+    bars+='<span class="'+(met?'ok':'')+'" title="'+md(a[i].d)+' '+a[i].p+'g'
+      +(met?'':' ('+Math.round(sh)+'g 모자람)')+'"><i style="height:'
+      +pct.toFixed(1)+'%"></i></span>';
+  }
+  h+='<div class="prwrap"><div class="prbars">'+bars+'</div>'
+    +'<div class="prax"><i>'+md(a[0].d)+'</i>'
+    +'<i><b>'+TX1('아래로 드리운 길이 = 모자란 g',0)+'</b></i>'
+    +'<i>'+md(a[n-1].d)+'</i></div></div>';
+  var vd=(ok===n)?{t:TX('전부 채움'),c:'pos'}
+        :(ok>=Math.ceil(n*0.8)?{t:'',c:''}:{t:TX('자주 모자람'),c:'warn'});
+  h+=vzBar(TX('채운 날'),ok,n,
+    TX1('평균 {0}g · {1} g/kg · 목표 {2}g (±{3} 안)',
+        avg,Math.round(avg/BW*10)/10,goal,band),vd,false);
+  if(miss.length){
+    /* 몇 일인지만 알면 고칠 데를 모른다. 어느 요일에 몰렸는지와 얼마나
+       모자랐는지가 다음에 할 일을 정한다 — 특정 요일이면 그 날 일정을,
+       고르게 흩어져 있으면 하루 기본 섭취를 손봐야 한다. */
+    var WDN=TX('월,화,수,목,금,토,일').split(','),q,tops=[];
+    for(q=0;q<7;q++)if(wd[q])tops.push({w:q,c:wd[q]});
+    tops.sort(function(x,y){return y.c-x.c;});
+    var tl='',sm=0;
+    for(q=0;q<Math.min(3,tops.length);q++)
+      tl+=(tl?' · ':'')+WDN[tops[q].w]+' '+tops[q].c+TX('회');
+    for(q=0;q<miss.length;q++)sm+=goal-miss[q].p;
+    h+=vzLine(TX('못 채운 날'),miss.length+TX('일'),
+      TX1('{0} · 평균 {1}g 모자람',tl,Math.round(sm/miss.length)),{t:'',c:''});
+  }
+  return h;
+}
 function vzDiet(tab){
   tab=tab||'today';
   var nf=nutriFacts();
@@ -10867,7 +10965,8 @@ function vzDiet(tab){
     if(exT>0)h+=vzLine(TX('운동으로 번 몫'),'+'+exT.toLocaleString()+' kcal',
       TX('오늘 운동한 만큼 먹을 수 있는 양이 늘어남'),{t:'',c:'pos'});
   }
-  if(tab==='wk'){
+  if(tab==='pro')h+=proHtml(nf);
+  if(tab==='eat'){
     var mw=macroWeek(nf);
     h+=vzCap(TX('탄단지')+'<span class="rtsub">'+TX('이번 주 · 월~일')+'</span>');
     if(mw)h+=mw;
@@ -10890,7 +10989,7 @@ function vzDiet(tab){
         :vzLine(TX('이번 주'),TX('기록 없음'),hcWhyLine(),{t:'',c:''});
     }
   }
-  if(tab==='avg'&&nf.completedDaysCount>0){
+  if(tab==='eat'&&nf.completedDaysCount>0){
     /* 평균 한 줄은 '얼마나' 는 말해도 '언제' 를 못 말한다. 같은 +122 가
        고르게 지킨 세 주일 수도 토요일마다 무너진 세 주일 수도 있고, 둘은
        다음에 할 일이 다르다. 평균이 크기를, 격자가 자리를 맡는다 —
@@ -10911,7 +11010,7 @@ function vzDiet(tab){
            nf.daysOverTarget||0,nf.daysUnderTarget||0),'');
     else h+=dgWeekGrid(nf);
   }
-  if(tab==='avg'&&!(nf.completedDaysCount>0))
+  if(tab==='eat'&&!(nf.completedDaysCount>0))
     h+=vzLine(TX('끝난 날'),TX('기록 없음'),TX('하루가 더 쌓이면 평균이 나옴'),{t:TX('기록 없음'),c:''});
   /* 이 블록이 tab 검사 밖에 있어 평균 갈래에서도 오늘 수를 그렸다. 그래서
      머리줄은 '목표 1,805'(끝난 날 평균) 인데 세 줄 밑 막대는 '섭취 1,728'(오늘)
@@ -10920,14 +11019,19 @@ function vzDiet(tab){
      실적(AvgIntake)이 아니라 목표(AvgTarget)를 넘긴다 — 실적을 넣으면 머리줄
      큰 수가 막대에 또 찍혀 같은 말이 두 번 되고, 블록 뜻이 '기준' 에서
      '실적' 으로 바뀐다. */
-  var useAvg=(tab==='avg'&&nf.completedDaysCount>0&&nf.completedDaysAvgTarget>0);
-  h+=vzCap(useAvg?TX('기준 · 끝난 날 평균'):TX('기준'))
-    +vzLine(TX('하루 적자 목표'),Math.round(nf.dailyDeficitTarget)+' kcal',
-    TX1('주당 -{0}kg 에서 나옴',WR),'')
-    /* 550 이라는 수 하나로는 어디서 나온 것인지 알 수가 없다.
-       적자는 소비와 섭취의 차이이므로 그 차이를 그린다. */
-    +deficitBars(useAvg?nf.completedDaysAvgTdee:nf.todayTdee,
-                 useAvg?nf.completedDaysAvgTarget:nf.todayTargetIntake);
+  /* 기준 덩이는 탭 검사 밖에 있어 어느 갈래를 열어도 따라붙었다. 단백질
+     갈래에서는 할 말이 아니다 — 거기서 묻는 것은 g 이지 적자가 아니고,
+     적자 이야기는 감량 갈래가 이미 세 군데에서 한다. 열량을 보는 자리에만 둔다. */
+  if(tab!=='pro'){
+    var useAvg=(tab==='eat'&&nf.completedDaysCount>0&&nf.completedDaysAvgTarget>0);
+    h+=vzCap(useAvg?TX('기준 · 끝난 날 평균'):TX('기준'))
+      +vzLine(TX('하루 적자 목표'),Math.round(nf.dailyDeficitTarget)+' kcal',
+      TX1('주당 -{0}kg 에서 나옴',WR),'')
+      /* 550 이라는 수 하나로는 어디서 나온 것인지 알 수가 없다.
+         적자는 소비와 섭취의 차이이므로 그 차이를 그린다. */
+      +deficitBars(useAvg?nf.completedDaysAvgTdee:nf.todayTdee,
+                   useAvg?nf.completedDaysAvgTarget:nf.todayTargetIntake);
+  }
   return '<div class="anlviz">'+h+'</div>';
 }
 
@@ -10983,7 +11087,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:32';
+var BUILD='2026-10-01 00:43';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11799,6 +11903,19 @@ var EN={
 '오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
 '단백질 목표':'Protein target',
 ' 외 {0}곳':' +{0} more',
+/* 단백질 갈래 */
+'단백질 · 최근 {0}일':'Protein · last {0} days',
+'목표 {0}g':'goal {0}g',
+'아래로 드리운 길이 = 모자란 g':'drop = grams short',
+'채운 날':'Days met',
+'못 채운 날':'Days short',
+'전부 채움':'All met',
+'자주 모자람':'Often short',
+'평균 {0}g · {1} g/kg · 목표 {2}g (±{3} 안)':'avg {0}g · {1} g/kg · goal {2}g (±{3})',
+'{0} · 평균 {1}g 모자람':'{0} · {1}g short on average',
+'끼니 기록과 설정 체중이 있어야 날마다 셈':'Needs meal records and a body weight in settings',
+'회':'x',
+'일':'d',
 /* 목표 줄 — 남은 거리와 속도 */
 '목표 · 남은 거리와 속도':'Goal · distance and pace',
 '감량 진행':'Cut progress',
