@@ -8928,11 +8928,26 @@ function cumWin(win){
    총액이 내려가므로) 한 달은 한 덩이로 센다 — 주 경계가 끼어들 이유가 없다.
    오늘은 뺀다: 소비는 하루치 전부인데 섭취는 먹은 데까지라 아침에는 적자가
    부풀어 있어, 한 달 총액에 그 반쪽을 얹으면 수가 늘 조금씩 크다. */
-function cumMonth(){
-  var a=trendRows(30),i,sum=0,n=0,d0=null,d1=null,dfc=0;
+/* 달은 달력으로 끊는다. '최근 30일' 은 창이 날마다 밀려서, 어제 본 수와
+   오늘 본 수가 같은 물음의 답이 아니다 — 새로 먹은 것이 없어도 가장 오래된
+   날이 빠지며 총액이 움직인다(주 단위를 월요일에 0 으로 되돌린 것과 같은
+   까닭이다). 1일에 0 으로 돌아가야 달마다 같은 자로 잰다.
+   back: 0 이번 달(1일~오늘) · 1 전 달(1일~말일). */
+function cumMon(back){
+  back=back||0;
+  var t=new Date(),s0=new Date(t.getFullYear(),t.getMonth()-back,1);
+  var s1=new Date(t.getFullYear(),t.getMonth()-back+1,0);
+  function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+  var a0=iso(s0),a1=iso(s1),td=todayISO();
+  if(a1>td)a1=td;                       /* 이번 달은 오늘까지 */
+  if(a0>td)return null;
+  /* 그 달 1일까지 닿을 만큼만 불러온다 — 넉넉히 이틀 더 */
+  var back0=Math.round((new Date(td)-new Date(a0))/86400000)+2;
+  var a=trendRows(Math.min(200,back0)),i,sum=0,n=0,d0=null,d1=null,dfc=0;
   for(i=0;i<a.length;i++){
     var r=a[i];
     if(r.ate==null||r.part)continue;
+    if(r.d<a0||r.d>a1)continue;
     sum+=(r.base+r.ex)-r.ate;n++;
     if(!d0)d0=r.d;
     d1=r.d;
@@ -9640,16 +9655,20 @@ function vzBody(tab){
          한 번 어긋나면 그 주가 통째로 나빠 보이고, 잘 한 주도 그 주에서
          끝난다. 한 달은 그 흔들림을 눌러 준다. 맨 아래에 둔다: 먼저 볼
          것은 이번 주고, 이것은 그 수를 놓고 볼 잣대다. */
-      var cm=cumMonth();
-      if(cm&&cm.dfc>0&&cm.n>=3){
+      /* 이번 달과 전 달. 이번 달 수 하나만으로는 좋은지 나쁜지가 안 정해진다 —
+         바로 앞 달이 그 잣대다(주 단위에서 '전 주' 를 붙인 것과 같다).
+         전 달은 끝난 달이라 몇 일 걸렀는지까지 그대로 적는다. */
+      [[0,TX('이번 달 누적')],[1,TX('전 달 누적')]].forEach(function(mrow){
+        var cm=cumMon(mrow[0]);
+        if(!(cm&&cm.dfc>0&&cm.n>=3))return;
         var bndM=okBand(cm.dfc)*Math.sqrt(cm.n);
         var vdM=(cm.v<0)?{t:TX('초과'),c:'neg'}
                :(cm.v>=cm.goal+bndM?{t:TX('목표 이상'),c:'pos'}
                :(cm.v>=cm.goal-bndM?{t:'',c:''}:{t:TX('목표 미달'),c:'warn'}));
-        h+=vzBar(TX('최근 한 달 누적'),cm.v,cm.goal,
+        h+=vzBar(mrow[1],cm.v,cm.goal,
           (cm.v<0?TX1('{0}~{1} {2}일 · {3}kcal 초과 · 체중 {4}',md(cm.d0),md(cm.d),cm.n,Math.abs(cm.v).toLocaleString(),kgOf(cm.v))
                  :TX1('{0}~{1} {2}일 · 체중 {3} (목표 {4})',md(cm.d0),md(cm.d),cm.n,kgOf(cm.v),kgOf(cm.goal))),vdM,false);
-      }
+      });
     }else h+=vzLine(TX('섭취와 소비'),TX('기록 부족'),
       TX('식사 기록이 이틀 이상 쌓이면 그려짐 · 삼성헬스에서 넘어옴'),{t:'',c:''});
     var bd2=chartBody(WIN);
@@ -10677,7 +10696,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-09-28 17:20';
+var BUILD='2026-09-30 10:15';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11681,6 +11700,8 @@ var EN={
 '종목 목록':'Exercise list',
 '그 외':'Others',
 '최근':'Last',
+'이번 달 누적':'This month',
+'전 달 누적':'Last month',
 '아이폰은 삼성헬스 연동이 안 됨 — 섭취가 안 들어옴':'iPhone cannot sync with Samsung Health — no intake arrives',
 '탄단지 없음':'No macros',
 '{0}일치 섭취는 들어왔는데 탄·단·지가 안 적혀 있음 — 삼성헬스에 열량만 있는 날임':'{0} day(s) of intake arrived without protein/carb/fat — those days only have calories in Samsung Health',
@@ -11825,7 +11846,6 @@ var EN={
 '접기 · 오른쪽 화살표':'Fold · chevron',
 '접기 · 바탕 제목':'Fold · filled title',
 '접기 · 모노 제목':'Fold · mono title',
-'최근 한 달 누적':'Last 30 days',
 '한 달':'1 month',
 '분기':'Quarter',
 '반기':'Half year',
