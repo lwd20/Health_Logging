@@ -1206,6 +1206,20 @@ html[lang=en] .dbody .fk{flex-basis:70px}
    위 세 칸은 지방·근육 손실용이라 신호색을 쓰는데, 여기 그 색을 물려받으면
    기초대사가 막대의 80%를 빨강으로 칠한다 — 아무 일도 없는 날에 화면이
    경고가 된다. 칸이 클수록 조용하게, 내가 움직인 몫만 밝게. */
+/* 목표 트랙 — 출발·지금·목표를 한 자 위에 놓는다. '2.2/6.8' 로 적으면 그 둘을
+   나눠 어디쯤인지를 머리로 그려야 하는데, 거리는 눈이 먼저 안다. */
+.pctr{margin:10px 2px 2px}
+.pcb{position:relative;display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--inset)}
+.pcb>i{display:block;height:100%}
+.pcb>i.go{background:rgba(var(--acc-rgb),.5)}
+.pcb>b{position:absolute;top:-3px;width:3px;height:14px;border-radius:2px;
+  background:var(--acc-br);transform:translateX(-50%)}
+.pcn{position:relative;height:14px;margin-top:6px;font-family:var(--mono);
+  font-size:9.5px;color:var(--dim);letter-spacing:-.01em}
+.pcn>i{position:absolute;top:0;white-space:nowrap}
+.pcn>i.s{left:0}
+.pcn>i.e{right:0}
+.pcn>i.c{transform:translateX(-50%);color:var(--tx);font-weight:800;font-size:10.5px}
 .lbb.brn>i.b1{background:rgba(var(--tx-rgb),.20)}
 .lbb.brn>i.b2{background:rgba(var(--acc-rgb),.42)}
 .lbb.brn>i.b3{background:var(--acc-br)}
@@ -7286,6 +7300,21 @@ function paceCalc(bw,bf,gf){
    누름 뒤로 숨는데, 이건 갈래를 열자마자 볼 결론이지 찾아 들어갈 세부가
    아니다. 지금은 날마다 섭취·소비 그림이 첫 자리를 갖고 있었다 — 결론보다
    세부가 먼저였다. */
+/* 출발선. 처음 잰 기록을 쓰고 있었다(위젯이 쓰던 그 자) — 그런데 그 한 점이
+   우연히 저점이면 막대가 영영 0 에 붙는다. 77.8 에서 시작해 79.4 를 찍고 다시
+   77.8 로 온 사람은 '0 / 3.7' 을 보게 되는데, 그 수는 아무 말도 안 한다.
+   기록 중 가장 무거웠던 날을 출발선으로 삼는다. 오르내려도 뜻이 유지되고,
+   찌면 출발선이 따라 올라가 진행이 부풀지 않는다. */
+function paceStart(){
+  var bh=bhLoad(),i,mx=0;
+  for(i=0;i<bh.length;i++)if(bh[i].w>mx)mx=bh[i].w;
+  /* 체중계만 쓰는 사람은 인바디가 없다 — 그쪽 최고치도 같이 본다 */
+  if(HC.w)for(i in HC.w){var v=swDay(i);if(v>mx)mx=v;}
+  return Math.max(mx,BW);
+}
+/* 거리는 수보다 그림이 빠르다. '2.2 / 6.8' 은 둘을 나눠 어디쯤인지를 머리로
+   그려야 하는데, 트랙 위의 점 하나면 그 일이 없어진다. 글은 결론 한 줄과
+   근거 한 줄로 줄인다. */
 function paceHtml(){
   if(!bmr(BW,BF))return '';
   var pc=paceCalc(BW,BF,GF);
@@ -7293,48 +7322,54 @@ function paceHtml(){
      '0kg 남음' 을 적으면 목표를 잘못 넣은 것을 달성으로 읽게 된다. */
   if(!(pc.tw<BW)&&!pc.done)return '';
   var h=vzCap(TX('목표 · 남은 거리와 속도'));
-  /* 진행률은 처음 잰 인바디를 출발선으로 삼는다(위젯이 쓰는 그 자).
-     인바디가 없으면 출발선이 없다 — 막대 대신 남은 거리만 적는다. */
-  var bh=bhLoad(),sw=bh.length?bh[0].w:0,span=sw>0?Math.round((sw-pc.tw)*10)/10:0;
-  var goneKg=Math.round(Math.max(0,sw-BW)*10)/10;
-  var sub=TX1('{0} → {1}kg · 체지방 {2} → {3}% · {4}kg 남음',
-    fmtW(BW),fmtW(pc.tw),BF.toFixed(1),GF,fmtW(pc.remain));
   if(pc.done)
     /* 닿은 판에 '77.8 → 77.8kg · 체지방 20.0 → 25%' 를 적고 있었다. 화살표가
        앞으로 갈 길을 뜻하는 자리라, 목표를 지금보다 느슨하게 잡아 둔 사람은
        '살을 더 찌우라' 는 말로 읽는다. 닿았으면 길이 없다 — 지금 자리만 적는다. */
-    h+=vzLine(TX('감량 진행'),TX('목표 달성'),
+    return h+vzLine(TX('감량 진행'),TX('목표 달성'),
       TX1('체중 {0}kg · 체지방 {1}% (목표 {2}%)',fmtW(BW),BF.toFixed(1),GF),
       {t:TX('달성'),c:'pos'});
-  else if(span>0)
-    h+=vzBar(TX('감량 진행'),goneKg,span,sub,{t:'',c:''},false);
-  else
-    h+=vzLine(TX('목표까지'),fmtW(pc.remain)+' kg',sub,{t:'',c:''});
-  if(pc.done)return h;
-  /* 판정은 속도에 대한 말이라 속도가 적힌 줄에 붙인다. 과속만 경고색을 준다 —
-     이 앱에서 서두르다 잃는 것은 근육이고, 그것이 1순위로 막는 일이다. */
-  if(!pc.ok)
-    return h+vzLine(TX('예상 도착'),TX('기록 부족'),
-      TX('체중을 이레 이상 걸쳐 두 번 넘게 재면 나옴'),{t:'',c:''});
-  var vd=(pc.tag.indexOf('과속')>=0)?{t:TX('과속 — 근손실 주의'),c:'neg'}
+  /* 판정은 속도에 대한 말이다. 과속만 경고색을 준다 — 이 앱에서 서두르다
+     잃는 것은 근육이고, 그것이 1순위로 막는 일이다. */
+  var vd=!pc.ok?{t:'',c:''}
+        :((pc.tag.indexOf('과속')>=0)?{t:TX('과속 — 근손실 주의'),c:'neg'}
         :(pc.tag.indexOf('증량')>=0?{t:TX('증량 추세'),c:'warn'}
         :(pc.tag.indexOf('변화')>=0?{t:TX('변화 없음'),c:'warn'}
         :(pc.tag.indexOf('부족')>=0?{t:TX('페이스 부족'),c:'warn'}
-        :{t:TX('페이스 양호'),c:'pos'})));
-  /* 무엇을 얼마나 보고 낸 값인지 밝힌다 — 84일치 기울기를 '지금' 으로 읽으면
-     안 된다. 창을 넓혀야 했던 판(stale)은 그 사실까지 적는다. */
-  var how=TX1('실측 {0}kg/주 (목표 -{1}) · {2}',
-    (pc.rate>0?'+':'')+pc.rate.toFixed(2),WR,pc.how)
-    +(pc.stale?TX(' · 최근 기록 성김'):'');
-  /* 늘거나 멈춘 판에는 도착이 없다. 빈 날짜 대신 왜 없는지를 적는다 —
-     '—' 만 두면 앱이 계산을 못 한 것처럼 읽힌다. */
-  if(!(pc.rate<0))
-    return h+vzLine(TX('예상 도착'),TX('지금 속도로는 없음'),how,vd);
-  /* pc.eta 는 '01-20' 꼴인데 앱은 어디서나 md() 의 '1/20' 을 쓴다. 한 화면에
-     두 날짜 표기가 섞이면 같은 자로 안 읽힌다 — 날수에서 다시 낸다. */
-  var e=new Date();e.setDate(e.getDate()+pc.days);
-  return h+vzLine(TX('예상 도착'),
-    TX1('{0} · {1}주',(e.getMonth()+1)+'/'+e.getDate(),pc.weeks),how,vd);
+        :{t:TX('페이스 양호'),c:'pos'}))));
+  /* 부제는 한 줄로 줄인다. 도착 · 속도 · 근거 — 예전에는 '(목표 -0.5)' 와
+     '최근 28일' 까지 들어가 두 줄로 감겼다. 목표 속도는 판정 칩이 이미 말하고,
+     날수는 점 개수와 같은 말을 한다. */
+  var sub;
+  if(!pc.ok)sub=TX('체중을 이레 이상 걸쳐 두 번 넘게 재면 도착일이 나옴');
+  else{
+    var sp=TX1('{0}kg/주',(pc.rate>0?'+':'')+pc.rate.toFixed(2));
+    if(pc.rate<0){
+      /* pc.eta 는 '01-20' 꼴인데 앱은 어디서나 md() 의 '1/20' 을 쓴다.
+         한 화면에 두 날짜 표기가 섞이면 같은 자로 안 읽힌다 — 날수에서 다시 낸다. */
+      var e=new Date();e.setDate(e.getDate()+pc.days);
+      sub=TX1('{0} 도착 · {1}주 · {2}',(e.getMonth()+1)+'/'+e.getDate(),pc.weeks,sp);
+    }else sub=TX1('지금 속도로는 도착 없음 · {0}',sp);
+    if(pc.stale)sub+=TX(' · 기록 성김');
+  }
+  h+=vzLine(TX('목표까지'),fmtW(pc.remain)+' kg',sub,vd);
+  /* 트랙. 출발과 목표가 같으면(둘 다 지금 자리) 그릴 거리가 없다. */
+  var sw=paceStart(),span=Math.round((sw-pc.tw)*10)/10;
+  if(!(span>0))return h;
+  var gone=Math.max(0,Math.round((sw-BW)*10)/10),pctG=gone/span*100;
+  /* 지금이 출발선에 붙어 있으면 가운데 글자가 왼쪽 것과 겹친다 — 그때는
+     겹치는 쪽을 안 그린다. 끝 쪽도 같다. */
+  var nearS=pctG<14,nearE=pctG>86;
+  return h+'<div class="pctr"><div class="pcb">'
+    +'<i class="go" style="flex:'+gone+' 1 0"></i>'
+    +'<i style="flex:'+Math.max(0,span-gone)+' 1 0"></i>'
+    +'<b style="left:'+pctG.toFixed(1)+'%"></b></div>'
+    +'<div class="pcn">'
+    +(nearS?'':'<i class="s">'+fmtW(sw)+'</i>')
+    +'<i class="c" style="left:'+Math.min(92,Math.max(8,pctG)).toFixed(1)+'%">'
+      +TX1('지금 {0}',fmtW(BW))+'</i>'
+    +(nearE?'':'<i class="e">'+fmtW(pc.tw)+'</i>')
+    +'</div></div>';
 }
 function bodyLine(bw,bf,gf,hrm,act){
   bw=+bw;bf=+bf;gf=+gf;hrm=+hrm;act=+act||ACT;
@@ -10899,7 +10934,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:10';
+var BUILD='2026-10-01 00:16';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11720,14 +11755,13 @@ var EN={
 '목표까지':'To goal',
 '목표 달성':'Goal reached',
 '달성':'Reached',
-'{0} → {1}kg · 체지방 {2} → {3}% · {4}kg 남음':'{0} → {1}kg · body fat {2} → {3}% · {4}kg to go',
 '체중 {0}kg · 체지방 {1}% (목표 {2}%)':'{0}kg · body fat {1}% (goal {2}%)',
-'예상 도착':'Arrival',
-'{0} · {1}주':'{0} · {1} wks',
-'지금 속도로는 없음':'Not at this pace',
-'체중을 이레 이상 걸쳐 두 번 넘게 재면 나옴':'Needs 2+ weigh-ins spanning a week or more',
-'실측 {0}kg/주 (목표 -{1}) · {2}':'Measured {0}kg/wk (target -{1}) · {2}',
-' · 최근 기록 성김':' · recent records sparse',
+'지금 {0}':'now {0}',
+'{0}kg/주':'{0}kg/wk',
+'{0} 도착 · {1}주 · {2}':'arrives {0} · {1} wks · {2}',
+'지금 속도로는 도착 없음 · {0}':'no arrival at this pace · {0}',
+'체중을 이레 이상 걸쳐 두 번 넘게 재면 도착일이 나옴':'Arrival shows after 2+ weigh-ins spanning a week',
+' · 기록 성김':' · sparse records',
 '과속 — 근손실 주의':'Too fast — muscle at risk',
 '증량 추세':'Gaining',
 '변화 없음':'No change',
