@@ -1219,6 +1219,11 @@ html[lang=en] .dbody .fk{flex-basis:70px}
    기준선을 0 이 아니라 목표에 둔다. 막대는 모자란 만큼만 아래로 드리운다 —
    채운 날은 선에 붙은 짧은 토막이고, 무너진 날만 길게 떨어진다. 넘긴 날을 위로
    안 올리는 까닭은 단백질에서 초과가 잘못이 아니기 때문이다. 그릴 것이 없다. */
+/* 지난 날 배지 — 머리에 붙여 이 화면이 오늘이 아님을 못박는다. 메인에도
+   날짜가 있지만 시트를 열면 그 줄이 안 보인다. */
+.vzpast{flex:0 0 auto;margin-left:8px;font-size:8.5px;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--on-acc);
+  background:var(--acc-sf);border-radius:999px;padding:2px 7px}
 .prwrap{margin:9px 2px 2px}
 .prbars{position:relative;display:flex;align-items:flex-start;gap:2px;height:46px;
   padding-top:1px;border-top:1px dashed rgba(var(--tx-rgb),.38)}
@@ -7697,6 +7702,44 @@ function acsmScore(){
         {k:'rep',n:'반복 8~12',s:'반복 20',max:20,got:sRep},
         {k:'gap',n:'부위 간격',s:'간격 20',max:20,got:sGap}]};
 }
+/* 점수만으로는 무엇을 할지가 안 나온다. '56점 · 미흡' 을 읽은 사람이 넷 가운데
+   어디를 손대야 가장 크게 오르는지를 눈으로 견주고 있었다 — 배점이 30·30·20·20
+   으로 달라서 '반만 찬 칸' 끼리도 값이 다르다.
+   잃은 점수가 곧 그 한 수의 값이다. 가장 큰 것을 집어 할 일로 옮긴다.
+   새 수는 안 만든다 — 넷 다 acsmScore 가 이미 낸 값에서 나온다. */
+function acsmNext(sc){
+  var best=null,i,k;
+  for(i=0;i<sc.it.length;i++){
+    var lost=sc.it[i].max-sc.it[i].got;
+    /* 1점 미만은 손댈 거리가 아니다 — 반올림하면 +0 점이 된다 */
+    if(lost<1)continue;
+    if(!best||lost>best.lost)best={k:sc.it[i].k,lost:lost};
+  }
+  if(!best)return null;
+  var g=Math.round(best.lost);
+  if(best.k==='car')
+    return {t:TX1('유산소 {0}분 더',Math.max(0,150-sc.ac.z2)),g:g};
+  if(best.k==='frq'){
+    /* '부위 평균 1일' 만으로는 어느 부위인지 모른다. 모자란 쪽을 이름으로
+       든다 — 많이 모자란 순이라 먼저 할 것이 앞에 온다. */
+    var lag=[];
+    for(k in PN_KO)if(sc.nd[k].n<2)lag.push({n:TX(PN_KO[k]),d:2-sc.nd[k].n});
+    lag.sort(function(x,y){return y.d-x.d;});
+    return {t:lag.length?TX1('{0} 하루씩 더',
+        lag.slice(0,2).map(function(x){return x.n;}).join('·'))
+      :TX('부위마다 주 2일'),g:g};
+  }
+  if(best.k==='rep')
+    return {t:sc.rz.tot?TX1('8~12회 세트 {0}% → 70%',sc.rz.pct)
+                       :TX('반복 수를 기록'),g:g};
+  var bad=[];
+  for(k in PN_KO){
+    var on=sc.nd[k].on,q;
+    for(q=1;q<7;q++)if(on[q]&&on[q-1]){bad.push(TX(PN_KO[k]));break;}
+  }
+  return {t:bad.length?TX1('{0} 이틀 연속 피하기',bad.slice(0,2).join('·'))
+                      :TX('부위 사이 하루 띄우기'),g:g};
+}
 function wkCardio(){
   var now=new Date();var dow=(now.getDay()+6)%7;
   var mon=new Date(now);mon.setDate(now.getDate()-dow);
@@ -10620,15 +10663,38 @@ function vzTrain(tab){
   for(q2=0;q2<sc.it.length;q2++)
     h+='<span style="flex:'+sc.it[q2].max+' 0 0">'+TX(sc.it[q2].s)+'</span>';
   h+='</div>';
+  /* 칸 넷을 읽고 어디를 손댈지 스스로 고르게 두던 자리다. 배점이 30·30·20·20
+     으로 달라 '반만 찬 칸' 끼리도 값이 다르므로, 눈으로 견주면 틀리기 쉽다.
+     가장 크게 잃는 하나를 집어 할 일과 그 값을 적는다. */
+  var nx=acsmNext(sc);
+  if(nx)h+=vzLine(TX('다음 한 수'),nx.t,
+    TX1('넷 가운데 가장 크게 잃고 있음 — 메우면 약 +{0}점',nx.g),
+    {t:'+'+nx.g,c:'pos'});
   /* 칸마다 무엇을 보고 매겼는지. 같은 수를 막대로 또 그리지 않는다 —
      위 칸이 이미 그 막대다. */
   for(q2=0;q2<sc.it.length;q2++){
     it=sc.it[q2];rt=it.max?it.got/it.max:0;
     var ev='';
     if(it.k==='car')ev=TX1('중강도 {0}분 / 150분 · {1}회',sc.ac.z2,sc.ac.days);
-    else if(it.k==='frq')ev=TX1('부위 평균 {0}일 / 2일',Math.round(sc.avgD*10)/10);
+    else if(it.k==='frq'){
+      /* 평균 하나로는 어느 부위가 끌어내렸는지 모른다 — 모자란 쪽을 든다 */
+      var lg=[],kk;
+      for(kk in PN_KO)if(sc.nd[kk].n<2)lg.push(TX(PN_KO[kk]));
+      ev=TX1('부위 평균 {0}일 / 2일',Math.round(sc.avgD*10)/10)
+        +(lg.length?' · '+lg.slice(0,3).join('·'):'');
+    }
     else if(it.k==='rep')ev=sc.rz.tot?TX1('8~12 세트 {0}% / 70%',sc.rz.pct):TX('기록 없음');
-    else ev=sc.act?(sc.viol?TX1('이틀 연속 {0}곳 / 5',sc.viol):TX('연속 없음')):TX('기록 없음');
+    else if(!sc.act)ev=TX('기록 없음');
+    else if(!sc.viol)ev=TX('연속 없음');
+    else{
+      /* '이틀 연속 1곳' 은 어느 부위인지를 안 말한다 — 그 한 곳이 알 값이다 */
+      var bd=[],kb;
+      for(kb in PN_KO){
+        var onb=sc.nd[kb].on,qb;
+        for(qb=1;qb<7;qb++)if(onb[qb]&&onb[qb-1]){bd.push(TX(PN_KO[kb]));break;}
+      }
+      ev=TX1('이틀 연속 {0}곳 / 5',sc.viol)+(bd.length?' · '+bd.slice(0,3).join('·'):'');
+    }
     h+='<div class="acsr"><i>'+TX(it.n)+'</i><span class="ev">'+ev+'</span>'
       +'<b class="'+(rt>=0.8?'ok':'')+'">'+Math.round(it.got)+'<em>/'+it.max+'</em></b></div>';
   }
@@ -10830,6 +10896,48 @@ function proHtml(nf){
   }
   return h;
 }
+/* 메인 화면 날짜를 뒤로 넘기면 그 날을 본다. 예전에는 이 시트가 늘 오늘만
+   봤다 — 한때 UI.wd 를 반만 따르다 '600kcal 먹음 · 단백질 200g' 처럼 한 화면이
+   자기모순이 된 적이 있어 통째로 오늘에 못박아 두었다. 반만 따른 것이 문제였지
+   따른 것이 문제가 아니었다.
+   이번에는 갈래를 아예 가른다. 오늘은 '남은 몫'(앞으로 먹을 것)이고 지난 날은
+   '먹은 몫'(이미 끝난 것)이다 — 남은 끼니도 더 먹어도 되는 양도 어제에는 뜻이
+   없다. 물음이 다르니 화면도 다르다. 한 화면 안에서 오늘과 그 날이 섞일 자리가
+   구조로 없어진다. */
+function dayPastHtml(nf,ds){
+  var h=vzCap(TX1('{0} · 먹은 몫',md(ds))
+    +'<span class="vzpast">'+TX('지난 날')+'</span>');
+  var r=nf.byDay&&nf.byDay[ds];
+  if(!r||!(r.n>0))
+    return h+vzLine(TX('그 날 기록'),TX('없음'),
+      TX('삼성헬스에 그 날 끼니가 안 들어와 있음'),{t:'',c:''});
+  var ate=Math.round(r.kcal||0),goal=Math.round(r.target||0);
+  var df=ate-goal,bnd=okBand(goal);
+  /* 지난 날은 판정을 박아도 된다 — 하루가 끝났으므로 아침에 '부족' 이었다가
+     저녁에 뒤집힐 일이 없다. 오늘 갈래가 판정을 미루는 까닭이 여기에는 없다. */
+  var vd=(goal<=0)?{t:'',c:''}
+        :(Math.abs(df)<=bnd?{t:TX('목표 안'),c:'pos'}
+        :(df>0?{t:TX('초과'),c:'neg'}:{t:TX('부족'),c:'warn'}));
+  h+='<div class="kcline"><span>'+TX('열량')+'</span><b>'+ate.toLocaleString()
+    +'<em> / '+goal.toLocaleString()+' kcal</em></b>'
+    +'<i class="'+(df>0?'ov':'')+'">'
+    +(df>0?TX1('{0} 초과',df.toLocaleString())
+          :TX1('{0} 모자람',(-df).toLocaleString()))+'</i></div>';
+  var mg=(goal>0)?macroGoals(goal):null;
+  if(mg)h+='<div class="rings">'
+    +vzRing(TX('단백질'),'opt',r.protein,mg.p,'g')
+    +vzRing(TX('탄수'),'min',r.carb,mg.c,'g')
+    +vzRing(TX('지방'),'min',r.fat,mg.f,'g')+'</div>';
+  /* 그 날의 소비로 그 날의 목표가 나왔다 — 운동한 날은 목표가 컸다.
+     그 고리를 안 적으면 왜 어떤 날만 목표가 높은지 알 수가 없다. */
+  var ex=Math.round(r.exerciseKcal||0);
+  h+=vzLine(TX('그 날 적자'),Math.round((r.tdee||0)-ate).toLocaleString()+' kcal',
+    TX1('소비 {0}{1} − 섭취 {2} · 목표 적자 {3}',
+        Math.round(r.tdee||0).toLocaleString(),
+        ex>0?TX1(' (운동 {0})',ex.toLocaleString()):'',
+        ate.toLocaleString(),Math.round(nf.dailyDeficitTarget)),vd);
+  return h;
+}
 function vzDiet(tab){
   tab=tab||'today';
   var nf=nutriFacts();
@@ -10841,11 +10949,14 @@ function vzDiet(tab){
      어제로 넘긴 채 열면 '600kcal 먹음 · 단백질 200g' 처럼 한 화면이 자기모순이
      된다. 메인 화면의 날짜 넘김은 운동 기록용이고 이 시트와 상관이 없다. */
   var DTD=todayISO();
+  /* 보는 날. 메인 화면의 날짜 넘김을 그대로 따른다. */
+  var VWD=(UI.wd&&UI.wd<DTD)?UI.wd:DTD,isPast=(VWD!==DTD);
   /* 오늘 식사가 아직 안 들어오면 t 가 없어 이 갈래가 통째로 비었다. 화면에
      '하루 적자 목표' 한 줄만 남는다 — 열어 봐야 아무것도 없다.
      먹은 것을 몰라도 아는 것은 있다: 오늘 얼마까지 먹어도 되는지, 단백질
      목표가 몇인지, 운동으로 얼마를 벌었는지. 그것부터 보여 준다. */
-  if(tab==='today'&&!t){
+  if(tab==='today'&&isPast)h+=dayPastHtml(nf,VWD);
+  if(tab==='today'&&!isPast&&!t){
     var gi=Math.round(nf.todayTargetIntake||0),tdA=Math.round(nf.todayTdee||0);
     var exA=Math.round(dayExKcal(DTD));
     h+=vzCap(TX('오늘 · 아직 식사 기록이 없음'));
@@ -10882,7 +10993,7 @@ function vzDiet(tab){
       h+=vzLine(TX('오늘 기록'),TX('아직 없음'),hcWhyLine(),{t:TX('기다리는 중'),c:''});
     }
   }
-  if(tab==='today'&&t){
+  if(tab==='today'&&!isPast&&t){
     h+=vzCap(TX('오늘 · 남은 몫'));
     var ate=Math.round(t.intakeSoFar||0),goal=Math.round(t.goalIntake||0);
     /* 끼니로 쪼갠 막대는 '아침 420 · 점심 780' 을 알려 주는데, 알아도 바꿀
@@ -11022,7 +11133,7 @@ function vzDiet(tab){
   /* 기준 덩이는 탭 검사 밖에 있어 어느 갈래를 열어도 따라붙었다. 단백질
      갈래에서는 할 말이 아니다 — 거기서 묻는 것은 g 이지 적자가 아니고,
      적자 이야기는 감량 갈래가 이미 세 군데에서 한다. 열량을 보는 자리에만 둔다. */
-  if(tab!=='pro'){
+  if(tab!=='pro'&&!(tab==='today'&&isPast)){
     var useAvg=(tab==='eat'&&nf.completedDaysCount>0&&nf.completedDaysAvgTarget>0);
     h+=vzCap(useAvg?TX('기준 · 끝난 날 평균'):TX('기준'))
       +vzLine(TX('하루 적자 목표'),Math.round(nf.dailyDeficitTarget)+' kcal',
@@ -11087,7 +11198,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:43';
+var BUILD='2026-10-01 08:00';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11903,6 +12014,26 @@ var EN={
 '오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
 '단백질 목표':'Protein target',
 ' 외 {0}곳':' +{0} more',
+/* 지난 날 보기 */
+'{0} · 먹은 몫':'{0} · what was eaten',
+'지난 날':'past',
+'그 날 기록':'That day',
+'삼성헬스에 그 날 끼니가 안 들어와 있음':'No meals came through from Samsung Health for that day',
+'그 날 적자':'Deficit that day',
+'소비 {0}{1} − 섭취 {2} · 목표 적자 {3}':'burn {0}{1} − intake {2} · target deficit {3}',
+' (운동 {0})':' (exercise {0})',
+'{0} 모자람':'{0} short',
+'목표 안':'On target',
+/* 주간 점수 — 다음 한 수 */
+'다음 한 수':'Next move',
+'넷 가운데 가장 크게 잃고 있음 — 메우면 약 +{0}점':'Biggest of the four gaps — closing it is worth about +{0}',
+'유산소 {0}분 더':'{0} more cardio minutes',
+'{0} 하루씩 더':'one more day each for {0}',
+'부위마다 주 2일':'two days a week per part',
+'8~12회 세트 {0}% → 70%':'8–12 rep sets {0}% → 70%',
+'반복 수를 기록':'log rep counts',
+'{0} 이틀 연속 피하기':'avoid back-to-back {0}',
+'부위 사이 하루 띄우기':'leave a day between parts',
 /* 단백질 갈래 */
 '단백질 · 최근 {0}일':'Protein · last {0} days',
 '목표 {0}g':'goal {0}g',
