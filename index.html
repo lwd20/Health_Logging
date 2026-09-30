@@ -3498,7 +3498,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'today',vzb:'chg',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'wk',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -7729,7 +7729,16 @@ function catCtx(c){
       var cf=computedFacts()||{};
       return TX1('{0} · 훈련 {1}/{2}일',TX(cf.weekPhase||''),wkTrainDays(),(cf.trainDaysPerWeek||0));
     }
-    if(c==='diet')return TX1('{0} 오늘',md(todayISO()));
+    /* '10/1 오늘' 이라 적고 있었다 — 그 시절 첫 탭이 '오늘' 이었다. 오늘은
+       감량 갈래로 갔고 여기 남은 둘은 이번 주와 스무날 평균이라, 오늘 날짜를
+       머리에 달아 두면 갈래가 무엇을 보는지 거짓으로 말한다. 몇 날치를 놓고
+       보는지가 이 갈래의 맥락이다. */
+    if(c==='diet'){
+      var dks=wkKeys(0),hd=HC.days||{},td3=todayISO(),dn3=0,q3;
+      for(q3=0;q3<dks.length;q3++)
+        if(dks[q3]<=td3&&hd[dks[q3]]&&hd[dks[q3]].n>0)dn3++;
+      return dn3?TX1('이번 주 {0}일 기록',dn3):TX('이번 주 기록 없음');
+    }
     var sc2=bwSrc();
     if(sc2&&sc2.w>0)return TX1('{0}kg · {1} {2}',fmtW(sc2.w),(sc2.src==='scale'?TX('체중계'):TX('인바디')),md(sc2.d));
     return TX('체중 미기록');
@@ -8987,11 +8996,20 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px;display:fl
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
 var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['rout','루틴']];
-var VZD=[['today','오늘'],['wk','주간'],['avg','평균']];
+/* '오늘' 은 감량 갈래로 옮겼다 — 오늘 얼마를 먹을 수 있나는 식단 분석이
+   아니라 오늘 할 일이고, 감량 갈래를 여는 까닭이 그것이다. 여기 남는 둘은
+   지나간 섭취를 되짚는 자리라 성격이 한 덩어리로 맞는다. */
+var VZD=[['wk','주간'],['avg','평균']];
 /* 몸은 훈련의 갈래 하나였다. 주간 소비·체중 추세·골격근이 한 갈래에 몰려
    있었고 셋 다 '무엇을 들었나' 와는 다른 물음이라 카테고리로 올렸다. */
 /* 식단 갈래를 '평균' 으로 바꿔 '추이' 와의 엉킴이 없어졌다 */
-var VZB=[['chg','추세'],['burn','소비']];
+/* 소비 탭을 없애고 그 자리에 식단의 '오늘' 을 들였다 — 소비 탭은 잘 안 열리는
+   자리였고, 정작 매일 볼 수는 '오늘 얼마 남았나' 였다.
+   소비가 들고 있던 것(오늘 소비 쪼개기 · 주간 운동 소비 · 활동 계수 역산)은
+   버리지 않고 추세 맨 아래로 내렸다. 날마다 볼 수가 아니라 이따금 '내 계수가
+   맞나' 를 물을 때 보는 값이라 그 자리가 맞다.
+   '오늘' 이 앞이다 — 갈래를 열자마자 할 일이 보여야 한다. */
+var VZB=[['today','오늘'],['chg','추세']];
 /* 갈래 고르는 줄. 예전 아홉 모드가 관심사별 창구였던 것을 여기서 되살린다 —
    다만 AI 호출이 아니라 보기 전환이라 기다림도 한도도 없다. */
 function vzTabs(list,cur,act){
@@ -9739,8 +9757,11 @@ function chartBody(win){
 }
 /* 몸 — 체중이 어디로 가고 있나, 그리고 그것을 무엇이 밀고 있나 */
 function vzBody(tab){
-  tab=tab||'chg';
+  tab=tab||'today';
   var h='';
+  /* 식단에 있던 '오늘' 을 그대로 부른다. 같은 화면을 두 벌로 두면 한쪽만
+     고치는 날이 오고, 그때부터 두 곳이 다른 수를 말한다. */
+  if(tab==='today')return vzDiet('today');
   if(tab==='chg'){
     /* 결론이 맨 위다 — 얼마 남았나 · 언제 닿나 · 지금 속도가 안전한가.
        아래 그림들은 그 수가 어떻게 나왔는지를 푸는 자리다. */
@@ -9904,9 +9925,12 @@ function vzBody(tab){
     /* 인바디가 창 안에 없을 때 '몸 변화 · 2주 안 0회' 줄을 두었던 자리다.
        그 줄은 '없다' 만 말했다 — 대신 위에 전 주 적자를 넣었다. */
   }
-  if(tab==='burn'){
+  /* 제 탭이던 것이 추세의 꼬리로 내려왔다. 위쪽이 '얼마나 줄었나' 를 말하고
+     여기가 '그 수를 낸 소비는 어떻게 잡혀 있나' 를 말한다 — 앞 물음의 근거라
+     뒤에 서는 것이 맞다. 날마다 볼 자리가 아니어서 탭 하나를 쓰기에도 비쌌다. */
+  if(tab==='chg'){
     /* 읽는 차례를 오늘 → 이번 주 → 설정 검증으로 둔다. 예전에는 주간 막대가
-       맨 위였는데, 이 탭을 여는 까닭은 '오늘 얼마나 쓰나' 이지 '지난 화요일에
+       맨 위였는데, 이 덩이를 보는 까닭은 '오늘 얼마나 쓰나' 이지 '지난 화요일에
        얼마나 썼나' 가 아니다.
        기초대사와 오늘 소비를 각각 한 줄씩 적던 자리다. 둘 다 고정값에 가깝고
        오늘 소비는 홈 화면에도 같은 수가 있어, 두 줄이 같은 말을 나눠 하고
@@ -10959,7 +10983,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 00:22';
+var BUILD='2026-10-01 00:32';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12759,7 +12783,8 @@ var EN={
 '휴식 시간':'Rest time',
 /* ── AI ── */
 '{0} · 훈련 {1}/{2}일':'{0} · trained {1}/{2}',
-'{0} 오늘':'{0} today',
+'이번 주 {0}일 기록':'{0} days logged this week',
+'이번 주 기록 없음':'Nothing logged this week',
 '마지막날':'Last day',
 '막바지':'Late',
 '실패':'Failed',
