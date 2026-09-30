@@ -501,6 +501,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    크기로 두면 둘이 같은 급으로 보이는데, 이쪽은 그 줄의 명세다. */
 .lmwho{margin:3px 0 0 1px;font-family:var(--mono);font-size:9.5px;
   color:var(--mut);line-height:1.5;letter-spacing:-.01em}
+/* 겹치는 이름을 가르는 브랜드 — 이름보다 한 톤 내려 곁다리로 읽히게 */
+.lmwho i{font-style:normal;color:var(--dim)}
 /* 도달일이 안 나오는 상태 — 날짜 배지 자리에 이유가 들어가므로 색을 달리한다 */
 /* 배경을 깔면 --sig 가 밀려 올라가 5개 팔레트에서 4.5 아래로 떨어졌다(최저 3.87).
    평소 배지와 같은 모양에 색만 바꾼다 — 이미 검증된 조합이다. */
@@ -10602,10 +10604,35 @@ function vzTrain(tab){
      하나도 없는 사람에게도 남는 안내다. */
   /* 주동근을 안 고른 종목이 있으면 그 세트는 여기 어디에도 안 들어간다.
      화면이 조용하면 '다 했다' 로 읽히므로 몇 개인지 적는다. */
-  var nmm=0,nq;
-  for(nq=0;nq<S.m.length;nq++)if(!isCard(S.m[nq].p)&&!mmOf(S.m[nq]))nmm++;
-  if(hs&&nmm)hs+='<div class="lmnone">'
-    +TX1('주동근 미지정 종목 {0}개 — 종목 편집에서 설정',nmm)+'</div>';
+  /* '9개' 만 적고 있었다. 쉰 개가 넘는 목록에서 그 아홉을 찾으라는 말인데,
+     앱은 어느 것인지 이미 안다. 게다가 여기 걸린 종목은 이름으로도 추정이
+     안 된 것들이라(mmAuto 까지 실패) 손으로 골라 주는 수밖에 없다 — 그럴수록
+     이름이 필요하다.
+     이번 주에 실제로 한 종목을 앞에 둔다. 한 해 전에 한 번 하고 만 종목을
+     고쳐 봐야 이 주 눈금은 그대로다. */
+  var nmm=[],nq,wkd=wkDays();
+  for(nq=0;nq<S.m.length;nq++){
+    var mq=S.m[nq];
+    if(isCard(mq.p)||mmOf(mq))continue;
+    var aq=S.l[mq.i]||[],usedQ=false,jq;
+    for(jq=0;jq<aq.length;jq++)if(wkd[aq[jq].d]&&aq[jq].s.length){usedQ=true;break;}
+    nmm.push({n:mq.n,b:mq.b||'',u:usedQ});
+  }
+  nmm.sort(function(x,y){return (y.u?1:0)-(x.u?1:0);});
+  /* 브랜드가 다른 동명 종목이 있다 — 'Shoulder Press · Shoulder Press' 를
+     적어 놓으면 둘 중 어느 것을 고치라는 말인지 알 수가 없다. 겹치는 이름에만
+     브랜드를 붙인다: 안 겹치는 데까지 붙이면 줄만 길어진다. */
+  var dupQ={};
+  for(nq=0;nq<nmm.length;nq++)dupQ[nmm[nq].n]=(dupQ[nmm[nq].n]||0)+1;
+  if(hs&&nmm.length){
+    var nl='',nu=Math.min(4,nmm.length);
+    for(nq=0;nq<nu;nq++)nl+=(nl?' · ':'')+esc(nmm[nq].n)
+      +((dupQ[nmm[nq].n]>1&&nmm[nq].b)?' <i>'+esc(nmm[nq].b)+'</i>':'');
+    if(nmm.length>nu)nl+=TX1(' 외 {0}개',nmm.length-nu);
+    hs+='<div class="lmnone">'
+      +TX1('주동근 미지정 종목 {0}개 — 종목 편집에서 설정',nmm.length)
+      +'<div class="lmwho">'+nl+'</div></div>';
+  }
   if(hs)h+='<div class="lmsec">'
     +vzCap(TX('주동근 · 이번 주 · MEV~MRV')
       /* 줄마다 '디로딩' 이 붙는 것은 MEV 미만인 근육뿐이라, 왜 전체가 낮은지는
@@ -10941,6 +10968,19 @@ function dayPastHtml(nf,ds){
 function vzDiet(tab){
   tab=tab||'today';
   var nf=nutriFacts();
+  /* 기록이 한 건도 없으면 갈래 전체를 한 줄로 접고 있었다. 그런데 오늘
+     갈래에는 이미 '아직 기록이 없을 때' 화면이 짜여 있다 — 빈 원 셋과 먹을 수
+     있는 양, 단백질 목표, 왜 아직 안 들어왔는지. 그 화면은 지난 기록을 하나도
+     안 쓴다. 체중과 오늘 소비만 있으면 그려진다.
+     그런데 nutriFacts 가 스무날 창에서 한 건도 못 찾으면 null 을 돌려주고,
+     거기서 통째로 막혀 도달할 수가 없었다. 앱을 처음 켠 사람과 세 주를 걸른
+     사람이 정작 가장 쓸모 있는 화면을 못 보던 자리다.
+     기록이 필요한 갈래(단백질·섭취)만 접고, 오늘은 빈 장부로 들여보낸다. */
+  if(!nf&&tab==='today')
+    nf={byDay:{},today:null,dailyDeficitTarget:Math.round(WR*7700/7),
+        todayTdee:dayTDEE(todayISO()),
+        todayTargetIntake:Math.max(0,dayTDEE(todayISO())-Math.round(WR*7700/7)),
+        completedDaysCount:0};
   if(!nf)return '<div class="anlviz"><div class="lmunk">'+TX('섭취 기록이 없음 — 삼성헬스에서 불러오면 여기에 나옴')+'</div></div>';
   var h='',t=nf.today;
   /* 이 갈래는 '오늘' 이다. 카드 머리(catCtx)도 보는 날짜와 무관하게 늘 오늘을
@@ -11151,7 +11191,17 @@ function vzDiet(tab){
 function anlViz(c,tab){
   if(c==='diet')return vzDiet(tab);
   if(c==='body')return vzBody(tab);
-  if(!hasLogs())return '';
+  /* 빈 문자열을 돌려주고 있었다 — 세트를 한 번도 안 올린 사람이 훈련 갈래를
+     열면 백지가 나왔다. 아무것도 없는 화면은 '기록이 없다' 가 아니라 '앱이
+     고장났다' 로 읽힌다. 다른 두 갈래는 다 무엇을 하면 채워지는지 적는다.
+     갈래마다 무엇이 있어야 그려지는지가 다르므로 그것까지 적는다. */
+  if(!hasLogs()){
+    var w=(tab==='acsm')?TX('유산소와 근력 세트가 이번 주에 들어오면 ACSM 배점이 매겨짐')
+         :(tab==='rout'?TX('세트를 올리면 시각이 찍히고, 그 차례로 루틴이 그려짐')
+         :TX('세트를 올리면 부위별 주간 볼륨이 MEV~MRV 눈금 위에 그려짐'));
+    return '<div class="anlviz">'
+      +vzLine(TX('훈련 기록'),TX('아직 없음'),w,{t:TX('기다리는 중'),c:''})+'</div>';
+  }
   return vzTrain(tab);
 }
 /* 톤수를 세던 것을 유효 세트로. 세트를 세므로 어시스트 유효무게 환산이
@@ -11198,7 +11248,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 08:00';
+var BUILD='2026-10-01 08:18';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12014,6 +12064,14 @@ var EN={
 '오늘 소비 {0} − 적자 {1}':'Burn {0} − deficit {1}',
 '단백질 목표':'Protein target',
 ' 외 {0}곳':' +{0} more',
+' 외 {0}개':' +{0} more',
+/* 빈 상태 — 훈련 갈래 */
+'훈련 기록':'Training log',
+'아직 없음':'Nothing yet',
+'기다리는 중':'Waiting',
+'세트를 올리면 부위별 주간 볼륨이 MEV~MRV 눈금 위에 그려짐':'Log a set and weekly volume per body part appears against the MEV~MRV scale',
+'유산소와 근력 세트가 이번 주에 들어오면 ACSM 배점이 매겨짐':'Cardio and strength sets this week get scored against the ACSM guideline',
+'세트를 올리면 시각이 찍히고, 그 차례로 루틴이 그려짐':'Logging sets stamps the time, and that order draws the routine',
 /* 지난 날 보기 */
 '{0} · 먹은 몫':'{0} · what was eaten',
 '지난 날':'past',
