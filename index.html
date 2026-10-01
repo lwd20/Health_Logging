@@ -541,6 +541,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    고를 때만 세 칸이 펴진다. 칸은 분석 탭의 갈래 단추(.catb)와 같은 꼴이고,
    모서리·테두리·그림자를 시안 토큰에서 받아 어느 시안에서도 안 겉돈다. */
 .dmq{display:flex;justify-content:flex-end;margin-top:6px}
+.dmq{display:flex;justify-content:flex-end;margin-top:6px}
 /* ── 루틴 · 멈춘 종목 / 부위 공백 ──
    판정을 색으로만 가르지 않는다(팔레트가 28가지다). 왼쪽 굵은 선의 색과
    오른쪽 글귀가 같이 말하고, 글귀만 읽어도 뜻이 선다. */
@@ -3400,65 +3401,10 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    '몇 시에 무엇을' 이라는 원래의 물음이 사라진다. */
 /* 캡션 오른쪽의 작은 셈 — .lmsub 는 세로 레일용 여백을 갖고 있어 여기선 안 맞는다 */
 .lmcap .rtsub{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.04em;text-transform:none}
-/* 기간 고르개 — 아래 셈이 모두 이 창을 본다 */
-.rtper{display:flex;gap:4px;margin:10px 0 0}
-.rtpb{flex:1 1 0;min-width:0;height:30px;padding:0;border:var(--bw) solid rgba(var(--tx-rgb),.12);
-  border-radius:var(--rad-s);background:none;color:var(--dim);font-family:inherit;
-  font-size:10.5px;font-weight:700;letter-spacing:.02em}
-.rtpb.on{border-color:rgba(var(--acc-rgb),.45);color:var(--acc-br);
-  background:rgba(var(--acc-rgb),.1);font-weight:800}
-.rtpb:active{opacity:.6}
-/* 부위 이름표 — 구분은 이름이 한다. 부위마다 색을 주었더니 강조색 하나로
-   말하는 다른 화면과 이 탭만 따로 놀았다. 앱이 이미 쓰는 회색 알약으로. */
-.rtpill{flex:0 0 auto;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:800;
-  letter-spacing:.02em;color:var(--tx);background:rgba(var(--tx-rgb),.07);white-space:nowrap}
-/* 부위 머리 밑의 줄은 한 칸 들여쓴다 — 누구에게 딸린 줄인지가 자리로 보인다 */
-.rtin{padding-left:11px;border-left:2px solid rgba(var(--tx-rgb),.09);margin-left:3px}
-/* 차례를 모르는 부위 — 목록에 남되 제 값이 없다는 것이 보이게 */
-.rtno u{color:var(--dim)}
-.rtno i{font-family:inherit;font-size:9.5px;letter-spacing:.02em}
-.rtp1>u{font-weight:700}
-/* 같은 순위 부위들 — 이름표를 나란히. 한 줄에 다 안 들어가면 접힌다 */
-.rtps{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
-.rtps .rtpill{flex:0 0 auto;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-/* 며칠만 한 것임을 적는 작은 딱지 — 이름의 일부로 안 읽히게 떼어 둔다 */
-.rtpill u,.rtstk>span>u{text-decoration:none;font-family:var(--mono);font-size:8.5px;font-weight:700;
-  margin-left:5px;padding:1px 4px;border-radius:3px;background:rgba(var(--tx-rgb),.09);
-  color:var(--dim);vertical-align:1px;letter-spacing:0}
-.rtp1>i{flex:0 0 auto;margin-left:auto}
-/* 한 순위에 머신이 여럿 — 한 줄에 하나씩 쌓는다 */
-/* 한 순위에 여럿 — 앞에 점을 찍었더니 이름의 시작점이 한 칸씩 어긋났다.
-   점을 빼고 가까움으로 묶는다: 묶음 안은 촘촘히(4px), 묶음 사이는 넓게(줄 여백). */
-.rtstk{display:flex;flex-direction:column;gap:4px}
-.rtstk>span{display:block}
-/* 부위 머리 — 그 밑 줄들이 누구의 차례인지를 말한다 */
-.rtph{display:flex;align-items:center;gap:7px;margin:10px 2px 1px;min-height:15px;
-  font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--chrome)}
-.rtph:first-child{margin-top:2px}
-.rtph i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--dim)}
-/* 한 수준에 머신이 여럿이면 줄이 길어진다 — 여기서는 접어서 다 보인다 */
-.rtr.rtt{align-items:flex-start;padding:7px 2px}
-.rtr.rtt>u{padding-top:1px}
-.rtr.rtt.rtin{padding-left:11px}
-.rtr.rtt b{white-space:normal;overflow:visible;line-height:1.35}
-
-.rtl{margin:2px 0 4px}
-/* 색 막대가 줄 높이를 따라 서야 해서 baseline 을 못 쓴다 — 가운데로 맞추고
-   글자끼리의 밑줄은 각자 제 줄칸에서 잡는다. */
-/* 순위와 순위 사이에 가는 선 — 여백만으로는 어디서 끊기는지가 안 잡혔다.
-   묶음 머리(.rtph) 바로 다음 줄에는 안 긋는다: 머리가 이미 끊고 있다. */
-.rtr{display:flex;align-items:center;gap:9px;padding:7px 2px}
-.rtr+.rtr{border-top:1px solid rgba(var(--tx-rgb),.07)}
-/* 셈 한 줄 — 왼쪽은 이름, 오른쪽은 값. 값은 순위 숫자와 같은 강조색이다 */
-.rtr.rts>i{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--acc-br);
-  font-variant-numeric:tabular-nums}
-/* 번호 칸은 두 목록이 같은 폭을 쓴다 — 40px 는 시각(17:00)을 담던 자리인데
-   그 목록을 없앴는데도 남아 있어 왼쪽 줄이 서로 안 맞았다. */
-.rtr>u{flex:0 0 18px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;
-  color:var(--acc-br);font-variant-numeric:tabular-nums}
-.rtr b{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:650;color:var(--tx);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtr i{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim)}
+/* 여기 '루틴' 갈래의 CSS 가 있었다 — 기간 고르개(.rtper/.rtpb)와
+   부위·머신 차례 목록(.rtl/.rtr/.rtpill/.rtstk/.rtph …). 갈래를
+   통째로 뺐으므로 같이 지웠다. .rtsub 만 남겼다: 다른 화면의
+   제목 옆 작은 글씨가 그 클래스를 쓴다. */
 .zrow.pos .num,.zrow.pos .st{color:var(--pos)}
 .zrow.neg .num,.zrow.neg .st{color:var(--sig)}
 .zrow.warn .num,.zrow.warn .st{color:var(--acc-br)}
@@ -4287,8 +4233,8 @@ function thPreview(){
         +A[i][1]+'<u>'+A[i][2]+'</u></button>';
     return r;
   }
-  var tb='<i class="dsgl">'+TX('앱 전체')+'</i>'+dsRow(TB1)
-        +'<i class="dsgl">'+TX('한 군데만')+'</i>'+dsRow(TB2);
+  var tb='<i class="dsgl">'+TX('전체')+'</i>'+dsRow(TB1)
+        +'<i class="dsgl">'+TX('개별')+'</i>'+dsRow(TB2);
   /* 브랜드 탭에서는 테마 대신 목록을 보여 준다 — 그 탭이 바꾸는 것이 목록이다 */
   if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   /* 칩 탭에서는 칩 줄을 그대로 줄여 보여 준다 — 그 탭이 바꾸는 것이 그 줄이다 */
@@ -4642,7 +4588,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',sx:'',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',sx:'',jord:'',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -6907,26 +6853,26 @@ function renderSheet(){
         +(unit?'<i class="stu">'+unit+'</i>':'')
         +'<input id="'+id+'" class="stin" inputmode="decimal" maxlength="'+(ml||4)+'" value="'+val+'"></div>';
     }
-    h+=sxHd(TX('한 벌'),'pre',2)
+    h+=sxHd(TX('프리셋'),'pre',2)
       +'<div class="lgsw" style="margin:0 0 6px">'
       +'<button class="lgb'+(mpn==='cut'?' on':'')+'" data-act="mpre" data-v="cut">'+TX('감량')+'</button>'
       +'<button class="lgb'+(mpn==='lean'?' on':'')+'" data-act="mpre" data-v="lean">'+TX('리컴프')+'</button>'
       +'</div>'
-      +sxBox('pre',TX('누르면 세 갈래의 수가 문헌 값으로 한꺼번에 채워짐. <b>감량</b> = 제지방 기준 단백질 2.5 · 탄수 1.25 · 지방 1.0 g/kg, 주당 −0.5kg. <b>리컴프</b> = 체중을 줄이면서 근육을 올리는 것으로, 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 적자가 하루 500kcal 를 넘으면 리컴프가 안 됨. 한 칸이라도 손대면 아래 줄이 <b>직접</b>으로 바뀜.'))
+      +sxBox('pre',TX('누르면 아래 세 탭의 값이 문헌 값으로 한꺼번에 채워짐. <b>감량</b> = 제지방 기준 단백질 2.5 · 탄수 1.25 · 지방 1.0 g/kg, 주당 −0.5kg. <b>리컴프</b> = 체중을 줄이면서 근육을 올리는 것으로, 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 적자가 하루 500kcal 를 넘으면 리컴프가 안 됨. 한 칸이라도 손대면 아래 줄이 <b>직접 설정</b>으로 바뀜.'))
       /* 지금 무엇으로 먹고 있는지는 단추가 아니라 이 줄이 말한다 — 단추는
          누르는 자리고, 이 줄은 결과다 */
       +'<div class="note" style="margin:0 0 2px">'
-      +'<b>'+(mpn?TX(MPRE[mpn].n):TX('직접'))+'</b> · '
+      +'<b>'+(mpn?TX(MPRE[mpn].n):TX('직접 설정'))+'</b> · '
       +(WR>0?TX1('주당 −{0}kg · 하루 {1}kcal 적자',WR,Math.round(WR*7700/7))
             :TX1('주당 +{0}kg · 하루 {1}kcal 잉여',Math.abs(WR),Math.abs(Math.round(WR*7700/7))))
       +'</div>'
       +'<div class="dsrow">'
-      +subNav('dts',dts,[['body',TX('몸')],['goal',TX('목표')],['macro',TX('영양')]])
+      +subNav('dts',dts,[['body',TX('신체')],['goal',TX('목표')],['macro',TX('영양')]])
       +'<button class="sxq'+(UI.sx===dts?' on':'')+'" data-act="sx" data-v="'+dts+'" aria-label="?">?</button>'
       +'</div>'
-      +sxBox('body',TX('<b>신장</b>은 보폭을 정하고, 보폭이 걸음당 kcal 을 정함(신장 × 0.415). <b>활동 계수</b>는 걸음 자료가 아예 없는 날에만 쓰는 바닥 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈. 올린다고 더 먹을 수 있게 되지 않음.'))
+      +sxBox('body',TX('<b>신장</b>은 보폭을 정하고, 보폭이 걸음당 kcal 을 정함(신장 × 0.415). <b>활동 계수</b>는 걸음 자료가 아예 없는 날에만 쓰는 기본값 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈. 올린다고 더 먹을 수 있게 되지 않음.'))
       +sxBox('goal',TX('<b>체중 변화</b>는 주당 몇 kg 을 움직일지임. 적자 = 체중 변화 × 7700 ÷ 7. <b>음수를 넣으면 증량</b>이 되어 그대로 잉여가 됨(범위 −0.5~1.5). <b>목표 체지방</b>은 분석탭의 감량 현황이 남은 거리를 재는 기준.'))
-      +sxBox('macro',TX('탄단지 셋은 전부 <b>바닥</b>임 — 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 부족 · 안 · 넘침 셋으로 갈림. 셋의 합이 목표 열량을 넘을 수 있고, 그때는 넘는다고 적음.'));
+      +sxBox('macro',TX('탄단지 셋은 전부 <b>최소량</b>임 — 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 부족 · 안 · 넘침 셋으로 갈림. 셋의 합이 목표 열량을 넘을 수 있고, 그때는 넘는다고 적음.'));
 
     if(dts==='body'){
       h+=srow('ht0',TX('신장'),'cm',HT)
@@ -7024,7 +6970,7 @@ function renderSheet(){
        '기타' 로 따로 뺀다. */
     var gts=UI.gts||'wk';
     h+='<div class="dsrow">'
-      +subNav('gts',gts,[['wk',TX('주간'),6],['mm',TX('기준'),MMS.length],['etc',TX('기타')]])
+      +subNav('gts',gts,[['wk',TX('주간 세트'),6],['mm',TX('주동근'),MMS.length],['etc',TX('기타')]])
       +'</div>';
     if(gts==='wk'){
     h+=(function(){
@@ -9115,7 +9061,7 @@ function bodyLine(bw,bf,gf,hrm,act){
      셈에서 빠진 수다. 실제 소비는 기초 + 소화 + 걸음으로 나오고, 이 곱은
      걸음 자료가 아예 없는 날의 바닥으로만 쓰인다. 이름을 그 일로 되돌린다. */
   var out=TX1('제지방 <b>{0}</b>kg · 기초대사 <b>{1}</b>kcal',lbm.toFixed(1),(bmr(bw,bf)||0).toLocaleString())
-    +'<br>'+TX1('걸음 자료가 없는 날의 바닥 <b>{0}</b>kcal (기초 × 활동 {1}) — 걸음이 들어오면 기초 + 소화 + 걸음으로 다시 셈',
+    +'<br>'+TX1('걸음 자료가 없는 날의 기본값 <b>{0}</b>kcal (기초 × 활동 {1}) — 걸음이 들어오면 기초 + 소화 + 걸음으로 다시 셈',
       Math.round((bmr(bw,bf)||0)*act).toLocaleString(),act);
   /* 어디서 온 값인지 밝힌다 — 인바디가 없으면 체지방은 기본값 20% 이고,
      그걸 실측처럼 보여 주면 하루 소비가 남의 숫자로 나오는 것을 모른다 */
@@ -9166,9 +9112,9 @@ function macroLine(ppk,fpk,cpk){
   if(!(goal>0))return out+TX(' — 목표 열량이 아직 없어 여유는 못 냄');
   var free=goal-kc;
   if(free<0)
-    return out+'<br>'+TX1('<b class="warn">바닥 셋이 목표를 넘김</b> — 목표가 {0}kcal 인데 {1}kcal 가 모자람. 셋 중 하나를 낮춰야 함',
+    return out+'<br>'+TX1('<b class="warn">최소량 셋이 목표를 넘김</b> — 목표가 {0}kcal 인데 {1}kcal 가 모자람. 셋 중 하나를 낮춰야 함',
       goal.toLocaleString(),(-free).toLocaleString());
-  return out+'<br>'+TX1('목표 {0}kcal − 바닥 {1} = <b>{2}</b>kcal 여유 (무엇으로 채워도 됨)',
+  return out+'<br>'+TX1('목표 {0}kcal − 최소량 {1} = <b>{2}</b>kcal 여유 (무엇으로 채워도 됨)',
     goal.toLocaleString(),kc.toLocaleString(),free.toLocaleString());
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -10790,7 +10736,7 @@ function vzCap(t){return '<div class="lmcap" style="margin:12px 0 4px;display:fl
    근육(18)으로 부르면 둘의 관계가 이름에서 바로 보인다. */
 /* 부위와 근육은 같은 물음에 굵기만 달리 답한다 — 한 갈래로 붙였다.
    회복과 균형도 '몸이 버티고 있나' 한 물음이라 같이 묶었다. */
-var VZT=[['vol','부위별 세트'],['acsm','주간 점수'],['rout','루틴']];
+var VZT=[['vol','부위별 세트'],['acsm','ACSM 점수']];
 /* '오늘' 은 감량 갈래로 옮겼다 — 오늘 얼마를 먹을 수 있나는 식단 분석이
    아니라 오늘 할 일이고, 감량 갈래를 여는 까닭이 그것이다. 여기 남는 둘은
    지나간 섭취를 되짚는 자리라 성격이 한 덩어리로 맞는다. */
@@ -12006,233 +11952,22 @@ function hhmm(mn){
   var h=Math.floor(mn/60)%24,m=((mn%60)+60)%60;
   return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
 }
-function rtDays(){
-  var map=jMap(),out=[],d;
-  for(d in map){
-    var ents=jOrder(d,map[d]),i,rows=[],timed=0;
-    for(i=0;i<ents.length;i++){
-      var t0=firstT(ents[i].s),t1=lastT(ents[i].s);
-      if(t0!=null)timed++;
-      rows.push({m:ents[i].m,s:ents[i].s,t0:t0,t1:t1});
-    }
-    out.push({d:d,rows:rows,timed:timed,man:!!(S.o&&S.o[d])});
-  }
-  out.sort(function(a,b){return a.d<b.d?1:-1;});
-  return out;
-}
-/* 그 날 '차례를 아는' 줄만. 손으로 세운 날은 세워 둔 목록에 든 것,
-   아니면 시각이 찍힌 것. 루틴 탭과 일지의 번호가 같은 자를 쓴다. */
-function rtKnown(day){
-  var ol=day.man?((S.o&&S.o[day.d])||[]):null,out=[],j;
-  for(j=0;j<day.rows.length;j++){
-    var r=day.rows[j];
-    if(ol?(ol.indexOf(r.m.i)>=0):(r.t0!=null))out.push(r);
-  }
-  return out;
-}
-/* 줄지어 놓인 종목을 부위로 접는다 — 가슴 가슴 등 등 어깨 → 가슴 등 어깨.
-   한 날에 한 번씩만 센다. 사이에 다른 부위가 끼어 되돌아와도(가슴 등 가슴)
-   가슴은 처음 나온 자리 하나다 — 두 번 세면 하루인데 '2일치' 가 되고 평균도
-   두 번 들어간다. 이 자리가 묻는 것은 '무엇부터 시작하나' 이기 때문이다. */
-function rtFlow(rows){
-  var out=[],seen={},j,p;
-  for(j=0;j<rows.length;j++){
-    p=rows[j].m.p;
-    if(seen[p])continue;
-    seen[p]=1;out.push(p);
-  }
-  return out;
-}
 function rtMed(a){
   if(!a.length)return null;
   a=a.slice().sort(function(x,y){return x-y;});
   var h=Math.floor(a.length/2);
   return a.length%2?a[h]:Math.round((a[h-1]+a[h])/2);
 }
-function rtPName(p){return p==='CARDIO'?TX('유산소'):TX(PN_KO[p]||p);}
-var RTPER=[['w','이번 주'],['m','한 달'],['q','분기'],['h','반기']];
-/* 며칠 전까지 볼까. '이번 주' 만 날수가 아니라 월요일까지다 — 앱의 주간
-   셈이 모두 월요일에 0 으로 돌아가므로 여기만 7일 창을 쓰면 말이 어긋난다. */
-function rtWin(){
-  var k=UI.rtp||'m';
-  if(k==='w')return (new Date().getDay()+6)%7;
-  return k==='m'?30:(k==='q'?90:180);
-}
-/* ── 루틴 ──────────────────────────────────────────────────────
-   예전에는 '보통 순서' 를 그렸다 — 부위를 어떤 차례로, 부위 안에서 머신을
-   어떤 차례로 가져가는지. 그것은 '내가 뭘 하고 있나' 는 말해 줬지만
-   '그래서 무엇을 손봐야 하나' 는 말하지 않았다. 차례는 이제 제 화면을
-   갖지 않고, 정체의 원인을 가르는 근거로만 쓰인다(사용자 요청).
-
-   두 가지를 말한다:
-     1) 어느 종목이 멈췄나, 그리고 왜 멈춰 보이나
-     2) 어느 부위가 너무 벌어졌나
-
-   1의 '왜' 가 이 화면의 요점이다. e1RM 이 안 오르는 데는 세 가지가 있는데
-   무게만 봐서는 안 갈린다:
-     · 순서 밀림 — 봉우리를 그 부위 1번째로 들었는데 지금은 4번째다.
-       앞 종목의 피로를 안고 든 무게라 같은 수가 안 나오는 것이 정상이다.
-       이건 정체가 아니라 비교가 어긋난 것이다.
-     · 증량할 때 — 목표 반복을 전 세트 채웠는데 무게가 그대로다.
-       멈춘 게 아니라 올릴 때가 된 것이다.
-     · 무게 정체 — 위 둘이 아니면 진짜로 멈춘 것이다. */
-
-/* 평소 날의 세션만, 최신순. 가볍게·디로딩은 뺀다 — 계획해서 내린 무게를
-   봉우리와 견주면 모든 종목이 '정체' 로 찍힌다. */
-function rtSeries(id,win){
-  var a=sess(id),out=[],i;
-  for(i=0;i<a.length;i++){
-    var x=a[i];
-    if(!(x.s&&x.s.length))continue;
-    if(daysAgo(x.d)>win)break;                /* sess 는 최신순이라 끊어도 된다 */
-    if(isSoft(x.d))continue;
-    var e=e1rm(x.s);
-    if(e>0)out.push({d:x.d,e:e,o:(+x.o||0),s:x.s});
-  }
-  return out;
-}
-/* 그 세션이 목표 반복을 전 세트 채웠나 — 사용자의 점증 규칙에서
-   '다음 주 증량' 의 조건이다. nextRx 가 쓰는 자(m.rx)를 그대로 쓴다. */
-function rtMaxedReps(m,s){
-  var rx=(m&&m.rx>0)?m.rx:12,i,n=0;
-  for(i=0;i<s.length;i++){
-    var w=+s[i][0]||0,r=+s[i][1]||0;
-    if(!(w>0&&r>0))continue;
-    n++;
-    if(r<rx)return false;
-  }
-  return n>0;
-}
-/* 한 종목의 정체 판정. 봉우리 뒤로 몇 세션이 지났는지가 길이이고,
-   원인은 차례(o)와 반복으로 가른다. */
-function rtStall(m,win){
-  var S2=rtSeries(m.i,win);
-  if(S2.length<3)return null;                 /* 세 번은 해 봐야 멈췄다고 말할 수 있다 */
-  var bi=0,i;
-  for(i=0;i<S2.length;i++)if(S2[i].e>S2[bi].e)bi=i;
-  /* 봉우리 뒤로 한 세션은 정체가 아니라 주간 흔들림이다 — 그걸로 판정하면
-     거의 모든 종목이 늘 '정체' 로 찍혀, 다 경고면 아무것도 경고가 아니게 된다.
-     사용자의 점증 규칙도 같은 자를 쓴다: 1~2회 부족은 유지, 2주 연속 실패라야
-     손을 댄다. 두 세션부터 말한다. */
-  if(bi<2)return null;
-  var now=S2[0],top=S2[bi];
-  var kind='flat',ord=null;
-  /* 차례를 둘 다 아는 날끼리만 견준다 — 한쪽이 0(모름)이면 말할 수 없다 */
-  if(now.o>0&&top.o>0&&now.o>top.o){kind='order';ord=[top.o,now.o];}
-  else if(rtMaxedReps(m,now.s))kind='reps';
-  return {m:m,n:bi,kind:kind,ord:ord,
-          days:daysAgo(top.d),cur:now.e,top:top.e,
-          drop:Math.round((now.e-top.e)/top.e*1000)/10};
-}
-/* 부위별 공백. 간격은 '보통 며칠' 을 그 사람의 기록에서 뽑는다 —
-   주 2회니 3~4일이라는 식의 바깥 수를 들이밀면, 주 5일로 도는 사람에게
-   늘 틀린 말을 하게 된다. 가운뎃값을 쓰는 까닭은 한 번 길게 쉰 주가
-   평균을 통째로 끌어올리기 때문이다. */
-function rtGap(part){
-  var set=partDays(part),a=[],k;
-  for(k in set)a.push(+k);
-  if(!a.length)return null;
-  a.sort(function(x,y){return x-y;});
-  var last=a[0],gaps=[],i;
-  for(i=1;i<a.length;i++)gaps.push(a[i]-a[i-1]);
-  if(!gaps.length)return {part:part,last:last,med:0,n:a.length};
-  gaps.sort(function(x,y){return x-y;});
-  var med=gaps[Math.floor(gaps.length/2)];
-  return {part:part,last:last,med:med,n:a.length};
-}
-function vzRout(){
-  var h='',i,per=UI.rtp||'m';
-  h+='<div class="rtper">';
-  for(i=0;i<RTPER.length;i++)
-    h+='<button class="rtpb'+(per===RTPER[i][0]?' on':'')+'" data-act="rtp" data-v="'+RTPER[i][0]+'">'
-      +TX(RTPER[i][1])+'</button>';
-  h+='</div>';
-  var win=rtWin();
-
-  /* ── 1) 멈춘 종목 ── */
-  var st=[],m2;
-  for(i=0;i<S.m.length;i++){
-    m2=S.m[i];
-    if(isCard(m2.p))continue;
-    var r=rtStall(m2,win);
-    if(r)st.push(r);
-  }
-  /* 오래 멈춘 것부터. 같으면 많이 떨어진 것부터 — 둘 다 같으면 이름으로
-     묶어 두어야 다시 그릴 때 줄이 안 튄다. */
-  st.sort(function(x,y){return (y.n-x.n)||(x.drop-y.drop)||(x.m.n<y.m.n?-1:1);});
-  h+=vzCap(TX('멈춘 종목')+'<span class="rtsub">'+TX('봉우리 뒤로')+'</span>');
-  if(!st.length)
-    h+=hNote(TX('이 기간에 멈춘 종목이 없음. 세 번 이상 한 종목 가운데, 봉우리 뒤로 두 세션 넘게 못 넘긴 것을 찾음 — 한 세션 밀린 것은 주간 흔들림이라 안 셈.'));
-  else{
-    h+='<div class="stl">';
-    for(i=0;i<Math.min(st.length,8);i++){
-      var q=st[i];
-      var tag=q.kind==='order'
-        ? {c:'k-ord',t:TX('순서 밀림'),
-           s:TX1('그 부위 {0}번째로 들던 것을 지금은 {1}번째 — 앞 종목 피로를 안고 든 무게라 견주기가 어긋남',q.ord[0],q.ord[1])}
-        : (q.kind==='reps'
-          ? {c:'k-up',t:TX('증량할 때'),
-             s:TX1('목표 반복을 전 세트 채움 — 멈춘 게 아니라 올릴 때. 다음 {0}kg',fmtW(machStep(q.m.i)))}
-          : {c:'k-flat',t:TX('무게 정체'),
-             s:TX1('{0}주째 봉우리를 못 넘김 · 지금 {1}kg (봉우리 {2})',
-                   Math.max(1,Math.round(q.days/7)),fmtW(q.cur),fmtW(q.top))});
-      h+='<div class="str '+tag.c+'">'
-        +'<div class="sth"><b>'+esc(q.m.n)+'</b>'
-        +(q.m.b?'<u>'+esc(q.m.b)+'</u>':'')
-        +'<i class="stg">'+tag.t+'</i></div>'
-        +'<div class="sts">'+TX1('봉우리 뒤 {0}세션',q.n)+' · '+tag.s+'</div>'
-        +'</div>';
-    }
-    h+='</div>';
-    if(st.length>8)h+=hNote(TX1('{0}개 더 있음 — 기간을 좁히면 줄어듦',st.length-8));
-    /* 안내는 그런 줄이 실제로 있을 때만 — 없는 판정을 설명하면 화면에
-       읽을 것만 는다 */
-    var anyOrd=false;
-    for(i=0;i<Math.min(st.length,8);i++)if(st[i].kind==='order')anyOrd=true;
-    if(anyOrd)
-      h+=hNote(TX('<b>순서 밀림</b>은 정체가 아니라 견주기가 어긋난 것임 — 그 종목을 그 부위 앞쪽으로 되돌리면 같은 무게가 다시 나올 수 있음.'));
-  }
-
-  /* ── 2) 벌어진 부위 ── */
-  h+=vzCap(TX('부위 공백')+'<span class="rtsub">'+TX('마지막으로 친 날')+'</span>');
-  var gp=[],pq;
-  for(i=0;i<PARTS.length;i++){
-    if(isCard(PARTS[i]))continue;
-    pq=rtGap(PARTS[i]);
-    if(pq)gp.push(pq);
-  }
-  if(!gp.length)h+=hNote(TX('아직 기록이 없음'));
-  else{
-    gp.sort(function(x,y){return y.last-x.last;});
-    h+='<div class="stl">';
-    for(i=0;i<gp.length;i++){
-      var g=gp[i];
-      /* 보통 간격의 갑절을 넘겼을 때만 말한다. 1.5배로 뒀더니 주 2회
-         부위(간격 3~4일)가 하루만 밀려도 '벌어짐' 이 떠서, 늘 네댓 줄이
-         경고였다 — 다 경고면 아무것도 경고가 아니다. */
-      var wide=g.med>0&&g.last>=g.med*2&&g.last>=4;
-      var lbl=g.last===0?TX('오늘'):TX1('{0}일 전',g.last);
-      h+='<div class="str'+(wide?' k-gap':'')+'">'
-        +'<div class="sth"><b>'+esc(rtPName(g.part))+'</b>'
-        +'<i class="stg">'+lbl+'</i></div>'
-        +'<div class="sts">'
-        +(g.med>0?TX1('보통 {0}일 간격 · 기록 {1}일',g.med,g.n):TX1('기록 {0}일 — 간격을 낼 만큼 쌓이지 않음',g.n))
-        +(wide?' · '+TX('<b>평소의 갑절을 넘김</b>'):'')
-        +'</div></div>';
-    }
-    h+='</div>';
-    h+=hNote(TX('<b>보통 간격</b>은 그 부위를 실제로 친 날에서 낸 가운뎃값임 — 주 몇 회라는 바깥 기준이 아니라 이 기록의 자임.'));
-  }
-  return h;
-}
 function vzTrain(tab){
   /* 옛 열쇠로 들어와도 화면이 비지 않게 옮겨 준다 */
   /* 강도·회복을 걸어냈으므로 그 열쇠도 세트로 보낸다 — 저장된
      UI.vzt 가 그것이면 열때마다 화면이 통째로 비기 때문이다. */
-  if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal'||tab==='prog'){tab='vol';UI.vzt='vol';}
+  /* 'rout'(루틴)도 여기로 보낸다 — 갈래를 뺐으므로 그 열쇠로 들어오면
+     화면이 통째로 빈다. 지울 때 이 줄을 같이 안 고치면 '마지막에 루틴을
+     보고 있던 사람' 만 빈 화면을 본다. */
+  if(tab==='set'||tab==='sub'||tab==='int'||tab==='recov'||tab==='bal'||tab==='prog'||tab==='rout'){tab='vol';UI.vzt='vol';}
   tab=tab||'vol';
   var h='',ws=wkSets(),sc=mmCnt(),i,k;
-  if(tab==='rout')return vzRout();
   if(tab==='vol'){
   /* 세부에는 눈금이 있는데 부위에는 없을 이유가 없다 — LMKP 가 이미
      다섯 부위의 랜드마크를 갖고 있다. 목표 대비는 숫자로, 구간은 눈금으로. */
@@ -12797,7 +12532,7 @@ function vzDiet(tab){
          그때는 바닥대로 먹으면 적자가 깨지므로 그 말을 적는다. */
       if(mg.kcal>goal)
         h+='<div class="sbf" style="margin:0 0 10px">'
-          +TX1('바닥 셋을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b>'
+          +TX1('최소량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b>'
              +' — 설정 · Macro floors 에서 하나를 낮춰야 적자가 지켜짐',
              mg.kcal.toLocaleString(),goal.toLocaleString(),(mg.kcal-goal).toLocaleString())
           +'</div>';
@@ -12975,7 +12710,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 00:22';
+var BUILD='2026-10-02 00:52';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13592,7 +13327,7 @@ var LANG='ko';
   if(canLS){try{localStorage.setItem(KEY+'.lang','ko');}catch(e){}}}})();
 var EN={
 '부위별 세트':'Sets by part',
-'주간 점수':'Weekly score',
+'ACSM 점수':'ACSM score',
 '기구':'Machine',
 '한 기계로 여러 종목을 할 때만':'For multi-exercise stations',
 '예: 케이블 스테이션':'e.g. Cable station',
@@ -13818,7 +13553,7 @@ var EN={
 '감량속도kg/주 × 7700 ÷ 7':'target loss kg/week × 7700 ÷ 7',
 '하루 소비 − 적자':'daily burn − deficit',
 '먹을 양 − 지금까지 먹은 것':'target intake − eaten so far',
-'걸음 자료가 없는 날만 쓰는 바닥 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈':'Floor used only on days with no step data — when steps come in, burn is BMR + TEF + steps and this number changes nothing.',
+'걸음 자료가 없는 날만 쓰는 기본값 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈':'Floor used only on days with no step data — when steps come in, burn is BMR + TEF + steps and this number changes nothing.',
 '기초 {0} · {1} {2} · 걸음 {3} · 운동 {4}':'BMR {0} · {1} {2} · steps {3} · exercise {4}',
 '기초 {0} · {1} {2} · 운동 {3}':'BMR {0} · {1} {2} · exercise {3}',
 '활동':'Activity',
@@ -13926,7 +13661,7 @@ var EN={
 '{0} 더 먹어도 됨':'{0} still available',
 '단백질':'Protein','탄수':'Carbs','지방':'Fat',
 '{0}{1} 더':'{0}{1} to go',
-'바닥 셋을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b> — 설정 · Macro floors 에서 하나를 낮춰야 적자가 지켜짐':'Hitting all three floors is {0}kcal, <b>{2}kcal over</b> the {1}kcal target — lower one of them under Settings · Macro floors to keep the deficit',
+'최소량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b> — 설정 · Macro floors 에서 하나를 낮춰야 적자가 지켜짐':'Hitting all three floors is {0}kcal, <b>{2}kcal over</b> the {1}kcal target — lower one of them under Settings · Macro floors to keep the deficit',
 /* ── 끼니 ── */
 '아침':'Breakfast','점심':'Lunch','저녁':'Dinner','간식':'Snack',
 '먹음':'eaten','남음':'left','그 밖':'other',
@@ -14115,7 +13850,7 @@ var EN={
 ' · 음수를 넣으면 증량':' · enter a negative number to gain',
 '{0}{1} 넘김':'{0}{1} over',
 '탄수 최대':'Carb cap','지방 최대':'Fat cap',
-'목표':'Goal','리컴프':'Recomp','한 벌':'Preset','직접':'Custom',
+'목표':'Goal','리컴프':'Recomp','프리셋':'Preset','직접 설정':'Custom',
 '<b>증량</b> 주당 +{0}kg — 하루 {1}kcal 잉여':'<b>Gain</b> +{0}kg/week — {1}kcal daily surplus',
 '적자 {0}kcal — 하루 500 을 넘으면 체중을 줄이면서 근육을 올리기는 어렵다':'{0}kcal deficit — above 500/day it is hard to lose weight and add muscle at once',
 '{0}→{1}번째':'{0}→{1}st','지난번 {0}번째 · 이번 {1}번째':'last time #{0} · this time #{1}',
@@ -16138,7 +15873,6 @@ document.addEventListener('click',function(e){
       break;
     case 'ps':UI.editStep=parseFloat(v);render();break;
     case 'jn':UI.sheet='log';render();break;
-    case 'rtp':UI.rtp=v;renderSheet();break;
     case 'jord':UI.jord=(UI.jord===v?'':v);renderSheet();break;
     case 'jmu':jMove(v,-1);break;
     case 'jmd':jMove(v,1);break;
