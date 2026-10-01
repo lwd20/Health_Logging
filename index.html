@@ -541,14 +541,63 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    고를 때만 세 칸이 펴진다. 칸은 분석 탭의 갈래 단추(.catb)와 같은 꼴이고,
    모서리·테두리·그림자를 시안 토큰에서 받아 어느 시안에서도 안 겉돈다. */
 .dmq{display:flex;justify-content:flex-end;margin-top:6px}
+/* ── 루틴 · 멈춘 종목 / 부위 공백 ──
+   판정을 색으로만 가르지 않는다(팔레트가 28가지다). 왼쪽 굵은 선의 색과
+   오른쪽 글귀가 같이 말하고, 글귀만 읽어도 뜻이 선다. */
+.stl{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.str{padding:9px 11px 10px;border-radius:var(--rad-s);
+  background:rgba(var(--tx-rgb),.035);border-left:3px solid rgba(var(--tx-rgb),.16)}
+.str .sth{display:flex;align-items:baseline;gap:6px;min-width:0}
+.str .sth b{font-size:12.5px;font-weight:800;color:var(--tx);letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.str .sth u{text-decoration:none;font-size:9px;font-weight:700;color:var(--dim);
+  letter-spacing:.06em;white-space:nowrap;text-transform:uppercase}
+/* 판정 조각은 오른쪽 끝에 못박는다 — 종목 이름 길이에 따라 자리가 바뀌면
+   여러 줄을 훑을 때 눈이 그 조각을 매번 찾아야 한다 */
+.str .stg{margin-left:auto;flex:0 0 auto;font-style:normal;font-size:10px;font-weight:800;
+  letter-spacing:.04em;color:var(--mut);white-space:nowrap}
+.str .sts{margin-top:3px;font-size:10.5px;line-height:1.5;color:var(--dim)}
+.str .sts b{color:var(--sig);font-weight:800}
+/* 수식어는 제 이름(k-)을 쓴다. 'ord' 로 뒀다가 앱에 이미 있던 .ord
+   (42x42 차례 단추)가 걸려 줄 너비가 42px 로 접히고 글이 화면 전체로
+   흘러내렸다 — 이 저장소에서 같은 함정에 걸린 것이 두 번째다(.jr 주석). */
+.str.k-flat{border-left-color:var(--sig)}
+.str.k-flat .stg{color:var(--sig)}
+/* 올릴 때가 된 것 — 잘못이 아니라 다음 할 일이다 */
+.str.k-up{border-left-color:var(--acc-sf)}
+.str.k-up .stg{color:var(--acc-br)}
+/* 순서가 밀린 것 — 판정이 아니라 '이 판정을 믿지 말라' 는 말이라 조용히 둔다 */
+.str.k-ord{border-left-style:dashed}
+.str.k-gap{border-left-color:var(--sig)}
+.str.k-gap .stg{color:var(--sig)}
 /* 세트 요약 끝에 붙는 꼴 — 요약과 한 줄이므로 앞에 가운뎃점을 두어 가른다 */
-.dmqi{margin-left:7px;padding:2px 0 1px}
+/* 알약이 된 뒤로는 제 안쪽 여백이 있으므로 패딩을 덮어쓰지 않는다 */
+.dmqi{margin-left:8px}
 /* 단추 안에 두었더니 점선 밑줄이 가운뎃점까지 먹어 가름이 안 보였다 */
-.dsep{font-style:normal;margin-left:7px;color:var(--dim);opacity:.55;font-size:10.5px}
-.dmqb{background:none;border:0;padding:3px 0 1px;color:var(--dim);font-family:inherit;
+/* '운동 없음 · 평소' 에서 평소만 단추였는데, 둘 다 같은 dim 색 10.5px 라
+   한 구절로 읽혔다 — 표시라고는 25% 불투명 점선 밑줄 하나였다.
+   같은 것을 바꾸는 손잡이(.dmbar .dmch, 디로딩 띠의 '바꾸기')가 이미 알약
+   꼴을 쓰고 있다. 같은 일을 여는 단추는 같은 모양이어야 배운 것이 쓰인다.
+   ▾ 를 붙여 '눌리는 것' 에 더해 '펴진다' 까지 말한다 — 테두리만으로는
+   가는 곳을 모른다. 색은 dim 에서 mut 로 한 칸 올린다: 옆 '운동 없음' 과
+   같은 색이면 테두리를 줘도 한 덩이로 읽힌다. */
+.dmqb{position:relative;background:none;border:0;color:var(--mut);font-family:inherit;
   font-size:10.5px;font-weight:700;letter-spacing:.02em;
-  border-bottom:1px dashed rgba(var(--tx-rgb),.25)}
-.dmqb:active{color:var(--mut)}
+  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
+  /* 알약은 26px 인데 눌리는 자리는 44px 여야 한다. 위아래 9px 를 투명한
+     패딩으로 벌리고 같은 만큼 margin 으로 당겨 줄 높이는 그대로 둔다.
+     테두리를 단추 자신에게 주면 그 패딩까지 같이 커지므로, 알약은
+     ::before 로 그린다. 높이를 44 로 키우면 날짜 줄이 그만큼 두꺼워진다.
+     남는 18px 를 위아래로 반씩 나눴더니 아래쪽 9px 를 바로 밑 '섭취 여유'
+     카드(그 자체가 눌리는 자리다)가 먹었다 — 넓힌 자리가 남의 단추를
+     훔치면 넓힌 것이 아니다. 전부 위로 뺀다: 위는 빈 자리다. */
+  padding:23px 8px 5px 10px;margin:-18px 0 0}
+.dmqb::before{content:'';position:absolute;inset:18px 0 0;border-radius:999px;
+  border:var(--bw) solid rgba(var(--tx-rgb),.22)}
+.dmqb>*,.dmqb::after{position:relative}
+.dmqb::after{content:'\25be';font-size:8px;opacity:.7}
+.dmqb:active{color:var(--tx)}
+.dmqb:active::before{border-color:rgba(var(--acc-rgb),.5);background:rgba(var(--acc-rgb),.12)}
 .dmbar{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:8px;padding:0 12px;
   border-radius:var(--rad-s);background:rgba(var(--acc-rgb),.12);
   border-left:3px solid var(--acc-sf)}
@@ -4829,7 +4878,9 @@ function render(){
         /* 라벨 없이 값만 적는다 — 날짜 줄 오른쪽에서 '운동 없음 · 평소' 는
            그대로 '여느 때와 같은 날' 로 읽힌다. 무엇을 고르는 것인지는
            눌러서 펴면 머리에 적혀 있다. */
-        ?'<i class="dsep">·</i><button class="dmqb dmqi hit" data-act="dmopen"'
+        /* 가운뎃점을 뗐다 — 알약에는 앞 글과 가를 테두리가 이미 있고,
+           점이 남으면 '운동 없음 · 평소' 가 도로 한 구절로 읽힌다. */
+        ?'<button class="dmqb dmqi" data-act="dmopen"'
          +' aria-label="'+esc(TX('강도'))+'">'+TX('평소')+'</button>'
         :'')
     +'</span></div>'
@@ -7244,7 +7295,23 @@ var TSTY=[
  ['격자','점 격자'],
  ['격자','체크무늬']
 ];
-function tstOf(){var n=Math.floor(+TST)||1;return (n>=1&&n<=TSTY.length)?n:1;}
+/* 이제야 길이를 안다 — 부팅 로더가 자르지 못한 채로 붙여 둔 data-tst 를
+   여기서 한 번 더 손본다. 저장된 수가 TSTY 를 넘는 판(모양이 줄어든 판으로
+   되돌아간 경우)에서만 값이 바뀌고, 보통은 같은 수를 다시 쓴다. */
+applyTheme();
+/* 부팅 때 이 함수는 TSTY 보다 먼저 불린다 — 로더의 applyTheme 가 3,100줄
+   위에 있다. `var TSTY` 는 그때 아직 undefined 라 `TSTY.length` 가 던졌고,
+   applyTheme 의 try/catch 가 그것을 삼켜 **data-tst 가 통째로 안 붙었다**.
+   그래서 앱을 껐다 켜면 고른 타이머 모양이 1번으로 돌아가 보였고, 설정을
+   한 번 열면(= applyTheme 재호출) 제 모양으로 돌아왔다.
+   길이를 못 보는 동안에는 자르지 않는다 — 저장될 때 이미 검사를 통과한
+   수다. 자르는 일은 TSTY 바로 밑의 applyTheme() 한 번이 맡는다. */
+function tstOf(){
+  var n=Math.floor(+TST)||1;
+  if(n<1)return 1;
+  if(typeof TSTY==='undefined'||!TSTY)return n;
+  return n<=TSTY.length?n:1;
+}
 var BSD={19:{m:'sec'},20:{m:'body'},21:{m:'sec'},22:{m:'sec'},23:{m:'sec'},24:{m:'body'},25:{m:'sec'},
   26:{m:'sec',mg:1},27:{nh:1,row:'badge',mcb:1},28:{nh:1,row:'eye'},29:{nh:1,row:'eye1'},
   32:{nh:1,row:'ini'},33:{nh:1,row:'dot',x:'legend'},34:{nh:1,row:'tag',mcb:1},42:{mg:1},
@@ -11669,165 +11736,170 @@ function rtWin(){
   if(k==='w')return (new Date().getDay()+6)%7;
   return k==='m'?30:(k==='q'?90:180);
 }
+/* ── 루틴 ──────────────────────────────────────────────────────
+   예전에는 '보통 순서' 를 그렸다 — 부위를 어떤 차례로, 부위 안에서 머신을
+   어떤 차례로 가져가는지. 그것은 '내가 뭘 하고 있나' 는 말해 줬지만
+   '그래서 무엇을 손봐야 하나' 는 말하지 않았다. 차례는 이제 제 화면을
+   갖지 않고, 정체의 원인을 가르는 근거로만 쓰인다(사용자 요청).
+
+   두 가지를 말한다:
+     1) 어느 종목이 멈췄나, 그리고 왜 멈춰 보이나
+     2) 어느 부위가 너무 벌어졌나
+
+   1의 '왜' 가 이 화면의 요점이다. e1RM 이 안 오르는 데는 세 가지가 있는데
+   무게만 봐서는 안 갈린다:
+     · 순서 밀림 — 봉우리를 그 부위 1번째로 들었는데 지금은 4번째다.
+       앞 종목의 피로를 안고 든 무게라 같은 수가 안 나오는 것이 정상이다.
+       이건 정체가 아니라 비교가 어긋난 것이다.
+     · 증량할 때 — 목표 반복을 전 세트 채웠는데 무게가 그대로다.
+       멈춘 게 아니라 올릴 때가 된 것이다.
+     · 무게 정체 — 위 둘이 아니면 진짜로 멈춘 것이다. */
+
+/* 평소 날의 세션만, 최신순. 가볍게·디로딩은 뺀다 — 계획해서 내린 무게를
+   봉우리와 견주면 모든 종목이 '정체' 로 찍힌다. */
+function rtSeries(id,win){
+  var a=sess(id),out=[],i;
+  for(i=0;i<a.length;i++){
+    var x=a[i];
+    if(!(x.s&&x.s.length))continue;
+    if(daysAgo(x.d)>win)break;                /* sess 는 최신순이라 끊어도 된다 */
+    if(isSoft(x.d))continue;
+    var e=e1rm(x.s);
+    if(e>0)out.push({d:x.d,e:e,o:(+x.o||0),s:x.s});
+  }
+  return out;
+}
+/* 그 세션이 목표 반복을 전 세트 채웠나 — 사용자의 점증 규칙에서
+   '다음 주 증량' 의 조건이다. nextRx 가 쓰는 자(m.rx)를 그대로 쓴다. */
+function rtMaxedReps(m,s){
+  var rx=(m&&m.rx>0)?m.rx:12,i,n=0;
+  for(i=0;i<s.length;i++){
+    var w=+s[i][0]||0,r=+s[i][1]||0;
+    if(!(w>0&&r>0))continue;
+    n++;
+    if(r<rx)return false;
+  }
+  return n>0;
+}
+/* 한 종목의 정체 판정. 봉우리 뒤로 몇 세션이 지났는지가 길이이고,
+   원인은 차례(o)와 반복으로 가른다. */
+function rtStall(m,win){
+  var S2=rtSeries(m.i,win);
+  if(S2.length<3)return null;                 /* 세 번은 해 봐야 멈췄다고 말할 수 있다 */
+  var bi=0,i;
+  for(i=0;i<S2.length;i++)if(S2[i].e>S2[bi].e)bi=i;
+  /* 봉우리 뒤로 한 세션은 정체가 아니라 주간 흔들림이다 — 그걸로 판정하면
+     거의 모든 종목이 늘 '정체' 로 찍혀, 다 경고면 아무것도 경고가 아니게 된다.
+     사용자의 점증 규칙도 같은 자를 쓴다: 1~2회 부족은 유지, 2주 연속 실패라야
+     손을 댄다. 두 세션부터 말한다. */
+  if(bi<2)return null;
+  var now=S2[0],top=S2[bi];
+  var kind='flat',ord=null;
+  /* 차례를 둘 다 아는 날끼리만 견준다 — 한쪽이 0(모름)이면 말할 수 없다 */
+  if(now.o>0&&top.o>0&&now.o>top.o){kind='order';ord=[top.o,now.o];}
+  else if(rtMaxedReps(m,now.s))kind='reps';
+  return {m:m,n:bi,kind:kind,ord:ord,
+          days:daysAgo(top.d),cur:now.e,top:top.e,
+          drop:Math.round((now.e-top.e)/top.e*1000)/10};
+}
+/* 부위별 공백. 간격은 '보통 며칠' 을 그 사람의 기록에서 뽑는다 —
+   주 2회니 3~4일이라는 식의 바깥 수를 들이밀면, 주 5일로 도는 사람에게
+   늘 틀린 말을 하게 된다. 가운뎃값을 쓰는 까닭은 한 번 길게 쉰 주가
+   평균을 통째로 끌어올리기 때문이다. */
+function rtGap(part){
+  var set=partDays(part),a=[],k;
+  for(k in set)a.push(+k);
+  if(!a.length)return null;
+  a.sort(function(x,y){return x-y;});
+  var last=a[0],gaps=[],i;
+  for(i=1;i<a.length;i++)gaps.push(a[i]-a[i-1]);
+  if(!gaps.length)return {part:part,last:last,med:0,n:a.length};
+  gaps.sort(function(x,y){return x-y;});
+  var med=gaps[Math.floor(gaps.length/2)];
+  return {part:part,last:last,med:med,n:a.length};
+}
 function vzRout(){
-  var h='',i,j,per=UI.rtp||'m';
+  var h='',i,per=UI.rtp||'m';
   h+='<div class="rtper">';
   for(i=0;i<RTPER.length;i++)
     h+='<button class="rtpb'+(per===RTPER[i][0]?' on':'')+'" data-act="rtp" data-v="'+RTPER[i][0]+'">'
       +TX(RTPER[i][1])+'</button>';
   h+='</div>';
-  var all=rtDays(),win=rtWin(),days=[];
-  for(i=0;i<all.length;i++)if(daysAgo(all[i].d)<=win)days.push(all[i]);
-  if(!days.length){h+=hNote(TX('이 기간에 기록이 없음'));return h;}
-  var timed=[],ord=[];
-  for(i=0;i<days.length;i++){
-    if(days[i].timed>=2)timed.push(days[i]);
-    /* 차례를 아는 날 — 시각이 둘 이상 찍혔거나, 손으로 세워 둔 날 */
-    if(days[i].rows.length>=2&&(days[i].timed>=2||days[i].man))ord.push(days[i]);
+  var win=rtWin();
+
+  /* ── 1) 멈춘 종목 ── */
+  var st=[],m2;
+  for(i=0;i<S.m.length;i++){
+    m2=S.m[i];
+    if(isCard(m2.p))continue;
+    var r=rtStall(m2,win);
+    if(r)st.push(r);
   }
-  /* 그 기간에 한 부위는 다 세어 둔다. 차례를 모른다고 목록에서 통째로
-     빼 버리면 '하체는 왜 없지' 가 된다 — 없는 것과 모르는 것은 다르다. */
-  var seen={},sk;
-  for(i=0;i<days.length;i++)for(j=0;j<days[i].rows.length;j++)seen[days[i].rows[j].m.p]=1;
-  if(!ord.length){
-    h+=hNote(TX('이 기간에는 차례를 아는 날이 없음 — 세트를 올리면 시각이 찍히고, 옛 기록은 <b>LOG</b> 에서 날마다 <b>차례</b> 를 눌러 기억대로 세우면 들어옴.'));
-    return h;
-  }
-  /* 2) 부위 차례 — 종목 하나하나보다 이것이 먼저 읽힌다. 51개를 늘어놓으면
-     '보통 어떤 꼴로 하나' 가 안 보인다. 한 부위의 자리는 그 부위가 처음
-     나온 자리다: 가슴을 세 종목 했어도 가슴은 한 번 지나간 것이다. */
-  var ppos={},pused=0,z;
-  for(i=0;i<ord.length;i++){
-    var fl2=rtFlow(rtKnown(ord[i]));
-    if(!fl2.length)continue;
-    pused++;
-    for(z=0;z<fl2.length;z++)(ppos[fl2[z]]=ppos[fl2[z]]||[]).push(z+1);
-  }
-  var plist=[],pk;
-  for(pk in ppos){
-    var pa=ppos[pk],psum=0;
-    for(z=0;z<pa.length;z++)psum+=pa[z];
-    plist.push({p:pk,avg:psum/pa.length,n:pa.length});
-  }
-  plist.sort(function(x,y){return (x.avg-y.avg)||(y.n-x.n);});
-  /* 차례를 모르는 부위를 딴 자리로 빼 두었더니 '하체가 아예 없는데' 가
-     됐다 — 목록에서 사라지는 것과 차례를 모르는 것은 다른 말이다.
-     한 목록에 다 넣고, 모르는 것은 번호 자리에 '–' 를 둔다. */
-  var pall=plist.slice(),pmiss=[];
-  for(sk in seen)if(!ppos[sk])pmiss.push(sk);
-  pmiss.sort(function(x,y){return rtPName(x)<rtPName(y)?-1:1;});
-  if(pall.length||pmiss.length){
-    h+=vzCap(TX('보통 순서')+'<span class="rtsub">'+TX('부위')+' · '+TX1('최근 {0}일',pused)+'</span>');
-    /* 부위 안 차례와 같은 자로 묶는다 — 평균 자리가 반 칸 안이면 그날그날
-       바뀌었을 뿐 먼저랄 것이 없다. 1 이 둘이면 두 줄로 세울 이유가 없다. */
-    var ptr=[],pcur=null;
-    for(i=0;i<pall.length;i++){
-      if(!pcur||pall[i].avg-pcur.a>=0.5){pcur={a:pall[i].avg,items:[]};ptr.push(pcur);}
-      pcur.items.push(pall[i]);
-    }
-    h+='<div class="rtl">';
-    for(i=0;i<ptr.length;i++){
-      var pl='';
-      for(q=0;q<ptr[i].items.length;q++){
-        var pe=ptr[i].items[q];
-        /* 며칠만 한 부위를 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 */
-        pl+='<b class="rtpill">'+esc(rtPName(pe.p))
-          +'<u>'+pe.n+'/'+pused+'</u></b>';
-      }
-      h+='<div class="rtr rtp1"><u>'+(i+1)+'</u><span class="rtps">'+pl+'</span></div>';
-    }
-    if(pmiss.length){
-      var ml='';
-      for(i=0;i<pmiss.length;i++)
-        ml+='<b class="rtpill">'+esc(rtPName(pmiss[i]))+'</b>';
-      h+='<div class="rtr rtp1 rtno"><u>–</u><span class="rtps">'+ml+'</span>'
-        +'<i>'+TX('차례 모름')+'</i></div>';
+  /* 오래 멈춘 것부터. 같으면 많이 떨어진 것부터 — 둘 다 같으면 이름으로
+     묶어 두어야 다시 그릴 때 줄이 안 튄다. */
+  st.sort(function(x,y){return (y.n-x.n)||(x.drop-y.drop)||(x.m.n<y.m.n?-1:1);});
+  h+=vzCap(TX('멈춘 종목')+'<span class="rtsub">'+TX('봉우리 뒤로')+'</span>');
+  if(!st.length)
+    h+=hNote(TX('이 기간에 멈춘 종목이 없음. 세 번 이상 한 종목 가운데, 봉우리 뒤로 두 세션 넘게 못 넘긴 것을 찾음 — 한 세션 밀린 것은 주간 흔들림이라 안 셈.'));
+  else{
+    h+='<div class="stl">';
+    for(i=0;i<Math.min(st.length,8);i++){
+      var q=st[i];
+      var tag=q.kind==='order'
+        ? {c:'k-ord',t:TX('순서 밀림'),
+           s:TX1('그 부위 {0}번째로 들던 것을 지금은 {1}번째 — 앞 종목 피로를 안고 든 무게라 견주기가 어긋남',q.ord[0],q.ord[1])}
+        : (q.kind==='reps'
+          ? {c:'k-up',t:TX('증량할 때'),
+             s:TX1('목표 반복을 전 세트 채움 — 멈춘 게 아니라 올릴 때. 다음 {0}kg',fmtW(machStep(q.m.i)))}
+          : {c:'k-flat',t:TX('무게 정체'),
+             s:TX1('{0}주째 봉우리를 못 넘김 · 지금 {1}kg (봉우리 {2})',
+                   Math.max(1,Math.round(q.days/7)),fmtW(q.cur),fmtW(q.top))});
+      h+='<div class="str '+tag.c+'">'
+        +'<div class="sth"><b>'+esc(q.m.n)+'</b>'
+        +(q.m.b?'<u>'+esc(q.m.b)+'</u>':'')
+        +'<i class="stg">'+tag.t+'</i></div>'
+        +'<div class="sts">'+TX1('봉우리 뒤 {0}세션',q.n)+' · '+tag.s+'</div>'
+        +'</div>';
     }
     h+='</div>';
-    if(pmiss.length)h+=hNote(TX('<b>LOG</b> 에서 그 날 <b>차례</b> 를 눌러 세우면 위 셈에 들어옴'));
+    if(st.length>8)h+=hNote(TX1('{0}개 더 있음 — 기간을 좁히면 줄어듦',st.length-8));
+    /* 안내는 그런 줄이 실제로 있을 때만 — 없는 판정을 설명하면 화면에
+       읽을 것만 는다 */
+    var anyOrd=false;
+    for(i=0;i<Math.min(st.length,8);i++)if(st[i].kind==='order')anyOrd=true;
+    if(anyOrd)
+      h+=hNote(TX('<b>순서 밀림</b>은 정체가 아니라 견주기가 어긋난 것임 — 그 종목을 그 부위 앞쪽으로 되돌리면 같은 무게가 다시 나올 수 있음.'));
   }
-  /* 3) 부위 안에서 머신을 어떤 차례로 가져가나. 자리는 그 부위 안에서만
-     센다: 등을 먼저 한 날이라고 가슴 첫 종목이 네 번째가 되면
-     '가슴은 프레스부터' 라는 사실이 가려진다. */
-  var ipos={},inm={},pday={},k,q,q2,pk2;
-  for(i=0;i<ord.length;i++){
-    var kn3=rtKnown(ord[i]),byP={};
-    for(j=0;j<kn3.length;j++){
-      pk2=kn3[j].m.p;
-      (byP[pk2]=byP[pk2]||[]).push(kn3[j]);
-    }
-    for(pk2 in byP){
-      pday[pk2]=(pday[pk2]||0)+1;
-      for(j=0;j<byP[pk2].length;j++){
-        k=byP[pk2][j].m.i;
-        (ipos[k]=ipos[k]||[]).push(j+1);
-        inm[k]=byP[pk2][j].m;
-      }
-    }
+
+  /* ── 2) 벌어진 부위 ── */
+  h+=vzCap(TX('부위 공백')+'<span class="rtsub">'+TX('마지막으로 친 날')+'</span>');
+  var gp=[],pq;
+  for(i=0;i<PARTS.length;i++){
+    if(isCard(PARTS[i]))continue;
+    pq=rtGap(PARTS[i]);
+    if(pq)gp.push(pq);
   }
-  var hp='';
-  for(z=0;z<plist.length;z++){
-    var pp=plist[z].p,mine=[];
-    for(k in ipos)if(inm[k].p===pp){
-      var ia=ipos[k],isum=0;
-      for(q=0;q<ia.length;q++)isum+=ia[q];
-      mine.push({m:inm[k],avg:isum/ia.length,n:ia.length});
+  if(!gp.length)h+=hNote(TX('아직 기록이 없음'));
+  else{
+    gp.sort(function(x,y){return y.last-x.last;});
+    h+='<div class="stl">';
+    for(i=0;i<gp.length;i++){
+      var g=gp[i];
+      /* 보통 간격의 갑절을 넘겼을 때만 말한다. 1.5배로 뒀더니 주 2회
+         부위(간격 3~4일)가 하루만 밀려도 '벌어짐' 이 떠서, 늘 네댓 줄이
+         경고였다 — 다 경고면 아무것도 경고가 아니다. */
+      var wide=g.med>0&&g.last>=g.med*2&&g.last>=4;
+      var lbl=g.last===0?TX('오늘'):TX1('{0}일 전',g.last);
+      h+='<div class="str'+(wide?' k-gap':'')+'">'
+        +'<div class="sth"><b>'+esc(rtPName(g.part))+'</b>'
+        +'<i class="stg">'+lbl+'</i></div>'
+        +'<div class="sts">'
+        +(g.med>0?TX1('보통 {0}일 간격 · 기록 {1}일',g.med,g.n):TX1('기록 {0}일 — 간격을 낼 만큼 쌓이지 않음',g.n))
+        +(wide?' · '+TX('<b>평소의 갑절을 넘김</b>'):'')
+        +'</div></div>';
     }
-    if(!mine.length)continue;
-    mine.sort(function(x,y){return (x.avg-y.avg)||(y.n-x.n);});
-    /* 비슷한 수준은 한 줄로 묶는다 — 평균 자리가 반 칸 안이면 그날그날
-       바뀌었을 뿐 먼저랄 것이 없다. 억지로 세우면 없는 차례가 생긴다. */
-    var tiers=[],cur=null;
-    for(q=0;q<mine.length;q++){
-      if(!cur||mine[q].avg-cur.a>=0.5){cur={a:mine[q].avg,items:[]};tiers.push(cur);}
-      cur.items.push(mine[q]);
-    }
-    hp+='<div class="rtph"><b class="rtpill">'+esc(rtPName(pp))+'</b>'
-      +'<i>'+(pday[pp]||0)+'/'+pused+TX('일')+'</i></div>';
-    for(q=0;q<tiers.length;q++){
-      /* 'A · B' 로 이어 붙이면 긴 이름 둘이 감기면서 어디서 끊기는지가
-         안 보였다 — 한 줄에 하나씩 쌓고, 둘 이상일 때만 앞에 점을 찍어
-         '이만큼이 한 순위' 임을 보인다. */
-      var many=tiers[q].items.length>1,tl='';
-      for(q2=0;q2<tiers[q].items.length;q2++){
-        var it=tiers[q].items[q2];
-        /* 며칠만 한 머신을 늘 하는 것 옆에 그냥 두면 같은 무게로 읽힌다 —
-           그 부위를 한 날수보다 적게 나온 것에만 수를 붙인다. */
-        tl+='<span>'+esc(pgName(it.m))+'<u>'+it.n+'/'+(pday[pp]||0)+'</u></span>';
-      }
-      hp+='<div class="rtr rtt rtin"><u>'+(q+1)+'</u>'
-        +'<b class="rtstk'+(many?' many':'')+'">'+tl+'</b></div>';
-    }
-  }
-  if(hp){
-    h+=vzCap(TX('부위 안 차례')+'<span class="rtsub">'+TX('비슷하면 한 줄')+'</span>');
-    h+='<div class="rtl">'+hp+'</div>';
-  }
-  /* 4) 세션 — 시각이 찍힌 날만 셀 수 있다 */
-  if(timed.length){
-    var lens=[],starts=[],gaps=[];
-    for(i=0;i<timed.length;i++){
-      var rows=timed[i].rows,a0=null,a1=null;
-      for(j=0;j<rows.length;j++){
-        if(rows[j].t0!=null&&(a0==null||rows[j].t0<a0))a0=rows[j].t0;
-        if(rows[j].t1!=null&&(a1==null||rows[j].t1>a1))a1=rows[j].t1;
-        if(j>0&&rows[j].t0!=null&&rows[j-1].t1!=null){
-          var g=rows[j].t0-rows[j-1].t1;
-          if(g>=0&&g<=600)gaps.push(g);
-        }
-      }
-      if(a0!=null)starts.push(a0);
-      if(a0!=null&&a1!=null&&a1>a0)lens.push(a1-a0);
-    }
-    /* 이 셋만 .zrow 로 그렸더니 한 탭 안에서 줄 모양이 둘이었다 — 위 목록과
-       같은 줄을 쓰고, 번호 칸은 비워 두어 왼쪽 끝이 맞게 한다. */
-    h+=vzCap(TX('세션')+'<span class="rtsub">'+TX1('시각 있는 {0}일',timed.length)+'</span>');
-    var sr='';
-    function srow(lb,v){return '<div class="rtr rts"><u></u><b>'+lb+'</b><i>'+v+'</i></div>';}
-    if(lens.length)sr+=srow(TX('길이'),TX1('{0}분',rtMed(lens)));
-    if(starts.length)sr+=srow(TX('시작'),hhmm(rtMed(starts)));
-    if(gaps.length)sr+=srow(TX('종목 간 틈'),TX1('{0}분',rtMed(gaps)));
-    if(sr)h+='<div class="rtl">'+sr+'</div>';
+    h+='</div>';
+    h+=hNote(TX('<b>보통 간격</b>은 그 부위를 실제로 친 날에서 낸 가운뎃값임 — 주 몇 회라는 바깥 기준이 아니라 이 기록의 자임.'));
   }
   return h;
 }
@@ -12581,7 +12653,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 23:14';
+var BUILD='2026-10-01 23:34';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
