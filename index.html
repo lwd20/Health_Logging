@@ -2024,8 +2024,14 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .rgs .fl{fill:none;stroke:var(--acc-br);stroke-width:7;stroke-linecap:round}
 /* 넘긴 것은 잘못이 아니라 채운 것이다 — 경고색이 아니라 충족색을 쓴다 */
 .rgs .fl.met{stroke:var(--pos)}
-/* 넘긴 눈금 — 초록과 같은 급으로 두면 '잘했다' 로 읽힌다 */
-.rgs .fl.ovr{stroke:var(--sig)}
+/* 넘긴 눈금 — 초록과 같은 급으로 두면 '잘했다' 로 읽힌다.
+   색만으로는 못 가른다: chalk·sage 처럼 경고색이 짙은 호박색인 팔레트에서는
+   흰 바탕에서 그냥 또 하나의 강조색으로 보인다. 팔레트가 스물여덟이라 어느
+   하나에 맞추면 다른 데가 깨지므로, 색이 아니라 모양으로 가른다 —
+   선을 굵히고 끝을 각지게 하고 점선으로 끊는다. */
+.rgs .fl.ovr{stroke:var(--sig);stroke-width:9;stroke-linecap:butt}
+.rgs .tr.ovr{stroke-width:9}
+.rgp.ovr{fill:var(--sig)}
 /* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
 .rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
   text-anchor:middle;transform:rotate(90deg);transform-origin:32px 32px}
@@ -12360,7 +12366,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 18:41';
+var BUILD='2026-10-01 18:53';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14725,11 +14731,12 @@ function vzRing(name,kind,cur,goal,unit){
   var h='<div class="ring"><div class="rgn">'+esc(name)
     +'<i>'+(kind==='opt'?TX('적정'):(cap?TX('남은 몫'):TX('최소')))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
-    +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
+    +'<circle class="tr'+(over?' ovr':'')+'" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
     h+='<circle class="fl'+(over?' ovr':(met?' met':''))+'" cx="32" cy="32" r="'+R+'" '
       +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
-  h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
+  h+='<text x="32" y="36" class="rgp'+(over?' ovr':'')+'">'
+    +(pct===null?'—':pct+'%')+'</text></svg>'
     +'<div class="rgv">'+cur.toLocaleString()
     +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
     /* 58% 는 상태고 '67g 더' 는 할 일이다. 감량기에 필요한 것은
@@ -14737,7 +14744,7 @@ function vzRing(name,kind,cur,goal,unit){
     +'<div class="rgd'+(over?' ovr':(met?' met':''))+'">'
     +(goal<=0?'—'
       :(cap
-        ?(over?TX1('{0}{1} 넘김',(cur-goal).toLocaleString(),esc(unit))
+        ?(over?'\u25b2 '+TX1('{0}{1} 넘김',(cur-goal).toLocaleString(),esc(unit))
               :TX1('{0}{1} 여유',(goal-cur).toLocaleString(),esc(unit)))
         :(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit)))))+'</div>'
     +'</div>';
