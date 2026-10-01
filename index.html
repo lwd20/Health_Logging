@@ -570,9 +570,9 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .str.k-ord{border-left-style:dashed}
 .str.k-gap{border-left-color:var(--sig)}
 .str.k-gap .stg{color:var(--sig)}
-/* 세트 요약 끝에 붙는 꼴 — 요약과 한 줄이므로 앞에 가운뎃점을 두어 가른다 */
-/* 알약이 된 뒤로는 제 안쪽 여백이 있으므로 패딩을 덮어쓰지 않는다 */
-.dmqi{margin-left:8px}
+/* 왼쪽 틈은 .dmqb 의 margin 단축 안에서 준다. 여기 .dmqi 에 margin-left 를
+   두었더니 뒤에 오는 .dmqb 의 `margin:-18px 0 0` 단축이 그것을 0 으로 덮어
+   알약이 '17 sets' 에 바짝 붙었다 — 같은 특정도면 뒤가 이긴다. */
 /* 단추 안에 두었더니 점선 밑줄이 가운뎃점까지 먹어 가름이 안 보였다 */
 /* '운동 없음 · 평소' 에서 평소만 단추였는데, 둘 다 같은 dim 색 10.5px 라
    한 구절로 읽혔다 — 표시라고는 25% 불투명 점선 밑줄 하나였다.
@@ -591,7 +591,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
      남는 18px 를 위아래로 반씩 나눴더니 아래쪽 9px 를 바로 밑 '섭취 여유'
      카드(그 자체가 눌리는 자리다)가 먹었다 — 넓힌 자리가 남의 단추를
      훔치면 넓힌 것이 아니다. 전부 위로 뺀다: 위는 빈 자리다. */
-  padding:23px 8px 5px 10px;margin:-18px 0 0}
+  padding:23px 9px 5px 11px;margin:-18px 0 0 12px}
 .dmqb::before{content:'';position:absolute;inset:18px 0 0;border-radius:999px;
   border:var(--bw) solid rgba(var(--tx-rgb),.22)}
 .dmqb>*,.dmqb::after{position:relative}
@@ -2013,7 +2013,12 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 붙박이가 화면의 3분의 1을 넘으면 정작 고를 자리가 없다 — 미리보기를 조금 낮춘다 */
 /* 갈래가 일곱이 되면서 한 줄에 안 들어가 이름이 잘렸다(브랜드 150 → ㅡ랜드 15).
    한 줄에 넷씩 접는다 — 폭을 줄여 글자를 깎는 것보다 두 줄이 읽힌다. */
-.dsubs{display:flex;flex-wrap:wrap;gap:3px;margin-top:9px}
+.dsubs{display:flex;flex-wrap:wrap;gap:3px;margin-top:9px;align-items:center}
+/* 갈래 묶음 이름 — 줄 전체를 차지해 다음 칩들을 아랫줄로 민다(flex-basis:100%).
+   이름이 없으면 일곱 칩이 어디서 왜 접히는지 알 수 없었다. */
+.dsgl{flex:0 0 100%;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);opacity:.75;margin:4px 0 1px 2px}
+.dsgl:first-child{margin-top:1px}
 .dsb{flex:1 1 calc(25% - 3px);min-width:74px;height:34px;display:flex;align-items:center;justify-content:center;
   gap:4px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);
   background:none;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.02em;
@@ -4167,7 +4172,28 @@ var PSETS=[
   {k:'bloom',n:'보라알',d:'동글한 제비꽃 알',pal:'iris',tech:'pill',pat:'dome'},
   {k:'copper',n:'녹청벽',d:'산화 구리 음각벽',pal:'patina',tech:'carve',pat:'brick'},
   {k:'stock',n:'재고표',d:'무채색 자재 꼬리표',pal:'mono',tech:'tag',pat:'barcode'},
-  {k:'blueprint',n:'청사진',d:'선만 남긴 파란 도면',pal:'cobalt',tech:'outline',pat:'blue'}
+  {k:'blueprint',n:'청사진',d:'선만 남긴 파란 도면',pal:'cobalt',tech:'outline',pat:'blue'},
+  /* 여기부터 열여덟은 안 쓰이던 팔레트를 하나씩 맡겼다 — 스물여덟 가지 색이
+     있는데 열 가지만 시안에 묶여 있어, 나머지는 '색' 탭을 뒤져야 만났다.
+     한 시안이 한 색을 대표하게 두면 시안 목록이 곧 색 목록의 입구가 된다. */
+  {k:'cast',n:'주물판',d:'청동에 박은 리벳',pal:'bronze',tech:'emboss',pat:'dome'},
+  {k:'forge',n:'달군 쇠',d:'아래서 올라오는 불빛',pal:'ember',tech:'uplit',pat:'corr'},
+  {k:'bindery',n:'제본실',d:'자줏빛 천에 주름',pal:'wine',tech:'bind',pat:'pleat'},
+  {k:'infra',n:'적외선',d:'탄소면 위 붉은 홀로',pal:'ruby',tech:'holo',pat:'carbon'},
+  {k:'glasshouse',n:'유리온실',d:'물결 비치는 유리',pal:'orchid',tech:'glass',pat:'wave'},
+  {k:'slab',n:'석판',d:'빗금 파낸 돌',pal:'slate',tech:'carve',pat:'hatch'},
+  {k:'daylight',n:'일광판',d:'뒤에서 켠 원판',pal:'solar',tech:'backlit',pat:'disc'},
+  {k:'scanroom',n:'주사실',d:'철망 위 주사선',pal:'cyber',tech:'scan',pat:'mesh'},
+  {k:'ledger',n:'영수증철',d:'바코드 찍은 감열지',pal:'sepia',tech:'receipt',pat:'barcode'},
+  {k:'dye',n:'남염포',d:'십자 결로 짠 쪽빛',pal:'indigo',tech:'etch',pat:'cross'},
+  {k:'hazard',n:'경고구역',d:'빗살 안전띠',pal:'crimson',tech:'hazard',pat:'chev'},
+  {k:'helmet',n:'안전모',d:'둥근 접시 구멍',pal:'tangerine',tech:'pill',pat:'csink'},
+  {k:'tile',n:'육각타일',d:'떠 있는 벌집',pal:'mint',tech:'float',pat:'hex'},
+  {k:'scalemail',n:'비늘판',d:'테 두른 비늘',pal:'plum',tech:'ring',pat:'scale'},
+  {k:'toolsteel',n:'공구강',d:'아노다이즈 널링',pal:'steel',tech:'anod',pat:'knurl'},
+  {k:'ammo',n:'군용함',d:'고무 몰딩 체커판',pal:'olive',tech:'rubber',pat:'tread3'},
+  {k:'memo',n:'접지메모',d:'모서리 접은 줄지',pal:'paper',tech:'dogear',pat:'pin'},
+  {k:'frostpane',n:'성에창',d:'곡면 유리창 격자',pal:'frost',tech:'crt',pat:'pane'}
 ];
 function psetOf(k){for(var i=0;i<PSETS.length;i++)if(PSETS[i].k===k)return PSETS[i];return null;}
 /* 지금 고른 조합을 실제 토큰으로 그린 작은 화면. 상단 판·카드·버튼·글자 세 단계가
@@ -4242,14 +4268,27 @@ function tPrevHtml(){
 }
 function thPreview(){
   /* 고른 축만 그리므로 어디에 뭐가 몇 개 있는지 탭에 적어 둔다 */
-  var TB=[['set',TX('시안'),PSETS.length],['pal',TX('색'),PALS.length],
-          ['tech',TX('질감'),TECHS.length],['pat',TX('무늬'),PATS.length],
-          ['brand',TX('브랜드'),BSTY.length],['chip',TX('칩'),CSTY.length],
-          ['tst',TX('타이머'),TSTY.length]];
-  var sub=UI.dsub||'set',tb='',ti;
-  for(ti=0;ti<TB.length;ti++)
-    tb+='<button class="dsb'+(sub===TB[ti][0]?' on':'')+'" data-act="dsub" data-v="'+TB[ti][0]+'">'
-      +TB[ti][1]+'<u>'+TB[ti][2]+'</u></button>';
+  /* 일곱이 한 줄로 흘러 넷·셋으로 아무렇게나 접혔다. 접히는 자리에 뜻이
+     없으니 '시안 옆이 색' 인 까닭도, '무늬 다음이 브랜드' 인 까닭도 없었다.
+     하는 일로 가른다 — 위 넷은 앱 전체의 결을 바꾸고, 아래 셋은 정해진
+     한 군데(휴식 타이머 · 세부 부위 줄 · 종목 목록)만 바꾼다.
+     시안이 맨 앞인 까닭: 그것이 바로 뒤 셋(색·질감·무늬)을 한꺼번에 정한다.
+     아래 줄은 눈에 띄는 차례로 — 타이머는 세트마다 보고, 브랜드는 목록을
+     훑을 때만 본다. */
+  var TB1=[['set',TX('시안'),PSETS.length],['pal',TX('색'),PALS.length],
+           ['tech',TX('질감'),TECHS.length],['pat',TX('무늬'),PATS.length]];
+  var TB2=[['tst',TX('타이머'),TSTY.length],['chip',TX('칩'),CSTY.length],
+           ['brand',TX('브랜드'),BSTY.length]];
+  var sub=UI.dsub||'set',ti;
+  function dsRow(A){
+    var r='',i;
+    for(i=0;i<A.length;i++)
+      r+='<button class="dsb'+(sub===A[i][0]?' on':'')+'" data-act="dsub" data-v="'+A[i][0]+'">'
+        +A[i][1]+'<u>'+A[i][2]+'</u></button>';
+    return r;
+  }
+  var tb='<i class="dsgl">'+TX('앱 전체')+'</i>'+dsRow(TB1)
+        +'<i class="dsgl">'+TX('한 군데만')+'</i>'+dsRow(TB2);
   /* 브랜드 탭에서는 테마 대신 목록을 보여 준다 — 그 탭이 바꾸는 것이 목록이다 */
   if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   /* 칩 탭에서는 칩 줄을 그대로 줄여 보여 준다 — 그 탭이 바꾸는 것이 그 줄이다 */
@@ -12936,7 +12975,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 23:58';
+var BUILD='2026-10-02 00:22';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
