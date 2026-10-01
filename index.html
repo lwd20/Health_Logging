@@ -1060,13 +1060,13 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    6개가 한 줄에 들어가도록 자간과 크기를 맞췄고, 남는 폭은 간격으로 분배함. */
 /* 여기서부터는 '보는 것'이 아니라 '누르는 것' — 선 하나로 갈라 둔다 */
 nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
-  margin-top:14px;padding:3px 18px 0;border-top:1px solid rgba(var(--tx-rgb),.07)}
+  margin-top:8px;padding:2px 18px 0;border-top:1px solid rgba(var(--tx-rgb),.07)}
 #chips .chip{position:relative;flex:0 0 auto;margin:0;min-width:0;
-  padding:16px 0 14px;background:none;border:0;border-radius:0;
+  padding:14px 0 13px;background:none;border:0;border-radius:0;
   font-size:11px;line-height:17px;font-weight:700;letter-spacing:.05em;color:var(--dim);
   overflow:visible;white-space:nowrap}
 #chips .chip.on{color:var(--acc-br)}
-#chips .chip.on::before{content:'';position:absolute;left:0;right:0;bottom:9px;height:2px;background:var(--acc-sf);border-radius:1px}
+#chips .chip.on::before{content:'';position:absolute;left:0;right:0;bottom:8px;height:2px;background:var(--acc-sf);border-radius:1px}
 #chips .chip:active{opacity:.55}
 /* 근육 거르개. 위(부위)는 밑줄, 이건 알약 — 같은 모양으로 두 줄을 쌓으면
    어느 쪽이 상위인지 흐려진다. */
@@ -1074,7 +1074,7 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
    알약이 폭 전체로 벌어져 '전체' 와 '기타' 사이가 화면만큼 떨어진다.
    왼쪽부터 붙여 늘어놓고 넘치면 옆으로 민다. */
 .schips{display:flex;justify-content:flex-start;align-items:center;
-  gap:6px;overflow-x:auto;padding:0 13px 9px;
+  gap:6px;overflow-x:auto;padding:0 13px 7px;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 .schips::-webkit-scrollbar{display:none}
 #subchips:empty{display:none}
@@ -1207,12 +1207,12 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 .cs50 .schip.on{flex:1 0 auto}
 
 /* 상태 점은 글자 위에 얹음 — 한 줄이라 옆에 둘 자리가 없음 */
-#chips .chip.stale::after,#chips .chip.hot::after{top:7px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px}
+#chips .chip.stale::after,#chips .chip.hot::after{top:5px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px}
 /* ★는 부위 선택이 아니라 보기 전환이라 맨 앞에 따로 둠 */
 /* 17px 폭이라 전체에서 가장 누르기 어려웠다. 덧판은 밑줄용 ::before 와
    부딪혀 지워졌으므로, 왼쪽 여백을 실제로 먹이고 그만큼 당겨 놓는다.
    line-height 를 못 박아 다른 칩과 높이를 맞춘다 */
-#chips .chip.favtg{width:auto;height:auto;margin-left:-13px;padding:16px 5px 14px 13px;
+#chips .chip.favtg{width:auto;height:auto;margin-left:-13px;padding:14px 5px 13px 13px;
   font-size:13px;line-height:17px;letter-spacing:0;color:var(--chrome)}
 #chips .chip.favtg.on{color:var(--acc-br)}
 /* 여섯 개가 한 줄이라 폭이 줄면 간격부터 사라진다.
@@ -12041,7 +12041,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 14:35';
+var BUILD='2026-10-01 14:41';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
