@@ -1091,6 +1091,207 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   clip-path:polygon(50% 0,93.3% 25%,93.3% 75%,50% 100%,6.7% 75%,6.7% 25%)}
 [data-tst="43"] .tclock b{font-size:11px}
 
+
+/* ═══ J 자연 ═══ */
+/* 44 모래시계 — 위가 비면서 아래가 찬다 */
+[data-tst="44"] .tclock{width:28px;height:48px}
+[data-tst="44"] .tring{display:none}
+[data-tst="44"] .tfx{display:block;position:absolute;inset:0}
+[data-tst="44"] .tfx::before{content:"";position:absolute;left:0;top:0;width:28px;height:23px;
+  background:linear-gradient(to bottom,rgba(var(--tx-rgb),.07) 0 calc(var(--p) * 100%),var(--tcol) 0);
+  -webkit-clip-path:polygon(0 0,100% 0,50% 100%);clip-path:polygon(0 0,100% 0,50% 100%)}
+[data-tst="44"] .tfx::after{content:"";position:absolute;left:0;top:25px;width:28px;height:23px;
+  background:linear-gradient(to top,var(--tcol) 0 calc(var(--p) * 100%),rgba(var(--tx-rgb),.07) 0);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+[data-tst="44"] .tclock b{display:none}
+[data-tst="44"] .tbig{display:block;font-size:17px}
+[data-tst="44"] .tmeta{display:none}
+/* 45 수위 — 둥근 통에 아래부터 차오른다 */
+[data-tst="45"] .tclock{border-radius:50%;overflow:hidden;
+  box-shadow:inset 0 0 0 1.5px rgba(var(--acc-rgb),.35)}
+[data-tst="45"] .tring{-webkit-mask:none;mask:none;
+  background:linear-gradient(to top,rgba(var(--acc-rgb),.42) 0 calc(var(--p) * 100%),transparent 0)}
+[data-tst="45"] .tclock b{color:var(--tx)}
+/* 46 물방울 */
+[data-tst="46"] .tclock{width:42px;height:52px}
+[data-tst="46"] .tring{border-radius:0;-webkit-mask:none;mask:none;
+  background:linear-gradient(to top,var(--acc-sf) 0 calc(var(--p) * 100%),rgba(var(--tx-rgb),.10) 0);
+  -webkit-clip-path:path("M21 0 C21 0 42 24 42 34 A21 21 0 1 1 0 34 C0 24 21 0 21 0 Z");
+  clip-path:path("M21 0 C21 0 42 24 42 34 A21 21 0 1 1 0 34 C0 24 21 0 21 0 Z")}
+/* 숫자를 모양 위에 얹었더니 채움 경계에 걸쳐 안 읽혔다 — 옆으로 뺀다 */
+[data-tst="46"] .tclock b{display:none}
+[data-tst="46"] .tbig{display:block;font-size:17px}
+[data-tst="46"] .tmeta{display:none}
+/* 47 달 위상 — 그림자가 지나가며 찬다 */
+[data-tst="47"] .tclock{border-radius:50%;overflow:hidden;background:var(--acc-sf)}
+[data-tst="47"] .tring{-webkit-mask:none;mask:none;background:var(--inset);
+  left:calc(var(--p) * 100% - 4px);width:100%;border-radius:50%}
+[data-tst="47"] .tclock b{font-size:11px;color:var(--tx);mix-blend-mode:difference}
+
+/* ═══ K 운동 ═══ */
+/* 48 바벨 — 봉이 차고 원판이 커진다 */
+[data-tst="48"] .tclock{width:56px;height:32px}
+[data-tst="48"] .tring{display:none}
+[data-tst="48"] .tfx{display:block;position:absolute;left:6px;right:6px;top:50%;height:3px;
+  margin-top:-1.5px;background:linear-gradient(90deg,var(--tcol) calc(var(--p) * 100%),var(--ttrk) 0)}
+[data-tst="48"] .tfx::before,[data-tst="48"] .tfx::after{content:"";position:absolute;top:50%;
+  width:8px;height:calc(14px + var(--p) * 16px);margin-top:calc((14px + var(--p) * 16px) / -2);
+  border-radius:2px;background:var(--acc-dk)}
+[data-tst="48"] .tfx::before{left:-8px}
+[data-tst="48"] .tfx::after{right:-8px}
+[data-tst="48"] .tclock b{display:none}
+[data-tst="48"] .tbig{display:block;font-size:17px}
+[data-tst="48"] .tmeta{display:none}
+/* 49 원판 스택 — 아래부터 쌓인다 */
+[data-tst="49"] .tclock{width:36px;height:46px}
+[data-tst="49"] .tring{display:none}
+[data-tst="49"] .tfx{display:block;position:absolute;inset:0;
+  background:linear-gradient(to top,var(--tcol) 0 calc(var(--p) * 100%),var(--ttrk) 0);
+  -webkit-mask:repeating-linear-gradient(to top,#000 0 5px,transparent 5px 7px);
+  mask:repeating-linear-gradient(to top,#000 0 5px,transparent 5px 7px)}
+[data-tst="49"] .tclock b{display:none}
+[data-tst="49"] .tbig{display:block;font-size:17px}
+[data-tst="49"] .tmeta{display:none}
+/* 50 케틀벨 */
+[data-tst="50"] .tclock{width:44px;height:50px}
+[data-tst="50"] .tring{border-radius:0;-webkit-mask:none;mask:none;
+  background:linear-gradient(to top,var(--acc-sf) 0 calc(var(--p) * 100%),rgba(var(--tx-rgb),.12) 0);
+  -webkit-clip-path:path("M14 2 A8 8 0 0 1 30 2 L30 12 A18 18 0 1 1 14 12 Z");
+  clip-path:path("M14 2 A8 8 0 0 1 30 2 L30 12 A18 18 0 1 1 14 12 Z")}
+[data-tst="50"] .tclock b{display:none}
+[data-tst="50"] .tbig{display:block;font-size:17px}
+[data-tst="50"] .tmeta{display:none}
+/* 51 심박 — 톱니 선이 차오른다 */
+[data-tst="51"] .tclock{display:none}
+[data-tst="51"] .tbig{display:block;font-size:19px}
+[data-tst="51"] .tmeta{display:none}
+[data-tst="51"] .tbar{display:block;width:100%;height:16px;
+  background:linear-gradient(90deg,var(--acc-br) calc(var(--p) * 100%),rgba(var(--tx-rgb),.16) 0);
+  -webkit-mask:repeating-linear-gradient(90deg,
+    transparent 0 6px,#000 6px 7px,transparent 7px 9px,#000 9px 10px,transparent 10px 24px) 0 50%/100% 2px no-repeat,
+    linear-gradient(90deg,#000 0 0) 0 50%/100% 1.5px no-repeat;
+  mask:repeating-linear-gradient(90deg,
+    transparent 0 6px,#000 6px 7px,transparent 7px 9px,#000 9px 10px,transparent 10px 24px) 0 50%/100% 2px no-repeat,
+    linear-gradient(90deg,#000 0 0) 0 50%/100% 1.5px no-repeat}
+
+/* ═══ L 차트 ═══ */
+/* 52 도넛 차트 — 두껍게 끊어 읽는 수 */
+[data-tst="52"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 16px,#000 16.5px);
+  mask:radial-gradient(circle,transparent 0 16px,#000 16.5px)}
+[data-tst="52"] .tclock b{font-size:11px}
+/* 53 미니 막대 — 다섯 칸이 키 순서로 */
+[data-tst="53"] .tclock{display:none}
+[data-tst="53"] .tbig{display:block;font-size:19px}
+[data-tst="53"] .tmeta{display:none}
+[data-tst="53"] .tbar{display:block;width:100%;height:18px;
+  background:linear-gradient(90deg,var(--acc-br) calc(var(--p) * 100%),rgba(var(--tx-rgb),.15) 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) 0% 100%/13% 33% no-repeat,
+    linear-gradient(#000 0 0) 21.5% 100%/13% 50% no-repeat,
+    linear-gradient(#000 0 0) 43% 100%/13% 67% no-repeat,
+    linear-gradient(#000 0 0) 64.5% 100%/13% 84% no-repeat,
+    linear-gradient(#000 0 0) 86% 100%/13% 100% no-repeat;
+  mask:
+    linear-gradient(#000 0 0) 0% 100%/13% 33% no-repeat,
+    linear-gradient(#000 0 0) 21.5% 100%/13% 50% no-repeat,
+    linear-gradient(#000 0 0) 43% 100%/13% 67% no-repeat,
+    linear-gradient(#000 0 0) 64.5% 100%/13% 84% no-repeat,
+    linear-gradient(#000 0 0) 86% 100%/13% 100% no-repeat}
+/* 54 스파크라인 — 오른쪽 위로 오르는 선 */
+[data-tst="54"] .tclock{display:none}
+[data-tst="54"] .tbig{display:block;font-size:19px}
+[data-tst="54"] .tmeta{display:none}
+[data-tst="54"] .tbar{display:block;width:100%;height:16px;
+  background:rgba(var(--tx-rgb),.13);
+  -webkit-clip-path:polygon(0 100%,100% 0,100% 2px,0 calc(100% + 2px));
+  clip-path:polygon(0 100%,100% 0,100% 2px,0 calc(100% + 2px))}
+[data-tst="54"] .tbar>i:first-child{display:block;position:absolute;left:0;top:0;bottom:0;
+  width:calc(var(--p) * 100%);background:var(--acc-br)}
+/* 선이 clip-path 로 잘리는 상자 안에 있어 머리 점이 같이 잘렸다 —
+   점은 막대 밖(.tmain)에 띄운다 */
+[data-tst="54"] .tmain{position:relative}
+[data-tst="54"] .tb2{display:block;position:absolute;left:calc(var(--p) * 100%);
+  bottom:calc(28px + var(--p) * 14px);width:6px;height:6px;margin-left:-3px;border-radius:50%;
+  background:var(--acc-br);box-shadow:0 0 5px rgba(var(--acc-rgb),.6);z-index:1}
+
+/* ═══ M 레트로 ═══ */
+/* 55 LED 매트릭스 — 점이 줄줄이 켜진다 */
+[data-tst="55"] .tclock{display:none}
+[data-tst="55"] .tbig{display:block;font-size:19px}
+[data-tst="55"] .tmeta{display:none}
+[data-tst="55"] .tbar{display:block;width:100%;height:14px;
+  background:linear-gradient(90deg,var(--acc-br) calc(var(--p) * 100%),rgba(var(--tx-rgb),.16) 0);
+  -webkit-mask:radial-gradient(circle 1.6px at 2.5px 2.5px,#000 99%,transparent 0) 0 0/5px 5px repeat;
+  mask:radial-gradient(circle 1.6px at 2.5px 2.5px,#000 99%,transparent 0) 0 0/5px 5px repeat}
+/* 56 니시 튜브 — 유리관 속에서 빛나는 수 */
+[data-tst="56"] .tclock{display:none}
+[data-tst="56"] .tbig{display:block;font-size:22px;padding:5px 11px;border-radius:7px;
+  color:#ff9d4d;background:rgba(255,140,60,.07);
+  box-shadow:inset 0 0 0 1px rgba(255,180,120,.18),inset 0 0 12px rgba(255,140,60,.18);
+  text-shadow:0 0 6px rgba(255,140,60,.85),0 0 16px rgba(255,100,20,.5)}
+[data-tst="56"] .tmeta{display:none}
+/* 57 카세트 릴 — 두 릴이 돈다 */
+[data-tst="57"] .tclock{width:56px;height:30px}
+/* 살만 떠 있으면 바람개비로 읽힌다 — 릴의 테두리를 두 개 그려 준다.
+   .tfx 는 마스크로 통째 잘리므로 테두리를 그 안에 둘 수가 없다. */
+[data-tst="57"] .tring{background:none;-webkit-mask:none;mask:none;inset:0;border-radius:0}
+[data-tst="57"] .tring::before,[data-tst="57"] .tring::after{content:"";position:absolute;
+  top:50%;width:24px;height:24px;margin-top:-12px;box-sizing:border-box;border-radius:50%;
+  border:1px solid rgba(var(--tx-rgb),.22)}
+[data-tst="57"] .tring::before{left:1px}
+[data-tst="57"] .tring::after{right:1px}
+[data-tst="57"] .tfx,[data-tst="57"] .tfx2{display:block;position:absolute;top:50%;width:24px;height:24px;
+  margin-top:-12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.18);
+  background:repeating-conic-gradient(var(--acc-br) 0 30deg,transparent 0 120deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 3.5px,#000 4px 10.5px,transparent 11px);
+  mask:radial-gradient(circle,transparent 0 3.5px,#000 4px 10.5px,transparent 11px);
+  transform:rotate(calc(var(--p) * 720deg))}
+[data-tst="57"] .tfx{left:1px}
+[data-tst="57"] .tfx2{right:1px}
+/* 축 — 없으면 살만 떠서 바람개비로 읽힌다 */
+[data-tst="57"] .tfx::after,[data-tst="57"] .tfx2::after{content:"";position:absolute;
+  left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;
+  background:var(--acc-dk)}
+[data-tst="57"] .tfx3{display:block;position:absolute;left:13px;right:13px;top:50%;height:2px;
+  margin-top:-1px;background:linear-gradient(90deg,var(--acc-dk) calc(var(--p) * 100%),rgba(var(--tx-rgb),.14) 0)}
+[data-tst="57"] .tclock b{display:none}
+[data-tst="57"] .tbig{display:block;font-size:17px}
+[data-tst="57"] .tmeta{display:none}
+/* 58 테이프 — 가장자리에 구멍이 뚫린 띠 */
+[data-tst="58"] .tclock{display:none}
+[data-tst="58"] .tbig{display:block;font-size:19px}
+[data-tst="58"] .tmeta{display:none}
+[data-tst="58"] .tbar{display:block;width:100%;height:18px;
+  background:linear-gradient(90deg,var(--acc-sf) calc(var(--p) * 100%),rgba(var(--tx-rgb),.14) 0);
+  -webkit-mask:linear-gradient(#000 0 0),
+    radial-gradient(circle 1.8px at 4px 3px,#000 99%,transparent 0) 0 0/8px 18px repeat-x,
+    radial-gradient(circle 1.8px at 4px 15px,#000 99%,transparent 0) 0 0/8px 18px repeat-x;
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0),
+    radial-gradient(circle 1.8px at 4px 3px,#000 99%,transparent 0) 0 0/8px 18px repeat-x,
+    radial-gradient(circle 1.8px at 4px 15px,#000 99%,transparent 0) 0 0/8px 18px repeat-x;
+  mask-composite:exclude}
+
+/* ═══ N 격자 ═══ */
+/* 59 점 격자 — 바둑판처럼 찍힌 점이 왼쪽부터 */
+[data-tst="59"] .tclock{width:52px;height:52px}
+[data-tst="59"] .tring{-webkit-mask:none;mask:none;border-radius:0;
+  background:linear-gradient(90deg,var(--acc-br) calc(var(--p) * 100%),rgba(var(--tx-rgb),.15) 0);
+  -webkit-mask:radial-gradient(circle 2.2px at 4px 4px,#000 99%,transparent 0) 0 0/8px 8px repeat;
+  mask:radial-gradient(circle 2.2px at 4px 4px,#000 99%,transparent 0) 0 0/8px 8px repeat}
+[data-tst="59"] .tclock b{display:none}
+[data-tst="59"] .tbig{display:block;font-size:17px}
+[data-tst="59"] .tmeta{display:none}
+/* 60 체크무늬 — 칸이 왼쪽부터 메워진다 */
+[data-tst="60"] .tclock{width:52px;height:52px}
+[data-tst="60"] .tring{-webkit-mask:none;mask:none;border-radius:3px;
+  background:linear-gradient(90deg,var(--acc-sf) calc(var(--p) * 100%),rgba(var(--tx-rgb),.13) 0);
+  -webkit-mask:repeating-conic-gradient(#000 0 25%,transparent 0 50%) 0 0/16px 16px;
+  mask:repeating-conic-gradient(#000 0 25%,transparent 0 50%) 0 0/16px 16px}
+[data-tst="60"] .tclock b{display:none}
+[data-tst="60"] .tbig{display:block;font-size:17px}
+[data-tst="60"] .tmeta{display:none}
+
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:44px;font-size:0}
 .mbtn.qbtn{margin-left:6px}
@@ -5927,14 +6128,10 @@ function renderSheet(){
       /* 고르는 동안 결과가 계속 보이게 맨 위에 붙여 둔다 — 무늬 40개를 훑어도
          시트 스크롤은 유지되므로 견본이 눈앞에서 바뀐다 */
       h+=thPreview();
-      /* 색·무늬보다 위에 둔다. 무늬 40개를 훑다가 우연히 만날 것이 아니라
-         앱을 처음 열었을 때 제일 먼저 찾을 것이다. */
-      h+='<div class="fgrp fg1"><div class="ft">'+TX('말')
-        +' <span class="ftn">'+TX('화면에 쓰는 언어')+'</span></div>'
-        +'<div class="lgsw">'
-        +'<button class="lgb'+(LANG==='ko'?' on':'')+'" data-act="lang" data-v="ko">한국어</button>'
-        +'<button class="lgb'+(LANG==='en'?' on':'')+'" data-act="lang" data-v="en">English</button>'
-        +'</div></div>';
+      /* 말 고르는 칸은 뺐다 — 한국어로만 쓰는 앱이라 자리만 차지했다.
+         TX() 와 영어 묶음은 그대로 둔다: 지우려면 수백 군데를 건드려야 하고,
+         남겨 둔다고 화면에 나오는 것도 아니다. 예전에 영어로 켜 둔 판이
+         있을 수 있으므로 아래 로더에서 한국어로 되돌린다. */
       var dsub=UI.dsub||'set';
 
       if(dsub==='set'&&PSETS.length){
@@ -6708,7 +6905,7 @@ var CSTY=[
  ['강조','안 고른 것 흐리게'],['강조','고른 것만 꽉 참']
 ];
 function cstOf(){var n=Math.floor(+CST)||1;return (n>=1&&n<=CSTY.length)?n:1;}
-/* 휴식 타이머 모양 43가지. 번호는 시안 캔버스와 같다 — 거기서 본 번호를
+/* 휴식 타이머 모양 60가지. 번호는 시안 캔버스와 같다 — 거기서 본 번호를
    여기서 그대로 찾는다. 갈래는 '무엇이 진행을 말하는가' 로 갈랐다:
    링 · 다이얼 · 디지털 · 선바 · 알약 · 타이포 · 금속 · 빛궤도 · 기하. */
 var TSTY=[
@@ -6754,7 +6951,24 @@ var TSTY=[
  ['빛·궤도','궤도 혜성'],
  ['기하','스쿼클 링'],
  ['기하','반원 게이지'],
- ['기하','육각 너트']
+ ['기하','육각 너트'],
+ ['자연','모래시계'],
+ ['자연','수위'],
+ ['자연','물방울'],
+ ['자연','달 위상'],
+ ['운동','바벨'],
+ ['운동','원판 스택'],
+ ['운동','케틀벨'],
+ ['운동','심박'],
+ ['차트','도넛'],
+ ['차트','미니 막대'],
+ ['차트','스파크라인'],
+ ['레트로','LED 매트릭스'],
+ ['레트로','니시 튜브'],
+ ['레트로','카세트 릴'],
+ ['레트로','테이프'],
+ ['격자','점 격자'],
+ ['격자','체크무늬']
 ];
 function tstOf(){var n=Math.floor(+TST)||1;return (n>=1&&n<=TSTY.length)?n:1;}
 var BSD={19:{m:'sec'},20:{m:'body'},21:{m:'sec'},22:{m:'sec'},23:{m:'sec'},24:{m:'body'},25:{m:'sec'},
@@ -12143,7 +12357,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 16:41';
+var BUILD='2026-10-01 17:09';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12755,6 +12969,9 @@ function autoBackup(){
 var LANG='ko';
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.lang');
   if(v==='en'||v==='ko')LANG=v;}catch(e){}})();
+/* 말 고르는 칸을 뺀 뒤로는 영어로 켜 둔 판을 되돌릴 길이 없다 — 켤 때 되돌린다 */
+(function(){if(LANG!=='ko'){LANG='ko';
+  if(canLS){try{localStorage.setItem(KEY+'.lang','ko');}catch(e){}}}})();
 var EN={
 '부위별 세트':'Sets by part',
 '주간 점수':'Weekly score',
