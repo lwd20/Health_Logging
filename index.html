@@ -6422,9 +6422,15 @@ function renderSheet(){
               +srow('pc0',TX('체중 변화'),TX('kg/주'),WR)
               +'<div class="note" style="margin:2px 0 10px">'
               +(WR>0?TX1('<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자',WR,Math.round(WR*7700/7))
-                    :TX1('<b>린매스업</b> 주당 +{0}kg — 하루 {1}kcal 잉여',
+                    :TX1('<b>증량</b> 주당 +{0}kg — 하루 {1}kcal 잉여',
                          Math.abs(WR),Math.abs(Math.round(WR*7700/7))))
-              +TX(' · 음수를 넣으면 증량') + '</div>'
+              +TX(' · 음수를 넣으면 증량')
+              /* 리컴프는 적자 폭이 좁다 — 500 을 넘기면 근육 쪽이 먼저 꺾인다 */
+              +(WR*7700/7>500
+                ? '<br><b class="warn">'+TX1('적자 {0}kcal — 하루 500 을 넘으면 체중을 줄이면서 근육을 올리기는 어렵다',
+                     Math.round(WR*7700/7))+'</b>'
+                : '')
+              +'</div>'
               +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
               /* 계수는 셈에서 빠졌다. 그런데 칸은 남아 있으니 '올리면 더
                  먹을 수 있다' 고 읽기 쉽다 — 걸음이 들어오는 날은 아무것도
@@ -6454,7 +6460,7 @@ function renderSheet(){
               +'<button class="lgb" data-act="mpre" data-v="lean">'+TX('린매스업')+'</button>'
               +'</div>'
               +'<div class="note" style="margin:0 0 10px">'
-              +TX('누르면 위 칸이 문헌 값으로 채워짐. 린매스업 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg, 주당 +0.3kg (Iraki 2019 오프시즌).')
+              +TX('누르면 위 칸이 문헌 값으로 채워짐. 린매스업(리컴프) = 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 적자가 하루 500kcal 를 넘으면 리컴프가 안 된다.')
               +'</div>'
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG,CARB_PER_KG)+'</div>'
               +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
@@ -12465,7 +12471,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 20:04';
+var BUILD='2026-10-01 20:08';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13624,15 +13630,17 @@ var EN={
 '탄수 최소':'Carb floor',
 '범위':'band','체중 변화':'Weight change',
 '<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자':'<b>Cut</b> {0}kg/week — {1}kcal daily deficit',
-'<b>린매스업</b> 주당 +{0}kg — 하루 {1}kcal 잉여':'<b>Lean gain</b> +{0}kg/week — {1}kcal daily surplus',
+
 ' · 음수를 넣으면 증량':' · enter a negative number to gain',
 '{0}{1} 넘김':'{0}{1} over',
 '탄수 최대':'Carb cap','지방 최대':'Fat cap',
-'목표':'Goal','린매스업':'Lean gain',
+'목표':'Goal','린매스업':'Recomp',
+'<b>증량</b> 주당 +{0}kg — 하루 {1}kcal 잉여':'<b>Gain</b> +{0}kg/week — {1}kcal daily surplus',
+'적자 {0}kcal — 하루 500 을 넘으면 체중을 줄이면서 근육을 올리기는 어렵다':'{0}kcal deficit — above 500/day it is hard to lose weight and add muscle at once',
 '{0}→{1}번째':'{0}→{1}st','지난번 {0}번째 · 이번 {1}번째':'last time #{0} · this time #{1}',
 '{0}번째':'#{0}',
 '색·질감·무늬를 한 번에':'color, finish and pattern at once',
-'누르면 위 칸이 문헌 값으로 채워짐. 린매스업 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg, 주당 +0.3kg (Iraki 2019 오프시즌).':'Lean-gain preset = per bodyweight, protein 2.0 · carbs 3–5 · fat 0.5–1.5 g/kg (Iraki 2019 off-season). Weight change also switches to +0.3kg/week.',
+'누르면 위 칸이 문헌 값으로 채워짐. 린매스업(리컴프) = 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 적자가 하루 500kcal 를 넘으면 리컴프가 안 된다.':'Lean-gain preset = per bodyweight, protein 2.0 · carbs 3–5 · fat 0.5–1.5 g/kg (Iraki 2019 off-season). Weight change also switches to +0.3kg/week.',
 ' = <b>{0}</b>kcal':' = <b>{0}</b>kcal',
 '제지방 기준':'Per LBM','체중 기준':'Per bodyweight','제지방':'LBM','체중':'bodyweight',
 '{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal':'{0} {1}kg × g/kg → protein <b>{2}</b>g · carbs <b>{3}</b>g · fat <b>{4}</b>g = <b>{5}</b>kcal',
@@ -15860,18 +15868,28 @@ document.addEventListener('click',function(e){
         applyTheme();render();
       }
       break;
-    /* 문헌 한 벌.
-       감량  — 제지방 기준: 단백질 2.5 · 탄수 1.25 바닥만 · 지방 1.0
-       린매스업 — Iraki 2019 오프시즌, 체중 기준: 단백질 1.6~2.2 의 가운데
-                 2.0 · 탄수 3~5 · 지방 0.5~1.5. 잉여가 전제라 체중 변화도
-                 같이 −0.3kg/주(= 주당 +0.3kg)로 바꾼다. */
+    /* 목표에 맞는 문헌 값.
+
+       린매스업을 Iraki 2019 의 오프시즌(잉여 +10~20%, 주당 +0.3kg)으로
+       깔았던 것은 틀렸다. 그것은 벌크고, 린매스업은 체중을 유지하거나
+       줄이면서 근육을 올리는 것 — 리컴프다. 잉여를 주면 체중이 올라가
+       목표와 정반대로 간다.
+
+       리컴프 근거: 적자는 하루 500kcal 를 넘기지 않고(주당 0.45kg 이하),
+       유지 언저리에서 가장 잘 된다. 되는 사람이 정해져 있다 — 입문·복귀자와
+       체지방이 중간 이상인 사람. 아주 마른 사람(남 10% 미만)과 오래 훈련한
+       사람에게는 거의 안 된다.
+       단백질은 체중 x 2.0(Helms 현재 입장 1.8~2.2 의 가운데).
+
+       감량 — 제지방 기준: 단백질 2.5 · 탄수 1.25 바닥만 · 지방 1.0 ·
+              주당 0.5kg. 리컴프보다 빠른 대신 근육을 지킬 여유가 적다. */
     case 'mpre':
       (function(){
         if(v==='lean'){
           MACRO_BASE='bw';
-          PRO_PER_KG=2.0; CARB_PER_KG=3.0; CARB_MAX_KG=5.0;
-          FAT_PER_KG=0.5; FAT_MAX_KG=1.5;
-          WR=-0.3;
+          PRO_PER_KG=2.0; CARB_PER_KG=1.5; CARB_MAX_KG=2.5;
+          FAT_PER_KG=0.6; FAT_MAX_KG=1.0;
+          WR=0.25;
         }else if(v==='cut'){
           MACRO_BASE='lbm';
           PRO_PER_KG=2.5; CARB_PER_KG=1.25; CARB_MAX_KG=0;
