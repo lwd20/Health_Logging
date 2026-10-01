@@ -4006,14 +4006,8 @@ function hsubHtml(){
               else if(hcOn()&&HC.sp===null)
                 pc.push('<b><i>'+TX('걸음')+'</i> '+TX('앱 업데이트 필요')+'</b>');
               if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
-              /* 머리 위 오른쪽 칸이 '현재' 로 바뀌면서 하루 예상치가 화면에서
-                 사라졌다 — 그런데 왼쪽 '섭취 여유' 가 바로 그 수에서 나온다.
-                 안 보이면 두 칸이 안 맞는 것처럼 읽힌다. 작게 남겨 둔다.
-                 끝난 날은 현재치가 곧 하루치라 적지 않는다. */
-              if(UI.wd===todayISO()){
-                var tt=(dayBase(UI.wd)||Math.round(bmr(BW,BF)*ACT))+ex;
-                pc.push('<b><i>'+TX('하루 예상')+'</i> '+tt.toLocaleString()+'<u>kcal</u></b>');
-              }
+              /* 하루 예상은 머리 위 '현재/하루' 칸으로 옮겼다 — 여기 두면
+                 현재치와 멀어져 짝이 안 보였다. */
               /* 가운뎃점을 조각 사이에 홀로 두면 320px 에서 접힐 때 줄 끝에 혼자
                  남는다. 뒤 조각의 nowrap 안으로 넣어 같이 넘어가게 한다 —
                  줄머리에 오는 가운뎃점은 글머리표로 읽혀 어색하지 않다. */
@@ -4118,8 +4112,16 @@ function render(){
           /* 오늘은 '현재', 끝난 날은 '하루' — 재는 것은 같은 값(그 시점까지 쓴
              열량)이고 창의 길이만 다르다. 끝난 날에 '현재' 라 적으면 거짓이고,
              오늘에 '하루' 라 적으면 안 지난 시간까지 썼다는 말이 된다. */
+          /* 현재 소비만 홀로 두니 바로 왼쪽 '섭취 여유' 와 짝지어 읽혔다 —
+             '1,171 썼는데 1,033 밖에 못 먹나' 로. 둘은 창이 다른 수라
+             견줄 것이 아니다(하나는 지금까지 쓴 것, 하나는 하루 예산의 남은
+             몫). 현재치를 하루치와 한 칸에 묶어 '현재/하루' 로 짝을 지어 준다 —
+             그러면 눈이 가로가 아니라 이 칸 안에서 짝을 찾는다.
+             단백질 '0/156g' 과 같은 꼴이라 읽는 법을 새로 배울 것이 없다. */
           +'<div class="hsc"><i>'+(UI.wd===todayISO()?TX('현재 소비'):TX('하루 소비'))
-          +'</i><b>'+now.toLocaleString()+'<u>kcal</u></b></div>'
+          +'</i><b>'+now.toLocaleString()
+          +(UI.wd===todayISO()?'<u>/'+tot.toLocaleString()+'</u>':'<u>kcal</u>')
+          +'</b></div>'
           /* 하루 소비가 이미 운동 몫을 품고 있는데 얼마인지는 안 보였다 —
              기초대사는 날마다 같으니 그 날의 숫자를 움직인 것은 운동뿐인데
              그것이 섞여만 있었다.
@@ -10304,6 +10306,27 @@ function vzBody(tab){
             +vzLine(TX('기준 걸음'),bs5.toLocaleString()+TX('보'),
               TX1('기초 {0} × 활동 {1} − 기초 − 소화 {2} ÷ {3}',
                   b5.toLocaleString(),ACT,tf5.toLocaleString(),kp5.toFixed(3)),{t:'',c:''})
+            +(td5===todayISO()?(function(){
+                /* '현재 소비에 기초대사가 왜 빠졌냐' — 안 빠졌고, 지난 시간
+                   몫만 들어가 있다. 기초대사는 하루에 1,743 쓰는 속도라서
+                   점심때 1,743 을 다 썼을 수가 없다. 그런데 합만 보이니
+                   확인할 길이 없었다. 쪼개 적는다. */
+                var fr=dayFrac(),kp6=0.5*bwOf(td5).w/1300;
+                var net6=Math.max(0,stepsOn(td5)-Math.round(walkMinOn(td5)*100));
+                var sk6=Math.round(Math.min(net6,15000)*kp6);
+                var bs6=Math.round(b5*fr),fl6=Math.round(b5*ACT*fr);
+                var ac6=bs6+tefDone(td5)+sk6;
+                return vzLine(TX('현재 소비'),dayNow(td5).toLocaleString()+' kcal',
+                  (ac6>=fl6
+                    ? TX1('기초 {0} ({1}% 지남) + 소화 {2} + 걸음 {3} + 운동 {4}',
+                        bs6.toLocaleString(),Math.round(fr*100),
+                        tefDone(td5).toLocaleString(),sk6.toLocaleString(),
+                        Math.round(dayExKcal(td5)).toLocaleString())
+                    : TX1('기초×활동 {0} ({1}% 지남) + 운동 {2} — 쪼갠 합 {3}보다 커서 이쪽을 씀',
+                        fl6.toLocaleString(),Math.round(fr*100),
+                        Math.round(dayExKcal(td5)).toLocaleString(),ac6.toLocaleString())),
+                  {t:'',c:''});
+              })():'')
             +vzLine(TX('소화'),tf5.toLocaleString()+' kcal',
               TX1('먹은 {0}kcal 는 실제 매크로 · 남은 {1}kcal 는 목표의 12%',
                   ate5.toLocaleString(),Math.max(0,gl5-ate5).toLocaleString()),{t:'',c:''});
@@ -11548,7 +11571,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 13:03';
+var BUILD='2026-10-01 13:06';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12571,6 +12594,8 @@ var EN={
 '첫 인바디 기록 추가 ▸':'Add first InBody ▸',
 '하루 소비':'Burn',
 '현재 소비':'Burned',
+'기초 {0} ({1}% 지남) + 소화 {2} + 걸음 {3} + 운동 {4}':'BMR {0} ({1}% of day elapsed) + TEF {2} + steps {3} + exercise {4}',
+'기초×활동 {0} ({1}% 지남) + 운동 {2} — 쪼갠 합 {3}보다 커서 이쪽을 씀':'BMR×activity {0} ({1}% elapsed) + exercise {2} — larger than the itemised {3}, so this is used',
 '하루 예상':'Day est',
 '기초대사 × 지난시간몫 + 먹은 것의 소화 + 걸음 + 운동':'BMR × elapsed share + TEF of food eaten + steps + exercise',
 '확인':'Check',
