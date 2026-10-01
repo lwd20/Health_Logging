@@ -5498,10 +5498,15 @@ function renderSheet(){
             hh+=srow('gf0',TX('목표 체지방'),'%',GF)
               +srow('pc0',TX('감량 속도'),TX('kg/주'),WR)
               +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
-              /* 계수가 이미 품고 있는 걸음. 이 선을 넘긴 몫만 하루 소비에
-                 더해진다 — 안 두면 기초 활동이 두 번 세어진다. 0 으로 두면
-                 걸음 반영이 꺼진다. */
-              +srow('sb0',TX('걸음 기준'),TX('보'),STEP_BASE,5)
+              /* 손으로 넣는 칸이었다. 계수와 물려 있는 수라 따로 두면 언젠가
+                 어긋난다 — 계수만 올리고 여기를 안 고치면 하루 180kcal 가 두 번
+                 세어진다. 계수에서 유도해 읽기만 하는 줄로 내린다. */
+              +(function(){
+                 var sb=stepBase(todayISO());
+                 return sb>0?'<div class="note" style="margin:2px 0 10px">'
+                   +TX1('걸음 기준 <b>{0}</b>보 — 계수가 이미 품은 몫이라 이보다 많이 걸은 만큼만 더해짐',
+                        sb.toLocaleString())+'</div>':'';
+               })()
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
               +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG)
@@ -7125,7 +7130,7 @@ function kcalHtml(){
    잡히면, 그 차이(200~300kcal)가 고스란히 적자 오차가 된다.
 
    계수를 통째로 걸음에 맡기지는 않는다. 설정한 계수가 바닥을 깔고, 그 바닥이
-   이미 품고 있는 걸음(STEP_BASE)을 넘긴 몫만 더한다. 안 그러면 기초 활동이 두 번
+   이미 품고 있는 걸음(stepBase)을 넘긴 몫만 더한다. 안 그러면 기초 활동이 두 번
    세어진다. 5,000 은 Tudor-Locke 의 좌식 경계다 — 1.2 가 뜻하는 '거의 안 움직임'
    과 같은 자리라 바닥으로 쓸 만하다.
 
@@ -7135,9 +7140,40 @@ function kcalHtml(){
 
    러닝머신·걷기를 기록한 날은 그 분만큼 걸음을 뺀다. 안 빼면 같은 걸음이
    운동 소비와 여기에 두 번 잡힌다 — 분당 100보로 셈한다. */
-var STEP_BASE=5000;
-(function(){if(!canLS)return;try{var v=parseInt(localStorage.getItem(KEY+'.stepbase'),10);
-  if(v>=0&&v<=20000)STEP_BASE=v;}catch(e){}})();
+/* 걸음 기준을 설정값으로 두고 있었다. 5,000 은 Tudor-Locke 의 좌식 경계이기도
+   하지만, 실은 활동계수 1.2 에서 역산해 나온 수다: 1.2 가 기초대사 위에 얹는
+   350kcal 에서 소화 몫(TEF) 약 200 을 빼면 150 이 남고, 그것이 걸음으로 4,900 이다.
+   그래서 '1.2 + 5,000' 은 'BMR + TEF + 모든 걸음' 과 대수적으로 같은 식이었다.
+
+   같은 식이라는 것이 문제였다. 둘이 물려 있는데 설정에서는 따로 놀아서,
+   계수를 1.3 으로 올리고 걸음 기준을 5,000 에 두면 하루 180kcal 가 두 번 세어진다.
+   사람이 그 물림을 외워서 맞춰야 하는 설정은 언젠가 어긋난다.
+
+   폰이 하루 걸음을 통째로 준다. 추정할 이유가 없으므로 기준을 계수에서 유도한다 —
+   계수만 건드려도 둘이 늘 맞는다. TEF 도 12% 짐작 대신 그 날 실제 섭취에서 낸다.
+   단백질이 39% 인 이 식단은 TEF 가 10% 보다 높다. */
+function tefOn(ds){
+  /* 소화에 쓰는 몫. 단백질 20~30% · 탄수 5~10% · 지방 0~3% 라 매크로가 있으면
+     거기서 내고, 없으면 열량의 12% 로 둔다(이 식단의 단백질 비중 기준). */
+  var d=HC&&HC.days&&HC.days[ds];
+  if(d&&d.n>0){
+    if(d.p>0||d.c>0||d.f>0)
+      return Math.round((+d.p||0)*4*0.25+(+d.c||0)*4*0.075+(+d.f||0)*9*0.02);
+    if(d.kcal>0)return Math.round(d.kcal*0.12);
+  }
+  /* 아직 안 먹은 날은 먹을 목표에서 낸다 — 0 으로 두면 기준 걸음이 부풀어
+     그 날만 걸음 몫이 통째로 사라진다 */
+  var b0=bmr(bwOf(ds).w,bwOf(ds).f);
+  return b0?Math.round(Math.max(0,b0*ACT-Math.round(WR*7700/7))*0.12):0;
+}
+/* 설정 계수가 이미 품고 있는 걸음 — 이 선을 넘긴 몫만 더해진다 */
+function stepBase(ds){
+  var bd=bwOf(ds),b=bmr(bd.w,bd.f);
+  if(!b||!(bd.w>0))return 0;
+  var move=b*ACT-b-tefOn(ds);          /* 계수가 얹은 것 중 소화를 뺀 나머지 */
+  if(!(move>0))return 0;
+  return Math.round(move/(0.5*bd.w/1300));
+}
 function stepsOn(ds){
   var n=HC&&HC.s&&HC.s[ds];
   return (typeof n==='number'&&n>0)?n:0;
@@ -7163,7 +7199,7 @@ function stepKcal(ds){
   var bw=bwOf(ds).w;
   if(!(bw>0))return 0;
   /* 기록한 걷기 몫을 먼저 덜어 낸다(분당 100보). 그러고도 바닥을 넘겨야 더한다 */
-  var net=n-Math.round(walkMinOn(ds)*100)-STEP_BASE;
+  var net=n-Math.round(walkMinOn(ds)*100)-stepBase(ds);
   if(!(net>0))return 0;
   /* 폰을 차에 두거나 세탁기 위에 올려 두면 유령 걸음이 수만 보씩 찍힌다.
      3만 보에서 끊어 봤더니 그래도 893kcal 이 더해졌다 — 그만큼 더 먹게 되는
@@ -11326,7 +11362,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 11:07';
+var BUILD='2026-10-01 11:36';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14856,13 +14892,6 @@ document.addEventListener('click',function(e){
         if(acEl){
           var av=parseFloat(String(acEl.value).replace(',','.'));
           if(av>=1.1&&av<=1.9){ACT=Math.round(av*100)/100;if(canLS){try{localStorage.setItem(KEY+'.act',String(ACT));}catch(e8){}}}
-        }
-        var sbEl=document.getElementById('sb0');
-        if(sbEl){
-          /* 0 은 끄는 값이라 허용한다 — 걸음을 아예 안 쓰고 싶은 사람도 있다 */
-          var sbv=parseInt(String(sbEl.value).replace(/[^0-9]/g,''),10);
-          if(sbv>=0&&sbv<=20000){STEP_BASE=sbv;
-            if(canLS){try{localStorage.setItem(KEY+'.stepbase',String(STEP_BASE));}catch(e9){}}}
         }
         var gfEl=document.getElementById('gf0');
         if(gfEl){
