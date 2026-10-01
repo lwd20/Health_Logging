@@ -455,8 +455,16 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .hsc.eat b{font-size:24px;color:var(--acc-br)}
 /* 곁들이는 줄이라 위 두 줄보다 작게 — 눈이 먼저 가면 안 된다 */
 /* 두 칸을 가로질러 통째로 오른쪽에 붙는다 — 라벨이 숫자에서 떨어지지 않게 */
-.pro{grid-column:1/-1;text-align:right;font-family:var(--mono);font-size:12px;
-  color:var(--dim);font-variant-numeric:tabular-nums;margin-top:-2px}
+/* width:0 + min-width:100% 로 그리드가 정한 폭만 쓰고 그 폭을 넓히지는 않는다.
+   안 가두면 조각이 늘었을 때(단백질·걸음·운동 셋) 줄이 왼쪽으로 흘러나와
+   타이머와 START 를 덮는다 — 360px 에서도 그랬다. 가두면 조각 사이에서 접힌다. */
+/* 폭을 100% 로 두면 그리드 열 폭(360px 화면에서 139px)뿐이라 조각 셋이 세 줄로
+   접힌다. 왼쪽에 비어 있는 자리가 있는데 안 쓰는 셈이다. 그렇다고 가두지 않으면
+   타이머와 START 를 덮는다 — 그 둘이 왼쪽 150px 쯤을 차지한다.
+   화면 폭에서 그만큼을 뺀 만큼까지만 왼쪽으로 뻗는다. 거기서 모자라면 접힌다. */
+.pro{grid-column:1/-1;width:0;min-width:max(100%,calc(100vw - 152px));text-align:right;
+  font-family:var(--mono);font-size:12px;line-height:1.5;
+  color:var(--dim);font-variant-numeric:tabular-nums;margin-top:-1px}
 .pro i{font-style:normal;font-family:var(--sans);font-size:8.5px;font-weight:800;
   letter-spacing:.08em;margin-right:2px}
 /* --dim 은 이미 대비 하한(4.6)이라 더 흐리게 하면 밝은 팔레트에서 4.0 으로 떨어진다.
@@ -4054,11 +4062,33 @@ function render(){
               /* 조각마다 nowrap 을 걸어 둔다. 한 줄에 다 못 들어가는 좁은 화면
                  (320px 언저리)에서는 조각 사이에서만 접혀 각 조각이 온전히
                  남는다 — 안 걸면 '단백질 95/' 에서 잘린다. */
+              /* 차례를 머리 위 두 수에 맞춘다. 단백질은 '섭취 여유' 쪽 수이고
+                 걸음·운동은 '하루 소비' 쪽 수다 — 왼쪽 수를 거드는 것이 왼쪽에
+                 서야 눈이 위아래를 짝지어 읽는다. 예전에는 운동이 맨 앞이라
+                 차례가 거꾸로였다. */
               var pc=[];
-              if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
               if(hd&&BW>0)pc.push('<b><i>'+TX('단백질')+'</i> '+Math.round(hd.p).toLocaleString()
                 +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b>');
-              return pc.length?'<div class="pro">'+pc.join('<s></s>')+'</div>':'';
+              /* 걸음은 수만 적는다. 목표가 없는 값이라 '/' 뒤에 붙일 것이 없고,
+                 여기서 알 것은 '오늘 얼마나 움직였나' 지 달성률이 아니다.
+                 걸음이 보탠 kcal 도 적어 봤는데, 세 조각이 다 있는 날 320px 에서
+                 줄이 타이머 자리를 침범했다. 그 수는 하루 소비에 이미 들어 있고
+                 쪼갠 셈은 감량 갈래가 적는다 — 여기서는 한 번 더 할 말이 아니다. */
+              var st=stepsOn(UI.wd);
+              if(st>0)pc.push('<b><i>'+TX('걸음')+'</i> '+st.toLocaleString()+'</b>');
+              if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
+              /* 가운뎃점을 조각 사이에 홀로 두면 320px 에서 접힐 때 줄 끝에 혼자
+                 남는다. 뒤 조각의 nowrap 안으로 넣어 같이 넘어가게 한다 —
+                 줄머리에 오는 가운뎃점은 글머리표로 읽혀 어색하지 않다. */
+              if(!pc.length)return '';
+              /* 조각 사이에 <wbr> 을 둔다. 가운뎃점을 <b> 안으로 넣은 뒤로는
+                 '</b><b>' 가 붙어 있어 접힐 틈이 아예 없었다 — 줄이 안 접히고
+                 오른쪽으로 잘려 나갔다. 공백 대신 <wbr> 인 까닭은 가운뎃점이
+                 이미 제 여백을 갖고 있어서다. */
+              var ph=pc[0],pq;
+              for(pq=1;pq<pc.length;pq++)
+                ph+='<wbr>'+pc[pq].replace('<b>','<b><s></s>');
+              return '<div class="pro">'+ph+'</div>';
             })()
           +'</div>';
       })():'');
@@ -11397,7 +11427,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 11:44';
+var BUILD='2026-10-01 11:52';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12224,6 +12254,7 @@ var EN={
 '기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
 '걸음 셈':'Step math',
+'걸음':'Steps',
 '기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}':'{1} steps over the {0} baseline × {2} = {3}kcal{4}',
 ' · 기록한 걷기 {0}보 뺌':' · {0} logged walking steps removed',
 '기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫':'Under the {0}-step baseline, so nothing is added — the factor already covers it',
