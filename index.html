@@ -4006,6 +4006,14 @@ function hsubHtml(){
               else if(hcOn()&&HC.sp===null)
                 pc.push('<b><i>'+TX('걸음')+'</i> '+TX('앱 업데이트 필요')+'</b>');
               if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
+              /* 머리 위 오른쪽 칸이 '현재' 로 바뀌면서 하루 예상치가 화면에서
+                 사라졌다 — 그런데 왼쪽 '섭취 여유' 가 바로 그 수에서 나온다.
+                 안 보이면 두 칸이 안 맞는 것처럼 읽힌다. 작게 남겨 둔다.
+                 끝난 날은 현재치가 곧 하루치라 적지 않는다. */
+              if(UI.wd===todayISO()){
+                var tt=(dayBase(UI.wd)||Math.round(bmr(BW,BF)*ACT))+ex;
+                pc.push('<b><i>'+TX('하루 예상')+'</i> '+tt.toLocaleString()+'<u>kcal</u></b>');
+              }
               /* 가운뎃점을 조각 사이에 홀로 두면 320px 에서 접힐 때 줄 끝에 혼자
                  남는다. 뒤 조각의 nowrap 안으로 넣어 같이 넘어가게 한다 —
                  줄머리에 오는 가운뎃점은 글머리표로 읽혀 어색하지 않다. */
@@ -4088,6 +4096,11 @@ function render(){
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
+        /* tot 은 하루가 끝났다고 치고 낸 예상치다. 먹을 양을 내는 데는 그게
+           맞다 — 하루 예산은 아침에도 저녁에도 같은 수여야 한다. 그런데 오른쪽
+           칸까지 그 수를 띄우니 오전 일곱 시에 '2,185kcal 썼다' 고 적혀 있었다.
+           쓴 것은 실측으로, 예산은 예상으로 — 두 칸이 서로 다른 것을 묻는다. */
+        var now=dayNow(UI.wd);
         /* 목표는 하루 종일 같은 숫자라 한 번 보면 그만이다. 앱을 여는 이유는
            '지금 얼마나 남았나' 이므로 그 자리를 남은 값이 갖는다.
            기록이 없으면 목표를 그대로 둔다 — 남은 값을 띄우면 아무것도 안
@@ -4102,7 +4115,11 @@ function render(){
         return '<div class="hstat" data-act="godiet">'
           +'<div class="hsc eat"><i>'+(lf<0?TX('초과'):TX('섭취 여유'))+'</i>'
           +'<b'+(lf<0?' class="exc"':'')+'>'+Math.abs(lf).toLocaleString()+'<u>kcal</u></b></div>'
-          +'<div class="hsc"><i>'+TX('하루 소비')+'</i><b>'+tot.toLocaleString()+'<u>kcal</u></b></div>'
+          /* 오늘은 '현재', 끝난 날은 '하루' — 재는 것은 같은 값(그 시점까지 쓴
+             열량)이고 창의 길이만 다르다. 끝난 날에 '현재' 라 적으면 거짓이고,
+             오늘에 '하루' 라 적으면 안 지난 시간까지 썼다는 말이 된다. */
+          +'<div class="hsc"><i>'+(UI.wd===todayISO()?TX('현재 소비'):TX('하루 소비'))
+          +'</i><b>'+now.toLocaleString()+'<u>kcal</u></b></div>'
           /* 하루 소비가 이미 운동 몫을 품고 있는데 얼마인지는 안 보였다 —
              기초대사는 날마다 같으니 그 날의 숫자를 움직인 것은 운동뿐인데
              그것이 섞여만 있었다.
@@ -4126,7 +4143,6 @@ function render(){
           /* 둘 다 위 두 수를 거드는 부속이라 한 줄에 둔다 — 줄을 따로 쓰면
              각자가 하나의 지표처럼 보여 머리 위 두 수와 급이 헷갈린다.
              하나만 있을 때 가운뎃점이 남지 않게 조각으로 모아 잇는다. */
-          +'</div>';
           +'</div>';
       })():'');
   document.getElementById('hsub').innerHTML=hsubHtml();
@@ -5201,12 +5217,19 @@ function helpHtml(){
       +hRow(TX('기준 걸음'),TX('(기초대사 × 활동계수 − 기초대사 − 소화) ÷ 걸음당'))
       +hRow(TX('걸음 몫'),TX('(하루 걸음 − 기록한 걷기분×100 − 기준 걸음) × 걸음당'))
       +hRow(TX('하루 소비'),TX('기초대사 × 활동계수 + 걸음 몫 + 운동'))
+      +hRow(TX('현재 소비'),TX('기초대사 × 지난시간몫 + 먹은 것의 소화 + 걸음 + 운동'))
       +hRow(TX('먹을 양'),TX('하루 소비 − 적자 · 적자 = 감량속도kg/주 × 7700 ÷ 7'));
     h+=hNote(TX('기준 걸음을 식에 대입하면 활동계수가 약분돼 '
       +'<b>기초대사 + 소화 + 걸음 + 운동</b> 이 된다 — 걸음이 기준을 넘는 날은 계수가 '
       +'결과를 안 바꾼다. 계수는 걸음이 기준에 못 미치거나 걸음 자료가 없는 날의 바닥이다. '
       +'걸음당 kcal 는 걷기 순소모 추정치라 보폭·속도·지형에 따라 흔들린다. '
-      +'러닝머신·걷기를 기록한 날은 그 걸음을 빼서 두 번 세지 않는다.'));
+      +'러닝머신·걷기를 기록한 날은 그 걸음을 빼서 두 번 세지 않는다.'))
+      +hNote(TX('맨 위 오른쪽 칸은 <b>현재 소비</b> — 지금까지 실제로 쓴 몫이다. '
+      +'기초대사는 자정부터 지난 시간만큼만, 소화는 먹은 것만 센다. 그 밑 작은 '
+      +'<b>하루 예상</b> 이 위 표의 하루 소비이고, 왼쪽 섭취 여유는 그 예상에서 '
+      +'나온다 — 하루 예산은 아침에도 저녁에도 같은 수여야 해서다. '
+      +'목표만큼 먹고 자면 자정에 두 수가 만난다. 덜 먹은 날은 현재 소비가 그만큼 '
+      +'아래로 끝난다 — 소화에 쓴 것도 그만큼 적어서다.'));
     h+=hCap(TX('맨 위'))
       +hRow(TX('큰 숫자'),TX('오늘 먹을 목표 칼로리 · 아래 붉은 수는 적자'))
       +hRow(TX('옆 숫자'),TX('오늘 총 소모 · 운동으로 더 쓴 만큼 + 로 붙음'))
@@ -7316,6 +7339,43 @@ function dayTDEE(ds){
   var bb=dayBase(ds);
   if(!bb)return 0;
   return Math.round(bb+dayExKcal(ds));
+}
+/* 지금까지 소화에 쓴 몫. tefOn 은 하루치를 물어서 안 먹은 몫까지 미리 셈하는데,
+   '지금까지 쓴 것' 을 물을 때는 그 예측이 들어오면 안 된다 — 안 먹었으면 소화에
+   쓴 것도 없다. 실제로 먹은 것만 센다. */
+function tefDone(ds){
+  var d=HC&&HC.days&&HC.days[ds];
+  if(!(d&&d.n>0))return 0;
+  if(d.p>0||d.c>0||d.f>0)
+    return Math.round((+d.p||0)*4*0.25+(+d.c||0)*4*0.075+(+d.f||0)*9*0.02);
+  return Math.round((+d.kcal||0)*0.12);
+}
+/* 자정부터 지금까지가 하루의 몇 몫인지 */
+function dayFrac(){
+  var n=new Date();
+  return Math.min(1,Math.max(0,(n.getHours()*60+n.getMinutes())/1440));
+}
+/* 지금까지 쓴 열량. dayTDEE 는 하루가 다 끝났다고 치고 내는 예상치라,
+   아침 일곱 시에도 저녁 열한 시와 같은 수를 띄웠다 — '지금 얼마나 썼나' 를
+   물으면 틀린 답이다. 기초대사는 지난 시간만큼만 쌓고, 소화는 실제로 먹은
+   것만, 걸음과 운동은 이미 실측이라 그대로 쓴다.
+
+   활동계수는 여기서 바닥으로만 남는다: 걸음이 기준에 못 미치거나 자료가 아예
+   없는 날은 계수가 품은 몫을 (역시 지난 시간만큼) 쓴다. 그래서 자정에 이 수는
+   하루 소비와 정확히 같아진다 — 기준 걸음을 대입하면 계수가 약분되는 그 셈이
+   시간 몫만 곱해진 꼴이다. */
+function dayNow(ds){
+  var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
+  if(!b)return 0;
+  /* 끝난 날은 지난 몫이 하루 전부다 — 같은 식을 두 번 적지 않는다 */
+  if(ds!==todayISO())return dayTDEE(ds);
+  var f=dayFrac(),ex=Math.round(dayExKcal(ds));
+  var sk=0;
+  if(bwd.w>0){
+    var net=stepsOn(ds)-Math.round(walkMinOn(ds)*100);
+    if(net>0)sk=Math.min(net,15000)*(0.5*bwd.w/1300);
+  }
+  return Math.round(Math.max(b*ACT*f,b*f+tefDone(ds)+sk))+ex;
 }
 function bhLoad(){
   var a=[];
@@ -11488,7 +11548,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 12:57';
+var BUILD='2026-10-01 13:03';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12330,6 +12390,7 @@ var EN={
 ' · 기록한 걷기 {0}보 뺌':' · {0} logged walking steps removed',
 '기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫':'Under the {0}-step baseline, so nothing is added — the factor already covers it',
 '하루 소비 셈':'How daily burn is computed',
+'맨 위 오른쪽 칸은 <b>현재 소비</b> — 지금까지 실제로 쓴 몫이다. 기초대사는 자정부터 지난 시간만큼만, 소화는 먹은 것만 센다. 그 밑 작은 <b>하루 예상</b> 이 위 표의 하루 소비이고, 왼쪽 섭취 여유는 그 예상에서 나온다 — 하루 예산은 아침에도 저녁에도 같은 수여야 해서다. 목표만큼 먹고 자면 자정에 두 수가 만난다. 덜 먹은 날은 현재 소비가 그만큼 아래로 끝난다 — 소화에 쓴 것도 그만큼 적어서다.':'The top-right figure is <b>Burned</b> — what you have actually spent so far. BMR counts only the share of the day elapsed, and TEF only the food eaten. The small <b>Day est</b> below it is the full-day burn from the table above, and "To eat" on the left comes from that estimate — a daily budget has to read the same in the morning as at night. Eat your target and the two meet at midnight; eat under it and Burned finishes that much lower, because digesting less costs less.',
 '기초대사':'BMR','소화':'TEF','걸음당':'Per step','기준 걸음':'Step baseline','걸음 몫':'Step share','먹을 양':'Intake target',
 /* 빈 상태 — 훈련 갈래 */
 '훈련 기록':'Training log',
@@ -12509,6 +12570,9 @@ var EN={
 '즐겨찾기만':'Favorites only',
 '첫 인바디 기록 추가 ▸':'Add first InBody ▸',
 '하루 소비':'Burn',
+'현재 소비':'Burned',
+'하루 예상':'Day est',
+'기초대사 × 지난시간몫 + 먹은 것의 소화 + 걸음 + 운동':'BMR × elapsed share + TEF of food eaten + steps + exercise',
 '확인':'Check',
 /* ── 근육이름 ── */
 '{0}개':'{0}',
