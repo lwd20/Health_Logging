@@ -2256,6 +2256,12 @@ html[lang=en] .lmflat .lmrow .bn{flex-basis:100px}
 .lmfold i{font-style:normal;margin-left:auto;font-size:9px}
 .lmfold.on{color:var(--mut)}
 .lmfold:active{opacity:.6}
+/* 접기 단추는 새로 둔 손잡이라 44px 를 준다(기존 .lmfold 는 36px 로 나가 있다).
+   접힌 채로 적는 큰 수는 오른쪽 화살표 앞에 붙인다. */
+.vzfd{min-height:44px;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.vzft{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:12px;
+  font-weight:700;letter-spacing:0;text-transform:none;color:var(--acc-br)}
+.vzft+i{margin-left:8px}
 .vzfix{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--acc-br);white-space:nowrap}
 /* 이번 주가 디로딩이라는 표시 — 판정이 아니라 상태라 손댈 것과 색을 나눈다 */
 .vzdl{order:1;font-style:normal;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--dim);
@@ -4289,7 +4295,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',sx:'',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',sx:'',jord:'',rtp:'m',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -8624,61 +8630,11 @@ function wTrend(){
   }
   return null;
 }
-/* 활동 계수 역산 — 설정에서 손으로 고르는 유일한 수인데, 맞는지 알 길이
-   없었다. 공식표(좌식 1.2 · 가벼움 1.375 …)는 사람을 묶음으로 나눈 평균이라
-   같은 칸 안에서도 개인차가 ±15% 난다. 그 표를 눈으로 짚어 고른 수 하나가
-   목표 열량 전부를 정하고 있었다.
-
-   그런데 답을 낼 자료는 이 앱이 이미 다 들고 있다 — 얼마나 먹었나(삼성헬스)와
-   몸이 얼마나 줄었나(체중 추세)다. 둘을 맞물리면 계수가 떨어진다:
-
-     실제 소비 = 평균 섭취 + 몸에서 꺼내 쓴 열량
-     실제 계수 = (실제 소비 - 평균 운동) / 기초대사
-
-   지방 1kg = 7,700kcal 은 통용값이고 ±10% 는 본다. 그래도 표에서 짚은 수보다
-   이 몸에서 나온 수가 낫다. */
-function actCheck(){
-  var t=wTrend();
-  /* 창이 짧으면 기울기를 수분이 지배한다. 하루 ±0.5kg 은 예사라 2주 미만이면
-     같은 몸에서 1.0 과 1.8 이 다 나온다 — 그런 수는 답이 아니라 잡음이다. */
-  if(!t||t.span<14)return null;
-  /* 날수가 길어도 점이 세 개면 회귀가 그 세 점에 끌려다닌다. 인바디만 재는
-     사람은 3주에 두세 번인데, 그 기울기로 계수를 고치라고 하면 안 된다.
-     체중계를 쓰면 날마다 들어오므로 이 문턱은 그쪽에서만 걸린다. */
-  if(!(t.n>=5))return null;
-  var d0=new Date(t.first).getTime(),dn=new Date(today()).getTime();
-  var need=Math.ceil((dn-d0)/86400000)+1;
-  /* 섭취는 체중과 같은 기간에서 센다 — 다른 기간끼리 견주면 답이 안 나온다 */
-  var rows=trendRows(need).filter(function(r){
-    return r.ate!=null&&!r.part&&r.d>=t.first&&r.d<=t.last;
-  });
-  /* 먹은 기록이 성기면 평균이 그날그날 기분을 따라간다 */
-  if(rows.length<10)return null;
-  var bhc=bhLoad(),sa=0,sx=0,sb=0,i;
-  for(i=0;i<rows.length;i++){
-    /* 걸음 몫은 설정 계수가 아니라 그 날 걸은 결과다. 검증하려는 것은 바닥인
-       설정 계수이므로, 운동과 마찬가지로 빼고 나눈다 — 안 빼면 많이 걸은 창에서
-       '계수를 올리라' 는 말이 나오고, 올리면 걸음이 두 번 세어진다. */
-    sa+=rows[i].ate;sx+=rows[i].ex+stepKcal(rows[i].d);
-    /* trendRows 의 base 는 이미 ACT 가 곱해진 값이라 못 쓴다 — 지금 역산하려는
-       것이 바로 그 ACT 다. 날마다 그날 몸으로 기초대사를 다시 낸다. */
-    sb+=bmr(bwOn(rows[i].d),bfOn(rows[i].d,bhc))||0;
-  }
-  var n=rows.length,ate=sa/n,ex=sx/n,bs=sb/n;
-  if(!(bs>0))return null;
-  /* rate 는 kg/주이고 빠진 쪽이 음수다 — 그만큼을 몸에서 꺼내 썼으니 더한다 */
-  var tdee=ate+(-t.rate/7)*7700;
-  var act=(tdee-ex)/bs;
-  /* 사람의 범위를 벗어난 값은 계산이 틀린 것이 아니라 기록이 틀린 것이다.
-     섭취를 며칠 거른 창이거나 체중이 한쪽으로 튄 창이다. 그럴 때 수를 그대로
-     내놓으면 '계수를 1.72 로 올리라' 는 말이 된다 — 안 내놓고 왜인지 적는다. */
-  var raw=Math.round(act*100)/100;
-  if(!(act>=1.0&&act<=2.0))return {bad:true,n:n,span:t.span,act:raw};
-  var gap=act-ACT;
-  return {act:raw,set:ACT,gap:Math.round(gap*100)/100,kcal:Math.round(gap*bs),
-          tdee:Math.round(tdee),ate:Math.round(ate),ex:Math.round(ex),
-          bmr:Math.round(bs),rate:t.rate,n:n,span:t.span,wn:t.n,sc:t.sc};
-}
+/* 여기 actCheck() 가 있었다 — 평균 섭취와 체중 추세로 '실제 소비' 를 내고
+   거기서 활동 계수를 거꾸로 뽑아 설정값과 견주던 함수다. 그 수를 보여 주던
+   분석탭 섹션을 빼면서 부르는 데가 없어졌으므로 같이 지웠다 — 쓰는 데 없는
+   함수를 남기면 다음 사람이 그것이 아직 도는 줄 안다.
+   wTrend() 는 다른 데서도 쓰므로 그대로 둔다. */
 function paceCalc(bw,bf,gf){
   var lbm=bw*(1-bf/100);
   var tw=gf<bf?Math.round(lbm/(1-gf/100)*10)/10:bw;
@@ -11423,78 +11379,33 @@ function vzBody(tab){
        있었다. 한 줄 + 쪼갠 막대로 합친다 — 같은 수를 적으면서 그 안이 어떻게
        갈리는지까지 말한다. */
     var bs=bmr(BW,BF);
+    /* 운동 몫은 bs 가 없어도 쓴다(아래 '운동 소비' 가 접힌 채로도 적는다) —
+       if(bs>0) 안에 두면 인바디가 없는 판에서 undefined 가 샌다. */
+    var ex0=Math.round(dayExKcal(todayISO()));
     /* 기초대사는 제지방에서 바로 나온다(370+21.6×LBM) — 변화 갈래의 골격근이
        여기 소비로 이어진다. 그 고리가 이 카테고리가 하나인 이유다. */
     if(bs>0){
-      var ex0=Math.round(dayExKcal(todayISO()));
-      var st0=stepKcal(todayISO()),tf0=tefDone(todayISO());
-      h+=vzCap(TX('오늘 소비 · 무엇이 얼마나'))
-        +vzLine(TX('하루 소비'),dayTDEE(todayISO()).toLocaleString()+' kcal',
-          (stepsOn(todayISO())>0
-            ?TX1('기초 {0} + 소화 {1} + 걸음 {2} + 운동 {3}',bs.toLocaleString(),
-                 tf0.toLocaleString(),st0.toLocaleString(),ex0.toLocaleString())
-            /* 걸음 자료가 없는 날만 계수가 바닥으로 들어온다. 왜 다른 식인지
-               적지 않으면 같은 앱이 날마다 다른 셈을 쓰는 것처럼 보인다. */
-            :TX1('걸음 자료 없음 — 기초 {0} × 활동 {1} + 운동 {2}',
-              bs.toLocaleString(),ACT,ex0.toLocaleString())),
-          {t:ex0>0?TX('운동일'):'',c:ex0>0?'pos':''})
-        +burnSplit()
-        /* 걸음과 소화만 셈이 안 보인다 — 기초대사는 설정에 적혀 있고 운동은
-           아래 줄이 쪼개 적는다. 그 둘만 적는다. */
-        +(function(){
-            var td5=todayISO(),n5=stepsOn(td5);
-            if(!(n5>0))return '';
-            var wm5=Math.round(walkMinOn(td5)*100);
-            var kp5=Math.round(kcalPerStep(BW)*1000)/1000;
-            var net5=Math.max(0,n5-wm5);
-            var hd5=hcDay(td5);
-            return vzLine(TX('걸음 셈'),n5.toLocaleString()+TX('보'),
-                TX1('{0}보 × {1} = {2}kcal{3}',
-                    net5.toLocaleString(),kp5.toFixed(3),
-                    st0.toLocaleString(),
-                    wm5>0?TX1(' · 기록한 걷기 {0}보 뺌',wm5.toLocaleString()):''),
-              {t:'',c:''})
-            +vzLine(TX('소화 셈'),tf0.toLocaleString()+' kcal',
-              (hd5&&(hd5.p>0||hd5.c>0||hd5.f>0)
-                ? TX1('단백질 {0}g×1 + 탄수 {1}g×0.3 + 지방 {2}g×0.18',
-                    Math.round(hd5.p||0),Math.round(hd5.c||0),Math.round(hd5.f||0))
-                : TX('먹은 기록 없음 — 먹은 만큼만 더해짐')),{t:'',c:''});
-          })();
+      /* 같은 네 수를 연달아 두 번 적고 있었다 — 이 줄의 부제와 바로 밑
+         막대의 글귀가 '기초 … · 소화 … · 걸음 … · 운동 …' 로 똑같았다.
+         막대 쪽만 남긴다: 그 글귀는 칸을 가리키는 이름이기도 해서 뗄 수 없다.
+         걸음 셈 · 소화 셈 줄도 뺐다. 막대가 이미 그 둘의 답을 적고 있고,
+         거기 있던 것은 '왜 그 수인가'(보수 × 걸음당 kcal · 단백질×1 +
+         탄수×0.3 + 지방×0.18) 였다 — 도움말 탭의 '하루 소비 셈' 에 있다. */
+      /* 펼친 안에 '하루 소비 2,226 kcal' 줄을 한 번 더 두었더니 접기 머리글과
+         같은 수가 두 줄 내리 찍혔다. 머리글이 답을 말하므로 안에는 쪼갠
+         막대만 둔다 — 펴는 까닭이 '얼마나' 가 아니라 '무엇이' 라서다. */
+      h+=vzFold('burn',TX('오늘 소비'),
+        dayTDEE(todayISO()).toLocaleString()+' kcal'+(ex0>0?' · '+TX('운동일'):''),
+        burnSplit());
     }
     var kh=kcalHtml();
-    h+=kh||vzLine(TX('운동 소비'),TX('기록 없음'),TX('근력이나 유산소를 기록하면 여기에 나옴'),{t:TX('기록 없음'),c:''});
-    /* 맨 아래에 둔다. 날마다 볼 수가 아니라 이따금 '내 계수가 맞나' 를 물을 때
-       보는 수다 — 위에 두면 매번 지나쳐야 하는 관문이 된다. */
-    h+=vzCap(TX('활동 계수 · 실측 역산'));
-    var ac=actCheck();
-    if(!ac)
-      h+=vzLine(TX('실제 활동 계수'),TX('기록 부족'),
-        TX('체중 14일·5회 이상 · 식사 10일 이상 쌓이면 역산됨'),{t:'',c:''});
-    else if(ac.bad)
-      h+=vzLine(TX('실제 활동 계수'),TX('못 믿을 값'),
-        TX1('{0}일치로 내면 {1} — 섭취 기록이나 체중 추세 하나가 실제와 어긋난 창',
-            ac.span,ac.act.toFixed(2)),{t:TX('보류'),c:'warn'});
-    else{
-      /* 0.04 는 기초대사 1,737 에서 70kcal 쯤이다. 그보다 가까우면 표를 고쳐
-         봤자 목표가 안 움직인다 — '맞음' 이라 적고 손대지 말라고 한다. */
-      var ok=Math.abs(ac.gap)<=0.04;
-      var vdA=ok?{t:TX('설정 적정'),c:'pos'}
-            :(ac.gap>0?{t:TX('설정이 낮음'),c:'warn'}:{t:TX('설정이 높음'),c:'warn'});
-      h+=vzLine(TX('실제 활동 계수'),ac.act.toFixed(2),
-          TX1('설정 {0} · 체중 {1}kg/주 · 식사 {2}일 · 체중 {3}점',
-              ac.set.toFixed(2),(ac.rate>0?'+':'')+ac.rate.toFixed(2),ac.n,ac.wn),vdA)
-        /* 계수 0.07 이 얼마나 큰지는 아무도 모른다 — kcal 로 옮겨야 안다 */
-        +vzLine(TX('하루 차이'),(ac.kcal>0?'+':'')+ac.kcal.toLocaleString()+' kcal',
-          (ok?TX('설정이 실측과 맞음 — 그대로 두면 됨')
-            :(ac.gap>0
-              ? TX1('실제로 더 씀 — 계수를 {0} 로 올리면 하루 {1}kcal 더 먹게 됨',ac.act.toFixed(2),Math.abs(ac.kcal).toLocaleString())
-              : TX1('실제로 덜 씀 — 계수를 {0} 로 내리면 적자가 하루 {1}kcal 돌아옴',ac.act.toFixed(2),Math.abs(ac.kcal).toLocaleString()))),
-          {t:'',c:''})
-        /* 위 두 줄이 어디서 나온 수인지 — 안 적으면 계수가 하늘에서 떨어진다 */
-        +vzLine(TX('실제 소비'),ac.tdee.toLocaleString()+' kcal',
-          TX1('{0}일 평균 섭취 {1} + 체중이 준 몫 · 그중 운동 {2}',
-              ac.span,ac.ate.toLocaleString(),ac.ex.toLocaleString()),{t:'',c:''});
-    }
+    h+=vzFold('ex',TX('운동 소비'),ex0>0?ex0.toLocaleString()+' kcal':TX('기록 없음'),
+      kh||vzLine(TX('운동 소비'),TX('기록 없음'),TX('근력이나 유산소를 기록하면 여기에 나옴'),{t:TX('기록 없음'),c:''}));
+    /* 여기 '활동 계수 · 실측 역산' 이 있었다 — 섭취와 체중 추세로 계수를
+       거꾸로 내어 설정값과 견주는 줄 넷이었다. 뺀 까닭: 계수는 걸음 자료가
+       아예 없는 날의 바닥으로만 쓰여 소비 셈에 거의 안 들어가는데, 화면에서는
+       제 섹션을 차지하고 대개 '기록 부족' 만 적고 있었다.
+       되살리려면 git 에서 actCheck() 와 이 줄들을 가져오면 된다. */
   }
   return '<div class="anlviz">'+h+'</div>';
 }
@@ -12704,7 +12615,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 20:48';
+var BUILD='2026-10-01 21:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13536,19 +13447,12 @@ var EN={
 '보':'steps',
 '기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
-'걸음 셈':'Step math',
-'소화 셈':'TEF math',
 '신장':'Height',
 '보폭':'Step length',
 '보폭 {0}cm · {1}보/km · 걸음당 {2}kcal':'{0}cm step · {1} steps/km · {2}kcal per step',
 '신장cm × 0.415 — 설정 · DIET 의 신장에서 나옴':'height cm × 0.415 — from Height under Settings · DIET',
 '0.5 × 체중kg ÷ (1km 걸음수) kcal · 걷기 순소모':'0.5 × body kg ÷ (steps per km) kcal · net walking cost',
 '적자':'Deficit',
-'기초 {0} + 소화 {1} + 걸음 {2} + 운동 {3}':'BMR {0} + TEF {1} + steps {2} + exercise {3}',
-'걸음 자료 없음 — 기초 {0} × 활동 {1} + 운동 {2}':'No step data — BMR {0} × activity {1} + exercise {2}',
-'{0}보 × {1} = {2}kcal{3}':'{0} steps × {1} = {2}kcal{3}',
-'단백질 {0}g×1 + 탄수 {1}g×0.3 + 지방 {2}g×0.18':'protein {0}g×1 + carb {1}g×0.3 + fat {2}g×0.18',
-'먹은 기록 없음 — 먹은 만큼만 더해짐':'nothing logged — only what you eat is added',
 '단백질g×1 + 탄수g×0.3 + 지방g×0.18 · 먹은 것만':'protein g×1 + carb g×0.3 + fat g×0.18 · food eaten only',
 '기초대사 + 소화 + 걸음 몫 + 운동':'BMR + TEF + step share + exercise',
 '감량속도kg/주 × 7700 ÷ 7':'target loss kg/week × 7700 ÷ 7',
@@ -13566,7 +13470,6 @@ var EN={
 '권한 켜기 ▸':'grant access ▸',
 '앱 업데이트 필요':'app update needed',
 '기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}':'{1} steps over the {0} baseline × {2} = {3}kcal{4}',
-' · 기록한 걷기 {0}보 뺌':' · {0} logged walking steps removed',
 '기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫':'Under the {0}-step baseline, so nothing is added — the factor already covers it',
 '하루 소비 셈':'How daily burn is computed',
 '맨 위 오른쪽 칸은 <b>현재 소비</b> — 지금까지 실제로 쓴 몫이다. 기초대사는 자정부터 지난 시간만큼만, 소화는 먹은 것만 센다. 그 밑 작은 <b>하루 예상</b> 이 위 표의 하루 소비이고, 왼쪽 섭취 여유는 그 예상에서 나온다 — 하루 예산은 아침에도 저녁에도 같은 수여야 해서다. 목표만큼 먹고 자면 자정에 두 수가 만난다. 덜 먹은 날은 현재 소비가 그만큼 아래로 끝난다 — 소화에 쓴 것도 그만큼 적어서다.':'The top-right figure is <b>Burned</b> — what you have actually spent so far. BMR counts only the share of the day elapsed, and TEF only the food eaten. The small <b>Day est</b> below it is the full-day burn from the table above, and "To eat" on the left comes from that estimate — a daily budget has to read the same in the morning as at night. Eat your target and the two meet at midnight; eat under it and Burned finishes that much lower, because digesting less costs less.',
@@ -13640,22 +13543,7 @@ var EN={
 '기초 {0} · 활동 {1} · 운동 {2}':'BMR {0} · activity {1} · exercise {2}',
 '운동 {0}%':'Exercise {0}%',
 '기초 {0}%':'BMR {0}%',
-'활동 계수 · 실측 역산':'Activity factor · back-calculated',
-'실제 활동 계수':'Measured factor',
-'체중 14일·5회 이상 · 식사 10일 이상 쌓이면 역산됨':'Needs 14+ days and 5+ weigh-ins, plus 10+ days of meals',
-'못 믿을 값':'Not trustworthy',
-'{0}일치로 내면 {1} — 섭취 기록이나 체중 추세 하나가 실제와 어긋난 창':'{0} days give {1} — either the meal log or the weight trend is off for this window',
 '보류':'On hold',
-'설정 적정':'Setting is right',
-'설정이 낮음':'Setting too low',
-'설정이 높음':'Setting too high',
-'설정 {0} · 체중 {1}kg/주 · 식사 {2}일 · 체중 {3}점':'Set {0} · {1}kg/wk · {2} meal days · {3} weigh-ins',
-'하루 차이':'Daily gap',
-'설정이 실측과 맞음 — 그대로 두면 됨':'Setting matches what your body shows — leave it',
-'실제로 더 씀 — 계수를 {0} 로 올리면 하루 {1}kcal 더 먹게 됨':'You burn more than set — raising it to {0} adds {1}kcal a day',
-'실제로 덜 씀 — 계수를 {0} 로 내리면 적자가 하루 {1}kcal 돌아옴':'You burn less than set — lowering it to {0} recovers {1}kcal of deficit a day',
-'실제 소비':'Measured burn',
-'{0}일 평균 섭취 {1} + 체중이 준 몫 · 그중 운동 {2}':'{0}-day mean intake {1} + what the scale gave up · exercise {2}',
 '체중 {0}kg × {1}':'{0}kg × {1}',
 '운동으로 번 몫':'Earned by training',
 '오늘 운동한 만큼 먹을 수 있는 양이 늘어남':"Today's training raised what you can eat",
@@ -15421,6 +15309,18 @@ function dgWeekGrid(nf){
   return h;
 }
 /* 값 대신 사실 한 줄. 막대가 뜻을 갖지 않는 것들(연속일, 정체 종목 등) */
+/* 접는 섹션. 사용자가 '날마다 보는 것' 으로 고른 것(주간 누적 적자 · 이번 주 ·
+   전 달)만 펼친 채로 두고, 나머지는 제목줄만 남긴다. 지우지 않는 까닭은
+   수가 틀려서가 아니라 날마다 볼 것이 아니어서다.
+   접힌 채로도 큰 수는 제목줄에 적는다 — 접었다고 답까지 숨기면 펴 보게 되고,
+   그러면 접은 뜻이 없다. */
+function vzFold(k,lb,tail,inner){
+  var on=!!UI.vzf[k];
+  return '<button class="lmfold vzfd'+(on?' on':'')+'" data-act="vzf" data-v="'+k+'">'
+    +esc(lb)+(tail?'<em class="vzft">'+esc(tail)+'</em>':'')
+    +'<i>'+(on?'▴':'▾')+'</i></button>'
+    +(on?inner:'');
+}
 function vzLine(name,val,sub,vd){
   return '<div class="zrow'+(vd&&vd.c?' '+vd.c:'')+'">'
     +'<span class="nm">'+esc(name)+'</span>'
@@ -16391,6 +16291,8 @@ document.addEventListener('click',function(e){
     /* 근육 항목을 기본 기준치로. 주동근 지정(mm)은 안 건드린다 —
        그것은 종목마다 고른 것이지 이 화면의 값이 아니다. */
     case 'vzh':UI.vzHid=!UI.vzHid;render();break;
+    /* 분석탭 섹션 접기 — 날마다 볼 것이 아닌 덩이를 제목줄로 줄여 둔다 */
+    case 'vzf':UI.vzf[v]=!UI.vzf[v];render();break;
     case 'mmrst':
       if(UI.arm!=='mmrst'){UI.arm='mmrst';render();break;}
       UI.arm=null;MMX={};mmxSave();mmxApply();render();
