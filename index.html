@@ -2024,6 +2024,9 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .rgs .fl{fill:none;stroke:var(--acc-br);stroke-width:7;stroke-linecap:round}
 /* 넘긴 것은 잘못이 아니라 채운 것이다 — 경고색이 아니라 충족색을 쓴다 */
 .rgs .fl.met{stroke:var(--pos)}
+/* 밴드를 넘긴 눈금. 색만으로는 못 가른다 — chalk 처럼 경고색이 짙은 호박색인
+   팔레트에서는 흰 바탕에서 그냥 또 하나의 강조색으로 보인다. 굵기도 같이. */
+.rgs .fl.ovr{stroke:var(--sig);stroke-width:9;stroke-linecap:butt}
 
 /* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
 .rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
@@ -2035,6 +2038,7 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .rgd{font-family:var(--mono);font-size:10px;font-weight:700;
   color:var(--acc-br);margin-top:2px;font-variant-numeric:tabular-nums}
 .rgd.met{color:var(--pos)}
+.rgd.ovr{color:var(--sig)}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -6377,7 +6381,13 @@ function renderSheet(){
                    kcalPerStep(BW).toFixed(3))
               +'</div>'
               +srow('gf0',TX('목표 체지방'),'%',GF)
-              +srow('pc0',TX('감량 속도'),TX('kg/주'),WR)
+              /* 음수가 증량이라는 것을 칸 이름만으로는 알 수 없다 */
+              +srow('pc0',TX('체중 변화'),TX('kg/주'),WR)
+              +'<div class="note" style="margin:2px 0 10px">'
+              +(WR>0?TX1('<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자',WR,Math.round(WR*7700/7))
+                    :TX1('<b>린매스업</b> 주당 +{0}kg — 하루 {1}kcal 잉여',
+                         Math.abs(WR),Math.abs(Math.round(WR*7700/7))))
+              +TX(' · 음수를 넣으면 증량') + '</div>'
               +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
               /* 계수는 셈에서 빠졌다. 그런데 칸은 남아 있으니 '올리면 더
                  먹을 수 있다' 고 읽기 쉽다 — 걸음이 들어오는 날은 아무것도
@@ -6397,6 +6407,17 @@ function renderSheet(){
               +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG.toFixed(1))
               +srow('fp0',TX('지방 최소'),'g/kg',FAT_PER_KG.toFixed(1))
               +srow('cp0',TX('탄수 최소'),'g/kg',CARB_PER_KG.toFixed(1))
+              +srow('cx0',TX('탄수 최대'),'g/kg',CARB_MAX_KG.toFixed(1))
+              +srow('fx0',TX('지방 최대'),'g/kg',FAT_MAX_KG.toFixed(1))
+              /* 여섯 칸을 손으로 채우라고 하면 아무도 안 쓰고, 채우더라도
+                 근거 없는 수가 들어간다. 문헌 한 벌을 통째로 부어 준다. */
+              +'<div class="lgsw" style="margin:8px 0 4px">'
+              +'<button class="lgb" data-act="mpre" data-v="cut">'+TX('감량 한 벌')+'</button>'
+              +'<button class="lgb" data-act="mpre" data-v="lean">'+TX('린매스업 한 벌')+'</button>'
+              +'</div>'
+              +'<div class="note" style="margin:0 0 10px">'
+              +TX('린매스업 한 벌 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg (Iraki 2019 오프시즌). 체중 변화도 주당 +0.3kg 으로 같이 바뀜.')
+              +'</div>'
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG,CARB_PER_KG)+'</div>'
               +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
           }
@@ -7581,7 +7602,13 @@ var MMK={};
    능형·척추기립근·외전·내전·직접 더한 항목)은 미지정으로 남는다. */
 var MMOLD={mc:'chest',uc:'chest',lc:'chest',lt:'back',tm:'back',ut:'trap',sd:'delt',pd:'delt',
   qd:'quad',hm:'ham',gl:'glute',cf:'calf',bi:'biceps',tri:'triceps',fa:'forearm',ab:'abs'};
-var WR=0.5; /* 주당 감량 목표 kg */
+/* 주당 체중 변화 목표 kg. 양수면 감량, **음수면 증량(린매스업)** 이다.
+   예전에는 0.1~1.5 로 양수만 받아 잉여를 만들 길이 아예 없었다 —
+   '먹을 양 = 소비 − 적자' 에서 적자가 음수가 되면 그대로 잉여가 된다.
+   증량 쪽 한계를 −0.5 로 둔 까닭: Iraki 2019 의 오프시즌 권장이 주당
+   체중의 0.25~0.5% 이고, 78kg 이면 0.2~0.4kg 이다. 그보다 빠른 증량은
+   늘어나는 몫이 지방 쪽으로 기운다. */
+var WR=0.5;
 /* 주간 목표(STG)는 이 체계에서 없앤다 — '얼마나 해야 하는가' 는 MEV~MRV 가
    말한다. 남긴 것은 옥 백업을 읽는 자리 하나라 빈 상자로 둠. */
 var STG={};
@@ -7746,7 +7773,7 @@ function wkOffCount(){
       }
     }
   }catch(e){}
-  try{var wr2=parseFloat(localStorage.getItem(KEY+'.wr'));if(wr2>=0.1&&wr2<=1.5)WR=Math.round(wr2*100)/100;}catch(e){}
+  try{var wr2=parseFloat(localStorage.getItem(KEY+'.wr'));if(wr2>=-0.5&&wr2<=1.5&&wr2!==0)WR=Math.round(wr2*100)/100;}catch(e){}
   try{
     var rd2=JSON.parse(localStorage.getItem(KEY+'.rd')||'null');
     if(Array.isArray(rd2)){rd2=rd2.filter(function(x){return x>=0&&x<=6;});if(rd2.length<7)RD=rd2;}
@@ -7777,7 +7804,8 @@ function bkText(){
     st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,tst:TST,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
-    ppk:PRO_PER_KG,fpk:FAT_PER_KG,cpk:CARB_PER_KG,mbase:MACRO_BASE,lang:LANG,gm:GM,lm:LM,
+    ppk:PRO_PER_KG,fpk:FAT_PER_KG,cpk:CARB_PER_KG,cmx:CARB_MAX_KG,fmx:FAT_MAX_KG,
+    mbase:MACRO_BASE,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
     subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add,ord:SUBX.ord},
@@ -7839,7 +7867,7 @@ function applyBackup(o){
       if(+c.act>=1.1&&+c.act<=1.9)ACT=Math.round(+c.act*100)/100;
       if(+c.ht>=120&&+c.ht<=220)HT=Math.round(+c.ht);
       if(+c.iv>=30&&+c.iv<=600)IVs=Math.floor(+c.iv);
-      if(+c.wr>=0.1&&+c.wr<=1.5)WR=Math.round(+c.wr*100)/100;
+      if(+c.wr>=-0.5&&+c.wr<=1.5&&+c.wr!==0)WR=Math.round(+c.wr*100)/100;
       if(c.st){
         var cT=(c.st.v===2&&c.st.t)?c.st.t:c.st;
         var cNew=(c.st.v===2);
@@ -7880,6 +7908,8 @@ function applyBackup(o){
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(+c.cpk>=0.3&&+c.cpk<=5)CARB_PER_KG=Math.round(+c.cpk*10)/10;
       if(c.mbase==='bw'||c.mbase==='lbm')MACRO_BASE=c.mbase;
+      if(+c.cmx>=0&&+c.cmx<=12)CARB_MAX_KG=Math.round(+c.cmx*10)/10;
+      if(+c.fmx>=0&&+c.fmx<=3)FAT_MAX_KG=Math.round(+c.fmx*10)/10;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
       /* 지금 기기에 값이 없는 날짜만 채운다. 묵은 백업을 되돌렸다고 오늘
          먹은 것이 사라지면 안 된다 — 새 기기에는 아무것도 없어 전부 들어오고,
@@ -7900,6 +7930,8 @@ function applyBackup(o){
           localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
           localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
           localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+          localStorage.setItem(KEY+'.cmx',String(CARB_MAX_KG));
+          localStorage.setItem(KEY+'.fmx',String(FAT_MAX_KG));
           localStorage.setItem(KEY+'.mbase',MACRO_BASE);
           localStorage.setItem(KEY+'.lang',LANG);
           localStorage.setItem(KEY+'.gm',GM);
@@ -8524,8 +8556,13 @@ function macroLine(ppk,fpk,cpk){
   var w=macroBW(),lb=(MACRO_BASE==='lbm'&&w<BW);
   var p=Math.round(w*ppk),f=Math.round(w*fpk),c=Math.round(w*cpk);
   var kc=p*4+c*4+f*9;
-  var out=TX1('{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal',
-    lb?TX('제지방'):TX('체중'),fmtW(w),p,c,f,kc.toLocaleString());
+  var cx=CARB_MAX_KG>0?Math.max(c,Math.round(w*CARB_MAX_KG)):0;
+  var fx=FAT_MAX_KG>0?Math.max(f,Math.round(w*FAT_MAX_KG)):0;
+  /* 상한이 있으면 '78~390' 처럼 밴드로 적는다 — 최소만 적으면 위쪽이 없는 줄 안다 */
+  var out=TX1('{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g',
+    lb?TX('제지방'):TX('체중'),fmtW(w),p,
+    cx?(c+'~'+cx):String(c), fx?(f+'~'+fx):String(f))
+    +TX1(' = <b>{0}</b>kcal',kc.toLocaleString());
   /* 수가 범위 안인지를 같이 적는다 — 근거가 없으면 2.5 가 큰지 작은지 모른다.
      단백질은 Helms 2014(제지방 2.3~3.1) / 현재 입장(체중 1.8~2.2),
      지방 하한은 체중 0.5g/kg(열량의 15%)이 흔히 쓰이는 선이다. */
@@ -12091,8 +12128,8 @@ function dayPastHtml(nf,ds){
   var mg=(goal>0)?macroGoals(goal):null;
   if(mg)h+='<div class="rings">'
     +vzRing(TX('단백질'),'opt',r.protein,mg.p,'g')
-    +vzRing(TX('탄수'),'min',r.carb,mg.c,'g')
-    +vzRing(TX('지방'),'min',r.fat,mg.f,'g')+'</div>';
+    +vzRing(TX('탄수'),'min',r.carb,mg.c,'g',mg.cx)
+    +vzRing(TX('지방'),'min',r.fat,mg.f,'g',mg.fx)+'</div>';
   /* 그 날의 소비로 그 날의 목표가 나왔다 — 운동한 날은 목표가 컸다.
      그 고리를 안 적으면 왜 어떤 날만 목표가 높은지 알 수가 없다. */
   var ex=Math.round(r.exerciseKcal||0);
@@ -12145,8 +12182,8 @@ function vzDiet(tab){
     var mg0=(gi>0)?macroGoals(gi):null;
     if(mg0)h+='<div class="rings">'
       +vzRing(TX('단백질'),'opt',0,mg0.p,'g')
-      +vzRing(TX('탄수'),'min',0,mg0.c,'g')
-      +vzRing(TX('지방'),'min',0,mg0.f,'g')+'</div>';
+      +vzRing(TX('탄수'),'min',0,mg0.c,'g',mg0.cx)
+      +vzRing(TX('지방'),'min',0,mg0.f,'g',mg0.fx)+'</div>';
     if(gi>0)h+=vzLine(TX('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
       TX1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
     /* 원이 단백질 목표를 이미 말하므로 그때는 줄로 또 안 적는다 */
@@ -12199,8 +12236,8 @@ function vzDiet(tab){
     if(mg){
       h+='<div class="rings">'
         +vzRing(TX('단백질'),'opt',td2.p,mg.p,'g')
-        +vzRing(TX('탄수'),'min',td2.c,mg.c,'g')
-        +vzRing(TX('지방'),'min',td2.f,mg.f,'g')
+        +vzRing(TX('탄수'),'min',td2.c,mg.c,'g',mg.cx)
+        +vzRing(TX('지방'),'min',td2.f,mg.f,'g',mg.fx)
         +'</div>';
       /* 각주를 걷어냈다. 원에 '적정·최소' 를 붙여 놓고 그 밑에 그게 무슨
          뜻인지 또 쓰고 있었다 — 표를 못 믿어 각주를 단 꼴이다. 탄수가
@@ -12390,7 +12427,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 19:39';
+var BUILD='2026-10-01 19:53';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13548,6 +13585,15 @@ var EN={
 '활동 계수':'Activity factor',
 '단백질 최소':'Protein floor',
 '탄수 최소':'Carb floor',
+'범위':'band','체중 변화':'Weight change',
+'<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자':'<b>Cut</b> {0}kg/week — {1}kcal daily deficit',
+'<b>린매스업</b> 주당 +{0}kg — 하루 {1}kcal 잉여':'<b>Lean gain</b> +{0}kg/week — {1}kcal daily surplus',
+' · 음수를 넣으면 증량':' · enter a negative number to gain',
+'{0}{1} 넘김':'{0}{1} over',
+'탄수 최대':'Carb cap','지방 최대':'Fat cap',
+'감량 한 벌':'Cut preset','린매스업 한 벌':'Lean-gain preset',
+'린매스업 한 벌 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg (Iraki 2019 오프시즌). 체중 변화도 주당 +0.3kg 으로 같이 바뀜.':'Lean-gain preset = per bodyweight, protein 2.0 · carbs 3–5 · fat 0.5–1.5 g/kg (Iraki 2019 off-season). Weight change also switches to +0.3kg/week.',
+' = <b>{0}</b>kcal':' = <b>{0}</b>kcal',
 '제지방 기준':'Per LBM','체중 기준':'Per bodyweight','제지방':'LBM','체중':'bodyweight',
 '{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal':'{0} {1}kg × g/kg → protein <b>{2}</b>g · carbs <b>{3}</b>g · fat <b>{4}</b>g = <b>{5}</b>kcal',
 '단백질 {0} — 제지방 기준 권장은 2.3~3.1':'Protein {0} — the per-LBM range is 2.3–3.1',
@@ -14495,6 +14541,12 @@ var FAT_PER_KG=1.0;
    앱이 케토를 지시하는 꼴이 된다. 셋 다 바닥으로 두고, 바닥을 채우고 남는
    열량은 '여유' 로 따로 적는다. */
 var CARB_PER_KG=1.25;
+/* 탄수·지방의 상한. 최소만 있으면 '적어도 이만큼' 밖에 못 말한다 —
+   린매스업에서는 잉여를 어디에 쓰느냐가 늘어나는 몫의 질을 가르므로
+   위쪽 선도 있어야 한다. 0 이면 상한 없음.
+   근거(Iraki 2019, 오프시즌): 탄수 3~5 g/kg 체중 · 지방 0.5~1.5 g/kg
+   (또는 열량의 20~35%) · 단백질 1.6~2.2 g/kg. */
+var CARB_MAX_KG=0,FAT_MAX_KG=0;
 /* 바닥을 무엇에 곱할지. 'lbm' 제지방 · 'bw' 체중.
    체중에 곱하면 감량하면서 바닥이 같이 내려간다 — 80 → 74kg 에 단백질이
    160 → 148g 으로 준다. 감량기에 지켜야 할 것은 제지방이고, 제지방이
@@ -14514,6 +14566,10 @@ function macroBW(){
   if(v>=0.3&&v<=5)CARB_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.mbase');
   if(v==='bw'||v==='lbm')MACRO_BASE=v;}catch(e){}})();
+(function(){if(!canLS)return;try{
+  var a=parseFloat(localStorage.getItem(KEY+'.cmx'));if(a>=0&&a<=12)CARB_MAX_KG=Math.round(a*10)/10;
+  var b=parseFloat(localStorage.getItem(KEY+'.fmx'));if(b>=0&&b<=3)FAT_MAX_KG=Math.round(b*10)/10;
+}catch(e){}})();
 /* 예전 판은 바닥을 체중에 곱했고 기준 칸이 없었다. 그 판에서 올라온 저장값을
    그대로 제지방에 곱하면 단백질이 160 → 128g 으로 조용히 떨어진다. 켤 때 한 번
    환산한다.
@@ -14801,35 +14857,48 @@ function macroGoals(kcalGoal){
   if(!(BW>0)||!(kcalGoal>0))return null;
   var w=macroBW();
   var p=Math.round(w*PRO_PER_KG),f=Math.round(w*FAT_PER_KG),c=Math.round(w*CARB_PER_KG);
-  return {p:p,f:f,c:c,kcal:p*4+c*4+f*9,free:kcalGoal-(p*4+c*4+f*9)};
+  /* 상한은 0 이면 없는 것으로 친다. 최소보다 작게 넣은 값은 뜻이 없으므로
+     최소로 끌어올린다 — 밴드가 뒤집히면 어떤 값도 '안' 에 못 든다. */
+  var cx=CARB_MAX_KG>0?Math.max(c,Math.round(w*CARB_MAX_KG)):0;
+  var fx=FAT_MAX_KG>0?Math.max(f,Math.round(w*FAT_MAX_KG)):0;
+  return {p:p,f:f,c:c,cx:cx,fx:fx,
+          kcal:p*4+c*4+f*9,free:kcalGoal-(p*4+c*4+f*9)};
 }
 /* 원 하나. 눈금은 셋 다 '적어도 이만큼' 이다 — 넘긴 것은 잘못이 아니라
    채운 것이므로 어떤 원도 넘겼다고 경고색을 쓰지 않는다. 못 채운 것만 말한다.
    눈금이 없으면(탄수 몫이 0) 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
    kind: 'opt' 적정(단백질만) · 'min' 최소(지방·탄수) */
-/* 눈금 셋은 전부 '적어도 이만큼' 이다. 넘긴 것은 잘못이 아니라 채운 것이므로
-   어떤 원도 넘겼다고 경고색을 쓰지 않는다 — 못 채운 것만 말한다.
-   kind 는 라벨만 가른다: opt 적정 · min 최소. */
-function vzRing(name,kind,cur,goal,unit){
-  cur=Math.round(+cur||0);goal=Math.round(+goal||0);
+/* 눈금에는 두 꼴이 있다.
+   상한이 없으면(max 를 안 주면) '적어도 이만큼' 이다 — 넘긴 것은 잘못이
+   아니라 채운 것이므로 경고색을 안 쓰고, 못 채운 것만 말한다.
+   상한이 있으면 밴드다 — 부족 · 안 · 넘침 셋으로 갈린다. 린매스업에서는
+   잉여를 어디에 쓰느냐가 늘어나는 몫의 질을 가르므로 위쪽도 말해야 한다.
+   kind 는 라벨만 가른다: opt 적정 · min 최소(밴드면 '범위'). */
+function vzRing(name,kind,cur,goal,unit,max){
+  cur=Math.round(+cur||0);goal=Math.round(+goal||0);max=Math.round(+max||0);
   var R=26,C=2*Math.PI*R;
-  var rate=goal>0?cur/goal:0,met=goal>0&&cur>=goal;
+  var band=max>goal;
+  var over=band&&cur>max;
+  var rate=goal>0?cur/goal:0,met=goal>0&&cur>=goal&&!over;
   var fill=Math.max(0,Math.min(1,rate))*C;
   var pct=goal>0?Math.round(rate*100):null;
   var h='<div class="ring"><div class="rgn">'+esc(name)
-    +'<i>'+(kind==='opt'?TX('적정'):TX('최소'))+'</i></div>'
+    +'<i>'+(kind==='opt'?TX('적정'):(band?TX('범위'):TX('최소')))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
-    h+='<circle class="fl'+(met?' met':'')+'" cx="32" cy="32" r="'+R+'" '
+    h+='<circle class="fl'+(over?' ovr':(met?' met':''))+'" cx="32" cy="32" r="'+R+'" '
       +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
   h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
     +'<div class="rgv">'+cur.toLocaleString()
-    +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
+    +(goal>0?'<em> / '+goal.toLocaleString()
+        +(band?'~'+max.toLocaleString():'')+'</em>':'')+' '+esc(unit)+'</div>'
     /* 58% 는 상태고 '67g 더' 는 할 일이다. 감량기에 필요한 것은
        상태가 아니라 다음 끼니에 뭘 먹느냐다. */
-    +'<div class="rgd'+(met?' met':'')+'">'
-    +(goal<=0?'—':(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit))))+'</div>'
+    +'<div class="rgd'+(over?' ovr':(met?' met':''))+'">'
+    +(goal<=0?'—'
+      :(over?'\u25b2 '+TX1('{0}{1} 넘김',(cur-max).toLocaleString(),esc(unit))
+            :(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit)))))+'</div>'
     +'</div>';
   return h;
 }
@@ -15751,6 +15820,37 @@ document.addEventListener('click',function(e){
         applyTheme();render();
       }
       break;
+    /* 문헌 한 벌.
+       감량  — 제지방 기준: 단백질 2.5 · 탄수 1.25 바닥만 · 지방 1.0
+       린매스업 — Iraki 2019 오프시즌, 체중 기준: 단백질 1.6~2.2 의 가운데
+                 2.0 · 탄수 3~5 · 지방 0.5~1.5. 잉여가 전제라 체중 변화도
+                 같이 −0.3kg/주(= 주당 +0.3kg)로 바꾼다. */
+    case 'mpre':
+      (function(){
+        if(v==='lean'){
+          MACRO_BASE='bw';
+          PRO_PER_KG=2.0; CARB_PER_KG=3.0; CARB_MAX_KG=5.0;
+          FAT_PER_KG=0.5; FAT_MAX_KG=1.5;
+          WR=-0.3;
+        }else if(v==='cut'){
+          MACRO_BASE='lbm';
+          PRO_PER_KG=2.5; CARB_PER_KG=1.25; CARB_MAX_KG=0;
+          FAT_PER_KG=1.0; FAT_MAX_KG=0;
+          WR=0.5;
+        }else return;
+        if(canLS){try{
+          localStorage.setItem(KEY+'.mbase',MACRO_BASE);
+          localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
+          localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+          localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
+          localStorage.setItem(KEY+'.cmx',String(CARB_MAX_KG));
+          localStorage.setItem(KEY+'.fmx',String(FAT_MAX_KG));
+          localStorage.setItem(KEY+'.wr',String(WR));
+        }catch(eMp){}}
+        toast('<em>'+(v==='lean'?TX('린매스업 한 벌'):TX('감량 한 벌'))+'</em>');
+        renderSheet();render();
+      })();
+      break;
     case 'mbase':
       /* 기준만 갈면 g 이 통째로 튄다 — 체지방 20% 에서 단백질이 160 → 128g 이
          되는 식이다. 사람이 원한 것은 '무엇에 곱하느냐' 를 바꾸는 것이지
@@ -16093,7 +16193,7 @@ document.addEventListener('click',function(e){
         var pcEl=document.getElementById('pc0');
         if(pcEl){
           var pw2=parseFloat(String(pcEl.value).replace(',','.'));
-          if(pw2>=0.1&&pw2<=1.5){WR=Math.round(pw2*100)/100;if(canLS){try{localStorage.setItem(KEY+'.wr',String(WR));}catch(ePc){}}}
+          if(pw2>=-0.5&&pw2<=1.5&&pw2!==0){WR=Math.round(pw2*100)/100;if(canLS){try{localStorage.setItem(KEY+'.wr',String(WR));}catch(ePc){}}}
         }
         var htEl=document.getElementById('ht0');
         if(htEl){
@@ -16105,6 +16205,18 @@ document.addEventListener('click',function(e){
           var cv=parseFloat(String(cpEl.value).replace(',','.'));
           if(cv>=0.3&&cv<=5){CARB_PER_KG=Math.round(cv*10)/10;
             if(canLS){try{localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));}catch(eCp){}}}
+        }
+        var cxEl=document.getElementById('cx0');
+        if(cxEl){
+          var xv=parseFloat(String(cxEl.value).replace(',','.'));
+          if(xv>=0&&xv<=12){CARB_MAX_KG=Math.round(xv*10)/10;
+            if(canLS){try{localStorage.setItem(KEY+'.cmx',String(CARB_MAX_KG));}catch(eCx){}}}
+        }
+        var fxEl=document.getElementById('fx0');
+        if(fxEl){
+          var yv=parseFloat(String(fxEl.value).replace(',','.'));
+          if(yv>=0&&yv<=3){FAT_MAX_KG=Math.round(yv*10)/10;
+            if(canLS){try{localStorage.setItem(KEY+'.fmx',String(FAT_MAX_KG));}catch(eFx){}}}
         }
         var acEl=document.getElementById('ac0');
         if(acEl){
@@ -16254,7 +16366,8 @@ document.addEventListener('input',function(e){
   }
   /* 지방 칸을 만지면 탄수가 그 자리에서 따라 움직여야 물림이 보인다.
      열량 목표는 저장 전까지 예전 값이라 위 셋(gf0/pc0/ac0)에는 안 건다. */
-  if(e.target.id==='pp0'||e.target.id==='fp0'||e.target.id==='cp0'){
+  if(e.target.id==='pp0'||e.target.id==='fp0'||e.target.id==='cp0'
+     ||e.target.id==='cx0'||e.target.id==='fx0'){
     var mi=document.getElementById('mgInfo');
     if(mi){
       var gv3=function(id,dv){var e3=document.getElementById(id);
