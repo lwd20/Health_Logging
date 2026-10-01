@@ -10225,6 +10225,13 @@ function vzBody(tab){
             var bs5=stepBase(td5),wm5=Math.round(walkMinOn(td5)*100);
             var kp5=Math.round(0.5*BW/1300*1000)/1000;
             var net5=Math.max(0,n5-wm5-bs5);
+            /* 기준 걸음이 어떤 소화 값에서 나왔는지가 어디에도 없었다 —
+               확인하려면 식을 거꾸로 풀어야 했다. 기준을 적는 자리에 그 기준을
+               만든 수도 같이 적는다. 먹은 몫과 남은 몫을 갈라 적어야 '지금까지
+               실제로 먹은 것' 과 '앞으로 먹을 몫' 이 어떻게 섞였는지 보인다. */
+            var hd5=hcDay(td5),ate5=hd5?Math.round(+hd5.kcal||0):0;
+            var b5=bmr(BW,BF),gl5=b5?Math.max(0,Math.round(b5*ACT-Math.round(WR*7700/7))):0;
+            var tf5=tefOn(td5);
             return vzLine(TX('걸음 셈'),n5.toLocaleString()+TX('보'),
               (net5>0
                 ? TX1('기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}',
@@ -10233,7 +10240,13 @@ function vzBody(tab){
                     wm5>0?TX1(' · 기록한 걷기 {0}보 뺌',wm5.toLocaleString()):'')
                 : TX1('기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫',
                     bs5.toLocaleString())),
-              {t:'',c:''});
+              {t:'',c:''})
+            +vzLine(TX('기준 걸음'),bs5.toLocaleString()+TX('보'),
+              TX1('기초 {0} × 활동 {1} − 기초 − 소화 {2} ÷ {3}',
+                  b5.toLocaleString(),ACT,tf5.toLocaleString(),kp5.toFixed(3)),{t:'',c:''})
+            +vzLine(TX('소화'),tf5.toLocaleString()+' kcal',
+              TX1('먹은 {0}kcal 는 실제 매크로 · 남은 {1}kcal 는 목표의 12%',
+                  ate5.toLocaleString(),Math.max(0,gl5-ate5).toLocaleString()),{t:'',c:''});
           })();
     }
     var kh=kcalHtml();
@@ -12306,6 +12319,10 @@ var EN={
 '기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
 '걸음 셈':'Step math',
+'기준 걸음':'Step baseline',
+'소화':'TEF',
+'기초 {0} × 활동 {1} − 기초 − 소화 {2} ÷ {3}':'(BMR {0} × {1} − BMR − TEF {2}) ÷ {3}',
+'먹은 {0}kcal 는 실제 매크로 · 남은 {1}kcal 는 목표의 12%':'{0}kcal eaten from real macros · {1}kcal left at 12% of target',
 '걸음':'Steps',
 '권한 켜기 ▸':'grant access ▸',
 '앱 업데이트 필요':'app update needed',
