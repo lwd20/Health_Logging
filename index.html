@@ -4006,8 +4006,7 @@ function hsubHtml(){
               else if(hcOn()&&HC.sp===null)
                 pc.push('<b><i>'+TX('걸음')+'</i> '+TX('앱 업데이트 필요')+'</b>');
               if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
-              /* 하루 예상은 머리 위 '현재/하루' 칸으로 옮겼다 — 여기 두면
-                 현재치와 멀어져 짝이 안 보였다. */
+
               /* 가운뎃점을 조각 사이에 홀로 두면 320px 에서 접힐 때 줄 끝에 혼자
                  남는다. 뒤 조각의 nowrap 안으로 넣어 같이 넘어가게 한다 —
                  줄머리에 오는 가운뎃점은 글머리표로 읽혀 어색하지 않다. */
@@ -4090,11 +4089,7 @@ function render(){
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
         var eat=Math.max(0,tot-dfc);
-        /* tot 은 하루가 끝났다고 치고 낸 예상치다. 먹을 양을 내는 데는 그게
-           맞다 — 하루 예산은 아침에도 저녁에도 같은 수여야 한다. 그런데 오른쪽
-           칸까지 그 수를 띄우니 오전 일곱 시에 '2,185kcal 썼다' 고 적혀 있었다.
-           쓴 것은 실측으로, 예산은 예상으로 — 두 칸이 서로 다른 것을 묻는다. */
-        var now=dayNow(UI.wd);
+
         /* 목표는 하루 종일 같은 숫자라 한 번 보면 그만이다. 앱을 여는 이유는
            '지금 얼마나 남았나' 이므로 그 자리를 남은 값이 갖는다.
            기록이 없으면 목표를 그대로 둔다 — 남은 값을 띄우면 아무것도 안
@@ -4112,16 +4107,11 @@ function render(){
           /* 오늘은 '현재', 끝난 날은 '하루' — 재는 것은 같은 값(그 시점까지 쓴
              열량)이고 창의 길이만 다르다. 끝난 날에 '현재' 라 적으면 거짓이고,
              오늘에 '하루' 라 적으면 안 지난 시간까지 썼다는 말이 된다. */
-          /* 현재 소비만 홀로 두니 바로 왼쪽 '섭취 여유' 와 짝지어 읽혔다 —
-             '1,171 썼는데 1,033 밖에 못 먹나' 로. 둘은 창이 다른 수라
-             견줄 것이 아니다(하나는 지금까지 쓴 것, 하나는 하루 예산의 남은
-             몫). 현재치를 하루치와 한 칸에 묶어 '현재/하루' 로 짝을 지어 준다 —
-             그러면 눈이 가로가 아니라 이 칸 안에서 짝을 찾는다.
-             단백질 '0/156g' 과 같은 꼴이라 읽는 법을 새로 배울 것이 없다. */
-          +'<div class="hsc"><i>'+(UI.wd===todayISO()?TX('현재 소비'):TX('하루 소비'))
-          +'</i><b>'+now.toLocaleString()
-          +(UI.wd===todayISO()?'<u>/'+tot.toLocaleString()+'</u>':'<u>kcal</u>')
-          +'</b></div>'
+          /* 한 수로 되돌렸다. 시간 몫으로 나눈 '현재 소비' 는 두 수를 만들고,
+             두 수가 나란히 있으면 왼쪽 '섭취 여유' 와 짝지어 읽힌다 —
+             창이 달라 견줄 수 없는 것끼리. 셀 수 있는 것만 세면 하나로 족하다:
+             기초대사 + 먹은 것의 소화 + 걸음 + 운동. */
+          +'<div class="hsc"><i>'+TX('하루 소비')+'</i><b>'+tot.toLocaleString()+'<u>kcal</u></b></div>'
           /* 하루 소비가 이미 운동 몫을 품고 있는데 얼마인지는 안 보였다 —
              기초대사는 날마다 같으니 그 날의 숫자를 움직인 것은 운동뿐인데
              그것이 섞여만 있었다.
@@ -5214,24 +5204,26 @@ function helpHtml(){
        남의 수다. 식을 그대로 적는다. */
     h+=hCap(TX('하루 소비 셈'))
       +hRow(TX('기초대사'),TX('370 + 21.6 × 제지방kg (Katch-McArdle)'))
-      +hRow(TX('소화'),TX('단백질g×4×0.25 + 탄수g×4×0.075 + 지방g×9×0.02'))
+      +hRow(TX('소화'),TX('단백질g×1 + 탄수g×0.3 + 지방g×0.18 · 먹은 것만'))
       +hRow(TX('걸음당'),TX('0.5 × 체중kg ÷ 1300 kcal · 1km 를 1,300보로 봄'))
-      +hRow(TX('기준 걸음'),TX('(기초대사 × 활동계수 − 기초대사 − 소화) ÷ 걸음당'))
-      +hRow(TX('걸음 몫'),TX('(하루 걸음 − 기록한 걷기분×100 − 기준 걸음) × 걸음당'))
-      +hRow(TX('하루 소비'),TX('기초대사 × 활동계수 + 걸음 몫 + 운동'))
-      +hRow(TX('현재 소비'),TX('기초대사 × 지난시간몫 + 먹은 것의 소화 + 걸음 + 운동'))
-      +hRow(TX('먹을 양'),TX('하루 소비 − 적자 · 적자 = 감량속도kg/주 × 7700 ÷ 7'));
-    h+=hNote(TX('기준 걸음을 식에 대입하면 활동계수가 약분돼 '
-      +'<b>기초대사 + 소화 + 걸음 + 운동</b> 이 된다 — 걸음이 기준을 넘는 날은 계수가 '
-      +'결과를 안 바꾼다. 계수는 걸음이 기준에 못 미치거나 걸음 자료가 없는 날의 바닥이다. '
-      +'걸음당 kcal 는 걷기 순소모 추정치라 보폭·속도·지형에 따라 흔들린다. '
-      +'러닝머신·걷기를 기록한 날은 그 걸음을 빼서 두 번 세지 않는다.'))
-      +hNote(TX('맨 위 오른쪽 칸은 <b>현재 소비</b> — 지금까지 실제로 쓴 몫이다. '
-      +'기초대사는 자정부터 지난 시간만큼만, 소화는 먹은 것만 센다. 그 밑 작은 '
-      +'<b>하루 예상</b> 이 위 표의 하루 소비이고, 왼쪽 섭취 여유는 그 예상에서 '
-      +'나온다 — 하루 예산은 아침에도 저녁에도 같은 수여야 해서다. '
-      +'목표만큼 먹고 자면 자정에 두 수가 만난다. 덜 먹은 날은 현재 소비가 그만큼 '
-      +'아래로 끝난다 — 소화에 쓴 것도 그만큼 적어서다.'));
+      +hRow(TX('걸음 몫'),TX('(하루 걸음 − 기록한 걷기분×100) × 걸음당'))
+      +hRow(TX('하루 소비'),TX('기초대사 + 소화 + 걸음 몫 + 운동'))
+      +hRow(TX('적자'),TX('감량속도kg/주 × 7700 ÷ 7'))
+      +hRow(TX('먹을 양'),TX('하루 소비 − 적자'))
+      +hRow(TX('섭취 여유'),TX('먹을 양 − 지금까지 먹은 것'));
+    h+=hNote(TX('<b>활동계수는 이 셈에 안 들어간다.</b> 계수를 곱하면 그 안에 걸음이 '
+      +'섞여 들어가 실측 걸음과 두 번 세어지고, 그걸 막으려고 기준 걸음을 빼면 '
+      +'기준이 소화 값에 따라 날마다 움직인다 — 셀 수 있는 것을 다 세면 둘 다 '
+      +'필요 없다. 계수가 쓰이는 데는 한 곳뿐이다: 걸음 자료가 아예 없는 날(권한을 '
+      +'껐거나 폰을 두고 나간 날)은 <b>기초대사 × 계수 + 운동</b> 으로 메운다.'));
+    h+=hNote(TX('소화는 음식의 열량이 아니라 <b>그 음식을 소화하는 데 쓰는 열량</b>이라 '
+      +'소비 쪽에 선다. 단백질이 25%로 가장 비싸고 지방이 2%로 가장 싸다 — 같은 '
+      +'400kcal 도 단백질로 먹으면 20~30kcal 더 태운다. 먹을수록 하루 소비가 '
+      +'조금 오르고, 그만큼 섭취 여유가 덜 깎인다(100kcal 먹으면 약 88 만 깎임).'));
+    h+=hNote(TX('걸음당 kcal 는 걷기 순소모 추정치라 보폭·속도·지형에 따라 ±30% 는 '
+      +'흔들린다. 러닝머신·걷기를 운동으로 기록한 날은 그 걸음(분당 100보)을 빼서 '
+      +'두 번 세지 않는다. 순걸음 1.5만(약 450kcal)에서 끊는다 — 그 위로 걸은 날은 '
+      +'등산이고, 등산은 유산소로 적는 쪽이 맞다.'));
     h+=hCap(TX('맨 위'))
       +hRow(TX('큰 숫자'),TX('오늘 먹을 목표 칼로리 · 아래 붉은 수는 적자'))
       +hRow(TX('옆 숫자'),TX('오늘 총 소모 · 운동으로 더 쓴 만큼 + 로 붙음'))
@@ -5607,15 +5599,12 @@ function renderSheet(){
             hh+=srow('gf0',TX('목표 체지방'),'%',GF)
               +srow('pc0',TX('감량 속도'),TX('kg/주'),WR)
               +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
-              /* 손으로 넣는 칸이었다. 계수와 물려 있는 수라 따로 두면 언젠가
-                 어긋난다 — 계수만 올리고 여기를 안 고치면 하루 180kcal 가 두 번
-                 세어진다. 계수에서 유도해 읽기만 하는 줄로 내린다. */
-              +(function(){
-                 var sb=stepBase(todayISO());
-                 return sb>0?'<div class="note" style="margin:2px 0 10px">'
-                   +TX1('걸음 기준 <b>{0}</b>보 — 계수가 이미 품은 몫이라 이보다 많이 걸은 만큼만 더해짐',
-                        sb.toLocaleString())+'</div>':'';
-               })()
+              /* 계수는 셈에서 빠졌다. 그런데 칸은 남아 있으니 '올리면 더
+                 먹을 수 있다' 고 읽기 쉽다 — 걸음이 들어오는 날은 아무것도
+                 안 바뀐다. 무엇에 쓰이는지 적는다. */
+              +'<div class="note" style="margin:2px 0 10px">'
+              +TX('걸음 자료가 없는 날만 쓰는 바닥 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈')
+              +'</div>'
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
               +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG)
@@ -7238,10 +7227,10 @@ function kcalHtml(){
    지하철을 두 번 갈아타고 1만 보를 걸은 날과 종일 앉아 있던 날이 같은 소비로
    잡히면, 그 차이(200~300kcal)가 고스란히 적자 오차가 된다.
 
-   계수를 통째로 걸음에 맡기지는 않는다. 설정한 계수가 바닥을 깔고, 그 바닥이
-   이미 품고 있는 걸음(stepBase)을 넘긴 몫만 더한다. 안 그러면 기초 활동이 두 번
-   세어진다. 5,000 은 Tudor-Locke 의 좌식 경계다 — 1.2 가 뜻하는 '거의 안 움직임'
-   과 같은 자리라 바닥으로 쓸 만하다.
+   한때는 계수가 바닥을 깔고 그 바닥이 품은 걸음을 넘긴 몫만 더했다. 그 '품은
+   몫' 이 소화 값에서 나오는 수라 먹을수록 기준이 움직였고, 기준이 움직이면
+   아침과 저녁이 다른 자를 쓴다. 지금은 계수를 셈에서 빼고 걸음을 전부 센다 —
+   셀 수 있는 것을 다 세면 보정할 것이 없다.
 
    한 걸음의 값은 걷기 순소모에서 낸다: 체중 1kg·1km 에 0.5kcal, 1km 를 1,300보로
    본다. 80kg 이면 한 걸음 0.031kcal, 8천 보면 약 93kcal 가 더해진다.
@@ -7261,38 +7250,7 @@ function kcalHtml(){
    폰이 하루 걸음을 통째로 준다. 추정할 이유가 없으므로 기준을 계수에서 유도한다 —
    계수만 건드려도 둘이 늘 맞는다. TEF 도 12% 짐작 대신 그 날 실제 섭취에서 낸다.
    단백질이 39% 인 이 식단은 TEF 가 10% 보다 높다. */
-function tefOn(ds){
-  /* 소화에 쓰는 몫. 단백질 20~30% · 탄수 5~10% · 지방 0~3%(문헌 범위)의 가운데를
-     쓴다 — 25% · 7.5% · 2%. */
-  function fromMacro(d){
-    if(d.p>0||d.c>0||d.f>0)
-      return (+d.p||0)*4*0.25+(+d.c||0)*4*0.075+(+d.f||0)*9*0.02;
-    return (+d.kcal||0)*0.12;   /* 매크로가 안 온 날 — 이 식단의 단백질 비중 기준 */
-  }
-  var d=HC&&HC.days&&HC.days[ds];
-  /* 끝난 날은 실제로 먹은 것이 곧 하루치다 */
-  if(ds!==todayISO())return (d&&d.n>0)?Math.round(fromMacro(d)):0;
-  /* 오늘은 하루치를 물어야 하는데 아직 반밖에 안 지났다.
-     먹은 것만으로 내면 아침에 0 이 되어 '오늘 소화에 아무것도 안 쓴다' 는 말이
-     된다 — 그 0 으로 기준 걸음을 내면 8,500 보가 되고, 저녁에 2,800 보로 내려와
-     아침과 저녁이 다른 자를 쓴다. 목표만으로 내면 이번엔 실제로 먹은 것을 안 본다.
-     둘을 잇는다: 먹은 몫은 실제값, 남은 몫은 목표에서. 하루가 갈수록 추정이
-     실측으로 바뀌면서도 합은 거의 안 흔들린다. */
-  var b0=bmr(bwOf(ds).w,bwOf(ds).f);
-  var goal=b0?Math.max(0,b0*ACT-Math.round(WR*7700/7)):0;
-  var ate=(d&&d.n>0)?(+d.kcal||0):0;
-  var done=(d&&d.n>0)?fromMacro(d):0;
-  /* 목표를 넘겨 먹었으면 남은 몫은 없다 — 음수로 깎으면 소화가 줄어든다 */
-  return Math.round(done+Math.max(0,goal-ate)*0.12);
-}
-/* 설정 계수가 이미 품고 있는 걸음 — 이 선을 넘긴 몫만 더해진다 */
-function stepBase(ds){
-  var bd=bwOf(ds),b=bmr(bd.w,bd.f);
-  if(!b||!(bd.w>0))return 0;
-  var move=b*ACT-b-tefOn(ds);          /* 계수가 얹은 것 중 소화를 뺀 나머지 */
-  if(!(move>0))return 0;
-  return Math.round(move/(0.5*bd.w/1300));
-}
+/* 그 날 삼성헬스(Health Connect)가 넘긴 걸음 수 */
 function stepsOn(ds){
   var n=HC&&HC.s&&HC.s[ds];
   return (typeof n==='number'&&n>0)?n:0;
@@ -7312,28 +7270,49 @@ function walkMinOn(ds){
   }
   return mn;
 }
+/* 소화에 쓰는 몫. 단백질 20~30% · 탄수 5~10% · 지방 0~3%(문헌 범위)의 가운데를
+   쓴다 — 25% · 7.5% · 2%. 실제로 먹은 것만 센다: 안 먹었으면 소화에 쓴 것도 없다.
+   예전에는 오늘치를 '먹은 몫 + 안 먹은 몫의 예측' 으로 이었는데, 그 예측이
+   활동계수가 품은 걸음 기준을 흔들어서 아침과 저녁이 다른 자를 쓰게 됐다.
+   계수를 셈에서 뺀 뒤로는 흔들 것이 없어 예측도 필요 없다. */
+function tefDone(ds){
+  var d=HC&&HC.days&&HC.days[ds];
+  if(!(d&&d.n>0))return 0;
+  if(d.p>0||d.c>0||d.f>0)
+    return Math.round((+d.p||0)*4*0.25+(+d.c||0)*4*0.075+(+d.f||0)*9*0.02);
+  /* 매크로가 안 온 날 — 이 식단의 단백질 비중 기준 */
+  return Math.round((+d.kcal||0)*0.12);
+}
+/* 걸음이 번 몫. 걸은 것은 전부 센다 — 예전에는 활동계수가 품은 기준 걸음
+   (약 2,800보)을 빼고 그 위만 더했다. 계수가 셈에서 빠지면서 품은 것도 없어졌다.
+   러닝머신·걷기를 운동으로 적은 분은 뺀다(분당 100보) — 그 열량은 운동 칸이
+   이미 세고 있어서다. 순걸음 1.5만(약 450kcal)에서 끊는다: 그 위로 걸은 날은
+   등산이고 등산은 유산소로 적는 쪽이 맞다. */
 function stepKcal(ds){
   var n=stepsOn(ds);
   if(!(n>0))return 0;
   var bw=bwOf(ds).w;
   if(!(bw>0))return 0;
-  /* 기록한 걷기 몫을 먼저 덜어 낸다(분당 100보). 그러고도 바닥을 넘겨야 더한다 */
-  var net=n-Math.round(walkMinOn(ds)*100)-stepBase(ds);
+  var net=n-Math.round(walkMinOn(ds)*100);
   if(!(net>0))return 0;
-  /* 폰을 차에 두거나 세탁기 위에 올려 두면 유령 걸음이 수만 보씩 찍힌다.
-     3만 보에서 끊어 봤더니 그래도 893kcal 이 더해졌다 — 그만큼 더 먹게 되는
-     수라 끊는 뜻이 없다. 순걸음 1.5만(약 450kcal)에서 끊는다. 그 위로 진짜
-     걸은 날은 등산이고, 등산은 유산소로 적는 쪽이 맞다. */
   return Math.round(Math.min(net,15000)*(0.5*bw/1300));
 }
-/* 그 날의 '운동 뺀' 소비. 기초대사 x 설정 계수에 걸음 몫을 얹는다.
+/* 그 날의 '운동 뺀' 소비 = 기초대사 + 소화 + 걸음.
    이 한 줄에서 모든 자리가 같은 수를 가져가야 한다 — 예전에는 여덟 군데가
    저마다 bmr()*ACT 를 다시 적고 있어서, 걸음을 한 곳에만 더하면 홈 화면과
-   분석 화면이 다른 소비를 말하게 된다. */
+   분석 화면이 다른 소비를 말하게 된다.
+
+   활동계수는 셈에서 빠졌다. 계수를 곱하면 그 안에 걸음이 섞여 들어가 실측
+   걸음과 두 번 세어지고, 그것을 막으려고 기준 걸음을 빼면 기준이 소화 값에
+   따라 날마다 움직인다 — 셀 수 있는 것을 다 세면 둘 다 필요 없다.
+   남은 쓰임은 하나다: 걸음 자료가 아예 없는 날(권한을 껐거나 폰을 두고 나간
+   날)의 바닥. 그 날만 기초 x 계수로 메운다 — 안 메우면 움직인 몫이 0 이 되어
+   소비가 꺼지고, 그만큼 먹을 양이 깎인다. */
 function dayBase(ds){
   var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
   if(!b)return 0;
-  return Math.round(b*ACT)+stepKcal(ds);
+  if(!(stepsOn(ds)>0))return Math.round(b*ACT);
+  return Math.round(b+tefDone(ds)+stepKcal(ds));
 }
 function dayTDEE(ds){
   /* 그 날의 몸으로 낸다. 오늘 체중으로 3주 전 소비를 세면, 그 주의 '목표'
@@ -7341,43 +7320,6 @@ function dayTDEE(ds){
   var bb=dayBase(ds);
   if(!bb)return 0;
   return Math.round(bb+dayExKcal(ds));
-}
-/* 지금까지 소화에 쓴 몫. tefOn 은 하루치를 물어서 안 먹은 몫까지 미리 셈하는데,
-   '지금까지 쓴 것' 을 물을 때는 그 예측이 들어오면 안 된다 — 안 먹었으면 소화에
-   쓴 것도 없다. 실제로 먹은 것만 센다. */
-function tefDone(ds){
-  var d=HC&&HC.days&&HC.days[ds];
-  if(!(d&&d.n>0))return 0;
-  if(d.p>0||d.c>0||d.f>0)
-    return Math.round((+d.p||0)*4*0.25+(+d.c||0)*4*0.075+(+d.f||0)*9*0.02);
-  return Math.round((+d.kcal||0)*0.12);
-}
-/* 자정부터 지금까지가 하루의 몇 몫인지 */
-function dayFrac(){
-  var n=new Date();
-  return Math.min(1,Math.max(0,(n.getHours()*60+n.getMinutes())/1440));
-}
-/* 지금까지 쓴 열량. dayTDEE 는 하루가 다 끝났다고 치고 내는 예상치라,
-   아침 일곱 시에도 저녁 열한 시와 같은 수를 띄웠다 — '지금 얼마나 썼나' 를
-   물으면 틀린 답이다. 기초대사는 지난 시간만큼만 쌓고, 소화는 실제로 먹은
-   것만, 걸음과 운동은 이미 실측이라 그대로 쓴다.
-
-   활동계수는 여기서 바닥으로만 남는다: 걸음이 기준에 못 미치거나 자료가 아예
-   없는 날은 계수가 품은 몫을 (역시 지난 시간만큼) 쓴다. 그래서 자정에 이 수는
-   하루 소비와 정확히 같아진다 — 기준 걸음을 대입하면 계수가 약분되는 그 셈이
-   시간 몫만 곱해진 꼴이다. */
-function dayNow(ds){
-  var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
-  if(!b)return 0;
-  /* 끝난 날은 지난 몫이 하루 전부다 — 같은 식을 두 번 적지 않는다 */
-  if(ds!==todayISO())return dayTDEE(ds);
-  var f=dayFrac(),ex=Math.round(dayExKcal(ds));
-  var sk=0;
-  if(bwd.w>0){
-    var net=stepsOn(ds)-Math.round(walkMinOn(ds)*100);
-    if(net>0)sk=Math.min(net,15000)*(0.5*bwd.w/1300);
-  }
-  return Math.round(Math.max(b*ACT*f,b*f+tefDone(ds)+sk))+ex;
 }
 function bhLoad(){
   var a=[];
@@ -9120,12 +9062,12 @@ function lbmSplit(b0,b1){
 function burnSplit(){
   var bs=bmr(BW,BF);
   if(!bs)return '';
-  /* 활동 칸은 계수가 더한 몫이다. 기초대사를 빼야 셋을 더해서 소비가 된다 —
-     안 빼면 기초대사가 두 번 세어져 막대가 소비보다 길어진다. */
-  var act=Math.max(0,Math.round(bs*ACT)-bs);
-  /* 걸음 몫은 활동 칸에 섞지 않고 따로 세운다 — 설정 계수가 깐 바닥과
-     오늘 실제로 걸어서 번 몫은 다른 수다. 섞으면 '많이 걸은 날' 이 안 보인다. */
+  /* 둘째 칸은 소화다. 예전에는 '활동'(계수가 더한 몫)이었는데, 계수가 셈에서
+     빠지면서 그 몫도 없어졌다. 걸음 자료가 없는 날만 계수가 바닥으로 들어오므로
+     그 날은 칸 이름이 다시 '활동' 이 된다 — 쪼갤 항목이 없어서다. */
   var stp=stepKcal(todayISO());
+  var act=stp>0?tefDone(todayISO()):Math.max(0,Math.round(bs*ACT)-bs);
+  var aLbl=stp>0?TX('소화'):TX('활동');
   var ex=Math.round(dayExKcal(todayISO()));
   var tot=bs+act+stp+ex;
   if(!(tot>0))return '';
@@ -9138,10 +9080,10 @@ function burnSplit(){
     +(stp>0?'<i class="b4" style="flex:'+stp+' 1 0"></i>':'')
     +(ex>0?'<i class="b3" style="flex:'+ex+' 1 0"></i>':'')
     +'</div><div class="lbt">'
-    +(stp>0?TX1('기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}',
-         bs.toLocaleString(),act.toLocaleString(),stp.toLocaleString(),ex.toLocaleString())
-       :TX1('기초 {0} · 활동 {1} · 운동 {2}',
-         bs.toLocaleString(),act.toLocaleString(),ex.toLocaleString()))
+    +(stp>0?TX1('기초 {0} · {1} {2} · 걸음 {3} · 운동 {4}',
+         bs.toLocaleString(),aLbl,act.toLocaleString(),stp.toLocaleString(),ex.toLocaleString())
+       :TX1('기초 {0} · {1} {2} · 운동 {3}',
+         bs.toLocaleString(),aLbl,act.toLocaleString(),ex.toLocaleString()))
     /* 운동을 안 한 날에 '운동 0%' 라 적으면 오늘 게으르다는 말로 읽힌다.
        쉬는 날은 쉬는 날이다 — 그 자리에 기초대사 비중을 적는다. */
     +'<b class="'+(ex>0?'ok':'')+'">'
@@ -10269,67 +10211,38 @@ function vzBody(tab){
        여기 소비로 이어진다. 그 고리가 이 카테고리가 하나인 이유다. */
     if(bs>0){
       var ex0=Math.round(dayExKcal(todayISO()));
+      var st0=stepKcal(todayISO()),tf0=tefDone(todayISO());
       h+=vzCap(TX('오늘 소비 · 무엇이 얼마나'))
         +vzLine(TX('하루 소비'),dayTDEE(todayISO()).toLocaleString()+' kcal',
-          (stepKcal(todayISO())>0
-            ?TX1('기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}',bs.toLocaleString(),ACT,
-                 stepKcal(todayISO()).toLocaleString(),ex0.toLocaleString())
-            :TX1('제지방 {0}kg · 기초 {1} × 활동 {2} + 운동 {3}',
-              fmtW(BW*(1-BF/100)),bs.toLocaleString(),ACT,ex0.toLocaleString())),
+          (stepsOn(todayISO())>0
+            ?TX1('기초 {0} + 소화 {1} + 걸음 {2} + 운동 {3}',bs.toLocaleString(),
+                 tf0.toLocaleString(),st0.toLocaleString(),ex0.toLocaleString())
+            /* 걸음 자료가 없는 날만 계수가 바닥으로 들어온다. 왜 다른 식인지
+               적지 않으면 같은 앱이 날마다 다른 셈을 쓰는 것처럼 보인다. */
+            :TX1('걸음 자료 없음 — 기초 {0} × 활동 {1} + 운동 {2}',
+              bs.toLocaleString(),ACT,ex0.toLocaleString())),
           {t:ex0>0?TX('운동일'):'',c:ex0>0?'pos':''})
         +burnSplit()
-        /* 기초 x 계수와 운동은 위 줄이 이미 식으로 적는다. 걸음만 셈이 안 보인다 —
-           기준이 어디서 나온 수인지 모르면 '9,514 걸었는데 왜 137 인가' 를 풀 길이
-           없다. 그 한 줄만 적는다. */
+        /* 걸음과 소화만 셈이 안 보인다 — 기초대사는 설정에 적혀 있고 운동은
+           아래 줄이 쪼개 적는다. 그 둘만 적는다. */
         +(function(){
             var td5=todayISO(),n5=stepsOn(td5);
             if(!(n5>0))return '';
-            var bs5=stepBase(td5),wm5=Math.round(walkMinOn(td5)*100);
+            var wm5=Math.round(walkMinOn(td5)*100);
             var kp5=Math.round(0.5*BW/1300*1000)/1000;
-            var net5=Math.max(0,n5-wm5-bs5);
-            /* 기준 걸음이 어떤 소화 값에서 나왔는지가 어디에도 없었다 —
-               확인하려면 식을 거꾸로 풀어야 했다. 기준을 적는 자리에 그 기준을
-               만든 수도 같이 적는다. 먹은 몫과 남은 몫을 갈라 적어야 '지금까지
-               실제로 먹은 것' 과 '앞으로 먹을 몫' 이 어떻게 섞였는지 보인다. */
-            var hd5=hcDay(td5),ate5=hd5?Math.round(+hd5.kcal||0):0;
-            var b5=bmr(BW,BF),gl5=b5?Math.max(0,Math.round(b5*ACT-Math.round(WR*7700/7))):0;
-            var tf5=tefOn(td5);
+            var net5=Math.max(0,n5-wm5);
+            var hd5=hcDay(td5);
             return vzLine(TX('걸음 셈'),n5.toLocaleString()+TX('보'),
-              (net5>0
-                ? TX1('기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}',
-                    bs5.toLocaleString(),net5.toLocaleString(),kp5.toFixed(3),
-                    stepKcal(td5).toLocaleString(),
-                    wm5>0?TX1(' · 기록한 걷기 {0}보 뺌',wm5.toLocaleString()):'')
-                : TX1('기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫',
-                    bs5.toLocaleString())),
+                TX1('{0}보 × {1} = {2}kcal{3}',
+                    net5.toLocaleString(),kp5.toFixed(3),
+                    st0.toLocaleString(),
+                    wm5>0?TX1(' · 기록한 걷기 {0}보 뺌',wm5.toLocaleString()):''),
               {t:'',c:''})
-            +vzLine(TX('기준 걸음'),bs5.toLocaleString()+TX('보'),
-              TX1('기초 {0} × 활동 {1} − 기초 − 소화 {2} ÷ {3}',
-                  b5.toLocaleString(),ACT,tf5.toLocaleString(),kp5.toFixed(3)),{t:'',c:''})
-            +(td5===todayISO()?(function(){
-                /* '현재 소비에 기초대사가 왜 빠졌냐' — 안 빠졌고, 지난 시간
-                   몫만 들어가 있다. 기초대사는 하루에 1,743 쓰는 속도라서
-                   점심때 1,743 을 다 썼을 수가 없다. 그런데 합만 보이니
-                   확인할 길이 없었다. 쪼개 적는다. */
-                var fr=dayFrac(),kp6=0.5*bwOf(td5).w/1300;
-                var net6=Math.max(0,stepsOn(td5)-Math.round(walkMinOn(td5)*100));
-                var sk6=Math.round(Math.min(net6,15000)*kp6);
-                var bs6=Math.round(b5*fr),fl6=Math.round(b5*ACT*fr);
-                var ac6=bs6+tefDone(td5)+sk6;
-                return vzLine(TX('현재 소비'),dayNow(td5).toLocaleString()+' kcal',
-                  (ac6>=fl6
-                    ? TX1('기초 {0} ({1}% 지남) + 소화 {2} + 걸음 {3} + 운동 {4}',
-                        bs6.toLocaleString(),Math.round(fr*100),
-                        tefDone(td5).toLocaleString(),sk6.toLocaleString(),
-                        Math.round(dayExKcal(td5)).toLocaleString())
-                    : TX1('기초×활동 {0} ({1}% 지남) + 운동 {2} — 쪼갠 합 {3}보다 커서 이쪽을 씀',
-                        fl6.toLocaleString(),Math.round(fr*100),
-                        Math.round(dayExKcal(td5)).toLocaleString(),ac6.toLocaleString())),
-                  {t:'',c:''});
-              })():'')
-            +vzLine(TX('소화'),tf5.toLocaleString()+' kcal',
-              TX1('먹은 {0}kcal 는 실제 매크로 · 남은 {1}kcal 는 목표의 12%',
-                  ate5.toLocaleString(),Math.max(0,gl5-ate5).toLocaleString()),{t:'',c:''});
+            +vzLine(TX('소화 셈'),tf0.toLocaleString()+' kcal',
+              (hd5&&(hd5.p>0||hd5.c>0||hd5.f>0)
+                ? TX1('단백질 {0}g×1 + 탄수 {1}g×0.3 + 지방 {2}g×0.18',
+                    Math.round(hd5.p||0),Math.round(hd5.c||0),Math.round(hd5.f||0))
+                : TX('먹은 기록 없음 — 먹은 만큼만 더해짐')),{t:'',c:''});
           })();
     }
     var kh=kcalHtml();
@@ -11571,7 +11484,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 13:06';
+var BUILD='2026-10-01 13:17';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12402,6 +12315,22 @@ var EN={
 '기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
 '걸음 셈':'Step math',
+'소화 셈':'TEF math',
+'적자':'Deficit',
+'기초 {0} + 소화 {1} + 걸음 {2} + 운동 {3}':'BMR {0} + TEF {1} + steps {2} + exercise {3}',
+'걸음 자료 없음 — 기초 {0} × 활동 {1} + 운동 {2}':'No step data — BMR {0} × activity {1} + exercise {2}',
+'{0}보 × {1} = {2}kcal{3}':'{0} steps × {1} = {2}kcal{3}',
+'단백질 {0}g×1 + 탄수 {1}g×0.3 + 지방 {2}g×0.18':'protein {0}g×1 + carb {1}g×0.3 + fat {2}g×0.18',
+'먹은 기록 없음 — 먹은 만큼만 더해짐':'nothing logged — only what you eat is added',
+'단백질g×1 + 탄수g×0.3 + 지방g×0.18 · 먹은 것만':'protein g×1 + carb g×0.3 + fat g×0.18 · food eaten only',
+'기초대사 + 소화 + 걸음 몫 + 운동':'BMR + TEF + step share + exercise',
+'감량속도kg/주 × 7700 ÷ 7':'target loss kg/week × 7700 ÷ 7',
+'하루 소비 − 적자':'daily burn − deficit',
+'먹을 양 − 지금까지 먹은 것':'target intake − eaten so far',
+'걸음 자료가 없는 날만 쓰는 바닥 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈':'Floor used only on days with no step data — when steps come in, burn is BMR + TEF + steps and this number changes nothing.',
+'기초 {0} · {1} {2} · 걸음 {3} · 운동 {4}':'BMR {0} · {1} {2} · steps {3} · exercise {4}',
+'기초 {0} · {1} {2} · 운동 {3}':'BMR {0} · {1} {2} · exercise {3}',
+'활동':'Activity',
 '기준 걸음':'Step baseline',
 '소화':'TEF',
 '기초 {0} × 활동 {1} − 기초 − 소화 {2} ÷ {3}':'(BMR {0} × {1} − BMR − TEF {2}) ÷ {3}',
