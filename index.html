@@ -556,6 +556,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   border:var(--bw) solid rgba(var(--tx-rgb),.18);border-radius:999px;padding:4px 10px}
 .dmbar .dmch:active{color:var(--mut)}
 .dseg{display:flex;gap:4px;margin-top:9px}
+/* 세 칸 모두에 걸리는 설명이라 칸 밖 아래에 둔다 — 칸 안에 넣으면 320px 에서
+   세 칸이 무너진다. 고를 때만 보이는 줄이라 자리를 늘 차지하지 않는다. */
+.dsnote{margin:5px 1px 0;font-size:9.5px;line-height:1.55;color:var(--dim);
+  letter-spacing:-.005em;text-align:right}
 .dsg{flex:1 1 0;min-width:0;min-height:38px;display:flex;align-items:center;
   justify-content:center;gap:5px;padding:0 6px;
   border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-m);
@@ -4066,19 +4070,30 @@ function render(){
            return '<button class="dsg'+(md0===k?' on':'')+'" data-act="dmode" data-v="'+k+'"'
              +' aria-pressed="'+(md0===k?'true':'false')+'">'+lb+(ext?'<i>'+ext+'</i>':'')+'</button>';
          }
-         return '<div class="dseg" role="group" aria-label="'+esc(TX('이 날'))+'">'
+         /* 세 낱말만 있었다. 무엇이 달라지는지는 안 적혀 있어서, 한 달 뒤에
+            다시 열면 '가볍게' 가 무엇을 끄는 스위치인지 알 수 없었다.
+            칸마다 쪽글씨를 붙이면 320px 에서 세 칸이 무너지므로 한 줄로
+            아래에 적는다 — 세 칸 모두에 걸리는 말이라 그 자리가 맞다. */
+         return '<div class="dseg" role="group" aria-label="'+esc(TX('증량 기준'))+'">'
            +sg('n',TX('평소'),'')
            +sg('l',TX('가볍게'),'')
            +sg('d',TX('디로딩'),wkSpan(UI.wd))
-           +'</div>';
+           +'</div>'
+           +'<div class="dsnote">'+TX('가볍게·디로딩으로 둔 날은 증량 판정과 다음 지시 무게의 기준에서 빠짐')+'</div>';
        }
+       /* '이 날 · 평소' 였다. 범위를 가리키는 말과 상태를 가리키는 말이
+          나란히 있을 뿐 무엇에 쓰는 스위치인지는 없었다 — 게다가 '이 날' 은
+          디로딩(주 단위)에는 틀린 범위다. 기능으로 이름을 바꾼다:
+          이 스위치가 정하는 것은 그 날이 다음 지시 무게의 기준에 드는지다. */
        if(md0==='n')
          return '<div class="dmq"><button class="dmqb hit" data-act="dmopen">'
-           +TX('이 날')+' · '+TX('평소')+'</button></div>';
+           +TX('증량 기준')+' · '+TX('평소')+'</button></div>';
        /* 켜진 것은 그것이 무엇에 걸리는지까지 같이 말한다 — 주(9/21-9/27)인지
           그 하루(9/27)인지가 이 줄의 요점이다. */
+       /* 범위만 적고 있었다. 범위는 '어디에' 고, 정작 '무엇이' 가 없었다 —
+          켜 두면 무엇이 달라지는지가 이 띠의 요점이다. 같은 칸에 잇는다. */
        return '<div class="dmbar"><b>'+(md0==='d'?TX('디로딩 주'):TX('가볍게'))+'</b>'
-         +'<i>'+(md0==='d'?wkSpan(UI.wd):md(UI.wd))+'</i>'
+         +'<i>'+(md0==='d'?wkSpan(UI.wd):md(UI.wd))+' · '+TX('기준에서 뺌')+'</i>'
          +'<button class="dmch" data-act="dmopen">'+TX('바꾸기')+'</button></div>';
      })();
   document.getElementById('henrg').innerHTML=
@@ -11509,7 +11524,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 13:29';
+var BUILD='2026-10-01 13:38';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12668,6 +12683,9 @@ var EN={
 '디로딩 주':'Deload week',
 '바꾸기':'Change',
 '평소':'Normal',
+'증량 기준':'Load baseline',
+'기준에서 뺌':'excluded from baseline',
+'가볍게·디로딩으로 둔 날은 증량 판정과 다음 지시 무게의 기준에서 빠짐':'Days marked Light or Deload are left out of progression verdicts and the next prescribed load.',
 '이 날':'This day',
 '되돌리기':'UNDO',
 '<em>디로딩</em> {0} · 증량 안 함 · 세트 미달 경고 안 함 · 이 주 기록은 다음 주 기준에서 빠짐':'<em>Deload</em> {0} · no load increase · no low-set warning · this week is skipped as next week&#39;s baseline',
