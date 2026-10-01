@@ -467,7 +467,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
    폭(139px)뿐이라 세 줄로 접혔다 — 그리드 안에서는 어느 쪽도 답이 아니다.
    타이머 줄 밑에 제 상자로 내놓는다: 화면 폭을 통째로 쓰고 오른쪽에 붙으므로
    타이머를 덮을 일도, 그리드를 흔들 일도 없다. */
-#hsub{padding:0 18px;margin-top:2px;text-align:right}
+#hsub{text-align:right}
 #hsub:empty{display:none}
 .pro{text-align:right;font-family:var(--mono);font-size:12px;line-height:1.5;
   color:var(--dim);font-variant-numeric:tabular-nums}
@@ -566,6 +566,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .tpv-mini i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.12em;color:var(--dim)}
 .tpv-mini b{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--acc-br);
   font-variant-numeric:tabular-nums;line-height:1}
+.dsglab{margin:8px 1px 0;font-size:9px;font-weight:800;letter-spacing:.14em;
+  color:var(--dim);text-transform:uppercase}
 .dsnote{margin:5px 1px 0;font-size:9.5px;line-height:1.55;color:var(--dim);
   letter-spacing:-.005em;text-align:right}
 .dsg{flex:1 1 0;min-width:0;min-height:38px;display:flex;align-items:center;
@@ -606,7 +608,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   font-variant-numeric:tabular-nums;letter-spacing:-.025em;line-height:1;color:var(--acc-br)}
 .tbar{display:none;position:relative}
 .tfx{display:none}
-#henrg{margin-left:auto}
+/* 오른쪽 덩이 — 칼로리 두 수 + 작은 줄. 타이머는 이 덩이 높이의 한가운데 */
+.tside{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0}
 /* 시간은 링 안에 있으므로 여기는 라벨과 조작만 맡는다 */
 .tmain{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
 .tlab{font-size:9px;font-weight:800;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
@@ -615,7 +618,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .tacts{display:flex;align-items:center;gap:5px;margin-top:1px}
 /* 링을 누르는 것으로는 리셋과 정지를 가릴 수 없어 글자 버튼을 그대로 둔다 */
 /* 세트마다 누르는 버튼인데 22px 높이였다. 알약은 그대로 두고 덧판으로 넓힌다 */
-.tbtn{position:relative;flex:0 0 auto;padding:6px 11px;border:var(--bw) solid rgba(var(--tx-rgb),.14);
+.tbtn{position:relative;flex:0 0 auto;padding:6px 9px;border:var(--bw) solid rgba(var(--tx-rgb),.14);
   border-radius:999px;background:none;color:var(--dim);
   font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
 .tbtn::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -626,14 +629,16 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 정지 상태에서는 STOP이 할 일이 없으므로 숨김 */
 .trow:not(.run) #trBtn{display:none}
 /* 시간을 품은 링. 마스크는 자식까지 먹으므로 숫자는 링의 형제로 둔다 */
-.tclock{position:relative;flex:0 0 auto;width:52px;height:52px;
+/* 두 줄 높이(74px) 한가운데에 서므로 52px 로는 작아 보인다 — 62px 로 키운다.
+   구멍 반경과 숫자도 같은 비율(x1.19)로 따라 올린다. */
+.tclock{position:relative;flex:0 0 auto;width:60px;height:60px;
   display:flex;align-items:center;justify-content:center}
 .tring{position:absolute;inset:0;border-radius:50%;pointer-events:none;
   transform:rotate(-90deg);
   background:conic-gradient(var(--tcol) calc(var(--p) * 360deg),var(--ttrk) 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 21px,#000 21.5px);
-  mask:radial-gradient(circle,transparent 0 21px,#000 21.5px)}
-.tclock b{position:relative;font-family:var(--mono);font-size:12px;font-weight:700;
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px)}
+.tclock b{position:relative;font-family:var(--mono);font-size:14px;font-weight:700;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--mut)}
 .trow.run .tclock b{color:var(--chrome)}
 /* 목표 도달 — 이제 다음 세트로 갈 때 */
@@ -687,41 +692,41 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 [data-tst="41"] .tmain,[data-tst="45"] .tmain{width:132px}
 
 /* 02 굵은 링 */
-[data-tst="2"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 17px,#000 17.5px);
-  mask:radial-gradient(circle,transparent 0 17px,#000 17.5px)}
+[data-tst="2"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 20px,#000 20.5px);
+  mask:radial-gradient(circle,transparent 0 20px,#000 20.5px)}
 /* 03 얇은 링 + 큰 숫자 */
-[data-tst="3"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
-  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
-[data-tst="3"] .tclock b{font-size:14px}
+[data-tst="3"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 28.5px,#000 29px);
+  mask:radial-gradient(circle,transparent 0 28.5px,#000 29px)}
+[data-tst="3"] .tclock b{font-size:16px}
 /* 04 이중 링 — 밖은 지금 바퀴, 안은 목표를 넘긴 몫 */
-[data-tst="4"] .tfx{display:block;position:absolute;inset:8px;border-radius:50%;
+[data-tst="4"] .tfx{display:block;position:absolute;inset:9px;border-radius:50%;
   pointer-events:none;transform:rotate(-90deg);
   background:conic-gradient(var(--pos) calc(var(--p2) * 360deg),rgba(var(--tx-rgb),.16) 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 15px,#000 15.5px);
-  mask:radial-gradient(circle,transparent 0 15px,#000 15.5px)}
-[data-tst="4"] .tclock b{font-size:10.5px}
+  -webkit-mask:radial-gradient(circle,transparent 0 18px,#000 18.5px);
+  mask:radial-gradient(circle,transparent 0 18px,#000 18.5px)}
+[data-tst="4"] .tclock b{font-size:12px}
 /* 05 점 마커 — 선 대신 점이 돈다 */
 [data-tst="5"] .tring{background:none;-webkit-mask:none;mask:none;
   box-shadow:inset 0 0 0 1.5px var(--ttrk)}
-[data-tst="5"] .tfx{display:block;position:absolute;left:50%;top:50%;width:52px;height:52px;
-  margin:-26px 0 0 -26px;pointer-events:none;transform:rotate(calc(var(--p) * 360deg))}
+[data-tst="5"] .tfx{display:block;position:absolute;left:50%;top:50%;width:62px;height:62px;
+  margin:-31px 0 0 -31px;pointer-events:none;transform:rotate(calc(var(--p) * 360deg))}
 [data-tst="5"] .tfx::after{content:"";position:absolute;left:50%;top:-3px;width:6px;height:6px;
   margin-left:-3px;border-radius:50%;background:var(--acc-br);
   box-shadow:0 0 6px rgba(var(--acc-rgb),.7)}
 /* 06 눈금 링 — 12분할. 두 겹 마스크를 교차시켜 틈을 낸다 */
 [data-tst="6"] .tring{
-  -webkit-mask:radial-gradient(circle,transparent 0 20px,#000 20.5px),
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px),
     repeating-conic-gradient(#000 0 21deg,transparent 21deg 30deg);
   -webkit-mask-composite:source-in;
-  mask:radial-gradient(circle,transparent 0 20px,#000 20.5px),
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px),
     repeating-conic-gradient(#000 0 21deg,transparent 21deg 30deg);
   mask-composite:intersect}
 /* 07 반원 게이지 */
 [data-tst="7"] .tclock{width:60px;height:31px;align-items:flex-end;overflow:hidden}
 [data-tst="7"] .tring{inset:0 0 auto 0;height:60px;
   background:conic-gradient(var(--tcol) calc(var(--p) * 180deg),var(--ttrk) 0 180deg,transparent 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px);
-  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px)}
+  -webkit-mask:radial-gradient(circle,transparent 0 26px,#000 26.5px);
+  mask:radial-gradient(circle,transparent 0 26px,#000 26.5px)}
 [data-tst="7"] .tclock b{position:relative;font-size:12px}
 /* 08 수위 — 아래부터 차오름 */
 [data-tst="8"] .tclock{border-radius:50%;overflow:hidden;
@@ -835,16 +840,16 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   box-shadow:inset 0 0 0 var(--bw) rgba(var(--tx-rgb),.12)}
 [data-tst="25"] .tring{inset:-1px;
   background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
-  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
-[data-tst="25"] .tfx{display:block;position:absolute;left:50%;top:50%;width:13px;height:13px;
-  margin:-6.5px 0 0 -6.5px;border-radius:50%;background:var(--bg);
+  -webkit-mask:radial-gradient(circle,transparent 0 28.5px,#000 29px);
+  mask:radial-gradient(circle,transparent 0 28.5px,#000 29px)}
+[data-tst="25"] .tfx{display:block;position:absolute;left:50%;top:50%;width:15px;height:15px;
+  margin:-7.5px 0 0 -7.5px;border-radius:50%;background:var(--bg);
   box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.1)}
-[data-tst="25"] .tclock b{font-size:11px;z-index:2}
+[data-tst="25"] .tclock b{font-size:13px;z-index:2}
 /* 26 아날로그 바늘 */
 [data-tst="26"] .tring{background:none;-webkit-mask:none;mask:none;
   box-shadow:inset 0 0 0 1.5px rgba(var(--tx-rgb),.14)}
-[data-tst="26"] .tfx{display:block;position:absolute;left:50%;bottom:50%;width:2px;height:20px;
+[data-tst="26"] .tfx{display:block;position:absolute;left:50%;bottom:50%;width:2px;height:24px;
   margin-left:-1px;border-radius:999px;background:var(--acc-br);
   transform-origin:50% 100%;transform:rotate(calc(var(--p) * 360deg))}
 [data-tst="26"] .tfx::after{content:"";position:absolute;left:50%;bottom:-2.5px;width:5px;height:5px;
@@ -885,20 +890,20 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   margin-left:-1px;background:var(--acc-br);border-radius:1px}
 /* 31 점선 고리 — 06 보다 잘게. 눈금이라기보다 질감이다 */
 [data-tst="31"] .tring{
-  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px),
+  -webkit-mask:radial-gradient(circle,transparent 0 26px,#000 26.5px),
     repeating-conic-gradient(#000 0 4deg,transparent 4deg 9deg);
   -webkit-mask-composite:source-in;
-  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px),
+  mask:radial-gradient(circle,transparent 0 26px,#000 26.5px),
     repeating-conic-gradient(#000 0 4deg,transparent 4deg 9deg);
   mask-composite:intersect}
 /* 32 두 겹 고리 — 바깥은 얇은 테, 안쪽이 찬다. 04 와 달리 늘 두 겹으로 보인다 */
 [data-tst="32"] .tring{inset:0;background:none;
   -webkit-mask:none;mask:none;box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.16)}
-[data-tst="32"] .tfx{display:block;position:absolute;inset:5px;border-radius:50%;
+[data-tst="32"] .tfx{display:block;position:absolute;inset:6px;border-radius:50%;
   pointer-events:none;transform:rotate(-90deg);
   background:conic-gradient(var(--tcol) calc(var(--p) * 360deg),var(--ttrk) 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 15px,#000 15.5px);
-  mask:radial-gradient(circle,transparent 0 15px,#000 15.5px)}
+  -webkit-mask:radial-gradient(circle,transparent 0 18.5px,#000 19px);
+  mask:radial-gradient(circle,transparent 0 18.5px,#000 19px)}
 /* 33 채운 파이 — 구멍 없이 통째로 */
 [data-tst="33"] .tring{-webkit-mask:none;mask:none;
   background:conic-gradient(rgba(var(--acc-rgb),.42) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.07) 0)}
@@ -906,8 +911,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 34 속도계 — 3/4 바퀴. 끝이 트여 있어 '어디까지' 가 한눈에 읽힌다 */
 [data-tst="34"] .tring{transform:rotate(135deg);
   background:conic-gradient(var(--tcol) calc(var(--p) * 270deg),var(--ttrk) 0 270deg,transparent 0);
-  -webkit-mask:radial-gradient(circle,transparent 0 20px,#000 20.5px);
-  mask:radial-gradient(circle,transparent 0 20px,#000 20.5px)}
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
 /* 35 가운데서 양쪽으로 */
 [data-tst="35"] .tclock{display:none}
 [data-tst="35"] .tbig{display:block;font-size:20px}
@@ -970,8 +975,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   margin-left:-3px;border-radius:50%;background:var(--acc-br);
   box-shadow:0 0 6px rgba(var(--acc-rgb),.6)}
 /* 42 숫자 없이 고리만 — 남은 시간을 수가 아니라 양으로 읽는다 */
-[data-tst="42"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 15px,#000 15.5px);
-  mask:radial-gradient(circle,transparent 0 15px,#000 15.5px)}
+[data-tst="42"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 18px,#000 18.5px);
+  mask:radial-gradient(circle,transparent 0 18px,#000 18.5px)}
 [data-tst="42"] .tclock b{display:none}
 /* 43 사슬 — 고리를 겹친 마디로 */
 [data-tst="43"] .tclock{width:46px;height:30px}
@@ -1010,12 +1015,12 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 30 호흡 원 — 숨 쉬듯 번진다 */
 @keyframes tbrth{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.1);opacity:1}}
 [data-tst="30"] .tring{
-  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
-  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
+  -webkit-mask:radial-gradient(circle,transparent 0 28.5px,#000 29px);
+  mask:radial-gradient(circle,transparent 0 28.5px,#000 29px)}
 [data-tst="30"] .tfx{display:block;position:absolute;inset:4px;border-radius:50%;
   background:rgba(var(--acc-rgb),.16)}
 [data-tst="30"] .trow.run .tfx,[data-tst="30"] .tclock .tfx{animation:tbrth 3.4s ease-in-out infinite}
-[data-tst="30"] .tclock b{font-size:11px;color:var(--tx)}
+[data-tst="30"] .tclock b{font-size:13px;color:var(--tx)}
 @media (prefers-reduced-motion:reduce){[data-tst="30"] .tfx{animation:none}}
 
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
@@ -1035,10 +1040,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   /* 320px 에서 칼로리 블록이 화면 밖으로 8px 나갔다.
      링을 한 치수 줄이고(구멍 반경도 같이) 숫자를 한 단계 낮춘다 */
   .trow{gap:8px}
-  .tclock{width:46px;height:46px}
+  .tclock{width:54px;height:54px}
   .tring{-webkit-mask:radial-gradient(circle,transparent 0 18px,#000 18.5px);
     mask:radial-gradient(circle,transparent 0 18px,#000 18.5px)}
-  .tclock b{font-size:11px}
+  .tclock b{font-size:12px}
   .tmain b,.hsc b{font-size:19px}
   .hsc.eat b{font-size:22px}
   .hstat{gap:5px 9px}
@@ -3391,9 +3396,12 @@ html{color-scheme:dark}
         <button class="tbtn" data-act="tr" id="trBtn">Stop</button>
       </span>
     </div>
-    <div id="henrg"></div>
+    <!-- 칼로리 두 수와 작은 줄을 한 덩이로 묶는다. 예전에는 작은 줄이
+         타이머 줄 '밖' 아래에 있어서, 오른쪽만 글자로 차고 왼쪽(타이머 밑)은
+         19px 짜리 빈 띠로 남았다. 한 덩이가 되면 타이머가 두 줄 높이의
+         한가운데에 서고, 그만큼 키울 자리도 생긴다. -->
+    <div class="tside"><div id="henrg"></div><div id="hsub"></div></div>
   </div>
-  <div id="hsub"></div>
   <nav id="chips"></nav>
   <nav id="subchips" class="schips"></nav>
 </div>
@@ -4497,7 +4505,11 @@ function render(){
        세로로 드는 자리가 0 이다. 고르는 중이거나 평소가 아닌 날에는
        아래 띠가 맡으므로 여기엔 안 적는다. */
     +((!UI.dmOpen&&dayMode(UI.wd)==='n')
-        ?'<i class="dsep">·</i><button class="dmqb dmqi hit" data-act="dmopen">'+TX('증량 기준')+'</button>'
+        /* 라벨 없이 값만 적는다 — 날짜 줄 오른쪽에서 '운동 없음 · 평소' 는
+           그대로 '여느 때와 같은 날' 로 읽힌다. 무엇을 고르는 것인지는
+           눌러서 펴면 머리에 적혀 있다. */
+        ?'<i class="dsep">·</i><button class="dmqb dmqi hit" data-act="dmopen"'
+         +' aria-label="'+esc(TX('강도'))+'">'+TX('평소')+'</button>'
         :'')
     +'</span></div>'
     /* 이 날을 어떻게 볼까 — 평소일 때는 줄 하나도 안 쓴다. 일주일에 한 번
@@ -4515,7 +4527,8 @@ function render(){
             다시 열면 '가볍게' 가 무엇을 끄는 스위치인지 알 수 없었다.
             칸마다 쪽글씨를 붙이면 320px 에서 세 칸이 무너지므로 한 줄로
             아래에 적는다 — 세 칸 모두에 걸리는 말이라 그 자리가 맞다. */
-         return '<div class="dseg" role="group" aria-label="'+esc(TX('증량 기준'))+'">'
+         return '<div class="dsglab">'+TX('강도')+'</div>'
+           +'<div class="dseg" role="group" aria-label="'+esc(TX('강도'))+'">'
            +sg('n',TX('평소'),'')
            +sg('l',TX('가볍게'),'')
            +sg('d',TX('디로딩'),wkSpan(UI.wd))
@@ -4533,7 +4546,7 @@ function render(){
        /* 범위만 적고 있었다. 범위는 '어디에' 고, 정작 '무엇이' 가 없었다 —
           켜 두면 무엇이 달라지는지가 이 띠의 요점이다. 같은 칸에 잇는다. */
        return '<div class="dmbar"><b>'+(md0==='d'?TX('디로딩 주'):TX('가볍게'))+'</b>'
-         +'<i>'+(md0==='d'?wkSpan(UI.wd):md(UI.wd))+' · '+TX('기준에서 뺌')+'</i>'
+         +'<i>'+(md0==='d'?wkSpan(UI.wd):md(UI.wd))+' · '+TX('판정에서 뺌')+'</i>'
          +'<button class="dmch" data-act="dmopen">'+TX('바꾸기')+'</button></div>';
      })();
   document.getElementById('henrg').innerHTML=
@@ -12028,7 +12041,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 14:27';
+var BUILD='2026-10-01 14:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13187,14 +13200,14 @@ var EN={
 '디로딩 주':'Deload week',
 '바꾸기':'Change',
 '평소':'Normal',
-'증량 기준':'Load baseline',
+'강도':'Intensity',
 '타이머':'Timer',
 '타이머 모양':'Timer style',
 '휴식 타이머':'Rest timer',
 '고리':'Ring','막대':'Bar','숫자':'Numerals','최소':'Minimal','모티프':'Motif',
 '진행은 목표까지 채우고, 넘기면 두 번째 바퀴를 다시 돈다. 기록에는 전혀 영향이 없음.':'Progress fills to the target, then runs a second lap past it. No effect on your logs.',
 '휴식 타이머 모양은 <b>타이머</b> 탭에서 {0}가지 가운데 고름 — 고리·막대·숫자·알약·최소·모티프.':'Pick the rest-timer shape from {0} options under the <b>Timer</b> tab — ring, bar, numerals, pill, minimal, motif.',
-'기준에서 뺌':'excluded from baseline',
+'판정에서 뺌':'excluded from verdicts',
 '가볍게·디로딩은 증량 판정과 다음 지시 기준에서 빠짐':'Days marked Light or Deload are left out of progression verdicts and the next prescribed load.',
 '이 날':'This day',
 '되돌리기':'UNDO',
