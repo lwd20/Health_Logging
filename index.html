@@ -4067,15 +4067,27 @@ function render(){
                  서야 눈이 위아래를 짝지어 읽는다. 예전에는 운동이 맨 앞이라
                  차례가 거꾸로였다. */
               var pc=[];
-              if(hd&&BW>0)pc.push('<b><i>'+TX('단백질')+'</i> '+Math.round(hd.p).toLocaleString()
+              /* 기록이 없으면 줄을 안 그리고 있었다 — '모르는 것을 0g 이라 적지
+                 않는다' 는 뜻이었는데, 정작 바로 위 '섭취 여유' 는 같은 날을 0 먹은
+                 것으로 쳐서 목표를 통째로 띄운다. 한 화면에서 위는 0 으로 세고
+                 아래는 모른다고 하면 둘 중 하나는 거짓말이다.
+                 게다가 아침에 아직 안 먹은 사람은 그 시간대 내내 이 줄을 못 봤다 —
+                 정작 '오늘 단백질 얼마 남았나' 가 가장 쓸모 있는 때다. */
+              if(BW>0)pc.push('<b><i>'+TX('단백질')+'</i> '+Math.round(hd?hd.p:0).toLocaleString()
                 +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b>');
               /* 걸음은 수만 적는다. 목표가 없는 값이라 '/' 뒤에 붙일 것이 없고,
                  여기서 알 것은 '오늘 얼마나 움직였나' 지 달성률이 아니다.
                  걸음이 보탠 kcal 도 적어 봤는데, 세 조각이 다 있는 날 320px 에서
                  줄이 타이머 자리를 침범했다. 그 수는 하루 소비에 이미 들어 있고
                  쪼갠 셈은 감량 갈래가 적는다 — 여기서는 한 번 더 할 말이 아니다. */
+              /* 걸음은 안 들어온 것과 0 보를 가를 수 있다. 권한을 막아 둔 판은
+                 그렇게 적는다 — 안 적으면 앱이 그 기능을 안 만든 줄 안다.
+                 옛 APK(canSteps 가 아예 없어 HC.sp 가 undefined)는 적지 않는다:
+                 고칠 길이 새 APK 설치뿐이라 작은 줄에서 할 말이 아니다. */
               var st=stepsOn(UI.wd);
               if(st>0)pc.push('<b><i>'+TX('걸음')+'</i> '+st.toLocaleString()+'</b>');
+              else if(hcOn()&&HC.sp===false)
+                pc.push('<b><i>'+TX('걸음')+'</i> '+TX('권한 없음')+'</b>');
               if(ex>0)pc.push('<b><i>'+TX('운동')+'</i> '+ex.toLocaleString()+'<u>kcal</u></b>');
               /* 가운뎃점을 조각 사이에 홀로 두면 320px 에서 접힐 때 줄 끝에 혼자
                  남는다. 뒤 조각의 nowrap 안으로 넣어 같이 넘어가게 한다 —
@@ -11427,7 +11439,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 11:52';
+var BUILD='2026-10-01 11:57';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12255,6 +12267,7 @@ var EN={
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
 '걸음 셈':'Step math',
 '걸음':'Steps',
+'권한 없음':'no access',
 '기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}':'{1} steps over the {0} baseline × {2} = {3}kcal{4}',
 ' · 기록한 걷기 {0}보 뺌':' · {0} logged walking steps removed',
 '기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫':'Under the {0}-step baseline, so nothing is added — the factor already covers it',
