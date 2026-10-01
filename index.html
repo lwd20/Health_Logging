@@ -950,7 +950,8 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   height:2px;border-radius:999px;background:var(--ttrk)}
 [data-tst="37"] .tbar>i{display:block;height:100%;width:calc(var(--p) * 100%);
   background:var(--tcol);border-radius:999px}
-/* 38 초만 크게 — 분은 곁글씨로 내린다. 90초 안쪽 휴식에서 읽기 가장 빠르다 */
+/* 38 아주 큰 숫자 — 다른 것을 다 끄고 수만 남긴다. 멀리서 읽힌다.
+   ('초만 크게' 로 두려 했는데 CSS 는 글자를 자를 수 없다) */
 [data-tst="38"] .tclock{display:none}
 [data-tst="38"] .tbig{display:block;font-size:30px;letter-spacing:-.04em}
 [data-tst="38"] .tmeta{display:none}
@@ -978,15 +979,17 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 [data-tst="42"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 18px,#000 18.5px);
   mask:radial-gradient(circle,transparent 0 18px,#000 18.5px)}
 [data-tst="42"] .tclock b{display:none}
-/* 43 사슬 — 고리를 겹친 마디로 */
-[data-tst="43"] .tclock{width:46px;height:30px}
+/* 43 사슬 — 고리를 겹친 마디로.
+   46px 안에 10px 간격으로 다섯을 넣었더니 서로 먹혀 덩어리가 됐다. 고리를
+   키우고(지름 15px) 간격을 벌려(13px) 마디가 눈으로 세어지게 한다. */
+[data-tst="43"] .tclock{width:56px;height:30px}
 [data-tst="43"] .tring{display:none}
 [data-tst="43"] .tfx{display:block;position:absolute;inset:0;
   background:linear-gradient(to right,var(--tcol) 0 calc(var(--p) * 100%),var(--ttrk) 0);
-  -webkit-mask:radial-gradient(circle 6px at 6px 15px,transparent 0 3.4px,#000 4px 6px,transparent 0)
-    0 0/10px 30px repeat-x;
-  mask:radial-gradient(circle 6px at 6px 15px,transparent 0 3.4px,#000 4px 6px,transparent 0)
-    0 0/10px 30px repeat-x}
+  -webkit-mask:radial-gradient(circle 7.5px at 7.5px 15px,transparent 0 5.4px,#000 6.1px 7.5px,transparent 0)
+    0 0/16px 30px repeat-x;
+  mask:radial-gradient(circle 7.5px at 7.5px 15px,transparent 0 5.4px,#000 6.1px 7.5px,transparent 0)
+    0 0/16px 30px repeat-x}
 [data-tst="43"] .tclock b{display:none}
 [data-tst="43"] .tbig{display:block;font-size:17px}
 [data-tst="43"] .tmeta{display:none}
@@ -12041,7 +12044,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 14:41';
+var BUILD='2026-10-01 16:12';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
