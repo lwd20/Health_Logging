@@ -5123,6 +5123,22 @@ function helpHtml(){
       +hNote(TX('세트를 넣을 때 타이머가 자동으로 다시 시작되고, 다음 세트를 넣으면 그 사이 시간이 세트 옆에 기록됨. 5초 미만이나 60분 초과는 이상치로 빼고 셈.'));
   }
   if(t==='num'){
+    /* 하루 소비가 어디서 나오는지는 앱 어디에도 적혀 있지 않았다. 목표 열량
+       전부가 그 수에서 나오는데, 믿을지 말지를 정할 근거가 없으면 수는 그냥
+       남의 수다. 식을 그대로 적는다. */
+    h+=hCap(TX('하루 소비 셈'))
+      +hRow(TX('기초대사'),TX('370 + 21.6 × 제지방kg (Katch-McArdle)'))
+      +hRow(TX('소화'),TX('단백질g×4×0.25 + 탄수g×4×0.075 + 지방g×9×0.02'))
+      +hRow(TX('걸음당'),TX('0.5 × 체중kg ÷ 1300 kcal · 1km 를 1,300보로 봄'))
+      +hRow(TX('기준 걸음'),TX('(기초대사 × 활동계수 − 기초대사 − 소화) ÷ 걸음당'))
+      +hRow(TX('걸음 몫'),TX('(하루 걸음 − 기록한 걷기분×100 − 기준 걸음) × 걸음당'))
+      +hRow(TX('하루 소비'),TX('기초대사 × 활동계수 + 걸음 몫 + 운동'))
+      +hRow(TX('먹을 양'),TX('하루 소비 − 적자 · 적자 = 감량속도kg/주 × 7700 ÷ 7'));
+    h+=hNote(TX('기준 걸음을 식에 대입하면 활동계수가 약분돼 '
+      +'<b>기초대사 + 소화 + 걸음 + 운동</b> 이 된다 — 걸음이 기준을 넘는 날은 계수가 '
+      +'결과를 안 바꾼다. 계수는 걸음이 기준에 못 미치거나 걸음 자료가 없는 날의 바닥이다. '
+      +'걸음당 kcal 는 걷기 순소모 추정치라 보폭·속도·지형에 따라 흔들린다. '
+      +'러닝머신·걷기를 기록한 날은 그 걸음을 빼서 두 번 세지 않는다.'));
     h+=hCap(TX('맨 위'))
       +hRow(TX('큰 숫자'),TX('오늘 먹을 목표 칼로리 · 아래 붉은 수는 적자'))
       +hRow(TX('옆 숫자'),TX('오늘 총 소모 · 운동으로 더 쓴 만큼 + 로 붙음'))
@@ -10121,7 +10137,26 @@ function vzBody(tab){
             :TX1('제지방 {0}kg · 기초 {1} × 활동 {2} + 운동 {3}',
               fmtW(BW*(1-BF/100)),bs.toLocaleString(),ACT,ex0.toLocaleString())),
           {t:ex0>0?TX('운동일'):'',c:ex0>0?'pos':''})
-        +burnSplit();
+        +burnSplit()
+        /* 기초 x 계수와 운동은 위 줄이 이미 식으로 적는다. 걸음만 셈이 안 보인다 —
+           기준이 어디서 나온 수인지 모르면 '9,514 걸었는데 왜 137 인가' 를 풀 길이
+           없다. 그 한 줄만 적는다. */
+        +(function(){
+            var td5=todayISO(),n5=stepsOn(td5);
+            if(!(n5>0))return '';
+            var bs5=stepBase(td5),wm5=Math.round(walkMinOn(td5)*100);
+            var kp5=Math.round(0.5*BW/1300*1000)/1000;
+            var net5=Math.max(0,n5-wm5-bs5);
+            return vzLine(TX('걸음 셈'),n5.toLocaleString()+TX('보'),
+              (net5>0
+                ? TX1('기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}',
+                    bs5.toLocaleString(),net5.toLocaleString(),kp5.toFixed(3),
+                    stepKcal(td5).toLocaleString(),
+                    wm5>0?TX1(' · 기록한 걷기 {0}보 뺌',wm5.toLocaleString()):'')
+                : TX1('기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫',
+                    bs5.toLocaleString())),
+              {t:'',c:''});
+          })();
     }
     var kh=kcalHtml();
     h+=kh||vzLine(TX('운동 소비'),TX('기록 없음'),TX('근력이나 유산소를 기록하면 여기에 나옴'),{t:TX('기록 없음'),c:''});
@@ -11362,7 +11397,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 11:36';
+var BUILD='2026-10-01 11:44';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12188,6 +12223,12 @@ var EN={
 '보':'steps',
 '기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
 '기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
+'걸음 셈':'Step math',
+'기준 {0} 넘긴 {1}보 × {2} = {3}kcal{4}':'{1} steps over the {0} baseline × {2} = {3}kcal{4}',
+' · 기록한 걷기 {0}보 뺌':' · {0} logged walking steps removed',
+'기준 {0}보에 못 미쳐 더해지지 않음 — 계수가 이미 품은 몫':'Under the {0}-step baseline, so nothing is added — the factor already covers it',
+'하루 소비 셈':'How daily burn is computed',
+'기초대사':'BMR','소화':'TEF','걸음당':'Per step','기준 걸음':'Step baseline','걸음 몫':'Step share','먹을 양':'Intake target',
 /* 빈 상태 — 훈련 갈래 */
 '훈련 기록':'Training log',
 '아직 없음':'Nothing yet',
