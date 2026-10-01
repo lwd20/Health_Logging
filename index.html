@@ -12390,7 +12390,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 19:32';
+var BUILD='2026-10-01 19:39';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14515,25 +14515,43 @@ function macroBW(){
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.mbase');
   if(v==='bw'||v==='lbm')MACRO_BASE=v;}catch(e){}})();
 /* 예전 판은 바닥을 체중에 곱했고 기준 칸이 없었다. 그 판에서 올라온 저장값을
-   그대로 제지방에 곱하면 단백질이 160 → 128g 으로 조용히 떨어진다. 기준 칸이
-   없던 판에서 왔다는 것은 .mbase 가 없는 것으로 안다 — 그때 한 번만 환산하고
-   표식을 남겨 두 번 환산하지 않는다. */
+   그대로 제지방에 곱하면 단백질이 160 → 128g 으로 조용히 떨어진다. 켤 때 한 번
+   환산한다.
+
+   첫 판에서 틀렸던 자리: '.ppk 나 .fpk 중 하나라도 있으면 셋 다 환산' 했다.
+   그런데 .cpk 는 저장된 적이 없을 수 있고(탄수 칸 자체가 그 판에 없었다),
+   그때 CARB_PER_KG 는 이미 제지방 기준 기본값 1.25 다 — 거기에 또 곱해
+   1.6 이 됐고 탄수 바닥이 80 → 100g 으로 부풀었다.
+   저장된 값만, 각자 제 키가 있을 때만 환산한다.
+
+   표식을 .mbase2 로 올린 까닭: 틀린 판이 이미 .mbase 를 써 버려 그것으로는
+   '돌았는지' 를 못 가른다. 틀린 판을 거쳐 온 판은 .cpk 를 못 믿으므로 지워
+   기본값으로 되돌린다 — 탄수 칸 자체가 그 판에서 처음 생겼으므로 그 사이에
+   사람이 일부러 넣은 값일 수는 없다. */
 (function(){
   if(!canLS)return;
   try{
-    if(localStorage.getItem(KEY+'.mbase'))return;      /* 이미 고른 판 */
-    var had=localStorage.getItem(KEY+'.ppk')||localStorage.getItem(KEY+'.fpk');
-    localStorage.setItem(KEY+'.mbase',MACRO_BASE);     /* 다음부터는 안 돈다 */
-    if(!had)return;                                     /* 손댄 적 없으면 기본값 그대로 */
+    if(localStorage.getItem(KEY+'.mbase2'))return;
+    var buggy=!!localStorage.getItem(KEY+'.mbase');   /* 틀린 판을 거쳐 왔다 */
+    localStorage.setItem(KEY+'.mbase2','1');          /* 다음부터는 안 돈다 */
+    if(buggy){
+      localStorage.removeItem(KEY+'.cpk');
+      CARB_PER_KG=1.25;
+      return;
+    }
     var bf=parseFloat(localStorage.getItem(KEY+'.bf'));
-    if(!(bf>0&&bf<60))return;                           /* 제지방을 모르면 환산할 수 없다 */
+    if(!(bf>0&&bf<60))return;                         /* 제지방을 모르면 환산 못 함 */
     var k=1/(1-bf/100);
-    PRO_PER_KG=Math.round(PRO_PER_KG*k*10)/10;
-    FAT_PER_KG=Math.round(FAT_PER_KG*k*10)/10;
-    CARB_PER_KG=Math.round(CARB_PER_KG*k*10)/10;
-    localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
-    localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
-    localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+    /* 저장된 것만 환산한다 — 저장된 적 없는 값은 이미 제지방 기준 기본값이다 */
+    function conv(key,cur,set){
+      if(!localStorage.getItem(KEY+'.'+key))return cur;
+      var v=Math.round(cur*k*10)/10;
+      localStorage.setItem(KEY+'.'+key,String(v));
+      return v;
+    }
+    PRO_PER_KG=conv('ppk',PRO_PER_KG);
+    FAT_PER_KG=conv('fpk',FAT_PER_KG);
+    CARB_PER_KG=conv('cpk',CARB_PER_KG);
   }catch(e){}
 })();
 
