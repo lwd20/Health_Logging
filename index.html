@@ -1341,6 +1341,265 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 [data-tst="60"] .tbig{display:block;font-size:17px}
 [data-tst="60"] .tmeta{display:none}
 
+/* ── 타이머 시안 61~84 — 여섯 갈래를 더했다 ──────────────────────
+   유리 · 네온 · 그라데이션 · 천체 · 보석 · 그림자.
+   앞의 60종과 같은 마크업을 나눠 쓴다: .tclock 안 네 겹(.tring ·
+   .tfx · .tfx2 · .tfx3)과 숫자(b), 진행은 --p(0~1) 하나.
+   색은 전부 토큰이다 — 박은 색을 쓰면 28가지 팔레트 가운데 어딘가에서
+   바탕과 같은 색이 된다. 움직이는 것은 모두 reduced-motion 을 받는다. */
+
+/* ── 유리 61~64 ─────────────────────────────────────────────
+   backdrop-filter 는 안 쓴다. 마스크 안에서 받는 판이 갈리고, 뒤에
+   깔린 것이 상단 판 무늬(40종)라 흐림이 무늬를 먹어 얼룩으로 보였다.
+   반투명 겹침과 윗면 하이라이트로 같은 느낌을 낸다. */
+/* 61 프로스티드 — 안쪽에 뿌연 판을 깔고 위에서 빛이 떨어진다 */
+[data-tst="61"] .tring{background:conic-gradient(rgba(var(--acc-rgb),.85) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.1) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 21px,#000 21.5px);
+  mask:radial-gradient(circle,transparent 0 21px,#000 21.5px)}
+[data-tst="61"] .tfx{display:block;position:absolute;inset:7px;border-radius:50%;
+  background:linear-gradient(160deg,rgba(var(--tx-rgb),.16),rgba(var(--tx-rgb),.03) 55%);
+  box-shadow:inset 0 1px 0 rgba(var(--tx-rgb),.3)}
+[data-tst="61"] .tclock b{font-size:11px;color:var(--tx)}
+/* 62 유리 베젤 — 테두리만 유리고 안은 비어 있다 */
+[data-tst="62"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px 27px,transparent 27.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px 27px,transparent 27.5px)}
+[data-tst="62"] .tfx{display:block;position:absolute;inset:2px;border-radius:50%;
+  border:1px solid rgba(var(--tx-rgb),.16);
+  background:linear-gradient(145deg,rgba(var(--tx-rgb),.1),transparent 50%)}
+[data-tst="62"] .tfx2{display:block;position:absolute;left:12px;top:6px;width:16px;height:7px;
+  border-radius:50%;background:rgba(var(--tx-rgb),.22);filter:blur(1px)}
+[data-tst="62"] .tclock b{font-size:11px;color:var(--tx)}
+/* 63 렌즈 — 가운데가 볼록하고 진행이 테를 돈다 */
+[data-tst="63"] .tring{background:conic-gradient(from 180deg,var(--acc-sf) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.12) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px)}
+[data-tst="63"] .tfx{display:block;position:absolute;inset:5px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,rgba(var(--tx-rgb),.26),rgba(var(--tx-rgb),.05) 45%,transparent 70%)}
+[data-tst="63"] .tclock b{font-size:11.5px;color:var(--tx)}
+/* 64 이중 유리 — 판 둘이 어긋나 겹친다 */
+[data-tst="64"] .tring{background:conic-gradient(rgba(var(--acc-rgb),.9) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.08) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px);
+  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px)}
+[data-tst="64"] .tfx{display:block;position:absolute;inset:9px 5px 5px 9px;border-radius:50%;
+  background:rgba(var(--tx-rgb),.07);border:1px solid rgba(var(--tx-rgb),.13)}
+[data-tst="64"] .tfx2{display:block;position:absolute;inset:5px 9px 9px 5px;border-radius:50%;
+  background:rgba(var(--acc-rgb),.1);border:1px solid rgba(var(--acc-rgb),.22)}
+[data-tst="64"] .tclock b{font-size:11px;color:var(--tx)}
+
+/* ── 네온 65~68 ─────────────────────────────────────────────
+   밝기는 drop-shadow 로 낸다. box-shadow 를 쓰면 마스크가 그림자를
+   잘라 테 안쪽에만 빛이 남는다. */
+/* 65 네온 튜브 */
+[data-tst="65"] .tclock{filter:drop-shadow(0 0 4px rgba(var(--acc-rgb),.8)) drop-shadow(0 0 9px rgba(var(--acc-rgb),.35))}
+[data-tst="65"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.07) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px)}
+[data-tst="65"] .tclock b{font-size:11px;color:var(--acc-br)}
+/* 66 네온 숫자 — 테는 어둡고 글자가 빛난다 */
+[data-tst="66"] .tring{background:conic-gradient(rgba(var(--acc-rgb),.5) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.08) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 26px,#000 26.5px);
+  mask:radial-gradient(circle,transparent 0 26px,#000 26.5px)}
+[data-tst="66"] .tclock b{font-size:13px;color:var(--acc-br);
+  text-shadow:0 0 5px rgba(var(--acc-rgb),.9),0 0 12px rgba(var(--acc-rgb),.45)}
+/* 67 깜빡임 — 오래된 네온처럼 아주 가끔 흔들린다 */
+@keyframes tflk{0%,92%,100%{opacity:1}94%{opacity:.45}96%{opacity:1}98%{opacity:.6}}
+[data-tst="67"] .tclock{filter:drop-shadow(0 0 4px rgba(var(--acc-rgb),.7));animation:tflk 6s linear infinite}
+[data-tst="67"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px 27px,transparent 27.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px 27px,transparent 27.5px)}
+[data-tst="67"] .tfx{display:block;position:absolute;inset:2px;border-radius:50%;
+  border:1px solid rgba(var(--tx-rgb),.1)}
+[data-tst="67"] .tclock b{font-size:11px;color:var(--acc-br)}
+@media (prefers-reduced-motion:reduce){[data-tst="67"] .tclock{animation:none}}
+/* 68 이중 네온 — 안팎 두 줄이 같은 몫을 그린다 */
+[data-tst="68"] .tclock{filter:drop-shadow(0 0 4px rgba(var(--acc-rgb),.6))}
+[data-tst="68"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.07) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px 27px,transparent 27.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px 27px,transparent 27.5px)}
+[data-tst="68"] .tfx{display:block;position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--acc-sf) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.06) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 18px,#000 18.5px 20px,transparent 20.5px);
+  mask:radial-gradient(circle,transparent 0 18px,#000 18.5px 20px,transparent 20.5px)}
+[data-tst="68"] .tclock b{font-size:10.5px;color:var(--tx)}
+
+/* ── 그라데이션 69~72 ───────────────────────────────────────
+   토큰 색끼리만 섞는다. 무지개를 넣으면 팔레트를 고른 뜻이 없어진다. */
+/* 69 오로라 — 진행이 어두운 쪽에서 밝은 쪽으로 번진다 */
+[data-tst="69"] .tring{background:conic-gradient(var(--acc-dk),var(--acc-sf) calc(var(--p) * 180deg),
+    var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.09) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px);
+  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px)}
+[data-tst="69"] .tclock b{font-size:11px;color:var(--tx)}
+/* 70 선셋 — 호 하나가 두 색을 건너간다 */
+[data-tst="70"] .tring{background:conic-gradient(from 225deg,var(--acc-dk),var(--acc-br) calc(var(--p) * 270deg),
+    rgba(var(--tx-rgb),.1) 0 270deg,transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 23px,#000 23.5px);
+  mask:radial-gradient(circle,transparent 0 23px,#000 23.5px)}
+[data-tst="70"] .tclock b{font-size:12px;color:var(--tx)}
+/* 71 듀오톤 — 지난 몫과 남은 몫이 서로 다른 결이다 */
+/* 69·70 과 같은 굵기로 두었더니 셋이 한 모양으로 보였다 — 이것만 테를
+   두껍게 하고 남은 몫도 색을 줘 '두 색이 맞물린' 꼴로 가른다. */
+[data-tst="71"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),var(--acc-dk) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 16px,#000 16.5px);
+  mask:radial-gradient(circle,transparent 0 16px,#000 16.5px)}
+[data-tst="71"] .tfx{display:block;position:absolute;inset:11px;border-radius:50%;
+  background:rgba(var(--tx-rgb),.05)}
+[data-tst="71"] .tclock b{font-size:11px;color:var(--tx)}
+/* 72 메시 — 바탕이 번지고 테가 몫을 센다 */
+[data-tst="72"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px)}
+[data-tst="72"] .tfx{display:block;position:absolute;inset:4px;border-radius:50%;
+  background:radial-gradient(circle at 25% 20%,rgba(var(--acc-rgb),.3),transparent 55%),
+    radial-gradient(circle at 78% 72%,rgba(var(--chrome-rgb,var(--acc-rgb)),.2),transparent 50%),
+    rgba(var(--tx-rgb),.04)}
+[data-tst="72"] .tclock b{font-size:11px;color:var(--tx)}
+
+/* ── 천체 73~76 ─────────────────────────────────────────────── */
+/* 73 일식 — 남은 몫만큼 빛 고리가 드러난다 */
+[data-tst="73"] .tring{background:conic-gradient(rgba(var(--tx-rgb),.1) calc(var(--p) * 360deg),var(--acc-br) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px);
+  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px)}
+[data-tst="73"] .tfx{display:block;position:absolute;inset:6px;border-radius:50%;
+  background:var(--bg);box-shadow:0 0 10px 2px rgba(var(--acc-rgb),.3)}
+[data-tst="73"] .tclock b{font-size:11px;color:var(--tx)}
+/* 74 궤도 — 작은 점 하나가 경계를 돈다 */
+[data-tst="74"] .tring{background:none;border:1px dashed rgba(var(--tx-rgb),.16);
+  -webkit-mask:none;mask:none}
+[data-tst="74"] .tfx{display:block;position:absolute;inset:3px;
+  transform:rotate(calc(var(--p) * 360deg))}
+/* 점을 top:-3px 에 두었더니 테 밖으로 반쯤 나가 궤도에서 떨어져 보였다.
+   테 두께 가운데에 앉힌다. */
+[data-tst="74"] .tfx::after{content:"";position:absolute;left:50%;top:-3.5px;width:7px;height:7px;
+  margin-left:-3.5px;border-radius:50%;background:var(--acc-br);
+  box-shadow:0 0 6px rgba(var(--acc-rgb),.8)}
+[data-tst="74"] .tfx2{display:block;position:absolute;inset:16px;border-radius:50%;
+  background:radial-gradient(circle at 38% 34%,rgba(var(--tx-rgb),.22),rgba(var(--tx-rgb),.06))}
+[data-tst="74"] .tclock b{font-size:10.5px;color:var(--tx)}
+/* 75 고리 행성 — 비스듬히 누운 고리가 몫을 센다.
+   처음에는 행성을 크게 두고 고리를 넓은 띠로 깔았더니 둘이 붙어 한 덩이로
+   보였다. 행성을 줄이고 고리를 가는 선으로 바꿔 사이를 띄운다. */
+[data-tst="75"] .tring{display:none}
+[data-tst="75"] .tfx{display:block;position:absolute;inset:20px;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,var(--acc-sf),var(--acc-dk))}
+[data-tst="75"] .tfx2{display:block;position:absolute;inset:8px -2px;border-radius:50%;
+  transform:rotate(-20deg);
+  background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.12) 0);
+  -webkit-mask:radial-gradient(ellipse 50% 50%,transparent 0 82%,#000 84% 97%,transparent 99%);
+  mask:radial-gradient(ellipse 50% 50%,transparent 0 82%,#000 84% 97%,transparent 99%)}
+[data-tst="75"] .tclock b{display:none}
+[data-tst="75"] .tbig{display:block;font-size:17px}
+[data-tst="75"] .tmeta{display:none}
+/* 76 별빛 — 두 겹의 점이 몫만큼 켜진다.
+   처음에 쐐기를 clip-path 로 잘랐더니 쐐기가 중앙까지 뻗어 **불꽃처럼**
+   보였다. 눈금 레이어는 링 마스크를 mask-composite:intersect 로 합성해야
+   한다 — 07/09/11/35 에서 이미 한 번 겪은 것이고 39번이 그 방식을 쓴다.
+   39(12점 링)와 가르려고 두 반지름에 큰 점·작은 점을 섞었다. */
+[data-tst="76"] .tring{background:none;-webkit-mask:none;mask:none}
+[data-tst="76"] .tfx{display:block;position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.14) 0);
+  -webkit-mask:repeating-conic-gradient(#000 0 6deg,transparent 0 45deg),
+    radial-gradient(circle,transparent 0 22px,#000 22.5px 27px,transparent 27.5px);
+  -webkit-mask-composite:source-in;
+  mask:repeating-conic-gradient(#000 0 6deg,transparent 0 45deg),
+    radial-gradient(circle,transparent 0 22px,#000 22.5px 27px,transparent 27.5px);
+  mask-composite:intersect}
+[data-tst="76"] .tfx2{display:block;position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 22deg,var(--acc-sf) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.1) 0);
+  -webkit-mask:repeating-conic-gradient(from 22deg,#000 0 4deg,transparent 0 45deg),
+    radial-gradient(circle,transparent 0 15px,#000 15.5px 18px,transparent 18.5px);
+  -webkit-mask-composite:source-in;
+  mask:repeating-conic-gradient(from 22deg,#000 0 4deg,transparent 0 45deg),
+    radial-gradient(circle,transparent 0 15px,#000 15.5px 18px,transparent 18.5px);
+  mask-composite:intersect}
+[data-tst="76"] .tclock b{font-size:11px;color:var(--tx)}
+
+/* ── 보석 77~80 ───────────────────────────────────────────────
+   각진 면은 conic-gradient 의 딱 떨어지는 색 멈춤으로 낸다 —
+   그라데이션을 부드럽게 두면 면이 아니라 번짐이 된다. */
+/* 77 컷 면 — 여덟 면이 번갈아 밝다 */
+[data-tst="77"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.1) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
+[data-tst="77"] .tfx{display:block;position:absolute;inset:6px;
+  clip-path:polygon(50% 0,85% 15%,100% 50%,85% 85%,50% 100%,15% 85%,0 50%,15% 15%);
+  background:repeating-conic-gradient(rgba(var(--tx-rgb),.16) 0 45deg,rgba(var(--tx-rgb),.05) 45deg 90deg)}
+[data-tst="77"] .tclock b{font-size:11px;color:var(--tx)}
+/* 78 다이아 — 마름모 하나가 차오른다 */
+[data-tst="78"] .tring{display:none}
+[data-tst="78"] .tfx{display:block;position:absolute;inset:3px;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  background:linear-gradient(0deg,var(--acc-br) calc(var(--p) * 100%),rgba(var(--tx-rgb),.09) 0)}
+[data-tst="78"] .tfx2{display:block;position:absolute;inset:3px;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%,50% 0,50% 100%,50% 0,0 50%,100% 50%);
+  background:rgba(var(--tx-rgb),.14)}
+/* 채움이 올라오면 흰 숫자가 금색 위에 얹혀 안 읽혔다 — 글자 뒤에 바탕색
+   판을 깔아 어디까지 차오르든 대비가 유지되게 한다. */
+[data-tst="78"] .tclock b{font-size:10.5px;color:var(--tx);
+  padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.55)}
+/* 79 분광 — 흰 띠가 들어가 색으로 갈라져 나온다 */
+[data-tst="79"] .tring{background:conic-gradient(from 200deg,var(--acc-dk),var(--acc-sf),var(--acc-br));
+  -webkit-mask:conic-gradient(from 200deg,#000 calc(var(--p) * 360deg),transparent 0),
+    radial-gradient(circle,transparent 0 23px,#000 23.5px);
+  -webkit-mask-composite:source-in;
+  mask:conic-gradient(from 200deg,#000 calc(var(--p) * 360deg),transparent 0),
+    radial-gradient(circle,transparent 0 23px,#000 23.5px);
+  mask-composite:intersect}
+[data-tst="79"] .tfx{display:block;position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(var(--tx-rgb),.09)}
+[data-tst="79"] .tclock b{font-size:11.5px;color:var(--tx)}
+/* 80 오팔 — 바탕이 어른거리고 가는 테가 몫을 센다 */
+@keyframes topal{0%,100%{transform:rotate(0)}50%{transform:rotate(18deg)}}
+[data-tst="80"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px 27px,transparent 27.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px 27px,transparent 27.5px)}
+[data-tst="80"] .tfx{display:block;position:absolute;inset:5px;border-radius:50%;overflow:hidden;
+  background:rgba(var(--tx-rgb),.05)}
+[data-tst="80"] .tfx::after{content:"";position:absolute;inset:-30%;
+  background:conic-gradient(rgba(var(--acc-rgb),.28),transparent 30%,rgba(var(--acc-rgb),.22) 55%,transparent 80%,rgba(var(--acc-rgb),.28));
+  animation:topal 7s ease-in-out infinite}
+[data-tst="80"] .tclock b{font-size:11px;color:var(--tx)}
+@media (prefers-reduced-motion:reduce){[data-tst="80"] .tfx::after{animation:none}}
+
+/* ── 그림자 81~84 ─────────────────────────────────────────────
+   시안의 '질감' 과 겹쳐 보일 수 있으나 저쪽은 카드 전체의 결이고
+   이쪽은 타이머 하나의 꼴이다. 섞여도 서로를 지우지 않는다. */
+/* 81 음각 — 홈을 파고 그 안에 진행이 고인다 */
+[data-tst="81"] .tclock{border-radius:50%;
+  box-shadow:inset 2px 2px 4px rgba(0,0,0,.45),inset -2px -2px 4px rgba(var(--tx-rgb),.08)}
+[data-tst="81"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 20px,#000 20.5px 24px,transparent 24.5px);
+  mask:radial-gradient(circle,transparent 0 20px,#000 20.5px 24px,transparent 24.5px)}
+[data-tst="81"] .tclock b{font-size:11px;color:var(--tx)}
+/* 82 양각 — 판이 떠 있고 테가 몫을 센다 */
+[data-tst="82"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.1) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 25.5px);
+  mask:radial-gradient(circle,transparent 0 25px,#000 25.5px)}
+[data-tst="82"] .tfx{display:block;position:absolute;inset:5px;border-radius:50%;
+  background:var(--btn-bg);
+  box-shadow:-2px -2px 4px rgba(var(--tx-rgb),.07),3px 3px 6px rgba(0,0,0,.45)}
+[data-tst="82"] .tclock b{font-size:11px;color:var(--tx)}
+/* 83 떠 있는 원판 — 그림자가 아래로 길게 진다 */
+[data-tst="83"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.09) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 23px,#000 23.5px);
+  mask:radial-gradient(circle,transparent 0 23px,#000 23.5px);
+  filter:drop-shadow(0 4px 5px rgba(0,0,0,.5))}
+/* 82·84 와 같은 원판이면 그림자 갈래 넷이 다 같아 보인다 — 이것만 둥근
+   네모로 두어 '떠 있는 판' 이라는 뜻이 모양에서도 나오게 한다. */
+[data-tst="83"] .tfx{display:block;position:absolute;inset:9px;border-radius:9px;
+  background:linear-gradient(160deg,rgba(var(--tx-rgb),.13),rgba(var(--tx-rgb),.02) 60%);
+  border:1px solid rgba(var(--tx-rgb),.1)}
+[data-tst="83"] .tclock b{font-size:11px;color:var(--tx)}
+/* 84 안쪽 그림자 — 가장자리가 어두워 안이 깊어 보인다 */
+[data-tst="84"] .tring{background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.1) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 21px,#000 21.5px);
+  mask:radial-gradient(circle,transparent 0 21px,#000 21.5px)}
+[data-tst="84"] .tfx{display:block;position:absolute;inset:9px;border-radius:50%;
+  box-shadow:inset 0 0 8px 2px rgba(0,0,0,.55);background:rgba(var(--tx-rgb),.03)}
+[data-tst="84"] .tclock b{font-size:11px;color:var(--tx)}
+
+
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:44px;font-size:0}
 .mbtn.qbtn{margin-left:6px}
@@ -7293,7 +7552,31 @@ var TSTY=[
  ['레트로','카세트 릴'],
  ['레트로','테이프'],
  ['격자','점 격자'],
- ['격자','체크무늬']
+ ['격자','체크무늬'],
+ ['유리','프로스티드'],
+ ['유리','유리 베젤'],
+ ['유리','렌즈'],
+ ['유리','이중 유리'],
+ ['네온','네온 튜브'],
+ ['네온','네온 숫자'],
+ ['네온','깜빡임'],
+ ['네온','이중 네온'],
+ ['그라데이션','오로라'],
+ ['그라데이션','선셋 아크'],
+ ['그라데이션','듀오톤'],
+ ['그라데이션','메시'],
+ ['천체','일식'],
+ ['천체','궤도'],
+ ['천체','고리 행성'],
+ ['천체','별빛'],
+ ['보석','컷 면'],
+ ['보석','다이아'],
+ ['보석','분광'],
+ ['보석','오팔'],
+ ['그림자','음각'],
+ ['그림자','양각'],
+ ['그림자','떠 있는 원판'],
+ ['그림자','안쪽 그림자']
 ];
 /* 이제야 길이를 안다 — 부팅 로더가 자르지 못한 채로 붙여 둔 data-tst 를
    여기서 한 번 더 손본다. 저장된 수가 TSTY 를 넘는 판(모양이 줄어든 판으로
@@ -12653,7 +12936,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 23:34';
+var BUILD='2026-10-01 23:58';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
