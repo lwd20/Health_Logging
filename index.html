@@ -1249,6 +1249,7 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .pcn>i.c{transform:translateX(-50%);color:var(--tx);font-weight:800;font-size:10.5px}
 .lbb.brn>i.b1{background:rgba(var(--tx-rgb),.20)}
 .lbb.brn>i.b2{background:rgba(var(--acc-rgb),.42)}
+.lbb.brn>i.b4{background:rgba(var(--acc-rgb),.7)}
 .lbb.brn>i.b3{background:var(--acc-br)}
 .lbt{display:flex;align-items:baseline;gap:8px;margin-top:4px;
   font-family:var(--mono);font-size:10.5px;color:var(--dim);
@@ -4006,7 +4007,7 @@ function render(){
   document.getElementById('henrg').innerHTML=
     (!bmr(BW,BF)?'<div class="hnrg" data-act="godiet"><b class="k">DIET</b><b class="v" style="font-size:11px;text-align:left">'+TX('첫 인바디 기록 추가 ▸')+'</b><i class="tag"></i><i></i></div>':'')
     +(bmr(BW,BF)?(function(){
-        var base=Math.round(bmr(BW,BF)*ACT);
+        var base=dayBase(UI.wd)||Math.round(bmr(BW,BF)*ACT);
         var ex=Math.round(dayExKcal(UI.wd));
         var tot=base+ex;
         var dfc=Math.round(WR*7700/7);
@@ -5497,6 +5498,10 @@ function renderSheet(){
             hh+=srow('gf0',TX('목표 체지방'),'%',GF)
               +srow('pc0',TX('감량 속도'),TX('kg/주'),WR)
               +srow('ac0',TX('활동 계수'),'\u00d7',ACT)
+              /* 계수가 이미 품고 있는 걸음. 이 선을 넘긴 몫만 하루 소비에
+                 더해진다 — 안 두면 기초 활동이 두 번 세어진다. 0 으로 두면
+                 걸음 반영이 꺼진다. */
+              +srow('sb0',TX('걸음 기준'),TX('보'),STEP_BASE,5)
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
               +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG)
@@ -7063,7 +7068,7 @@ function kcalWeek(back){
     var t=new Date(mon);t.setDate(mon.getDate()+i);
     var ds=kcalISO(t);
     if(ds>td){days.push({d:ds,future:true});continue;}
-    var e=dayExKcal(ds),bd2=bwOf(ds),bb=Math.round((bmr(bd2.w,bd2.f)||b)*ACT);
+    var e=dayExKcal(ds),bb=dayBase(ds)||Math.round(b*ACT);
     days.push({d:ds,base:bb,ex:e,tot:bb+e,today:ds===td});
     tot+=bb+e;ex+=e;n++;
   }
@@ -7114,12 +7119,73 @@ function kcalHtml(){
   return h+'</div>';
 }
 
+/* 걸음에서 나오는 하루 활동 몫.
+   활동계수는 설정에서 손으로 고른 수 하나였다. 그런데 하루는 날마다 다르다 —
+   지하철을 두 번 갈아타고 1만 보를 걸은 날과 종일 앉아 있던 날이 같은 소비로
+   잡히면, 그 차이(200~300kcal)가 고스란히 적자 오차가 된다.
+
+   계수를 통째로 걸음에 맡기지는 않는다. 설정한 계수가 바닥을 깔고, 그 바닥이
+   이미 품고 있는 걸음(STEP_BASE)을 넘긴 몫만 더한다. 안 그러면 기초 활동이 두 번
+   세어진다. 5,000 은 Tudor-Locke 의 좌식 경계다 — 1.2 가 뜻하는 '거의 안 움직임'
+   과 같은 자리라 바닥으로 쓸 만하다.
+
+   한 걸음의 값은 걷기 순소모에서 낸다: 체중 1kg·1km 에 0.5kcal, 1km 를 1,300보로
+   본다. 80kg 이면 한 걸음 0.031kcal, 8천 보면 약 93kcal 가 더해진다.
+   이 환산은 추정이다 — 보폭·속도·지형에 따라 ±30% 는 흔들린다.
+
+   러닝머신·걷기를 기록한 날은 그 분만큼 걸음을 뺀다. 안 빼면 같은 걸음이
+   운동 소비와 여기에 두 번 잡힌다 — 분당 100보로 셈한다. */
+var STEP_BASE=5000;
+(function(){if(!canLS)return;try{var v=parseInt(localStorage.getItem(KEY+'.stepbase'),10);
+  if(v>=0&&v<=20000)STEP_BASE=v;}catch(e){}})();
+function stepsOn(ds){
+  var n=HC&&HC.s&&HC.s[ds];
+  return (typeof n==='number'&&n>0)?n:0;
+}
+/* 그 날 기록한 걷기·러닝머신의 분 — 걸음에서 뺄 몫 */
+function walkMinOn(ds){
+  var i,j,mn=0;
+  for(i=0;i<S.m.length;i++){
+    var m=S.m[i];
+    if(!isCard(m.p))continue;
+    if(!isWalkName(m)&&!isTreadName(m))continue;
+    var a=S.l[m.i]||[];
+    for(j=0;j<a.length;j++){
+      if(a[j].d!==ds||!a[j].s.length||!sesCard(m,a[j]))continue;
+      for(var q=0;q<a[j].s.length;q++)mn+=Math.min(300,+a[j].s[q][0]||0);
+    }
+  }
+  return mn;
+}
+function stepKcal(ds){
+  var n=stepsOn(ds);
+  if(!(n>0))return 0;
+  var bw=bwOf(ds).w;
+  if(!(bw>0))return 0;
+  /* 기록한 걷기 몫을 먼저 덜어 낸다(분당 100보). 그러고도 바닥을 넘겨야 더한다 */
+  var net=n-Math.round(walkMinOn(ds)*100)-STEP_BASE;
+  if(!(net>0))return 0;
+  /* 폰을 차에 두거나 세탁기 위에 올려 두면 유령 걸음이 수만 보씩 찍힌다.
+     3만 보에서 끊어 봤더니 그래도 893kcal 이 더해졌다 — 그만큼 더 먹게 되는
+     수라 끊는 뜻이 없다. 순걸음 1.5만(약 450kcal)에서 끊는다. 그 위로 진짜
+     걸은 날은 등산이고, 등산은 유산소로 적는 쪽이 맞다. */
+  return Math.round(Math.min(net,15000)*(0.5*bw/1300));
+}
+/* 그 날의 '운동 뺀' 소비. 기초대사 x 설정 계수에 걸음 몫을 얹는다.
+   이 한 줄에서 모든 자리가 같은 수를 가져가야 한다 — 예전에는 여덟 군데가
+   저마다 bmr()*ACT 를 다시 적고 있어서, 걸음을 한 곳에만 더하면 홈 화면과
+   분석 화면이 다른 소비를 말하게 된다. */
+function dayBase(ds){
+  var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
+  if(!b)return 0;
+  return Math.round(b*ACT)+stepKcal(ds);
+}
 function dayTDEE(ds){
   /* 그 날의 몸으로 낸다. 오늘 체중으로 3주 전 소비를 세면, 그 주의 '목표'
      까지 같이 움직여 이미 지나간 날의 판정이 오늘 바뀐다. */
-  var bwd=bwOf(ds),b=bmr(bwd.w,bwd.f);
-  if(!b)return 0;
-  return Math.round(b*ACT+dayExKcal(ds));
+  var bb=dayBase(ds);
+  if(!bb)return 0;
+  return Math.round(bb+dayExKcal(ds));
 }
 function bhLoad(){
   var a=[];
@@ -7264,7 +7330,10 @@ function actCheck(){
   if(rows.length<10)return null;
   var bhc=bhLoad(),sa=0,sx=0,sb=0,i;
   for(i=0;i<rows.length;i++){
-    sa+=rows[i].ate;sx+=rows[i].ex;
+    /* 걸음 몫은 설정 계수가 아니라 그 날 걸은 결과다. 검증하려는 것은 바닥인
+       설정 계수이므로, 운동과 마찬가지로 빼고 나눈다 — 안 빼면 많이 걸은 창에서
+       '계수를 올리라' 는 말이 나오고, 올리면 걸음이 두 번 세어진다. */
+    sa+=rows[i].ate;sx+=rows[i].ex+stepKcal(rows[i].d);
     /* trendRows 의 base 는 이미 ACT 가 곱해진 값이라 못 쓴다 — 지금 역산하려는
        것이 바로 그 ACT 다. 날마다 그날 몸으로 기초대사를 다시 낸다. */
     sb+=bmr(bwOn(rows[i].d),bfOn(rows[i].d,bhc))||0;
@@ -8862,8 +8931,11 @@ function burnSplit(){
   /* 활동 칸은 계수가 더한 몫이다. 기초대사를 빼야 셋을 더해서 소비가 된다 —
      안 빼면 기초대사가 두 번 세어져 막대가 소비보다 길어진다. */
   var act=Math.max(0,Math.round(bs*ACT)-bs);
+  /* 걸음 몫은 활동 칸에 섞지 않고 따로 세운다 — 설정 계수가 깐 바닥과
+     오늘 실제로 걸어서 번 몫은 다른 수다. 섞으면 '많이 걸은 날' 이 안 보인다. */
+  var stp=stepKcal(todayISO());
   var ex=Math.round(dayExKcal(todayISO()));
-  var tot=bs+act+ex;
+  var tot=bs+act+stp+ex;
   if(!(tot>0))return '';
   /* 큰 칸일수록 조용한 색을 준다. 기초대사가 80% 를 차지하는데 거기에 강조색을
      주면 화면이 기초대사 막대가 된다 — 정작 볼 것은 맨 끝의 좁은 칸이다.
@@ -8871,10 +8943,13 @@ function burnSplit(){
   return '<div class="lbs"><div class="lbb brn">'
     +'<i class="b1" style="flex:'+bs+' 1 0"></i>'
     +(act>0?'<i class="b2" style="flex:'+act+' 1 0"></i>':'')
+    +(stp>0?'<i class="b4" style="flex:'+stp+' 1 0"></i>':'')
     +(ex>0?'<i class="b3" style="flex:'+ex+' 1 0"></i>':'')
     +'</div><div class="lbt">'
-    +TX1('기초 {0} · 활동 {1} · 운동 {2}',
-         bs.toLocaleString(),act.toLocaleString(),ex.toLocaleString())
+    +(stp>0?TX1('기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}',
+         bs.toLocaleString(),act.toLocaleString(),stp.toLocaleString(),ex.toLocaleString())
+       :TX1('기초 {0} · 활동 {1} · 운동 {2}',
+         bs.toLocaleString(),act.toLocaleString(),ex.toLocaleString()))
     /* 운동을 안 한 날에 '운동 0%' 라 적으면 오늘 게으르다는 말로 읽힌다.
        쉬는 날은 쉬는 날이다 — 그 자리에 기초대사 비중을 적는다. */
     +'<b class="'+(ex>0?'ok':'')+'">'
@@ -9102,7 +9177,7 @@ function trendRows(days){
   for(i=0;i<keys.length;i++){
     k=keys[i];
     var ate=(hd[k]&&hd[k].n>0)?Math.round(hd[k].kcal):null;
-    var bk=bmr(bwOn(k),bfOn(k,bhc)),base=bk?Math.round(bk*ACT):fbase;
+    var base=dayBase(k)||fbase;
     out.push({d:k,w:(wm[k]===undefined?null:wm[k]),ate:ate,base:base,ex:dayExKcal(k),
       part:(k===td0)});
   }
@@ -10003,9 +10078,12 @@ function vzBody(tab){
     if(bs>0){
       var ex0=Math.round(dayExKcal(todayISO()));
       h+=vzCap(TX('오늘 소비 · 무엇이 얼마나'))
-        +vzLine(TX('하루 소비'),Math.round(bs*ACT+ex0).toLocaleString()+' kcal',
-          TX1('제지방 {0}kg · 기초 {1} × 활동 {2} + 운동 {3}',
-              fmtW(BW*(1-BF/100)),bs.toLocaleString(),ACT,ex0.toLocaleString()),
+        +vzLine(TX('하루 소비'),dayTDEE(todayISO()).toLocaleString()+' kcal',
+          (stepKcal(todayISO())>0
+            ?TX1('기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}',bs.toLocaleString(),ACT,
+                 stepKcal(todayISO()).toLocaleString(),ex0.toLocaleString())
+            :TX1('제지방 {0}kg · 기초 {1} × 활동 {2} + 운동 {3}',
+              fmtW(BW*(1-BF/100)),bs.toLocaleString(),ACT,ex0.toLocaleString())),
           {t:ex0>0?TX('운동일'):'',c:ex0>0?'pos':''})
         +burnSplit();
     }
@@ -11248,7 +11326,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 08:18';
+var BUILD='2026-10-01 11:07';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -11344,7 +11422,11 @@ window.hcNative=function(r){
   /* 체중은 새 APK 부터 들어온다 — 없으면 그냥 없는 채로 둔다.
      권한을 따로 거부했는지도 받아 둬야 '권한 없음' 과 '기록 없음' 이 갈린다 */
   if(r.w){HC.w=HC.w||{};for(var k2 in r.w)HC.w[k2]=r.w[k2];}
+  /* 걸음도 새 APK 부터 들어온다. 날짜별 합계 하나뿐이라 그대로 덮는다 —
+     체중처럼 하루에 여럿이 아니다. */
+  if(r.steps){HC.s=HC.s||{};for(var k3 in r.steps)HC.s[k3]=r.steps[k3];}
   try{HC.wp=(typeof AndroidHealth!=='undefined'&&AndroidHealth.canWeight)?!!AndroidHealth.canWeight():false;}catch(eW){}
+  try{HC.sp=(typeof AndroidHealth!=='undefined'&&AndroidHealth.canSteps)?!!AndroidHealth.canSteps():false;}catch(eS2){}
   hcSave();
   /* 체중이 바뀌면 기초대사부터 단백질 목표까지 전부 따라간다 */
   try{bhSync();}catch(eS){}
@@ -12065,6 +12147,11 @@ var EN={
 '단백질 목표':'Protein target',
 ' 외 {0}곳':' +{0} more',
 ' 외 {0}개':' +{0} more',
+/* 걸음 기반 동적 활동계수 */
+'걸음 기준':'Step baseline',
+'보':'steps',
+'기초 {0} · 활동 {1} · 걸음 {2} · 운동 {3}':'BMR {0} · activity {1} · steps {2} · exercise {3}',
+'기초 {0} × 활동 {1} + 걸음 {2} + 운동 {3}':'BMR {0} × activity {1} + steps {2} + exercise {3}',
 /* 빈 상태 — 훈련 갈래 */
 '훈련 기록':'Training log',
 '아직 없음':'Nothing yet',
@@ -14769,6 +14856,13 @@ document.addEventListener('click',function(e){
         if(acEl){
           var av=parseFloat(String(acEl.value).replace(',','.'));
           if(av>=1.1&&av<=1.9){ACT=Math.round(av*100)/100;if(canLS){try{localStorage.setItem(KEY+'.act',String(ACT));}catch(e8){}}}
+        }
+        var sbEl=document.getElementById('sb0');
+        if(sbEl){
+          /* 0 은 끄는 값이라 허용한다 — 걸음을 아예 안 쓰고 싶은 사람도 있다 */
+          var sbv=parseInt(String(sbEl.value).replace(/[^0-9]/g,''),10);
+          if(sbv>=0&&sbv<=20000){STEP_BASE=sbv;
+            if(canLS){try{localStorage.setItem(KEY+'.stepbase',String(STEP_BASE));}catch(e9){}}}
         }
         var gfEl=document.getElementById('gf0');
         if(gfEl){
