@@ -558,6 +558,10 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .dseg{display:flex;gap:4px;margin-top:9px}
 /* 세 칸 모두에 걸리는 설명이라 칸 밖 아래에 둔다 — 칸 안에 넣으면 320px 에서
    세 칸이 무너진다. 고를 때만 보이는 줄이라 자리를 늘 차지하지 않는다. */
+.tpv-mini{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.tpv-mini i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.12em;color:var(--dim)}
+.tpv-mini b{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--acc-br);
+  font-variant-numeric:tabular-nums;line-height:1}
 .dsnote{margin:5px 1px 0;font-size:9.5px;line-height:1.55;color:var(--dim);
   letter-spacing:-.005em;text-align:right}
 .dsg{flex:1 1 0;min-width:0;min-height:38px;display:flex;align-items:center;
@@ -580,8 +584,18 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 /* 휴식 타이머 — 가로로 눕던 줄을 없애고 칼로리 왼쪽 빈자리로 옮겼다.
    진행은 숫자 뒤에 깔린 큰 링이 맡으므로 자리를 따로 쓰지 않는다. */
 /* 배경에 크게 깔면 패널 모서리에 잘려 얼룩이 된다 — 제 크기의 시계로 세운다 */
+/* 진행(0~1)을 변수로 둔다. 예전에는 tmrDraw 가 .tring 의 conic-gradient 를
+   직접 문자열로 박았는데, 그러면 시안마다 자바스크립트를 고쳐야 한다.
+   JS 는 --p 하나만 쓰고 모양은 전부 CSS 가 맡는다. */
 .trow{position:relative;padding:0 18px;margin-top:9px;
-  display:flex;align-items:center;gap:11px}
+  display:flex;align-items:center;gap:11px;
+  --p:0;--p2:0;--tcol:var(--acc-sf);--ttrk:rgba(var(--tx-rgb),.10)}
+.trow.done{--tcol:var(--acc-br);--ttrk:var(--pos)}
+/* 시안이 켤 때만 쓰는 자리들 — 기본값은 꺼 둔다 */
+.tbig{display:none;font-family:var(--mono);font-size:22px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:-.025em;line-height:1;color:var(--acc-br)}
+.tbar{display:none;position:relative}
+.tfx{display:none}
 #henrg{margin-left:auto}
 /* 시간은 링 안에 있으므로 여기는 라벨과 조작만 맡는다 */
 .tmain{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
@@ -606,7 +620,7 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
   display:flex;align-items:center;justify-content:center}
 .tring{position:absolute;inset:0;border-radius:50%;pointer-events:none;
   transform:rotate(-90deg);
-  background:conic-gradient(var(--acc-sf) 0 0deg, rgba(var(--tx-rgb),.13) 0deg 360deg);
+  background:conic-gradient(var(--tcol) calc(var(--p) * 360deg),var(--ttrk) 0);
   -webkit-mask:radial-gradient(circle,transparent 0 21px,#000 21.5px);
   mask:radial-gradient(circle,transparent 0 21px,#000 21.5px)}
 .tclock b{position:relative;font-family:var(--mono);font-size:12px;font-weight:700;
@@ -616,6 +630,254 @@ header::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:
 .trow.done .tclock b{color:var(--pos)}
 .trow.done .tmain u{color:var(--pos)}
 .trow.mark .tclock b{color:var(--sig)}
+
+/* ── 타이머 시안 30 ───────────────────────────────────────────────
+   한 마크업을 나눠 쓴다. 각 시안이 켜는 자리는 .tclock · .tring · .tfx ·
+   .tclock b · .tbig · .tbar 뿐이고, 진행은 모두 --p(0~1) 하나에서 나온다.
+   눈금·칸·점은 자식을 늘리지 않고 gradient 로 낸다 — 자식을 늘리면 시안마다
+   마크업이 달라지고, 그러면 자바스크립트가 모양을 알아야 한다.
+
+   폭 예산: tclock 52 + gap 11 + tmain 104 = 167px. 높이 예산 약 56px
+   (섭취 여유·하루 소비 두 줄이 정하는 높이). 평평한 시안은 .tclock 을 끄고
+   그 52px 를 .tmain 이 쓴다. */
+
+/* 평평한 꼴 — 시계를 끄고 숫자를 줄 안으로. 라벨과 목표는 자리를 양보한다 */
+[data-tst="9"] .tclock,[data-tst="11"] .tclock,[data-tst="14"] .tclock,
+[data-tst="15"] .tclock,[data-tst="16"] .tclock,[data-tst="17"] .tclock,
+[data-tst="18"] .tclock,[data-tst="19"] .tclock,[data-tst="20"] .tclock,
+[data-tst="21"] .tclock,[data-tst="22"] .tclock,[data-tst="23"] .tclock,
+[data-tst="24"] .tclock,[data-tst="29"] .tclock{display:none}
+[data-tst="9"] .tbig,[data-tst="11"] .tbig,[data-tst="14"] .tbig,
+[data-tst="15"] .tbig,[data-tst="16"] .tbig,[data-tst="17"] .tbig,
+[data-tst="18"] .tbig,[data-tst="19"] .tbig,[data-tst="20"] .tbig,
+[data-tst="21"] .tbig,[data-tst="22"] .tbig,[data-tst="23"] .tbig,
+[data-tst="24"] .tbig,[data-tst="29"] .tbig{display:block}
+/* 높이 예산을 지키려고 라벨·목표를 끈다 — 넘치면 칼로리 두 줄이 밀려 내려간다.
+   기준 시안(01)이 62px 다. 큰 숫자를 쓰는 시안은 그 자리를 숫자가 가져가므로
+   '/ 01:30' 은 버린다 — 목표는 설정 · 휴식 간격에 적혀 있고, 숫자가 그쪽으로
+   올라가는 중이라 굳이 두 번 적을 값이 아니다.
+   버튼을 숨기는 시안(16·21·22)은 자리가 남아 목표를 그대로 둔다. */
+[data-tst="9"] #tmrTgt,[data-tst="10"] #tmrTgt,[data-tst="11"] #tmrTgt,
+[data-tst="12"] #tmrTgt,[data-tst="13"] #tmrTgt,[data-tst="14"] #tmrTgt,
+[data-tst="15"] #tmrTgt,[data-tst="17"] #tmrTgt,[data-tst="18"] #tmrTgt,
+[data-tst="19"] #tmrTgt,[data-tst="20"] #tmrTgt,[data-tst="23"] #tmrTgt,
+[data-tst="24"] #tmrTgt,[data-tst="26"] #tmrTgt,[data-tst="27"] #tmrTgt,
+[data-tst="28"] #tmrTgt,[data-tst="29"] #tmrTgt{display:none}
+[data-tst="9"] .tlab,[data-tst="11"] .tlab,[data-tst="14"] .tlab,
+[data-tst="15"] .tlab,[data-tst="19"] .tlab,[data-tst="20"] .tlab,
+[data-tst="23"] .tlab,[data-tst="29"] .tlab{display:none}
+/* 막대·눈금자는 줄 폭을 좀 써야 읽힌다 */
+[data-tst="9"] .tmain,[data-tst="11"] .tmain,
+[data-tst="23"] .tmain,[data-tst="29"] .tmain{width:132px}
+
+/* 02 굵은 링 */
+[data-tst="2"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 17px,#000 17.5px);
+  mask:radial-gradient(circle,transparent 0 17px,#000 17.5px)}
+/* 03 얇은 링 + 큰 숫자 */
+[data-tst="3"] .tring{-webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
+[data-tst="3"] .tclock b{font-size:14px}
+/* 04 이중 링 — 밖은 지금 바퀴, 안은 목표를 넘긴 몫 */
+[data-tst="4"] .tfx{display:block;position:absolute;inset:8px;border-radius:50%;
+  pointer-events:none;transform:rotate(-90deg);
+  background:conic-gradient(var(--pos) calc(var(--p2) * 360deg),rgba(var(--tx-rgb),.16) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 15px,#000 15.5px);
+  mask:radial-gradient(circle,transparent 0 15px,#000 15.5px)}
+[data-tst="4"] .tclock b{font-size:10.5px}
+/* 05 점 마커 — 선 대신 점이 돈다 */
+[data-tst="5"] .tring{background:none;-webkit-mask:none;mask:none;
+  box-shadow:inset 0 0 0 1.5px var(--ttrk)}
+[data-tst="5"] .tfx{display:block;position:absolute;left:50%;top:50%;width:52px;height:52px;
+  margin:-26px 0 0 -26px;pointer-events:none;transform:rotate(calc(var(--p) * 360deg))}
+[data-tst="5"] .tfx::after{content:"";position:absolute;left:50%;top:-3px;width:6px;height:6px;
+  margin-left:-3px;border-radius:50%;background:var(--acc-br);
+  box-shadow:0 0 6px rgba(var(--acc-rgb),.7)}
+/* 06 눈금 링 — 12분할. 두 겹 마스크를 교차시켜 틈을 낸다 */
+[data-tst="6"] .tring{
+  -webkit-mask:radial-gradient(circle,transparent 0 20px,#000 20.5px),
+    repeating-conic-gradient(#000 0 21deg,transparent 21deg 30deg);
+  -webkit-mask-composite:source-in;
+  mask:radial-gradient(circle,transparent 0 20px,#000 20.5px),
+    repeating-conic-gradient(#000 0 21deg,transparent 21deg 30deg);
+  mask-composite:intersect}
+/* 07 반원 게이지 */
+[data-tst="7"] .tclock{width:60px;height:31px;align-items:flex-end;overflow:hidden}
+[data-tst="7"] .tring{inset:0 0 auto 0;height:60px;
+  background:conic-gradient(var(--tcol) calc(var(--p) * 180deg),var(--ttrk) 0 180deg,transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 22px,#000 22.5px);
+  mask:radial-gradient(circle,transparent 0 22px,#000 22.5px)}
+[data-tst="7"] .tclock b{position:relative;font-size:12px}
+/* 08 수위 — 아래부터 차오름 */
+[data-tst="8"] .tclock{border-radius:50%;overflow:hidden;
+  box-shadow:inset 0 0 0 1.5px rgba(var(--acc-rgb),.35)}
+[data-tst="8"] .tring{transform:none;-webkit-mask:none;mask:none;
+  background:linear-gradient(to top,rgba(var(--acc-rgb),.42) 0 calc(var(--p) * 100%),transparent 0)}
+[data-tst="8"] .tclock b{color:var(--tx)}
+/* 09 가로 바 */
+[data-tst="9"] .tbig{font-size:20px}
+[data-tst="9"] .tbar{display:block;width:100%;height:5px;border-radius:999px;
+  background:var(--ttrk);overflow:hidden}
+[data-tst="9"] .tbar>i{display:block;height:100%;width:calc(var(--p) * 100%);
+  background:var(--tcol);border-radius:999px}
+/* 10 세로 바 + 숫자 옆 */
+[data-tst="10"] .tclock{width:8px;height:46px}
+[data-tst="10"] .tring,[data-tst="10"] .tclock b{display:none}
+[data-tst="10"] .tfx{display:block;position:absolute;inset:0;border-radius:999px;
+  background:linear-gradient(to top,var(--tcol) 0 calc(var(--p) * 100%),var(--ttrk) 0)}
+[data-tst="10"] .tbig{display:block;font-size:19px}
+[data-tst="10"] .tlab{display:none}
+/* 11 세그먼트 10칸 */
+[data-tst="11"] .tbig{font-size:19px}
+[data-tst="11"] .tbar{display:block;width:100%;height:8px;overflow:hidden;
+  background:repeating-linear-gradient(to right,var(--ttrk) 0 9%,transparent 9% 10%)}
+[data-tst="11"] .tbar>i{display:block;height:100%;width:calc(var(--p) * 100%);
+  background:repeating-linear-gradient(to right,var(--tcol) 0 9%,transparent 9% 10%);
+  background-size:calc(100% / var(--p, 1)) 100%}
+/* 12 플레이트 스택 — 원판이 아래부터 쌓인다 */
+[data-tst="12"] .tclock{width:34px;height:44px}
+[data-tst="12"] .tring,[data-tst="12"] .tclock b{display:none}
+[data-tst="12"] .tfx{display:block;position:absolute;inset:0;
+  background:
+    linear-gradient(to top,var(--tcol) 0 calc(var(--p) * 100%),var(--ttrk) 0);
+  -webkit-mask:repeating-linear-gradient(to top,#000 0 5px,transparent 5px 7px);
+  mask:repeating-linear-gradient(to top,#000 0 5px,transparent 5px 7px)}
+[data-tst="12"] .tbig{display:block;font-size:19px}
+[data-tst="12"] .tlab{display:none}
+/* 13 바벨 — 봉이 차고 원판이 커진다 */
+[data-tst="13"] .tclock{width:52px;height:30px}
+[data-tst="13"] .tring,[data-tst="13"] .tclock b{display:none}
+[data-tst="13"] .tfx{display:block;position:absolute;left:5px;right:5px;top:50%;height:3px;
+  margin-top:-1.5px;background:linear-gradient(to right,var(--tcol) 0 calc(var(--p) * 100%),var(--ttrk) 0)}
+[data-tst="13"] .tfx::before,[data-tst="13"] .tfx::after{content:"";position:absolute;top:50%;
+  width:8px;height:calc(13px + var(--p) * 15px);margin-top:calc((13px + var(--p) * 15px) / -2);
+  border-radius:2px;background:var(--acc-dk)}
+[data-tst="13"] .tfx::before{left:-7px}
+[data-tst="13"] .tfx::after{right:-7px}
+[data-tst="13"] .tbig{display:block;font-size:17px}
+[data-tst="13"] .tlab{display:none}
+/* 14 밑줄 진행 — 숫자가 주인공 */
+[data-tst="14"] .tbig{font-size:23px;padding-bottom:5px;position:relative;align-self:stretch}
+[data-tst="14"] .tbig::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;
+  background:var(--ttrk)}
+[data-tst="14"] .tbig::before{content:"";position:absolute;left:0;bottom:0;height:2px;z-index:1;
+  width:calc(var(--p) * 100%);background:var(--acc-br)}
+/* 15 · 18 알약 내부 fill */
+[data-tst="15"] .tbig,[data-tst="18"] .tbig{font-size:15px;padding:6px 13px;border-radius:999px;
+  border:var(--bw) solid rgba(var(--acc-rgb),.3);
+  background:linear-gradient(to right,rgba(var(--acc-rgb),.28) 0 calc(var(--p) * 100%),transparent 0)}
+[data-tst="18"] .tlab{display:none}
+/* 16 라벨 위 · 큰 숫자 */
+[data-tst="16"] .tbig{font-size:30px}
+[data-tst="16"] #tmrTgt,[data-tst="16"] .tacts{display:none}
+[data-tst="16"] .tmain{gap:3px}
+/* 17 분 작게 · 초 크게 */
+[data-tst="17"] .tbig{font-size:27px}
+[data-tst="17"] .tmain{gap:2px}
+[data-tst="17"] .tlab{display:none}
+/* 19 테두리가 진행선 */
+[data-tst="19"] .tbig{font-size:15px;padding:6px 13px;border-radius:999px;position:relative;
+  background:var(--surf)}
+[data-tst="19"] .tbig::before{content:"";position:absolute;inset:-1.5px;border-radius:999px;
+  padding:1.5px;background:conic-gradient(var(--tcol) calc(var(--p) * 360deg),var(--ttrk) 0);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude}
+/* 20 태그형 */
+[data-tst="20"] .tbig{font-size:14px;padding:4px 9px;border-radius:0 6px 6px 0;
+  border:var(--bw) solid rgba(var(--tx-rgb),.13);
+  background:linear-gradient(to right,rgba(var(--acc-rgb),.22) 0 calc(var(--p) * 100%),transparent 0)}
+[data-tst="20"] #tmrTgt{font-size:9px}
+/* 21 버튼이 그대로 타이머가 됨 */
+[data-tst="21"] .tbig{font-size:14px;min-width:90px;padding:8px 14px;border-radius:999px;
+  text-align:center;color:var(--on-acc);
+  background:linear-gradient(to right,rgba(0,0,0,.14) 0 calc((1 - var(--p)) * 100%),var(--acc-sf) 0),
+    var(--acc-sf)}
+[data-tst="21"] .tacts{display:none}
+/* 22 글자만 */
+[data-tst="22"] .tbig{font-size:22px;color:var(--mut)}
+[data-tst="22"] .tacts{display:none}
+[data-tst="22"] .tlab{color:var(--acc-dk)}
+/* 23 점 진행 */
+[data-tst="23"] .tbig{font-size:20px}
+[data-tst="23"] .tbar{display:block;width:100%;height:7px;overflow:hidden;
+  background-image:radial-gradient(circle 3px at 3px 3.5px,var(--ttrk) 99%,transparent 0);
+  background-size:11px 7px;background-repeat:repeat-x}
+[data-tst="23"] .tbar>i{display:block;height:100%;width:calc(var(--p) * 100%);
+  background-image:radial-gradient(circle 3px at 3px 3.5px,var(--tcol) 99%,transparent 0);
+  background-size:11px 7px;background-repeat:repeat-x}
+/* 24 워터마크 숫자 */
+[data-tst="24"] .tmain{position:relative}
+[data-tst="24"] .tbig{font-size:16px;position:relative;z-index:1}
+[data-tst="24"] .tmain::before{content:"";position:absolute;left:-2px;top:8px;width:40px;height:40px;
+  border-radius:50%;pointer-events:none;z-index:0;transform:rotate(-90deg);
+  background:conic-gradient(rgba(var(--acc-rgb),.26) calc(var(--p) * 360deg),rgba(var(--tx-rgb),.06) 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 13px,#000 13.5px);
+  mask:radial-gradient(circle,transparent 0 13px,#000 13.5px)}
+[data-tst="24"] .tacts{position:relative;z-index:1}
+/* 25 플레이트 — 가운데 홈 */
+[data-tst="25"] .tclock{border-radius:50%;background:var(--plate2);
+  box-shadow:inset 0 0 0 var(--bw) rgba(var(--tx-rgb),.12)}
+[data-tst="25"] .tring{inset:-1px;
+  background:conic-gradient(var(--acc-br) calc(var(--p) * 360deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
+[data-tst="25"] .tfx{display:block;position:absolute;left:50%;top:50%;width:13px;height:13px;
+  margin:-6.5px 0 0 -6.5px;border-radius:50%;background:var(--bg);
+  box-shadow:inset 0 0 0 1px rgba(var(--tx-rgb),.1)}
+[data-tst="25"] .tclock b{font-size:11px;z-index:2}
+/* 26 아날로그 바늘 */
+[data-tst="26"] .tring{background:none;-webkit-mask:none;mask:none;
+  box-shadow:inset 0 0 0 1.5px rgba(var(--tx-rgb),.14)}
+[data-tst="26"] .tfx{display:block;position:absolute;left:50%;bottom:50%;width:2px;height:20px;
+  margin-left:-1px;border-radius:999px;background:var(--acc-br);
+  transform-origin:50% 100%;transform:rotate(calc(var(--p) * 360deg))}
+[data-tst="26"] .tfx::after{content:"";position:absolute;left:50%;bottom:-2.5px;width:5px;height:5px;
+  margin-left:-2.5px;border-radius:50%;background:var(--acc-dk)}
+[data-tst="26"] .tclock b{display:none}
+[data-tst="26"] .tbig{display:block;font-size:17px}
+[data-tst="26"] .tlab{display:none}
+/* 27 모래시계 */
+[data-tst="27"] .tclock{width:26px;height:46px}
+[data-tst="27"] .tring{display:none}
+[data-tst="27"] .tfx{display:block;position:absolute;inset:0}
+[data-tst="27"] .tfx::before{content:"";position:absolute;left:0;top:0;width:26px;height:22px;
+  background:linear-gradient(to bottom,rgba(var(--tx-rgb),.07) 0 calc(var(--p) * 100%),var(--tcol) 0);
+  -webkit-clip-path:polygon(0 0,100% 0,50% 100%);clip-path:polygon(0 0,100% 0,50% 100%)}
+[data-tst="27"] .tfx::after{content:"";position:absolute;left:0;top:24px;width:26px;height:22px;
+  background:linear-gradient(to top,var(--tcol) 0 calc(var(--p) * 100%),rgba(var(--tx-rgb),.07) 0);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+[data-tst="27"] .tclock b{display:none}
+[data-tst="27"] .tbig{display:block;font-size:17px}
+[data-tst="27"] .tlab{display:none}
+/* 28 LED 막대 */
+[data-tst="28"] .tclock{width:44px;height:30px}
+[data-tst="28"] .tring{display:none}
+[data-tst="28"] .tfx{display:block;position:absolute;inset:0;
+  background:linear-gradient(to right,var(--acc-br) 0 calc(var(--p) * 100%),var(--ttrk) 0);
+  -webkit-mask:repeating-linear-gradient(to right,#000 0 4px,transparent 4px 7px);
+  mask:repeating-linear-gradient(to right,#000 0 4px,transparent 4px 7px)}
+[data-tst="28"] .tclock b{display:none}
+[data-tst="28"] .tbig{display:block;font-size:17px}
+[data-tst="28"] .tlab{display:none}
+/* 29 눈금자 — 커서가 지나간다 */
+[data-tst="29"] .tbig{font-size:19px}
+[data-tst="29"] .tbar{display:block;width:100%;height:11px;
+  border-top:1.5px solid rgba(var(--tx-rgb),.14);
+  background:repeating-linear-gradient(to right,
+    rgba(var(--tx-rgb),.22) 0 1px,transparent 1px 12.5%) top left / 100% 8px no-repeat}
+[data-tst="29"] .tbar>i{position:absolute;top:-3px;left:calc(var(--p) * 100%);width:2px;height:12px;
+  margin-left:-1px;background:var(--acc-br);border-radius:1px}
+/* 30 호흡 원 — 숨 쉬듯 번진다 */
+@keyframes tbrth{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.1);opacity:1}}
+[data-tst="30"] .tring{
+  -webkit-mask:radial-gradient(circle,transparent 0 24px,#000 24.5px);
+  mask:radial-gradient(circle,transparent 0 24px,#000 24.5px)}
+[data-tst="30"] .tfx{display:block;position:absolute;inset:4px;border-radius:50%;
+  background:rgba(var(--acc-rgb),.16)}
+[data-tst="30"] .trow.run .tfx,[data-tst="30"] .tclock .tfx{animation:tbrth 3.4s ease-in-out infinite}
+[data-tst="30"] .tclock b{font-size:11px;color:var(--tx)}
+@media (prefers-reduced-motion:reduce){[data-tst="30"] .tfx{animation:none}}
+
 .mbtn{position:relative;width:44px;height:44px;color:var(--mut);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mbtn.qbtn{width:44px;font-size:0}
 .mbtn.qbtn{margin-left:6px}
@@ -1021,8 +1283,10 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .pset.on b{color:var(--tx)}
 .pset:active{opacity:.6}
 /* 붙박이가 화면의 3분의 1을 넘으면 정작 고를 자리가 없다 — 미리보기를 조금 낮춘다 */
-.dsubs{display:flex;gap:3px;margin-top:9px}
-.dsb{flex:1 1 0;min-width:0;height:34px;display:flex;align-items:center;justify-content:center;
+/* 갈래가 일곱이 되면서 한 줄에 안 들어가 이름이 잘렸다(브랜드 150 → ㅡ랜드 15).
+   한 줄에 넷씩 접는다 — 폭을 줄여 글자를 깎는 것보다 두 줄이 읽힌다. */
+.dsubs{display:flex;flex-wrap:wrap;gap:3px;margin-top:9px}
+.dsb{flex:1 1 calc(25% - 3px);min-width:74px;height:34px;display:flex;align-items:center;justify-content:center;
   gap:4px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);
   background:none;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.02em;
   white-space:nowrap;overflow:hidden}
@@ -2967,14 +3231,22 @@ html{color-scheme:dark}
   <div class="hdate" id="hdate"></div>
   <!-- 타이머가 칼로리 왼쪽 빈자리로 들어오고, 진행은 숫자 뒤 큰 링이 맡는다.
        가로로 눕던 RECOVERY 줄은 사라졌다. -->
+  <!-- 30가지 시안이 한 마크업을 나눠 쓴다. 자리를 다 만들어 두고 CSS 가
+       그 시안에 필요한 것만 켠다 — 시안마다 마크업을 갈면 타이머 상태(TMR)를
+       건드리게 되고, 그러면 모양을 고르는 것이 흐르던 시간을 끊는다.
+       숫자 자리가 둘인 까닭: 링 안(#tmr)과 줄 왼쪽(#tmr2)은 한쪽을 숨기면
+       다른 쪽이 있어야 한다. tmrDraw 가 둘 다 쓴다. -->
   <div class="trow" id="trow">
     <span class="tclock">
       <i class="tring" id="tring" aria-hidden="true"></i>
+      <i class="tfx" aria-hidden="true"></i>
       <b id="tmr">00:00</b>
     </span>
     <div class="tmain">
       <i class="tlab">Recovery</i>
+      <b class="tbig" id="tmr2">00:00</b>
       <u id="tmrTgt"></u>
+      <i class="tbar" aria-hidden="true"><i></i></i>
       <span class="tacts">
         <button class="tbtn go" data-act="ts" id="tsBtn">Start</button>
         <button class="tbtn" data-act="tr" id="trBtn">Stop</button>
@@ -3191,11 +3463,25 @@ function cPrevHtml(){
     h+='<button class="schip'+(ex[i][2]?' on':'')+'">'+esc(ex[i][0])+'<i>'+ex[i][1]+'</i></button>';
   return '<div class="cprev" inert><nav class="schips cs'+cstOf()+'">'+h+'</nav></div>';
 }
+/* 설정 화면용 타이머 한 벌. 본 줄과 같은 클래스를 쓰되 id 를 뺀다 —
+   모양은 전부 CSS 가 내므로 자바스크립트가 따로 그릴 것이 없다. */
+function tPrevHtml(){
+  return '<div class="cprev" inert><div class="trow run" style="--p:.62;--p2:0;margin:0;padding:0 10px 0 2px">'
+    +'<span class="tclock"><i class="tring"></i><i class="tfx"></i><b>00:48</b></span>'
+    +'<div class="tmain"><i class="tlab">Recovery</i><b class="tbig">00:48</b>'
+    +'<u>/ 01:30</u><i class="tbar"><i></i></i>'
+    +'<span class="tacts"><button class="tbtn go">Reset</button>'
+    +'<button class="tbtn">Stop</button></span></div>'
+    +'<div style="margin-left:auto;text-align:right">'
+    +'<div class="tpv-mini"><i>'+TX('섭취 여유')+'</i><b>1,140</b></div></div>'
+    +'</div></div>';
+}
 function thPreview(){
   /* 고른 축만 그리므로 어디에 뭐가 몇 개 있는지 탭에 적어 둔다 */
   var TB=[['set',TX('시안'),PSETS.length],['pal',TX('색'),PALS.length],
           ['tech',TX('질감'),TECHS.length],['pat',TX('무늬'),PATS.length],
-          ['brand',TX('브랜드'),BSTY.length],['chip',TX('칩'),CSTY.length]];
+          ['brand',TX('브랜드'),BSTY.length],['chip',TX('칩'),CSTY.length],
+          ['tst',TX('타이머'),TSTY.length]];
   var sub=UI.dsub||'set',tb='',ti;
   for(ti=0;ti<TB.length;ti++)
     tb+='<button class="dsb'+(sub===TB[ti][0]?' on':'')+'" data-act="dsub" data-v="'+TB[ti][0]+'">'
@@ -3204,6 +3490,11 @@ function thPreview(){
   if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   /* 칩 탭에서는 칩 줄을 그대로 줄여 보여 준다 — 그 탭이 바꾸는 것이 그 줄이다 */
   if(sub==='chip')return '<div class="thprev">'+cPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
+  /* 타이머 탭에서는 타이머 줄을 그대로 보여 준다. 시트가 본 화면을 덮으므로
+     고른 결과를 볼 길이 없었다 — 여기 한 벌 더 그린다.
+     id 는 안 붙인다: 같은 id 가 둘이면 tmrDraw 가 어느 쪽을 집을지 모른다.
+     진행은 62% 로 박아 둔다 — 멈춰 있는 타이머(0%)로는 모양이 안 보인다. */
+  if(sub==='tst')return '<div class="thprev">'+tPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
   return '<div class="thprev"><div class="tpv">'
     +'<div class="tpv-top"><b>PLUS<i>2.5</i></b><span class="tpv-tag">CHEST</span></div>'
     +'<div class="tpv-body">'
@@ -3262,7 +3553,7 @@ var TECHS=[
 var PATS=[{k:'emgrid',n:'양각 격자',d:1},{k:'engrid',n:'음각 격자',d:1},{k:'dome',n:'리벳 판',d:1},{k:'tread3',n:'체커 플레이트',d:1},{k:'knurl3',n:'널링',d:1},{k:'corr',n:'골판',d:1},{k:'pleat',n:'주름',d:1},{k:'csink',n:'접시 구멍',d:1},{k:'brick',n:'블록',d:1},{k:'quilt',n:'쿠션',d:1},{k:'plate',n:'네임플레이트'},{k:'knurl',n:'널링'},{k:'tread',n:'체커 플레이트'},{k:'perf',n:'타공판'},{k:'hair',n:'헤어라인'},{k:'disc',n:'원판'},{k:'graph',n:'모눈'},{k:'blue',n:'청사진'},{k:'hatch',n:'사선'},{k:'cross',n:'크로스해치'},{k:'iso',n:'아이소메트릭'},{k:'herr',n:'헤링본'},{k:'pane',n:'윈도우페인'},{k:'pin',n:'핀스트라이프'},{k:'rib',n:'리브'},{k:'hex',n:'벌집'},{k:'carbon',n:'카본'},{k:'bead',n:'용접 비드'},{k:'stud',n:'리벳'},{k:'chain',n:'체인'},{k:'cable',n:'케이블'},{k:'chev',n:'셰브론'},{k:'barcode',n:'바코드'},{k:'wave',n:'파형'},{k:'scale',n:'비늘'},{k:'mesh',n:'철망'},{k:'zig',n:'지그재그'},{k:'tri',n:'삼각 타일'},{k:'dash',n:'파선 격자'},{k:'none',n:'없음'}];
 var PAL='bronze',TECH='flat',PAT='plate';
 /* 종목 목록의 브랜드 구분 시안(설정 · DISPLAY · 브랜드). 번호는 시안 페이지와 같다 */
-var BST=9,CST=1;
+var BST=9,CST=1,TST=1;
 function patOk(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return true;return false;}
 function patOf(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return PATS[i];return PATS[0];}
 function palOk(t){for(var i=0;i<PALS.length;i++)if(PALS[i].k===t)return true;return false;}
@@ -3275,6 +3566,7 @@ function applyTheme(){
     r.setAttribute('data-pal',PAL);
     r.setAttribute('data-tech',TECH);
     r.setAttribute('data-pat',PAT);
+    r.setAttribute('data-tst',String(tstOf()));
     var mt=document.querySelector('meta[name="theme-color"]'),bg='';
     try{bg=getComputedStyle(r).getPropertyValue('--bg').trim();}catch(e2){}
     if(mt&&bg)mt.setAttribute('content',bg);
@@ -3305,6 +3597,9 @@ function applyTheme(){
     if(d2&&+d2>=1&&+d2<=999)BST=Math.floor(+d2);
     var e2=localStorage.getItem(KEY+'.cst');
     if(e2&&+e2>=1&&+e2<=999)CST=Math.floor(+e2);
+    /* TSTY 도 여기보다 아래에 있어 길이를 못 본다 — 넉넉히 받고 tstOf 가 자른다 */
+    var f2=localStorage.getItem(KEY+'.tst');
+    if(f2&&+f2>=1&&+f2<=999)TST=Math.floor(+f2);
   }}catch(e){}
   applyTheme();
 })();
@@ -5330,6 +5625,7 @@ function helpHtml(){
       +hRow('Sharp · Outline · Bare',TX('각지거나 선만 · 장식 없음'));
     h+=hNote(TX1('색 {0} · 질감 {1} · 무늬 {2}. 밝은 배경은 <b>색</b> 탭의 <b>밝음</b> 묶음에서 고를 것.',PALS.length,TECHS.length,PATS.length));
     h+=hNote(TX1('종목 목록에서 브랜드를 나누는 모양은 <b>브랜드</b> 탭에서 {0}가지 가운데 고름.',BSTY.length));
+    h+=hNote(TX1('휴식 타이머 모양은 <b>타이머</b> 탭에서 {0}가지 가운데 고름 — 고리·막대·숫자·알약·최소·모티프.',TSTY.length));
   }
   h+='</div></div>';
   return h;
@@ -5524,6 +5820,40 @@ function renderSheet(){
             +'<b><u>'+(cno<10?'0':'')+cno+'</u> '+esc(TX(CSTY[cq][1]))+'</b></button>';
         }
         if(copen)h+='</div>';
+        h+='</div>';
+      }
+      /* 번호는 시안 캔버스와 같다 — 거기서 고른 번호를 여기서 그대로 찾는다 */
+      if(dsub==='tst'){
+        h+='<div class="fgrp"><div class="ft">'+TX('타이머 모양')+' <span class="ftn">'+TX('휴식 타이머')+'</span></div>';
+        var tgrps=[],tcnt={},tq,tgs;
+        for(tq=0;tq<TSTY.length;tq++){
+          tgs=TSTY[tq][0];
+          if(!tcnt[tgs]){tcnt[tgs]=0;tgrps.push(tgs);}
+          tcnt[tgs]++;
+        }
+        var tcg=UI.tgrp;
+        if(tcg==null)tcg=TSTY[tstOf()-1][0];
+        h+='<div class="bglist">'
+          +'<button class="bgc'+(tcg===''?' on':'')+'" data-act="tgrp" data-v="">'
+          +TX('전체')+'<i>'+TSTY.length+'</i></button>';
+        for(tq=0;tq<tgrps.length;tq++)
+          h+='<button class="bgc'+(tcg===tgrps[tq]?' on':'')+'" data-act="tgrp" data-v="'+esc(tgrps[tq])+'">'
+            +esc(TX(tgrps[tq]))+'<i>'+tcnt[tgrps[tq]]+'</i></button>';
+        h+='</div>';
+        var tgq='',topen=false;
+        for(tq=0;tq<TSTY.length;tq++){
+          if(tcg!==''&&TSTY[tq][0]!==tcg)continue;
+          if(TSTY[tq][0]!==tgq){
+            if(topen)h+='</div>';
+            tgq=TSTY[tq][0];topen=true;
+            h+=(tcg===''?'<div class="patsub">'+esc(TX(tgq))+'</div>':'')+'<div class="techgrid bstgrid">';
+          }
+          var tno=tq+1;
+          h+='<button class="thtech'+(tstOf()===tno?' on':'')+'" data-act="tstpick" data-v="'+tno+'">'
+            +'<b><u>'+(tno<10?'0':'')+tno+'</u> '+esc(TX(TSTY[tq][1]))+'</b></button>';
+        }
+        if(topen)h+='</div>';
+        h+=hNote(TX('진행은 목표까지 채우고, 넘기면 두 번째 바퀴를 다시 돈다. 기록에는 전혀 영향이 없음.'));
         h+='</div>';
       }
       if(dsub==='brand'){
@@ -6150,6 +6480,22 @@ var CSTY=[
  ['강조','안 고른 것 흐리게'],['강조','고른 것만 꽉 참']
 ];
 function cstOf(){var n=Math.floor(+CST)||1;return (n>=1&&n<=CSTY.length)?n:1;}
+/* 휴식 타이머 모양 30가지. 번호는 시안 캔버스와 같다 — 거기서 본 번호를
+   여기서 그대로 찾는다. 묶음은 '무엇이 진행을 말하는가' 로 갈랐다:
+   고리 · 막대 · 숫자 · 알약 · 최소 · 모티프. */
+var TSTY=[
+ ['고리','기본 — 중앙 숫자'],['고리','굵은 고리'],['고리','얇은 고리 + 큰 숫자'],
+ ['고리','이중 고리'],['고리','점 마커'],['고리','눈금 고리'],
+ ['고리','반원 게이지'],['고리','수위'],
+ ['막대','가로 바'],['막대','세로 바'],['막대','세그먼트 10칸'],
+ ['막대','플레이트 스택'],['막대','바벨'],
+ ['숫자','밑줄 진행'],['숫자','알약 채움'],['숫자','큰 숫자'],['숫자','분·초 분리'],
+ ['알약','알약 + 버튼'],['알약','테두리 진행'],['알약','태그형'],
+ ['최소','버튼 변신'],['최소','글자만'],['최소','점 진행'],['최소','워터마크'],
+ ['모티프','플레이트'],['모티프','아날로그 바늘'],['모티프','모래시계'],
+ ['모티프','LED 막대'],['모티프','눈금자'],['모티프','호흡 원']
+];
+function tstOf(){var n=Math.floor(+TST)||1;return (n>=1&&n<=TSTY.length)?n:1;}
 var BSD={19:{m:'sec'},20:{m:'body'},21:{m:'sec'},22:{m:'sec'},23:{m:'sec'},24:{m:'body'},25:{m:'sec'},
   26:{m:'sec',mg:1},27:{nh:1,row:'badge',mcb:1},28:{nh:1,row:'eye'},29:{nh:1,row:'eye1'},
   32:{nh:1,row:'ini'},33:{nh:1,row:'dot',x:'legend'},34:{nh:1,row:'tag',mcb:1},42:{mg:1},
@@ -6457,20 +6803,22 @@ function tmrNativeSync(){
 }
 function tmrDraw(){
   var ms=tmrMs(),tgt=Math.max(1,IVs)*1000,on=!!TMR.ts,done=on&&ms>=tgt;
-  var el=document.getElementById('tmr');if(el)el.textContent=tmrFmt(ms);
+  var tx=tmrFmt(ms);
+  var el=document.getElementById('tmr');if(el)el.textContent=tx;
+  /* 숫자 자리가 둘 — 시안에 따라 한쪽만 보인다. 안 보이는 쪽도 채워 둬야
+     시안을 바꾸는 순간 00:00 이 스치지 않는다. */
+  var el2=document.getElementById('tmr2');if(el2)el2.textContent=tx;
   var tg=document.getElementById('tmrTgt');if(tg)tg.textContent='/ '+tmrFmt(tgt);
-  var rg=document.getElementById('tring');
-  if(rg){
-    /* 목표까지 채워 나가고, 넘기면 링을 초록으로 채운 뒤 두 번째 바퀴를 다시 돈다.
-       한 바퀴에서 멈춰 버리면 02:10 과 05:00 이 같은 모양이 된다. */
-    var frac=on?(done?(((ms-tgt)/tgt)%1):(ms/tgt)):0;
-    var deg=Math.round(frac*360);
-    var arc=done?'var(--acc-br)':'var(--acc-sf)';
-    var trk=done?'var(--pos)':'rgba(var(--tx-rgb),.10)';
-    rg.style.background='conic-gradient('+arc+' 0 '+deg+'deg,'+trk+' '+deg+'deg 360deg)';
-  }
   var row=document.getElementById('trow');
-  if(row){row.classList.toggle('run',on);row.classList.toggle('done',done);}
+  if(row){
+    row.classList.toggle('run',on);row.classList.toggle('done',done);
+    /* 목표까지 채워 나가고, 넘기면 두 번째 바퀴를 다시 돈다. 한 바퀴에서
+       멈춰 버리면 02:10 과 05:00 이 같은 모양이 된다.
+       --p 는 지금 도는 몫, --p2 는 목표를 넘긴 몫(이중 링 시안이 쓴다). */
+    var frac=on?(done?(((ms-tgt)/tgt)%1):(ms/tgt)):0;
+    row.style.setProperty('--p',String(Math.round(frac*1000)/1000));
+    row.style.setProperty('--p2',String(on&&done?Math.round(frac*1000)/1000:0));
+  }
   var b=document.getElementById('tsBtn');if(b)b.textContent=on?'Reset':'Start';
 }
 /* 초기화가 끝나기 전에는 사본을 쓰지 않음 — 설정값이 아직 안 잡혀 있을 수 있음 */
@@ -6937,7 +7285,7 @@ function bkText(){
        DEMO 일 때 가짜 6건을 돌려주므로(4622행), 그대로 담으면 자기 기록은
        없이 남의 감량 곡선만 든 파일이 나온다 — 되돌리면 그것이 실측이 되어
        체중·기초대사·단백질 목표가 전부 거기서 나온다. */
-    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,tst:TST,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,lang:LANG,gm:GM,lm:LM,
@@ -6984,6 +7332,11 @@ function applyBackup(o){
       if(+c.cst>=1&&+c.cst<=CSTY.length){
         CST=Math.floor(+c.cst);
         if(canLS){try{localStorage.setItem(KEY+'.cst',String(CST));}catch(eC2){}}
+      }
+      if(+c.tst>=1&&+c.tst<=TSTY.length){
+        TST=Math.floor(+c.tst);
+        if(canLS){try{localStorage.setItem(KEY+'.tst',String(TST));}catch(eT3){}}
+        applyTheme();
       }
       if(+c.bst>=1&&+c.bst<=BSTY.length){
         BST=Math.floor(+c.bst);
@@ -11524,7 +11877,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 13:38';
+var BUILD='2026-10-01 14:11';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -12684,6 +13037,12 @@ var EN={
 '바꾸기':'Change',
 '평소':'Normal',
 '증량 기준':'Load baseline',
+'타이머':'Timer',
+'타이머 모양':'Timer style',
+'휴식 타이머':'Rest timer',
+'고리':'Ring','막대':'Bar','숫자':'Numerals','최소':'Minimal','모티프':'Motif',
+'진행은 목표까지 채우고, 넘기면 두 번째 바퀴를 다시 돈다. 기록에는 전혀 영향이 없음.':'Progress fills to the target, then runs a second lap past it. No effect on your logs.',
+'휴식 타이머 모양은 <b>타이머</b> 탭에서 {0}가지 가운데 고름 — 고리·막대·숫자·알약·최소·모티프.':'Pick the rest-timer shape from {0} options under the <b>Timer</b> tab — ring, bar, numerals, pill, minimal, motif.',
 '기준에서 뺌':'excluded from baseline',
 '가볍게·디로딩으로 둔 날은 증량 판정과 다음 지시 무게의 기준에서 빠짐':'Days marked Light or Deload are left out of progression verdicts and the next prescribed load.',
 '이 날':'This day',
@@ -14791,6 +15150,18 @@ document.addEventListener('click',function(e){
       }
       break;
     case 'cgrp':UI.cgrp=v;renderSheet();break;
+    case 'tgrp':UI.tgrp=v;renderSheet();break;
+    case 'tstpick':
+      (function(){
+        var n=Math.floor(+v)||1;
+        if(n<1||n>TSTY.length)return;
+        TST=n;
+        if(canLS){try{localStorage.setItem(KEY+'.tst',String(n));}catch(eT4){}}
+        /* applyTheme 이 data-tst 를 갈고, 모양은 CSS 가 낸다 — 타이머가
+           돌고 있어도 끊기지 않는다(TMR 을 안 건드린다). */
+        applyTheme();renderSheet();render();
+      })();
+      break;
     case 'cstpick':
       (function(){
         var n=Math.floor(+v)||1;
