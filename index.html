@@ -2024,6 +2024,8 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .rgs .fl{fill:none;stroke:var(--acc-br);stroke-width:7;stroke-linecap:round}
 /* 넘긴 것은 잘못이 아니라 채운 것이다 — 경고색이 아니라 충족색을 쓴다 */
 .rgs .fl.met{stroke:var(--pos)}
+/* 넘긴 눈금 — 초록과 같은 급으로 두면 '잘했다' 로 읽힌다 */
+.rgs .fl.ovr{stroke:var(--sig)}
 /* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
 .rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
   text-anchor:middle;transform:rotate(90deg);transform-origin:32px 32px}
@@ -2034,6 +2036,7 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .rgd{font-family:var(--mono);font-size:10px;font-weight:700;
   color:var(--acc-br);margin-top:2px;font-variant-numeric:tabular-nums}
 .rgd.met{color:var(--pos)}
+.rgd.ovr{color:var(--sig)}
 /* 몸 세 선. 색 하나로만 가르면 팔레트 조합에 따라 서로 가까워지고,
    색각이상이면 조합과 무관하게 못 가른다. 굵기·선모양·점모양을 겹쳐
    준다 — 셋 중 하나만 보여도 어느 선인지 알게. */
@@ -12062,7 +12065,7 @@ function dayPastHtml(nf,ds){
   var mg=(goal>0)?macroGoals(goal):null;
   if(mg)h+='<div class="rings">'
     +vzRing(TX('단백질'),'opt',r.protein,mg.p,'g')
-    +vzRing(TX('탄수'),'min',r.carb,mg.c,'g')
+    +vzRing(TX('탄수'),'cap',r.carb,mg.c,'g')
     +vzRing(TX('지방'),'min',r.fat,mg.f,'g')+'</div>';
   /* 그 날의 소비로 그 날의 목표가 나왔다 — 운동한 날은 목표가 컸다.
      그 고리를 안 적으면 왜 어떤 날만 목표가 높은지 알 수가 없다. */
@@ -12116,7 +12119,7 @@ function vzDiet(tab){
     var mg0=(gi>0)?macroGoals(gi):null;
     if(mg0)h+='<div class="rings">'
       +vzRing(TX('단백질'),'opt',0,mg0.p,'g')
-      +vzRing(TX('탄수'),'min',0,mg0.c,'g')
+      +vzRing(TX('탄수'),'cap',0,mg0.c,'g')
       +vzRing(TX('지방'),'min',0,mg0.f,'g')+'</div>';
     if(gi>0)h+=vzLine(TX('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
       TX1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
@@ -12170,7 +12173,7 @@ function vzDiet(tab){
     if(mg){
       h+='<div class="rings">'
         +vzRing(TX('단백질'),'opt',td2.p,mg.p,'g')
-        +vzRing(TX('탄수'),'min',td2.c,mg.c,'g')
+        +vzRing(TX('탄수'),'cap',td2.c,mg.c,'g')
         +vzRing(TX('지방'),'min',td2.f,mg.f,'g')
         +'</div>';
       /* 각주를 걷어냈다. 원에 '적정·최소' 를 붙여 놓고 그 밑에 그게 무슨
@@ -12357,7 +12360,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 17:09';
+var BUILD='2026-10-01 18:41';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13862,6 +13865,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met',
+'남은 몫':'left over','{0}{1} 넘김':'{0}{1} over','{0}{1} 여유':'{0}{1} left',
 '기본값으로':'Reset',
 '근육 항목을 기본값으로 되돌림':'Muscle list restored to defaults',
 '대흉근':'Pecs',
@@ -14702,26 +14706,40 @@ function macroGoals(kcalGoal){
    채운 것이므로 어떤 원도 넘겼다고 경고색을 쓰지 않는다. 못 채운 것만 말한다.
    눈금이 없으면(탄수 몫이 0) 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
    kind: 'opt' 적정(단백질만) · 'min' 최소(지방·탄수) */
+/* 눈금에는 세 성질이 있다.
+   opt 적정 — 그 언저리가 좋다
+   min 최소 — 넘겨야 좋다(단백질·지방 바닥)
+   cap 남은 몫 — 넘기면 나쁘다(탄수)
+   탄수를 min 으로 두고 있었다. 탄수는 바닥이 아니라 '단백질·지방을 못박고
+   남은 열량' 이라, 넘겼다는 것은 그만큼 적자가 깨졌거나 단백질·지방 자리를
+   빼앗았다는 뜻이다. 그런데 215% 에 초록 '충족' 이 붙어 잘한 것으로 읽혔다. */
 function vzRing(name,kind,cur,goal,unit){
   cur=Math.round(+cur||0);goal=Math.round(+goal||0);
   var R=26,C=2*Math.PI*R;
-  var rate=goal>0?cur/goal:0,met=goal>0&&cur>=goal;
+  var cap=(kind==='cap');
+  var rate=goal>0?cur/goal:0;
+  var over=cap&&goal>0&&cur>goal;
+  var met=goal>0&&(cap?cur<=goal:cur>=goal);
   var fill=Math.max(0,Math.min(1,rate))*C;
   var pct=goal>0?Math.round(rate*100):null;
   var h='<div class="ring"><div class="rgn">'+esc(name)
-    +'<i>'+(kind==='opt'?TX('적정'):TX('최소'))+'</i></div>'
+    +'<i>'+(kind==='opt'?TX('적정'):(cap?TX('남은 몫'):TX('최소')))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
-    h+='<circle class="fl'+(met?' met':'')+'" cx="32" cy="32" r="'+R+'" '
+    h+='<circle class="fl'+(over?' ovr':(met?' met':''))+'" cx="32" cy="32" r="'+R+'" '
       +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
   h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
     +'<div class="rgv">'+cur.toLocaleString()
     +(goal>0?'<em> / '+goal.toLocaleString()+'</em>':'')+' '+esc(unit)+'</div>'
     /* 58% 는 상태고 '67g 더' 는 할 일이다. 감량기에 필요한 것은
        상태가 아니라 다음 끼니에 뭘 먹느냐다. */
-    +'<div class="rgd'+(met?' met':'')+'">'
-    +(goal<=0?'—':(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit))))+'</div>'
+    +'<div class="rgd'+(over?' ovr':(met?' met':''))+'">'
+    +(goal<=0?'—'
+      :(cap
+        ?(over?TX1('{0}{1} 넘김',(cur-goal).toLocaleString(),esc(unit))
+              :TX1('{0}{1} 여유',(goal-cur).toLocaleString(),esc(unit)))
+        :(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit)))))+'</div>'
     +'</div>';
   return h;
 }
