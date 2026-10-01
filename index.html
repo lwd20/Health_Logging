@@ -1497,6 +1497,12 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:4px;
 .chip{flex:0 0 auto;padding:8px 14px;border-radius:var(--rad-s);background:var(--btn-bg);border:var(--bw) solid rgba(var(--tx-rgb),.09);color:var(--mut);font-size:12px;font-weight:700;letter-spacing:.06em}
 .chip.on{background:var(--acc-sf);border-color:transparent;color:var(--on-acc)}
 .chip i{font-size:9px;opacity:.55;margin-left:3px}
+/* 순서가 바뀌었다는 단서. 퍼센트 옆에 붙되 퍼센트보다 조용해야 한다 —
+   이건 판정이 아니라 '그 판정을 얼마나 믿을지' 를 거드는 말이다. */
+.ordm{margin-left:4px;font-size:8.5px;letter-spacing:0;opacity:.75}
+/* 지난 기록 줄의 순서 배지 — 디로딩 배지(.sfx)와 같은 급이되 조용하게 */
+.ordb{font-style:normal;flex:0 0 auto;margin-left:6px;font-family:var(--mono);
+  font-size:9px;font-weight:700;color:var(--dim);opacity:.85;white-space:nowrap}
 .chip{position:relative}
 .chip.stale::after{content:'';position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--chrome);box-shadow:0 0 5px rgba(var(--acc-rgb),.5)}
 .chip.on.stale::after{background:rgba(var(--acc-rgb),.4);box-shadow:none}
@@ -4283,16 +4289,36 @@ function sessOn(id,ds){var a=sess(id);for(var i=0;i<a.length;i++){if(a[i].d===ds
    [무게,반복,RIR,휴식] 에서 [분,속도,경사] 로 통째로 재해석된다 —
    ACSM 식으로 한 세트가 1,300kcal 짜리 달리기가 되어 하루 소비가 부푼다. */
 function sessKind(id){var m=machById(id);return (m&&m.p==='CARDIO')?1:0;}
+/* 그 날 그 부위에서 몇 번째로 한 종목인가.
+   같은 무게라도 가슴 첫 종목으로 든 것과 네 번째로 든 것은 다른 일이다.
+   앞 종목이 쌓아 둔 피로를 안고 든 무게라, 순서가 바뀐 채로 전 세션과
+   견주면 '내려갔다' 가 사실은 '뒤로 밀렸다' 일 수 있다.
+   저장하는 순간 세는 까닭: 그때까지 그 부위에서 몇 개를 끝냈는지가 곧
+   순서다. 나중에 세면 그 날 나중에 추가한 종목까지 끼어 들어간다. */
+function partOrd(id,ds){
+  var m=machById(id);
+  if(!m||isCard(m.p))return 0;
+  var n=0,i;
+  for(i=0;i<S.m.length;i++){
+    var q=S.m[i];
+    if(q.i===id||q.p!==m.p)continue;
+    var e=sessOn(q.i,ds);
+    if(e&&e.s&&e.s.length)n++;
+  }
+  return n+1;
+}
 function upsertSess(id,ds,copy){
   var a=S.l[id]||(S.l[id]=[]),i,c=sessKind(id);
   for(i=0;i<a.length;i++){
     /* 표본 표시를 떼지 않으면, 표본이 깔린 날에 덮어쓴 세션이 바로 다음
        save() 의 demoClear 에서 표본과 함께 지워진다 — 'Saved' 가 뜨고
        세션이 사라졌다. 손으로 저장한 순간 그것은 더 이상 표본이 아니다. */
+    /* 이미 있는 날을 고치는 것은 순서를 새로 매길 일이 아니다 — 손본다고
+       그 날 몇 번째로 했는지가 바뀌지는 않는다. */
     if(a[i].d===ds){a[i].s=copy;a[i].c=c;delete a[i].dm;return;}
-    if(a[i].d<ds){a.splice(i,0,{d:ds,s:copy,c:c});return;}
+    if(a[i].d<ds){a.splice(i,0,{d:ds,s:copy,c:c,o:partOrd(id,ds)});return;}
   }
-  a.push({d:ds,s:copy,c:c});
+  a.push({d:ds,s:copy,c:c,o:partOrd(id,ds)});
 }
 function topOf(s){var t=0;for(var i=0;i<s.length;i++)if((+s[i][0]||0)>(+t||0))t=s[i][0];return t;}
 /* 어시스트 머신 — 설정 무게만큼 체중을 덜어주므로 실부하는 체중에서 뺀 값임 */
@@ -4492,11 +4518,18 @@ function prevSess(id,ds){
   return null;
 }
 /* 세션 전체 기준 성장률 배지 */
-function gainTag(cur,prev){
+/* ordA·ordB 는 두 세션이 그 날 그 부위에서 몇 번째였나. 다르면 같은 자로
+   잰 두 수가 아니다 — 첫 종목으로 든 무게와 네 번째로 든 무게를 견줘 놓고
+   '내려갔다' 고 적으면 틀린 말이다. 퍼센트는 그대로 두되 순서가 바뀌었다는
+   것을 같이 적어, 읽는 사람이 그 수를 얼마나 믿을지 정하게 한다. */
+function gainTag(cur,prev,ordA,ordB){
   var g=e1rmGain(cur,prev);
   if(!g)return '';                    /* 비교할 직전 세션이 없으면 표시하지 않음 */
-  if(g.pct===0)return '<i class="eq">'+TX('유지')+'</i>';
-  return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>';
+  var mv=(ordA>0&&ordB>0&&ordA!==ordB)
+    ?'<i class="eq ordm" title="'+esc(TX1('지난번 {0}번째 · 이번 {1}번째',ordB,ordA))+'">'
+      +TX1('{0}→{1}번째',ordB,ordA)+'</i>':'';
+  if(g.pct===0)return '<i class="eq">'+TX('유지')+'</i>'+mv;
+  return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>'+mv;
 }
 /* RIR(남은 반복) — 미입력/0/1/2/3+ 순환. 0=실패 직전 */
 function rirBtn(v,j){
@@ -5316,7 +5349,7 @@ function rowHtml(m,noBadge,inMc,dc){
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
       right=rgt(fmtW(t),'kg',softTag(UI.wd)
-        ||(dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d)):''));
+        ||(dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d),partOrd(m.i,UI.wd),dp.o):''));
     }else{
       right='<span class="none">—</span>';
     }
@@ -5342,7 +5375,7 @@ function rowHtml(m,noBadge,inMc,dc){
         /* 계획해서 내린 무게에 빨간 '▼18%' 를 다는 것은 틀린 말이다 —
            그 줄이 말할 것은 하락이 아니라 '디로딩' 이다. */
         var lp=prevSess(m.i,la.d);
-        var gt=softTag(la.d)||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d)):'');
+        var gt=softTag(la.d)||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d),la.o,lp.o):'');
         right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
@@ -5559,7 +5592,11 @@ function panelHtml(m){
     if(!all.length)h+='<div class="empty">No records</div>';
     for(var q=0;q<all.length;q++){
       var x=all[q];
+      /* 그 날 이 부위에서 몇 번째로 했는지. 같은 무게라도 첫 종목으로 든 것과
+         네 번째로 든 것은 다른 일이라, 줄마다 적어 두면 오르내림을 읽을 때
+         순서 탓인지 아닌지가 보인다. 순서를 모르는 옛 기록에는 안 적는다. */
       h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailOf(x.s))+'</span>'
+        +(x.o>0?'<em class="ordb">'+TX1('{0}번째',x.o)+'</em>':'')
         +(softWhy(x.d)?'<em class="sfx">'+TX(softWhy(x.d))+'</em>':'')
         +'<button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
     }
@@ -6140,7 +6177,7 @@ function renderSheet(){
       var dsub=UI.dsub||'set';
 
       if(dsub==='set'&&PSETS.length){
-        h+='<div class="fgrp fg1"><div class="ft">'+TX('시안')+' <span class="ftn">'+TX('한 벌로 적용')+'</span></div>'
+        h+='<div class="fgrp fg1"><div class="ft">'+TX('시안')+' <span class="ftn">'+TX('색·질감·무늬를 한 번에')+'</span></div>'
           +'<div class="psets">';
         for(var si=0;si<PSETS.length;si++){
           var PS=PSETS[si],pp=palOf(PS.pal);
@@ -6410,13 +6447,14 @@ function renderSheet(){
               +srow('cx0',TX('탄수 최대'),'g/kg',CARB_MAX_KG.toFixed(1))
               +srow('fx0',TX('지방 최대'),'g/kg',FAT_MAX_KG.toFixed(1))
               /* 여섯 칸을 손으로 채우라고 하면 아무도 안 쓰고, 채우더라도
-                 근거 없는 수가 들어간다. 문헌 한 벌을 통째로 부어 준다. */
-              +'<div class="lgsw" style="margin:8px 0 4px">'
-              +'<button class="lgb" data-act="mpre" data-v="cut">'+TX('감량 한 벌')+'</button>'
-              +'<button class="lgb" data-act="mpre" data-v="lean">'+TX('린매스업 한 벌')+'</button>'
+                 근거 없는 수가 들어간다. 목표를 고르면 문헌 값으로 한 번에 채운다. */
+              +'<div class="sh-l" style="margin-top:10px">'+TX('목표')+'</div>'
+              +'<div class="lgsw" style="margin:4px 0 4px">'
+              +'<button class="lgb" data-act="mpre" data-v="cut">'+TX('감량')+'</button>'
+              +'<button class="lgb" data-act="mpre" data-v="lean">'+TX('린매스업')+'</button>'
               +'</div>'
               +'<div class="note" style="margin:0 0 10px">'
-              +TX('린매스업 한 벌 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg (Iraki 2019 오프시즌). 체중 변화도 주당 +0.3kg 으로 같이 바뀜.')
+              +TX('누르면 위 칸이 문헌 값으로 채워짐. 린매스업 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg, 주당 +0.3kg (Iraki 2019 오프시즌).')
               +'</div>'
               +'<div class="note" id="mgInfo" style="margin:6px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG,CARB_PER_KG)+'</div>'
               +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save cut settings</button>';
@@ -12427,7 +12465,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 19:53';
+var BUILD='2026-10-01 20:04';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13199,7 +13237,6 @@ var EN={
 '고르게 · 회피도 없음':'Even · nothing avoided',
 '<b>아래 칸을 채워 놓음 · Save goals 를 눌러야 바뀜</b>':'<b>Boxes filled below · press Save goals to apply</b>',
 '부위별 총량은 넷 다 같음 · 자리만 옮김':'Same total across all four · only the split moves',
-'직접 맞춘 목표임 · 한 벌로 바꾸려면 위에서 고름':'Hand-tuned goals · pick above to swap the whole set',
 
 '{0}/4':'{0} of 4',
 /* ── 여유 줄어듦 ── */
@@ -13591,8 +13628,11 @@ var EN={
 ' · 음수를 넣으면 증량':' · enter a negative number to gain',
 '{0}{1} 넘김':'{0}{1} over',
 '탄수 최대':'Carb cap','지방 최대':'Fat cap',
-'감량 한 벌':'Cut preset','린매스업 한 벌':'Lean-gain preset',
-'린매스업 한 벌 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg (Iraki 2019 오프시즌). 체중 변화도 주당 +0.3kg 으로 같이 바뀜.':'Lean-gain preset = per bodyweight, protein 2.0 · carbs 3–5 · fat 0.5–1.5 g/kg (Iraki 2019 off-season). Weight change also switches to +0.3kg/week.',
+'목표':'Goal','린매스업':'Lean gain',
+'{0}→{1}번째':'{0}→{1}st','지난번 {0}번째 · 이번 {1}번째':'last time #{0} · this time #{1}',
+'{0}번째':'#{0}',
+'색·질감·무늬를 한 번에':'color, finish and pattern at once',
+'누르면 위 칸이 문헌 값으로 채워짐. 린매스업 = 체중 기준 단백질 2.0 · 탄수 3~5 · 지방 0.5~1.5 g/kg, 주당 +0.3kg (Iraki 2019 오프시즌).':'Lean-gain preset = per bodyweight, protein 2.0 · carbs 3–5 · fat 0.5–1.5 g/kg (Iraki 2019 off-season). Weight change also switches to +0.3kg/week.',
 ' = <b>{0}</b>kcal':' = <b>{0}</b>kcal',
 '제지방 기준':'Per LBM','체중 기준':'Per bodyweight','제지방':'LBM','체중':'bodyweight',
 '{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal':'{0} {1}kg × g/kg → protein <b>{2}</b>g · carbs <b>{3}</b>g · fat <b>{4}</b>g = <b>{5}</b>kcal',
@@ -14057,7 +14097,7 @@ var EN={
 '팔·기타':'Arms · etc',
 '평면':'Planar',
 '하체':'Legs',
-'한 벌로 적용':'applied as a set',
+
 '화면 판 <b>{0}</b>':'Build <b>{0}</b>',
 '회피':'avoid',
 '회피 위반 +{0}':'violated +{0}',
@@ -15847,7 +15887,7 @@ document.addEventListener('click',function(e){
           localStorage.setItem(KEY+'.fmx',String(FAT_MAX_KG));
           localStorage.setItem(KEY+'.wr',String(WR));
         }catch(eMp){}}
-        toast('<em>'+(v==='lean'?TX('린매스업 한 벌'):TX('감량 한 벌'))+'</em>');
+        toast('<em>'+(v==='lean'?TX('린매스업'):TX('감량'))+'</em>');
         renderSheet();render();
       })();
       break;
