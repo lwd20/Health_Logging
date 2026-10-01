@@ -4704,7 +4704,7 @@ function hsubHtml(){
                  게다가 아침에 아직 안 먹은 사람은 그 시간대 내내 이 줄을 못 봤다 —
                  정작 '오늘 단백질 얼마 남았나' 가 가장 쓸모 있는 때다. */
               if(BW>0)pc.push('<b><i>'+TX('단백질')+'</i> '+Math.round(hd?hd.p:0).toLocaleString()
-                +'<u>/'+Math.round(BW*PRO_PER_KG)+'g</u></b>');
+                +'<u>/'+Math.round(macroBW()*PRO_PER_KG)+'g</u></b>');
               /* 걸음은 수만 적는다. 목표가 없는 값이라 '/' 뒤에 붙일 것이 없고,
                  여기서 알 것은 '오늘 얼마나 움직였나' 지 달성률이 아니다.
                  걸음이 보탠 kcal 도 적어 봤는데, 세 조각이 다 있는 날 320px 에서
@@ -6387,6 +6387,12 @@ function renderSheet(){
               +'</div>'
               +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
               +'<div class="sh-l" style="margin-top:2px">Macro floors</div>'
+              /* 무엇에 곱하는지가 안 보이면 2.0 이 큰지 작은지 알 수가 없다 */
+              +'<div class="lgsw" style="margin:4px 0 6px">'
+              +'<button class="lgb'+(MACRO_BASE==='lbm'?' on':'')+'" data-act="mbase" data-v="lbm">'
+              +TX('제지방 기준')+'</button>'
+              +'<button class="lgb'+(MACRO_BASE==='bw'?' on':'')+'" data-act="mbase" data-v="bw">'
+              +TX('체중 기준')+'</button></div>'
               /* 2.0 이 '2' 로 찍히면 정수 배율처럼 보인다 — 셋 다 한 자리로 */
               +srow('pp0',TX('단백질 최소'),'g/kg',PRO_PER_KG.toFixed(1))
               +srow('fp0',TX('지방 최소'),'g/kg',FAT_PER_KG.toFixed(1))
@@ -7771,7 +7777,7 @@ function bkText(){
     st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,tst:TST,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
-    ppk:PRO_PER_KG,fpk:FAT_PER_KG,cpk:CARB_PER_KG,lang:LANG,gm:GM,lm:LM,
+    ppk:PRO_PER_KG,fpk:FAT_PER_KG,cpk:CARB_PER_KG,mbase:MACRO_BASE,lang:LANG,gm:GM,lm:LM,
     /* 근육 항목을 고친 것. 이게 빠져 있어서 새 기기에서 복원하면 이름·추가·
        숨김이 통째로 사라졌다 — 시나리오 시험에서 잡혔다. */
     subx:{ren:SUBX.ren,renEn:SUBX.renEn,hide:SUBX.hide,add:SUBX.add,ord:SUBX.ord},
@@ -7873,6 +7879,7 @@ function applyBackup(o){
       if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
       if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
       if(+c.cpk>=0.3&&+c.cpk<=5)CARB_PER_KG=Math.round(+c.cpk*10)/10;
+      if(c.mbase==='bw'||c.mbase==='lbm')MACRO_BASE=c.mbase;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
       /* 지금 기기에 값이 없는 날짜만 채운다. 묵은 백업을 되돌렸다고 오늘
          먹은 것이 사라지면 안 된다 — 새 기기에는 아무것도 없어 전부 들어오고,
@@ -7893,6 +7900,7 @@ function applyBackup(o){
           localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
           localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
           localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+          localStorage.setItem(KEY+'.mbase',MACRO_BASE);
           localStorage.setItem(KEY+'.lang',LANG);
           localStorage.setItem(KEY+'.gm',GM);
           localStorage.setItem(KEY+'.lm',LM);
@@ -8513,10 +8521,23 @@ function macroLine(ppk,fpk,cpk){
   if(!(BW>0))return TX('체중이 없어 매크로 눈금을 못 냄');
   var goal=0;
   try{goal=Math.round(nutriFacts().todayTargetIntake||0);}catch(e){}
-  var p=Math.round(BW*ppk),f=Math.round(BW*fpk),c=Math.round(BW*cpk);
+  var w=macroBW(),lb=(MACRO_BASE==='lbm'&&w<BW);
+  var p=Math.round(w*ppk),f=Math.round(w*fpk),c=Math.round(w*cpk);
   var kc=p*4+c*4+f*9;
-  var out=TX1('단백질 <b>{0}</b>g · 탄수 <b>{1}</b>g · 지방 <b>{2}</b>g = <b>{3}</b>kcal',
-    p,c,f,kc.toLocaleString());
+  var out=TX1('{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal',
+    lb?TX('제지방'):TX('체중'),fmtW(w),p,c,f,kc.toLocaleString());
+  /* 수가 범위 안인지를 같이 적는다 — 근거가 없으면 2.5 가 큰지 작은지 모른다.
+     단백질은 Helms 2014(제지방 2.3~3.1) / 현재 입장(체중 1.8~2.2),
+     지방 하한은 체중 0.5g/kg(열량의 15%)이 흔히 쓰이는 선이다. */
+  var warn=[];
+  if(lb){
+    if(ppk<2.3)warn.push(TX1('단백질 {0} — 제지방 기준 권장은 2.3~3.1',ppk.toFixed(1)));
+    if(f<BW*0.5)warn.push(TX1('지방 {0}g — 호르몬 하한(체중 0.5g/kg = {1}g) 밑',f,Math.round(BW*0.5)));
+  }else{
+    if(ppk<1.8)warn.push(TX1('단백질 {0} — 체중 기준 권장은 1.8~2.2',ppk.toFixed(1)));
+    if(fpk<0.5)warn.push(TX1('지방 {0} — 호르몬 하한으로 흔히 쓰는 0.5 밑',fpk.toFixed(1)));
+  }
+  if(warn.length)out+='<br><b class="warn">'+warn.join('<br>')+'</b>';
   if(!(goal>0))return out+TX(' — 목표 열량이 아직 없어 여유는 못 냄');
   var free=goal-kc;
   if(free<0)
@@ -11980,7 +12001,7 @@ function proDays(nf){
 }
 function proHtml(nf){
   var a=proDays(nf);
-  var goal=(BW>0)?Math.round(BW*PRO_PER_KG):0;
+  var goal=(BW>0)?Math.round(macroBW()*PRO_PER_KG):0;
   if(!a||!(goal>0))
     return vzLine(TX('단백질'),TX('기록 부족'),
       TX('끼니 기록과 설정 체중이 있어야 날마다 셈'),{t:'',c:''});
@@ -12129,7 +12150,7 @@ function vzDiet(tab){
     if(gi>0)h+=vzLine(TX('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
       TX1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
     /* 원이 단백질 목표를 이미 말하므로 그때는 줄로 또 안 적는다 */
-    if(BW>0&&!mg0)h+=vzLine(TX('단백질 목표'),Math.round(BW*PRO_PER_KG)+' g',
+    if(BW>0&&!mg0)h+=vzLine(TX('단백질 목표'),Math.round(macroBW()*PRO_PER_KG)+' g',
       /* 2.0 이 '2' 로 찍혀 정수 배율처럼 보였다 */
       TX1('체중 {0}kg × {1}',fmtW(BW),PRO_PER_KG.toFixed(1)),{t:'',c:''});
     if(exA>0)h+=vzLine(TX('운동으로 번 몫'),'+'+exA.toLocaleString()+' kcal',
@@ -12369,7 +12390,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-01 19:24';
+var BUILD='2026-10-01 19:32';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13527,6 +13548,12 @@ var EN={
 '활동 계수':'Activity factor',
 '단백질 최소':'Protein floor',
 '탄수 최소':'Carb floor',
+'제지방 기준':'Per LBM','체중 기준':'Per bodyweight','제지방':'LBM','체중':'bodyweight',
+'{0} {1}kg × g/kg → 단백질 <b>{2}</b>g · 탄수 <b>{3}</b>g · 지방 <b>{4}</b>g = <b>{5}</b>kcal':'{0} {1}kg × g/kg → protein <b>{2}</b>g · carbs <b>{3}</b>g · fat <b>{4}</b>g = <b>{5}</b>kcal',
+'단백질 {0} — 제지방 기준 권장은 2.3~3.1':'Protein {0} — the per-LBM range is 2.3–3.1',
+'단백질 {0} — 체중 기준 권장은 1.8~2.2':'Protein {0} — the per-bodyweight range is 1.8–2.2',
+'지방 {0}g — 호르몬 하한(체중 0.5g/kg = {1}g) 밑':'Fat {0}g — below the hormonal floor (0.5g/kg bodyweight = {1}g)',
+'지방 {0} — 호르몬 하한으로 흔히 쓰는 0.5 밑':'Fat {0} — below the 0.5 commonly used as a hormonal floor',
 '지방 최소':'Fat floor',
 '하루 소비 <b>{0}</b>kcal — 제지방 <b>{1}</b>kg · 기초 <b>{2}</b> × 활동 {3}':'Daily burn <b>{0}</b>kcal — LBM <b>{1}</b>kg · BMR <b>{2}</b> × activity {3}',
 '디로딩 주':'Deload week',
@@ -14457,21 +14484,58 @@ function softWhy(ds){return isDeload(ds)?'디로딩':(isLite(ds)?'가볍게':'')
 function softTag(ds){var w=softWhy(ds);return w?'<i class="eq soft">'+TX(w)+'</i>':'';}
 function isDeload(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.d);}
 function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
-var PRO_PER_KG=2.0;   /* 체중당 단백질 g — 설정 · DIET 에서 바꾼다 */
+/* 제지방 kg 당 단백질 g. Helms 2014 의 감량기 권장 범위가 제지방 2.3~3.1 이고
+   그 가운데를 쓴다(체지방 20% 면 체중 기준 2.0 과 같은 g 이다). */
+var PRO_PER_KG=2.5;
 /* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
    바닥으로 흔히 쓰는 값이다. */
-var FAT_PER_KG=0.8;
+var FAT_PER_KG=1.0;
 /* 체중당 탄수 g — 바닥이다. 예전에는 '단백질·지방을 못박고 남은 열량' 으로
    냈는데, 그러면 목표 열량을 1,200 으로 내리는 순간 탄수 몫이 0 이 되어
    앱이 케토를 지시하는 꼴이 된다. 셋 다 바닥으로 두고, 바닥을 채우고 남는
    열량은 '여유' 로 따로 적는다. */
-var CARB_PER_KG=1.0;
+var CARB_PER_KG=1.25;
+/* 바닥을 무엇에 곱할지. 'lbm' 제지방 · 'bw' 체중.
+   체중에 곱하면 감량하면서 바닥이 같이 내려간다 — 80 → 74kg 에 단백질이
+   160 → 148g 으로 준다. 감량기에 지켜야 할 것은 제지방이고, 제지방이
+   유지되면 바닥도 유지돼야 한다. 그래서 기본은 제지방이다.
+   체지방을 한 번도 안 쟀으면 제지방을 모르므로 그때는 체중으로 떨어진다. */
+var MACRO_BASE='lbm';
+/* 바닥을 곱할 몸. 제지방을 못 내면(체지방 기록 없음) 체중으로 떨어진다 */
+function macroBW(){
+  if(MACRO_BASE==='lbm'&&BW>0&&BF>0&&BF<60)return BW*(1-BF/100);
+  return BW;
+}
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.ppk'));
   if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.fpk'));
   if(v>=0.3&&v<=1.5)FAT_PER_KG=Math.round(v*10)/10;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.cpk'));
   if(v>=0.3&&v<=5)CARB_PER_KG=Math.round(v*10)/10;}catch(e){}})();
+(function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.mbase');
+  if(v==='bw'||v==='lbm')MACRO_BASE=v;}catch(e){}})();
+/* 예전 판은 바닥을 체중에 곱했고 기준 칸이 없었다. 그 판에서 올라온 저장값을
+   그대로 제지방에 곱하면 단백질이 160 → 128g 으로 조용히 떨어진다. 기준 칸이
+   없던 판에서 왔다는 것은 .mbase 가 없는 것으로 안다 — 그때 한 번만 환산하고
+   표식을 남겨 두 번 환산하지 않는다. */
+(function(){
+  if(!canLS)return;
+  try{
+    if(localStorage.getItem(KEY+'.mbase'))return;      /* 이미 고른 판 */
+    var had=localStorage.getItem(KEY+'.ppk')||localStorage.getItem(KEY+'.fpk');
+    localStorage.setItem(KEY+'.mbase',MACRO_BASE);     /* 다음부터는 안 돈다 */
+    if(!had)return;                                     /* 손댄 적 없으면 기본값 그대로 */
+    var bf=parseFloat(localStorage.getItem(KEY+'.bf'));
+    if(!(bf>0&&bf<60))return;                           /* 제지방을 모르면 환산할 수 없다 */
+    var k=1/(1-bf/100);
+    PRO_PER_KG=Math.round(PRO_PER_KG*k*10)/10;
+    FAT_PER_KG=Math.round(FAT_PER_KG*k*10)/10;
+    CARB_PER_KG=Math.round(CARB_PER_KG*k*10)/10;
+    localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
+    localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
+    localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+  }catch(e){}
+})();
 
 function nutriFacts(){
   var ks=[],k,td0=today();
@@ -14528,7 +14592,7 @@ function nutriFacts(){
       if(ms.snack&&ms.snack.n>0)eaten.push('snack');
     }
     /* 단백질 목표는 체중 x PRO_PER_KG(설정 · Macro floors) 에서 나온다 */
-    var pGoal=BW>0?Math.round(BW*PRO_PER_KG):null;
+    var pGoal=BW>0?Math.round(macroBW()*PRO_PER_KG):null;
     todayBlock={
       eatenMeals:eaten, missingMeals:missing, skippedMeals:skipped,
       byMeal:ms||null,
@@ -14717,7 +14781,8 @@ function vzBar(name,cur,goal,sub,vd,mark){
    탄수가 0 이 되어 앱이 케토를 지시하는 꼴이 된다. */
 function macroGoals(kcalGoal){
   if(!(BW>0)||!(kcalGoal>0))return null;
-  var p=Math.round(BW*PRO_PER_KG),f=Math.round(BW*FAT_PER_KG),c=Math.round(BW*CARB_PER_KG);
+  var w=macroBW();
+  var p=Math.round(w*PRO_PER_KG),f=Math.round(w*FAT_PER_KG),c=Math.round(w*CARB_PER_KG);
   return {p:p,f:f,c:c,kcal:p*4+c*4+f*9,free:kcalGoal-(p*4+c*4+f*9)};
 }
 /* 원 하나. 눈금은 셋 다 '적어도 이만큼' 이다 — 넘긴 것은 잘못이 아니라
@@ -15666,6 +15731,31 @@ document.addEventListener('click',function(e){
         TECH=v;
         if(canLS){try{localStorage.setItem(KEY+'.tech',TECH);}catch(eT){}}
         applyTheme();render();
+      }
+      break;
+    case 'mbase':
+      /* 기준만 갈면 g 이 통째로 튄다 — 체지방 20% 에서 단백질이 160 → 128g 이
+         되는 식이다. 사람이 원한 것은 '무엇에 곱하느냐' 를 바꾸는 것이지
+         먹을 양을 바꾸는 것이 아니다. g/kg 을 같이 환산해 g 을 지킨다. */
+      if((v==='bw'||v==='lbm')&&v!==MACRO_BASE){
+        (function(){
+          var before=macroBW();
+          MACRO_BASE=v;
+          var after=macroBW();
+          if(before>0&&after>0&&Math.abs(before-after)>0.01){
+            var k=before/after;
+            PRO_PER_KG=Math.round(PRO_PER_KG*k*10)/10;
+            FAT_PER_KG=Math.round(FAT_PER_KG*k*10)/10;
+            CARB_PER_KG=Math.round(CARB_PER_KG*k*10)/10;
+          }
+          if(canLS){try{
+            localStorage.setItem(KEY+'.mbase',MACRO_BASE);
+            localStorage.setItem(KEY+'.ppk',String(PRO_PER_KG));
+            localStorage.setItem(KEY+'.fpk',String(FAT_PER_KG));
+            localStorage.setItem(KEY+'.cpk',String(CARB_PER_KG));
+          }catch(eMb){}}
+        })();
+        renderSheet();render();
       }
       break;
     case 'cgrp':UI.cgrp=v;renderSheet();break;
