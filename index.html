@@ -6623,23 +6623,26 @@ function sxBox(k,t){return UI.sx===k?'<div class="note sxn">'+t+'</div>':'';}
    리컴프 = 체중을 줄이면서 근육을 올리는 것(벌크 아님). 적자는 하루 500 을
    넘기지 않는다. 단백질 2.0 은 Helms 체중 1.8~2.2 의 가운데.
 
-   감량의 탄수·지방은 문헌 권장의 **아래 끝**이다 — 이 칸은 '최소' 이고
-   남는 열량은 '여유' 가 받는다. 문헌 수는 전부 체중 기준이라 제지방으로
-   환산했다(체지방 20% 에서 제지방 = 체중 x 0.8, 곧 g/kg 을 1.25 배):
-     탄수 2 g/kg 체중 → 제지방 2.5   (권장 2~5)
-     지방 0.5 g/kg 체중 → 제지방 0.65 (권장 하한 0.5)
+   감량의 탄수·지방은 권장값 자체다 — 100% 가 권장을 뜻해야 한다(요청).
+   지방을 열량의 25%(권장 20~30% 의 가운데)로 못박고 단백질을 뺀 나머지를
+   탄수에 준 뒤, 그 g 을 제지방 g/kg 으로 되돌려 적었다.
+   체중 78 · 체지방 20%(제지방 62.4) · 목표 1,820kcal 에서
+     단백질 2.5 → 156g · 탄수 3.0 → 187g(체중 기준 2.4) · 지방 0.8 → 50g
+     = 1,822kcal. 셋이 목표를 꽉 채우므로 여유는 0 에 가깝다.
    근거: Nutrients 2021 '지방 감량기' 종설(단백질 2.2~3.0 · 탄수 2~5 ·
    지방 >=0.5 g/kg 체중 또는 열량의 20~30% · 주당 체중의 0.5~1.0%)과
    Physique Athletes 영양 권고 2020(탄수 2~5 g/kg · 지방 열량의 10~25%).
-   예전에는 탄수 1.25 · 지방 1.0(제지방)이었다 — 탄수가 체중 기준 1.0 으로
-   권장 밑이었고, 그만큼을 지방이 쓰고 있었다. */
+   예전에는 권장 구간의 **아래 끝**(탄수 2.5 · 지방 0.65)을 넣고 남는 열량을
+   '여유' 에 맡겼는데, 그러면 100% 가 최소를 뜻해 권장을 채웠는지 알 수 없었다.
+   그 앞에는 탄수 1.25 · 지방 1.0 으로 탄수가 권장 밑이었고 그 몫을 지방이
+   쓰고 있었다. */
 var MPRE={
-  cut :{b:'lbm',p:2.5,c:2.5 ,cx:0  ,f:0.65,fx:0 ,wr:0.5 ,n:'감량'},
-  lean:{b:'bw' ,p:2.0,c:1.5 ,cx:2.5,f:0.6,fx:1.0,wr:0.25,n:'리컴프'}
+  cut :{b:'lbm',p:2.5,c:3.0,cx:0  ,f:0.8,fx:0  ,wr:0.5 ,n:'감량'},
+  lean:{b:'bw' ,p:2.0,c:1.5,cx:2.5,f:0.6,fx:1.0,wr:0.25,n:'리컴프'}
 };
 /* 단추 둘이 똑같이 생겨서 지금 무엇으로 먹고 있는지 화면이 말하지 않았다.
-   칸의 수가 한 벌과 전부 같을 때만 그 한 벌로 친다 — 하나라도 손댔으면
-   그것은 그 사람의 벌이지 문헌의 벌이 아니다. */
+   칸의 수가 프리셋과 전부 같을 때만 그 프리셋으로 친다 — 하나라도 손댔으면
+   그것은 그 사람의 수이지 문헌의 수가 아니다. */
 function presetNow(){
   var k,m;
   for(k in MPRE){m=MPRE[k];
@@ -6952,7 +6955,7 @@ function renderSheet(){
       +'</div>'
       +sxBox('body',TX('<b>신장</b>은 보폭을 정하고, 보폭이 걸음당 kcal 을 정함(신장 × 0.415). <b>활동 계수</b>는 걸음 자료가 아예 없는 날에만 쓰는 기본값 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈. 올린다고 더 먹을 수 있게 되지 않음.'))
       +sxBox('goal',TX('<b>체중 변화</b>는 주당 몇 kg 을 움직일지임. 적자 = 체중 변화 × 7700 ÷ 7. <b>음수를 넣으면 증량</b>이 되어 그대로 잉여가 됨(범위 −0.5~1.5). <b>목표 체지방</b>은 분석탭의 감량 현황이 남은 거리를 재는 기준.'))
-      +sxBox('macro',TX('탄단지 셋은 전부 <b>최소량</b>임 — 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 부족 · 안 · 넘침 셋으로 갈림. 셋의 합이 목표 열량을 넘을 수 있고, 그때는 넘는다고 적음.'));
+      +sxBox('macro',TX('탄단지 셋은 전부 <b>적정량</b>임 — 고리의 100% 가 권장량임. 감량 프리셋은 셋을 채우면 목표 열량이 꽉 차도록 잡혀 있어 여유가 0 에 가까움. 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 부족 · 안 · 넘침 셋으로 갈림.'));
 
     if(dts==='body'){
       h+=srow('ht0',TX('신장'),'cm',HT)
@@ -7030,10 +7033,10 @@ function renderSheet(){
         +TX('제지방 기준')+'</button>'
         +'<button class="lgb'+(MACRO_BASE==='bw'?' on':'')+'" data-act="mbase" data-v="bw">'
         +TX('체중 기준')+'</button></div>'
-        +srow('pp0',TX('단백질 최소'),'g/kg',gkg(PRO_PER_KG))
-        +srow('cp0',TX('탄수 최소'),'g/kg',gkg(CARB_PER_KG))
+        +srow('pp0',TX('단백질 적정'),'g/kg',gkg(PRO_PER_KG))
+        +srow('cp0',TX('탄수 적정'),'g/kg',gkg(CARB_PER_KG))
         +srow('cx0',TX('탄수 최대'),'g/kg',gkg(CARB_MAX_KG))
-        +srow('fp0',TX('지방 최소'),'g/kg',gkg(FAT_PER_KG))
+        +srow('fp0',TX('지방 적정'),'g/kg',gkg(FAT_PER_KG))
         +srow('fx0',TX('지방 최대'),'g/kg',gkg(FAT_MAX_KG))
         /* 0 은 '0g 까지' 가 아니라 '안 막음' 이다 — 칸만 봐서는 알 수 없다 */
         +((CARB_MAX_KG<=0||FAT_MAX_KG<=0)?'<div class="note" style="margin:2px 0 0">'+TX('최대가 0 이면 상한 없음')+'</div>':'')
@@ -8562,12 +8565,13 @@ function applyBackup(o){
       }
       /* 기준값은 subx 뒤다 — 더한 근육이 LMK 에 자리를 잡은 다음에 덮어써야 한다 */
       if(c.mmx&&typeof c.mmx==='object'){MMX=c.mmx;mmxSave();mmxApply();}
-      if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*10)/10;
-      if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*10)/10;
-      if(+c.cpk>=0.3&&+c.cpk<=5)CARB_PER_KG=Math.round(+c.cpk*10)/10;
+      /* 두 자리로 받는다 — 한 자리로 깎으면 복원할 때마다 1.25 가 1.3 이 된다 */
+      if(+c.ppk>=1&&+c.ppk<=3)PRO_PER_KG=Math.round(+c.ppk*100)/100;
+      if(+c.fpk>=0.3&&+c.fpk<=1.5)FAT_PER_KG=Math.round(+c.fpk*100)/100;
+      if(+c.cpk>=0.3&&+c.cpk<=5)CARB_PER_KG=Math.round(+c.cpk*100)/100;
       if(c.mbase==='bw'||c.mbase==='lbm')MACRO_BASE=c.mbase;
-      if(+c.cmx>=0&&+c.cmx<=12)CARB_MAX_KG=Math.round(+c.cmx*10)/10;
-      if(+c.fmx>=0&&+c.fmx<=3)FAT_MAX_KG=Math.round(+c.fmx*10)/10;
+      if(+c.cmx>=0&&+c.cmx<=12)CARB_MAX_KG=Math.round(+c.cmx*100)/100;
+      if(+c.fmx>=0&&+c.fmx<=3)FAT_MAX_KG=Math.round(+c.fmx*100)/100;
       if(c.lang==='en'||c.lang==='ko')LANG=c.lang;
       /* 지금 기기에 값이 없는 날짜만 채운다. 묵은 백업을 되돌렸다고 오늘
          먹은 것이 사라지면 안 된다 — 새 기기에는 아무것도 없어 전부 들어오고,
@@ -9165,11 +9169,15 @@ function macroLine(ppk,fpk,cpk){
   }
   if(warn.length)out+='<br><b class="warn">'+warn.join('<br>')+'</b>';
   if(!(goal>0))return out+TX(' — 목표 열량이 아직 없어 여유는 못 냄');
-  var free=goal-kc;
-  if(free<0)
-    return out+'<br>'+TX1('<b class="warn">최소량 셋이 목표를 넘김</b> — 목표가 {0}kcal 인데 {1}kcal 가 모자람. 셋 중 하나를 낮춰야 함',
+  /* 감량 프리셋은 셋이 목표를 꽉 채우는 수라 여유가 0 근처다. 그 몇 kcal 를
+     '넘김' 이라 적으면 경고가 늘 켜져 있으므로 허용폭 안은 꽉 맞은 것으로 본다. */
+  var free=goal-kc,tol=macroTol(goal);
+  if(free<-tol)
+    return out+'<br>'+TX1('<b class="warn">적정량 셋이 목표를 넘김</b> — 목표가 {0}kcal 인데 {1}kcal 가 모자람. 셋 중 하나를 낮춰야 함',
       goal.toLocaleString(),(-free).toLocaleString());
-  return out+'<br>'+TX1('목표 {0}kcal − 최소량 {1} = <b>{2}</b>kcal 여유 (무엇으로 채워도 됨)',
+  if(free<=tol)
+    return out+'<br>'+TX1('적정량 셋이 목표 {0}kcal 를 꽉 채움 — 여유 없음',goal.toLocaleString());
+  return out+'<br>'+TX1('목표 {0}kcal − 적정량 {1} = <b>{2}</b>kcal 여유 (무엇으로 채워도 됨)',
     goal.toLocaleString(),kc.toLocaleString(),free.toLocaleString());
 }
 /* 유산소 칼로리 추정 — 러닝머신: ACSM 대사 공식(걷기<7km/h<달리기), 계단: MET 근사 */
@@ -12512,9 +12520,9 @@ function dayPastHtml(nf,ds){
           :TX1('{0} 모자람',(-df).toLocaleString()))+'</i></div>';
   var mg=(goal>0)?macroGoals(goal):null;
   if(mg)h+='<div class="rings">'
-    +vzRing(TX('단백질'),'opt',r.protein,mg.p,'g')
-    +vzRing(TX('탄수'),'min',r.carb,mg.c,'g',mg.cx)
-    +vzRing(TX('지방'),'min',r.fat,mg.f,'g',mg.fx)+'</div>';
+    +vzRing(TX('단백질'),r.protein,mg.p,'g')
+    +vzRing(TX('탄수'),r.carb,mg.c,'g',mg.cx)
+    +vzRing(TX('지방'),r.fat,mg.f,'g',mg.fx)+'</div>';
   /* 그 날의 소비로 그 날의 목표가 나왔다 — 운동한 날은 목표가 컸다.
      그 고리를 안 적으면 왜 어떤 날만 목표가 높은지 알 수가 없다. */
   var ex=Math.round(r.exerciseKcal||0);
@@ -12562,9 +12570,9 @@ function vzDiet(tab){
        이 자리가 통째로 글이었다. */
     var mg0=(gi>0)?macroGoals(gi):null;
     if(mg0)h+='<div class="rings">'
-      +vzRing(TX('단백질'),'opt',0,mg0.p,'g')
-      +vzRing(TX('탄수'),'min',0,mg0.c,'g',mg0.cx)
-      +vzRing(TX('지방'),'min',0,mg0.f,'g',mg0.fx)+'</div>';
+      +vzRing(TX('단백질'),0,mg0.p,'g')
+      +vzRing(TX('탄수'),0,mg0.c,'g',mg0.cx)
+      +vzRing(TX('지방'),0,mg0.f,'g',mg0.fx)+'</div>';
     if(gi>0)h+=vzLine(TX('먹을 수 있는 양'),gi.toLocaleString()+' kcal',
       TX1('오늘 소비 {0} − 적자 {1}',tdA.toLocaleString(),Math.round(nf.dailyDeficitTarget)),{t:'',c:''});
     /* 원이 단백질 목표를 이미 말하므로 그때는 줄로 또 안 적는다 */
@@ -12616,23 +12624,25 @@ function vzDiet(tab){
     var mg=macroGoals(goal);
     if(mg){
       h+='<div class="rings">'
-        +vzRing(TX('단백질'),'opt',td2.p,mg.p,'g')
-        +vzRing(TX('탄수'),'min',td2.c,mg.c,'g',mg.cx)
-        +vzRing(TX('지방'),'min',td2.f,mg.f,'g',mg.fx)
+        +vzRing(TX('단백질'),td2.p,mg.p,'g')
+        +vzRing(TX('탄수'),td2.c,mg.c,'g',mg.cx)
+        +vzRing(TX('지방'),td2.f,mg.f,'g',mg.fx)
         +'</div>';
       /* 각주를 걷어냈다. 원에 '적정·최소' 를 붙여 놓고 그 밑에 그게 무슨
          뜻인지 또 쓰고 있었다 — 표를 못 믿어 각주를 단 꼴이다. 탄수가
-         어디서 나온 수인지도 설정 · Macro floors 에 이미 있다.
+         어디서 나온 수인지도 설정 · DIET · 영양에 이미 있다.
          눈금을 아예 못 낸 때만 남긴다. 그때는 원이 '—' 라 까닭이 없으면
          고장으로 보이고, 설정을 고쳐야 풀리므로 어디를 고치는지도 적는다. */
       /* 탄수가 남은 몫이던 때는 '몫이 0 이 됨' 이 고장 신호였다. 이제 셋 다
-         바닥이라 0 이 될 일이 없고, 대신 셋의 합이 목표를 넘을 수 있다 —
-         그때는 바닥대로 먹으면 적자가 깨지므로 그 말을 적는다. */
-      if(mg.kcal>goal)
+         적정량이라 0 이 될 일이 없고, 대신 셋의 합이 목표를 넘을 수 있다 —
+         그때는 적정량대로 먹으면 적자가 깨지므로 그 말을 적는다.
+         mg.over 는 허용폭을 넘은 몫만 준다 — 감량 프리셋은 셋이 목표를 꽉
+         채우는 수라, 반올림에서 생기는 몇 kcal 까지 적으면 늘 켜져 있다. */
+      if(mg.over>0)
         h+='<div class="sbf" style="margin:0 0 10px">'
-          +TX1('최소량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b>'
-             +' — 설정 · Macro floors 에서 하나를 낮춰야 적자가 지켜짐',
-             mg.kcal.toLocaleString(),goal.toLocaleString(),(mg.kcal-goal).toLocaleString())
+          +TX1('적정량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b>'
+             +' — 설정 · DIET · 영양에서 하나를 낮춰야 적자가 지켜짐',
+             mg.kcal.toLocaleString(),goal.toLocaleString(),mg.over.toLocaleString())
           +'</div>';
     }
     /* 끼니 키가 영어로 그대로 샜다 — '안 먹은 끼니 → dinner' */
@@ -12808,7 +12818,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 23:22';
+var BUILD='2026-10-02 23:25';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13759,7 +13769,7 @@ var EN={
 '{0} 더 먹어도 됨':'{0} still available',
 '단백질':'Protein','탄수':'Carbs','지방':'Fat',
 '{0}{1} 더':'{0}{1} to go',
-'최소량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b> — 설정 · Macro floors 에서 하나를 낮춰야 적자가 지켜짐':'Hitting all three floors is {0}kcal, <b>{2}kcal over</b> the {1}kcal target — lower one of them under Settings · Macro floors to keep the deficit',
+'적정량을 다 채우면 {0}kcal 로 목표 {1}kcal 를 <b>{2}kcal 넘김</b> — 설정 · DIET · 영양에서 하나를 낮춰야 적자가 지켜짐':'Hitting all three targets is {0}kcal, <b>{2}kcal over</b> the {1}kcal target — lower one of them under Settings · DIET · Nutrition to keep the deficit',
 /* ── 끼니 ── */
 '아침':'Breakfast','점심':'Lunch','저녁':'Dinner','간식':'Snack',
 '먹음':'eaten','남음':'left','그 밖':'other',
@@ -13940,8 +13950,8 @@ var EN={
 '목표 체지방':'Target body fat',
 '감량 속도':'Loss pace',
 '활동 계수':'Activity factor',
-'단백질 최소':'Protein floor',
-'탄수 최소':'Carb floor',
+'단백질 적정':'Protein target',
+'탄수 적정':'Carb target',
 '범위':'band','체중 변화':'Weight change',
 '<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자':'<b>Cut</b> {0}kg/week — {1}kcal daily deficit',
 
@@ -13961,7 +13971,7 @@ var EN={
 '단백질 {0} — 체중 기준 권장은 1.8~2.2':'Protein {0} — the per-bodyweight range is 1.8–2.2',
 '지방 {0}g — 호르몬 하한(체중 0.5g/kg = {1}g) 밑':'Fat {0}g — below the hormonal floor (0.5g/kg bodyweight = {1}g)',
 '지방 {0} — 호르몬 하한으로 흔히 쓰는 0.5 밑':'Fat {0} — below the 0.5 commonly used as a hormonal floor',
-'지방 최소':'Fat floor',
+'지방 적정':'Fat target',
 '하루 소비 <b>{0}</b>kcal — 제지방 <b>{1}</b>kg · 기초 <b>{2}</b> × 활동 {3}':'Daily burn <b>{0}</b>kcal — LBM <b>{1}</b>kg · BMR <b>{2}</b> × activity {3}',
 '디로딩 주':'Deload week',
 '바꾸기':'Change',
@@ -14891,17 +14901,20 @@ function softWhy(ds){return isDeload(ds)?'디로딩':(isLite(ds)?'가볍게':'')
 function softTag(ds){var w=softWhy(ds);return w?'<i class="eq soft">'+TX(w)+'</i>':'';}
 function isDeload(ds){var w=wkCfg(wkMon(ds));return !!(w&&w.d);}
 function okBand(target){return Math.max(150,Math.round((+target||0)*0.10));}
-/* 제지방 kg 당 단백질 g. Helms 2014 의 감량기 권장 범위가 제지방 2.3~3.1 이고
+/* 설치 기본값 셋은 감량 프리셋(MPRE.cut)과 같은 수다 — 다르게 두면 갓 깐
+   앱이 어느 프리셋에도 안 걸려 단추가 둘 다 꺼진 채로 시작한다.
+   제지방 kg 당 단백질 g. Helms 2014 의 감량기 권장이 제지방 2.3~3.1 이고
    그 가운데를 쓴다(체지방 20% 면 체중 기준 2.0 과 같은 g 이다). */
 var PRO_PER_KG=2.5;
-/* 체중당 지방 g. 감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너져
-   바닥으로 흔히 쓰는 값이다. */
-var FAT_PER_KG=1.0;
-/* 체중당 탄수 g — 바닥이다. 예전에는 '단백질·지방을 못박고 남은 열량' 으로
-   냈는데, 그러면 목표 열량을 1,200 으로 내리는 순간 탄수 몫이 0 이 되어
-   앱이 케토를 지시하는 꼴이 된다. 셋 다 바닥으로 두고, 바닥을 채우고 남는
-   열량은 '여유' 로 따로 적는다. */
-var CARB_PER_KG=1.25;
+/* 제지방 kg 당 지방 g. 열량의 25%(권장 20~30% 의 가운데)에 해당하는 수다.
+   감량기에 지방을 너무 낮추면 호르몬 쪽이 먼저 무너지므로 체중 0.5g/kg 이
+   하한이고, 0.8 은 체중 기준 0.64 로 그 위다. */
+var FAT_PER_KG=0.8;
+/* 제지방 kg 당 탄수 g — 단백질·지방 권장을 뺀 나머지를 g/kg 으로 되돌린 수다
+   (체중 기준 2.4, 권장 2~5 안). 예전에는 '남은 열량 ÷ 4' 로 그때그때 냈는데,
+   그러면 목표 열량을 1,200 으로 내리는 순간 탄수 몫이 0 이 되어 앱이 케토를
+   지시하는 꼴이 된다. 그래서 고정된 g/kg 으로 둔다. */
+var CARB_PER_KG=3.0;
 /* 탄수·지방의 상한. 최소만 있으면 '적어도 이만큼' 밖에 못 말한다 —
    리컴프는 쓸 수 있는 열량이 좁아서, 탄수나 지방 한쪽이 바닥을 한참 넘겨
    버리면 단백질을 채울 자리가 남지 않는다. 그래서 위쪽 선도 있어야 한다.
@@ -14920,17 +14933,19 @@ function macroBW(){
   if(MACRO_BASE==='lbm'&&BW>0&&BF>0&&BF<60)return BW*(1-BF/100);
   return BW;
 }
+/* 두 자리로 받는다. *10)/10 으로 받으면 1.25 가 켤 때마다 1.3 으로 자라
+   저장이 그 1.3 을 도로 굳힌다 — 쓰는 사람은 손댄 적이 없다. */
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.ppk'));
-  if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*10)/10;}catch(e){}})();
+  if(v>=1&&v<=3)PRO_PER_KG=Math.round(v*100)/100;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.fpk'));
-  if(v>=0.3&&v<=1.5)FAT_PER_KG=Math.round(v*10)/10;}catch(e){}})();
+  if(v>=0.3&&v<=1.5)FAT_PER_KG=Math.round(v*100)/100;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=parseFloat(localStorage.getItem(KEY+'.cpk'));
-  if(v>=0.3&&v<=5)CARB_PER_KG=Math.round(v*10)/10;}catch(e){}})();
+  if(v>=0.3&&v<=5)CARB_PER_KG=Math.round(v*100)/100;}catch(e){}})();
 (function(){if(!canLS)return;try{var v=localStorage.getItem(KEY+'.mbase');
   if(v==='bw'||v==='lbm')MACRO_BASE=v;}catch(e){}})();
 (function(){if(!canLS)return;try{
-  var a=parseFloat(localStorage.getItem(KEY+'.cmx'));if(a>=0&&a<=12)CARB_MAX_KG=Math.round(a*10)/10;
-  var b=parseFloat(localStorage.getItem(KEY+'.fmx'));if(b>=0&&b<=3)FAT_MAX_KG=Math.round(b*10)/10;
+  var a=parseFloat(localStorage.getItem(KEY+'.cmx'));if(a>=0&&a<=12)CARB_MAX_KG=Math.round(a*100)/100;
+  var b=parseFloat(localStorage.getItem(KEY+'.fmx'));if(b>=0&&b<=3)FAT_MAX_KG=Math.round(b*100)/100;
 }catch(e){}})();
 /* 옛 판은 최소량을 체중에 곱했다. 그 저장값을 그대로 제지방에 곱하면 단백질이
    160 → 128g 으로 조용히 떨어지므로 켤 때 한 번 환산한다.
@@ -14946,16 +14961,16 @@ function macroBW(){
     localStorage.setItem(KEY+'.mbase2','1');          /* 다음부터는 안 돈다 */
     if(buggy){
       localStorage.removeItem(KEY+'.cpk');
-      CARB_PER_KG=1.25;
+      CARB_PER_KG=3.0;
       return;
     }
     var bf=parseFloat(localStorage.getItem(KEY+'.bf'));
     if(!(bf>0&&bf<60))return;                         /* 제지방을 모르면 환산 못 함 */
     var k=1/(1-bf/100);
     /* 저장된 것만 환산한다 — 저장된 적 없는 값은 이미 제지방 기준 기본값이다 */
-    function conv(key,cur,set){
+    function conv(key,cur){
       if(!localStorage.getItem(KEY+'.'+key))return cur;
-      var v=Math.round(cur*k*10)/10;
+      var v=Math.round(cur*k*100)/100;
       localStorage.setItem(KEY+'.'+key,String(v));
       return v;
     }
@@ -15019,7 +15034,7 @@ function nutriFacts(){
       }
       if(ms.snack&&ms.snack.n>0)eaten.push('snack');
     }
-    /* 단백질 목표는 체중 x PRO_PER_KG(설정 · Macro floors) 에서 나온다 */
+    /* 단백질 목표는 기준 x PRO_PER_KG(설정 · DIET · 영양) 에서 나온다 */
     var pGoal=BW>0?Math.round(macroBW()*PRO_PER_KG):null;
     todayBlock={
       eatenMeals:eaten, missingMeals:missing, skippedMeals:skipped,
@@ -15197,38 +15212,40 @@ function vzBar(name,cur,goal,sub,vd,mark){
     +((sub&&String(sub).length>6)?('<span class="sub">'+esc(sub)+'</span>'):'')
     +'</div>';
 }
-/* 목표 열량에서 탄단지 눈금을 뽑는다. 감량기 표준 순서 — 단백질을 먼저
-   못박고, 지방은 바닥을 깔고, 남는 것이 탄수다.
-   이 순서라야 목표 열량이 바뀔 때 탄수만 움직이고 단백질·지방 바닥은
-   그대로다. 지켜야 할 것이 지켜진다. */
-/* 탄단지 셋의 바닥. 셋 다 체중 x g/kg 이고, 바닥을 채우고 남는 열량은
-   free 로 따로 돌려준다 — 화면이 그것을 '여유' 로 적는다.
+/* 감량 프리셋은 적정량 셋이 목표 열량을 꽉 채우도록 잡은 수다. 그래서 합이
+   목표와 몇 kcal 어긋나는 것은 늘 일어나고(셋을 각각 g 으로 반올림하므로),
+   그것까지 '넘김' 이라 적으면 경고가 꺼지는 날이 없다.
+   목표의 2%(최소 20kcal)까지는 꽉 맞은 것으로 본다. */
+function macroTol(goal){return Math.max(20,Math.round((+goal||0)*0.02));}
+/* 탄단지 셋의 적정량. 셋 다 기준 x g/kg 이고, 채우고 남는 열량은 free 로
+   따로 돌려준다 — 화면이 그것을 '여유' 로 적는다. over 는 허용폭을 넘은
+   초과분이고, 그 안이면 0 이다.
 
-   예전에는 탄수만 '남은 열량 ÷ 4' 였다. 그러면 최소치가 목표 열량을 따라
-   0~321g 까지 흔들려 최소라 부를 수가 없고, 목표를 1,200 으로 내리는 순간
+   예전에는 탄수만 '남은 열량 ÷ 4' 였다. 그러면 탄수 몫이 목표 열량을 따라
+   0~321g 까지 흔들려 눈금이라 부를 수가 없고, 목표를 1,200 으로 내리는 순간
    탄수가 0 이 되어 앱이 케토를 지시하는 꼴이 된다. */
 function macroGoals(kcalGoal){
   if(!(BW>0)||!(kcalGoal>0))return null;
   var w=macroBW();
   var p=Math.round(w*PRO_PER_KG),f=Math.round(w*FAT_PER_KG),c=Math.round(w*CARB_PER_KG);
-  /* 상한은 0 이면 없는 것으로 친다. 최소보다 작게 넣은 값은 뜻이 없으므로
-     최소로 끌어올린다 — 밴드가 뒤집히면 어떤 값도 '안' 에 못 든다. */
+  /* 상한은 0 이면 없는 것으로 친다. 적정량보다 작게 넣은 값은 뜻이 없으므로
+     적정량으로 끌어올린다 — 밴드가 뒤집히면 어떤 값도 '안' 에 못 든다. */
   var cx=CARB_MAX_KG>0?Math.max(c,Math.round(w*CARB_MAX_KG)):0;
   var fx=FAT_MAX_KG>0?Math.max(f,Math.round(w*FAT_MAX_KG)):0;
+  var kc=p*4+c*4+f*9,tol=macroTol(kcalGoal);
   return {p:p,f:f,c:c,cx:cx,fx:fx,
-          kcal:p*4+c*4+f*9,free:kcalGoal-(p*4+c*4+f*9)};
+          kcal:kc,free:kcalGoal-kc,over:(kc-kcalGoal>tol)?(kc-kcalGoal):0};
 }
-/* 원 하나. 눈금은 셋 다 '적어도 이만큼' 이다 — 넘긴 것은 잘못이 아니라
-   채운 것이므로 어떤 원도 넘겼다고 경고색을 쓰지 않는다. 못 채운 것만 말한다.
-   눈금이 없으면(탄수 몫이 0) 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
-   kind: 'opt' 적정(단백질만) · 'min' 최소(지방·탄수) */
-/* 눈금에는 두 꼴이 있다.
-   상한이 없으면(max 를 안 주면) '적어도 이만큼' 이다 — 넘긴 것은 잘못이
-   아니라 채운 것이므로 경고색을 안 쓰고, 못 채운 것만 말한다.
-   상한이 있으면 밴드다 — 부족 · 안 · 넘침 셋으로 갈린다. 리컴프처럼 쓸
-   열량이 좁을 때는 한쪽이 넘치면 다른 쪽이 못 채워지므로 위쪽도 말해야 한다.
-   kind 는 라벨만 가른다: opt 적정 · min 최소(밴드면 '범위'). */
-function vzRing(name,kind,cur,goal,unit,max){
+/* 원 하나. 눈금에는 두 꼴이 있다.
+   상한이 없으면(max 를 안 주면) 100% 가 '권장량' 이고 라벨은 '적정' 이다 —
+   넘긴 것은 잘못이 아니라 채운 것이므로 경고색을 안 쓰고, 못 채운 것만 말한다.
+   상한이 있으면 밴드고 라벨은 '범위' 다 — 부족 · 안 · 넘침 셋으로 갈린다.
+   리컴프처럼 쓸 열량이 좁을 때는 한쪽이 넘치면 다른 쪽이 못 채워지므로
+   위쪽도 말해야 한다.
+   눈금이 없으면 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
+   예전에는 kind 로 '적정(단백질)' 과 '최소(탄수·지방)' 를 갈랐는데, 셋 다
+   권장량을 100% 로 두기로 해서(요청) 가를 것이 없어졌다 — 밴드인지만 본다. */
+function vzRing(name,cur,goal,unit,max){
   cur=Math.round(+cur||0);goal=Math.round(+goal||0);max=Math.round(+max||0);
   var R=26,C=2*Math.PI*R;
   var band=max>goal;
@@ -15237,7 +15254,7 @@ function vzRing(name,kind,cur,goal,unit,max){
   var fill=Math.max(0,Math.min(1,rate))*C;
   var pct=goal>0?Math.round(rate*100):null;
   var h='<div class="ring"><div class="rgn">'+esc(name)
-    +'<i>'+(kind==='opt'?TX('적정'):(band?TX('범위'):TX('최소')))+'</i></div>'
+    +'<i>'+(band?TX('범위'):TX('적정'))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
   if(goal>0&&fill>0)
