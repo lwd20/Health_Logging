@@ -4936,19 +4936,38 @@ function isWalkName(x){return cKind(x)==='walk';}
    '걷기 N분 별도' 라 적는다. 훈련으로 세는 자리에서는 빼야 셈이 한 가지로
    된다. 종목 id 로 묻는 자리가 여럿이라 여기 하나로 둔다. */
 function isWalkId(id){var m=machById(id);return !!(m&&isCard(m.p)&&isWalkName(m));}
+/* 예전에는 여기서 'Walking'(b:'NEAT') 종목을 늘 만들어 뒀다. 걷기를 운동
+   소비에서 뺀 뒤로 그 종목은 하는 일이 없다 — 열량도 안 세고, 주간 유산소
+   분에도 안 들고, 걸음은 폰이 이미 센다. 기록해도 로그에 줄 하나가 남을
+   뿐이고 그 줄은 이제 '걸음' 줄이 대신한다. 그래서 안 만든다.
+   사람이 직접 '산책' 같은 이름으로 만들면 isWalkName 이 그것도 NEAT 로
+   다루므로, 걷기를 적고 싶은 사람의 길이 막히지는 않는다. */
 function ensureCardio(){
-  var i,has=false,hasWalk=false;
-  for(i=0;i<S.m.length;i++){
-    if(S.m[i].p==='CARDIO'){
-      has=true;
-      if(isWalkName(S.m[i]))hasWalk=true;
-    }
-  }
+  var i,has=false;
+  for(i=0;i<S.m.length;i++)if(S.m[i].p==='CARDIO'){has=true;break;}
   if(!has){
     S.m.push({i:uid(),n:'Treadmill',p:'CARDIO',b:''});
     S.m.push({i:uid(),n:'Stair Climber',p:'CARDIO',b:''});
   }
-  if(!hasWalk)S.m.push({i:uid(),n:'Walking',p:'CARDIO',b:'NEAT'});
+}
+/* 앱이 만들어 둔 빈 'Walking' 을 한 번 치운다. 지워도 ensureCardio 가 다시
+   만들던 종목이라 사람이 치울 길이 없었다.
+   **세션이 하나라도 있으면 안 건드린다** — 그건 그 사람의 기록이지 앱이
+   깔아 둔 자리가 아니다. 남은 것은 손으로 지울 수 있다(이제 안 되살아난다). */
+function dropAutoWalk(){
+  if(!canLS)return;
+  try{if(localStorage.getItem(KEY+'.mig.walk'))return;}catch(e0){return;}
+  var i,m,a,kept=0;
+  for(i=S.m.length-1;i>=0;i--){
+    m=S.m[i];
+    if(!(isCard(m.p)&&isWalkName(m)&&(m.b||'')==='NEAT'))continue;
+    a=S.l[m.i]||[];
+    if(a.length){kept++;continue;}
+    S.m.splice(i,1);
+    delete S.l[m.i];
+  }
+  try{localStorage.setItem(KEY+'.mig.walk','1');}catch(e1){}
+  return kept;
 }
 function hasLogs(){for(var k in S.l){var a=S.l[k];if(a&&a.length)return true;}return false;}
 /* ── 데모 모드: 빈 상태에서만 메모리에 샘플 로드, 저장소엔 절대 기록 안 됨, 첫 실제 저장 시 소멸 ── */
@@ -12765,7 +12784,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 22:46';
+var BUILD='2026-10-02 22:54';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -16597,6 +16616,8 @@ function syncBtns(){
 }
 
 ensureCardio();
+/* 켤 때 한 번. ensureCardio 보다 뒤에 둔다 — 앞에 두면 그 자리에서 다시 만든다. */
+dropAutoWalk();
 /* 창이 상태바 밑까지 늘어난 앱에서 그 높이를 받아 둔다. env() 가 0 인 기기 대비. */
 try{if(window.AndroidUI&&AndroidUI.inset){var sb=AndroidUI.inset();
   if(sb>0)document.documentElement.style.setProperty('--sbh',sb+'px');}}catch(eSB){}
