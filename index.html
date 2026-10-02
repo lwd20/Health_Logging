@@ -2341,6 +2341,15 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 밴드를 넘긴 눈금. 색만으로는 못 가른다 — chalk 처럼 경고색이 짙은 호박색인
    팔레트에서는 흰 바탕에서 그냥 또 하나의 강조색으로 보인다. 굵기도 같이. */
 .rgs .fl.ovr{stroke:var(--sig);stroke-width:9;stroke-linecap:butt}
+/* 밴드의 **최소** 자리를 고리 위에 한 칸 찍는다. 100% 가 상한이라 최소가
+   어디인지 안 보이면 '아직 모자란지' 를 고리만 보고는 못 읽는다.
+   색은 **그 자리에 채움이 있느냐**로 고른다. 한 색으로는 스물여덟 팔레트를
+   못 덮는다 — 글자색은 어두운 판에서 채움(금색) 위에 잘 보이지만 밝은 판에서는
+   채움도 글자도 둘 다 어두워 사라지고(chalk 채움 #2e373e · 글자 #1b1e21),
+   판 색은 정확히 그 반대다. 그래서 채움 위면 판 색으로 파고, 맨 눈금 위면
+   글자색으로 긋는다. */
+.rgs .mn{fill:none;stroke:var(--tx);stroke-width:7;stroke-linecap:butt;opacity:.45}
+.rgs .mn.on{stroke:var(--plate);opacity:.85}
 
 /* 원을 -90도 돌렸으니 글자는 되돌려 세운다 */
 .rgs .rgp{fill:var(--tx);font-family:var(--mono);font-size:14px;font-weight:700;
@@ -6940,8 +6949,11 @@ function renderSheet(){
       +(mpn==='lean'?'cut':'lean')+'" style="flex:0 0 auto;margin-left:9px">'
       +(mpn==='lean'?'ON':'OFF')+'</button>'
       +'<div class="strest"></div>'
-      +'<span class="stsl">'+(mpn==='lean'?TX('체중을 줄이며 근육'):TX('끄면 감량'))+'</span></div>'
-      +sxBox('pre',TX('누르면 아래 세 탭의 값이 문헌 값으로 한꺼번에 채워짐. <b>감량</b> = 제지방 기준 단백질 2.5 · 탄수 1.25 · 지방 1.0 g/kg, 주당 −0.5kg. <b>리컴프</b> = 체중을 줄이면서 근육을 올리는 것으로, 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 적자가 하루 500kcal 를 넘으면 리컴프가 안 됨. 한 칸이라도 손대면 아래 줄이 <b>직접 설정</b>으로 바뀜.'))
+      /* 이 줄은 **단추를 누르면 무엇이 되는지**다. 꺼져 있는데 '끄면 감량' 이라
+         적어 두어, 이미 감량인 사람에게 하라는 말을 또 하고 있었다.
+         지금 무엇으로 먹고 있는지는 바로 아래 결과 줄이 적는다. */
+      +'<span class="stsl">'+(mpn==='lean'?TX('끄면 감량'):TX('켜면 리컴프'))+'</span></div>'
+      +sxBox('pre',TX('누르면 아래 세 탭의 값이 문헌 값으로 한꺼번에 채워짐. <b>감량</b> = 제지방 기준 단백질 2.5 · 탄수 3.0 · 지방 0.8 g/kg, 주당 −0.5kg. 상한이 없어 고리가 셋 다 <b>적정</b>임. <b>리컴프</b> = 체중을 줄이면서 근육을 올리는 것으로, 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 탄수·지방에 상한이 있어 그 둘은 <b>범위</b>가 되고, 100% 가 상한임. 적자가 하루 500kcal 를 넘으면 리컴프가 안 됨. 한 칸이라도 손대면 아래 줄이 <b>직접 설정</b>으로 바뀜.'))
       /* 지금 무엇으로 먹고 있는지는 단추가 아니라 이 줄이 말한다 — 단추는
          누르는 자리고, 이 줄은 결과다 */
       +'<div class="note" style="margin:0 0 2px">'
@@ -6955,7 +6967,7 @@ function renderSheet(){
       +'</div>'
       +sxBox('body',TX('<b>신장</b>은 보폭을 정하고, 보폭이 걸음당 kcal 을 정함(신장 × 0.415). <b>활동 계수</b>는 걸음 자료가 아예 없는 날에만 쓰는 기본값 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈. 올린다고 더 먹을 수 있게 되지 않음.'))
       +sxBox('goal',TX('<b>체중 변화</b>는 주당 몇 kg 을 움직일지임. 적자 = 체중 변화 × 7700 ÷ 7. <b>음수를 넣으면 증량</b>이 되어 그대로 잉여가 됨(범위 −0.5~1.5). <b>목표 체지방</b>은 분석탭의 감량 현황이 남은 거리를 재는 기준.'))
-      +sxBox('macro',TX('탄단지 셋은 전부 <b>적정량</b>임 — 고리의 100% 가 권장량임. 감량 프리셋은 셋을 채우면 목표 열량이 꽉 차도록 잡혀 있어 여유가 0 에 가까움. 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 부족 · 안 · 넘침 셋으로 갈림.'));
+      +sxBox('macro',TX('탄단지 셋은 전부 <b>적정량</b>임 — 고리의 100% 가 권장량임. 감량 프리셋은 셋을 채우면 목표 열량이 꽉 차도록 잡혀 있어 여유가 0 에 가까움. 넘긴 것은 잘못이 아니라 채운 것이고, 못 채운 것만 화면이 말함. 기준 × g/kg 으로 g 이 나오고, 기준을 바꾸면 먹는 g 을 지키려고 g/kg 을 같이 환산함. <b>최대</b>가 0 이면 상한 없음이고, 값이 있으면 고리가 <b>범위</b>로 바뀌어 부족 · 안 · 넘침 셋으로 갈림 — 그때는 100% 가 상한이고 최소 자리에 눈금이 찍힘.'));
 
     if(dts==='body'){
       h+=srow('ht0',TX('신장'),'cm',HT)
@@ -12818,7 +12830,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 23:25';
+var BUILD='2026-10-02 23:50';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13951,7 +13963,7 @@ var EN={
 '감량 속도':'Loss pace',
 '활동 계수':'Activity factor',
 '단백질 적정':'Protein target',
-'탄수 적정':'Carb target',
+'탄수 적정':'Carb target','켜면 리컴프':'On = recomp','끄면 감량':'Off = cut',
 '범위':'band','체중 변화':'Weight change',
 '<b>감량</b> 주당 {0}kg — 하루 {1}kcal 적자':'<b>Cut</b> {0}kg/week — {1}kcal daily deficit',
 
@@ -14318,7 +14330,7 @@ var EN={
 '주동근 미지정 종목 {0}개 — 종목 편집에서 설정':'{0} exercises have no prime mover — set it in the exercise editor',
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
-'적정':'target','최소':'min','충족':'met',
+'적정':'target','최소':'min','충족':'met','범위 안':'in range',
 '남은 몫':'left over','{0}{1} 넘김':'{0}{1} over','{0}{1} 여유':'{0}{1} left',
 '기본값으로':'Reset',
 '근육 항목을 기본값으로 되돌림':'Muscle list restored to defaults',
@@ -15245,21 +15257,51 @@ function macroGoals(kcalGoal){
    눈금이 없으면 퍼센트 자리에 — 를 둔다. 기준 없는 원은 거짓말이다.
    예전에는 kind 로 '적정(단백질)' 과 '최소(탄수·지방)' 를 갈랐는데, 셋 다
    권장량을 100% 로 두기로 해서(요청) 가를 것이 없어졌다 — 밴드인지만 본다. */
+/* 밴드(최소~최대)와 적정은 **100% 의 뜻이 다르다.**
+   적정: 100% 가 권장량. 상한이 없으니 넘겨도 경고가 아니다.
+   밴드: 100% 가 **상한**이고, 최소 자리에 눈금(`.mn`)을 하나 찍는다.
+   어느 쪽인지는 고리 바로 위 이름줄이 '적정'·'범위'로 적는다.
+
+   예전에는 밴드도 최소로 나눴다. 탄수 200 / 119~198 이 **168%** 로 찍혀,
+   상한을 1% 넘긴 상태가 한참 넘긴 것처럼 보였다. 게다가 최소(119)를 넘는
+   순간 고리가 꽉 차 버려서 최소와 상한 사이 어디쯤인지는 고리가 아무 말도
+   안 하다가, 상한에서 한 칸 넘자마자 통째로 빨개졌다.
+
+   허용폭(상한의 3%, 최소 5)은 **경고색만** 끈다. 상한 198g 에 2g 넘겼다고
+   고리를 빨갛게 칠하면 끼니 기록이 흔들리는 폭만으로 경고가 켜진다 —
+   다 경고면 아무것도 경고가 아니다.
+   **넘긴 사실은 허용폭 안이어도 그대로 적는다.** 한때 허용폭 안을 '범위 안'
+   이라 적었는데, 바로 밑 수치줄이 `200 / 119~198` 이라 화면이 서로 다른 말을
+   했다. 색은 '이게 문제인가' 를 말하고, 글귀는 '무슨 일이 있었나' 를 말한다 —
+   둘을 같은 문턱으로 묶지 마라. */
 function vzRing(name,cur,goal,unit,max){
   cur=Math.round(+cur||0);goal=Math.round(+goal||0);max=Math.round(+max||0);
   var R=26,C=2*Math.PI*R;
   var band=max>goal;
-  var over=band&&cur>max;
-  var rate=goal>0?cur/goal:0,met=goal>0&&cur>=goal&&!over;
+  var top=band?max:goal;                               /* 100% 가 가리키는 수 */
+  var tol=band?Math.max(5,Math.round(max*0.03)):0;
+  var hi=band&&cur>max;                                /* 넘겼다 — 사실 */
+  var over=band&&cur>max+tol;                          /* 경고할 만큼 넘겼다 */
+  var low=goal>0&&cur<goal;
+  var met=goal>0&&!low&&!hi;
+  var rate=top>0?cur/top:0;
   var fill=Math.max(0,Math.min(1,rate))*C;
-  var pct=goal>0?Math.round(rate*100):null;
+  var pct=top>0?Math.round(rate*100):null;
   var h='<div class="ring"><div class="rgn">'+esc(name)
     +'<i>'+(band?TX('범위'):TX('적정'))+'</i></div>'
     +'<svg viewBox="0 0 64 64" class="rgs">'
     +'<circle class="tr" cx="32" cy="32" r="'+R+'"/>';
-  if(goal>0&&fill>0)
+  if(top>0&&fill>0)
     h+='<circle class="fl'+(over?' ovr':(met?' met':''))+'" cx="32" cy="32" r="'+R+'" '
       +'stroke-dasharray="'+fill.toFixed(1)+' '+C.toFixed(1)+'"/>';
+  /* 최소 눈금은 **채움 뒤에** 그린다 — 채움에 덮이면 최소를 넘었는지가 안 보인다.
+     색은 그 자리에 채움이 있느냐로 고른다(`.on`) — 까닭은 CSS 쪽에 적었다. */
+  if(band&&top>0&&goal>0){
+    var tw=2.6,at=Math.max(0,Math.min(1,goal/top))*C;
+    h+='<circle class="mn'+(cur>=goal?' on':'')+'" cx="32" cy="32" r="'+R+'" '
+      +'stroke-dasharray="'+tw+' '+C.toFixed(1)+'" '
+      +'stroke-dashoffset="'+(-(at-tw/2)).toFixed(1)+'"/>';
+  }
   h+='<text x="32" y="36" class="rgp">'+(pct===null?'—':pct+'%')+'</text></svg>'
     +'<div class="rgv">'+cur.toLocaleString()
     +(goal>0?'<em> / '+goal.toLocaleString()
@@ -15268,8 +15310,9 @@ function vzRing(name,cur,goal,unit,max){
        상태가 아니라 다음 끼니에 뭘 먹느냐다. */
     +'<div class="rgd'+(over?' ovr':(met?' met':''))+'">'
     +(goal<=0?'—'
-      :(over?'\u25b2 '+TX1('{0}{1} 넘김',(cur-max).toLocaleString(),esc(unit))
-            :(met?TX('충족'):TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit)))))+'</div>'
+      :(hi?'\u25b2 '+TX1('{0}{1} 넘김',(cur-max).toLocaleString(),esc(unit))
+          :(low?TX1('{0}{1} 더',(goal-cur).toLocaleString(),esc(unit))
+               :(band?TX('범위 안'):TX('충족')))))+'</div>'
     +'</div>';
   return h;
 }
