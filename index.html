@@ -4950,24 +4950,33 @@ function ensureCardio(){
     S.m.push({i:uid(),n:'Stair Climber',p:'CARDIO',b:''});
   }
 }
-/* 앱이 만들어 둔 빈 'Walking' 을 한 번 치운다. 지워도 ensureCardio 가 다시
-   만들던 종목이라 사람이 치울 길이 없었다.
-   **세션이 하나라도 있으면 안 건드린다** — 그건 그 사람의 기록이지 앱이
-   깔아 둔 자리가 아니다. 남은 것은 손으로 지울 수 있다(이제 안 되살아난다). */
+/* 앱이 만들어 둔 'Walking' 과 그 세션을 한 번 치운다. 지워도 ensureCardio 가
+   다시 만들던 종목이라 사람이 치울 길이 없었다.
+   걷기 세션은 폰이 날마다 재는 걸 손으로 또 적어 둔 것이다 — 걸음이 있는 날은
+   그 수가 더 정확하고(하루 전체를 센다) 더 자세하다. 그래서 **걸음 자료가
+   있는 날의 걷기 세션만 지운다.**
+   걸음이 없는 날(폰을 두고 나갔거나 Health Connect 를 붙이기 전)은 그 세션이
+   그 움직임의 유일한 기록이다 — 지우면 어디에도 안 남으므로 그대로 둔다.
+   남길 것이 하나도 없으면 종목까지 지운다. */
 function dropAutoWalk(){
-  if(!canLS)return;
-  try{if(localStorage.getItem(KEY+'.mig.walk'))return;}catch(e0){return;}
-  var i,m,a,kept=0;
+  if(!canLS)return null;
+  try{if(localStorage.getItem(KEY+'.mig.walk2'))return null;}catch(e0){return null;}
+  var i,j,m,a,cut=0,kept=0,keptD=[];
   for(i=S.m.length-1;i>=0;i--){
     m=S.m[i];
-    if(!(isCard(m.p)&&isWalkName(m)&&(m.b||'')==='NEAT'))continue;
+    if(!(isCard(m.p)&&isWalkName(m)))continue;
     a=S.l[m.i]||[];
-    if(a.length){kept++;continue;}
-    S.m.splice(i,1);
-    delete S.l[m.i];
+    for(j=a.length-1;j>=0;j--){
+      if(!(a[j].s&&a[j].s.length)){a.splice(j,1);continue;}
+      if(stepsOn(a[j].d)>0){a.splice(j,1);cut++;}
+      else{kept++;if(keptD.length<3)keptD.push(a[j].d);}
+    }
+    if(a.length)S.l[m.i]=a;
+    else{S.m.splice(i,1);delete S.l[m.i];}
   }
-  try{localStorage.setItem(KEY+'.mig.walk','1');}catch(e1){}
-  return kept;
+  try{localStorage.setItem(KEY+'.mig.walk2','1');}catch(e1){}
+  if(cut||kept)save();
+  return {cut:cut,kept:kept,days:keptD};
 }
 function hasLogs(){for(var k in S.l){var a=S.l[k];if(a&&a.length)return true;}return false;}
 /* ── 데모 모드: 빈 상태에서만 메모리에 샘플 로드, 저장소엔 절대 기록 안 됨, 첫 실제 저장 시 소멸 ── */
@@ -12784,7 +12793,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 22:54';
+var BUILD='2026-10-02 23:08';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -16616,8 +16625,17 @@ function syncBtns(){
 }
 
 ensureCardio();
-/* 켤 때 한 번. ensureCardio 보다 뒤에 둔다 — 앞에 두면 그 자리에서 다시 만든다. */
-dropAutoWalk();
+/* 켤 때 한 번. ensureCardio 보다 뒤에 둔다 — 앞에 두면 그 자리에서 다시 만든다.
+   말없이 기록을 지우면 안 된다 — 무엇을 지웠고 무엇을 남겼는지 한 번 적는다. */
+(function(){
+  var r=dropAutoWalk();
+  if(!r||!(r.cut||r.kept))return;
+  setTimeout(function(){
+    toast(r.kept
+      ? TX1('걷기 기록 {0}개를 걸음 수로 대체함 · {1}개는 그 날 걸음 자료가 없어 남겨 둠',r.cut,r.kept)
+      : TX1('걷기 기록 {0}개를 걸음 수로 대체함 — 그 날 걸음이 더 정확함',r.cut),7000);
+  },900);
+})();
 /* 창이 상태바 밑까지 늘어난 앱에서 그 높이를 받아 둔다. env() 가 0 인 기기 대비. */
 try{if(window.AndroidUI&&AndroidUI.inset){var sb=AndroidUI.inset();
   if(sb>0)document.documentElement.style.setProperty('--sbh',sb+'px');}}catch(eSB){}
