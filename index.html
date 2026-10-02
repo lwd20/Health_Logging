@@ -3850,8 +3850,9 @@ html{color-scheme:dark}
 .sheet.tall .dbody{min-height:62dvh}
 .dbody .sh-l:first-child{margin-top:0}
 #bhD{letter-spacing:.05em}
-.strow{display:flex;align-items:center;gap:9px;margin:8px 0}
-.strow .stnm{flex:0 0 58px;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
+.strow{display:flex;align-items:center;gap:9px;margin:8px 0;min-height:40px}
+/* 이름은 내용대로, 칸·단위는 오른쪽에 고정 — 줄마다 칸이 같은 자리에 선다 */
+.strow .stnm{flex:0 0 auto;white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
 .strow .stv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--acc-br);min-width:18px;text-align:right}
 .strow .stsl{color:var(--dim);font-size:11px}
 .ctrow{display:flex;gap:10px;align-items:baseline;margin:6px 0;color:var(--mut);font-size:11px}
@@ -3869,12 +3870,31 @@ html{color-scheme:dark}
 .strest{flex:1;border-bottom:1px dotted rgba(var(--tx-rgb),.22);height:11px}
 /* 이름이 긴 설정 줄 — 58px 로 못박으면 'PACE · KG/주' 가 두 줄로 감긴다.
    이름은 글자만큼, 남는 자리는 점선이 먹는다. */
-.strow.wide .stnm{flex:0 0 auto;white-space:nowrap}
-.strow.wide .stin{flex:0 0 auto;width:58px}
+/* 칸은 손가락 자리다 — 30px 는 44px 지침 아래였다. 줄 칸만 올린다(주동근
+   표의 40×30 칸은 표라서 그대로). 높이는 아래 .strow .stin 규칙이 정한다. */
+.strow .stin{flex:0 0 auto;width:58px}
+.strow .stin:disabled{opacity:.3}
+.strow .stin[readonly]{cursor:pointer}
+/* 이름을 위에 두는 꼴은 긴 값 하나뿐이다(§설정 줄 규칙) */
+/* 줄 안에 붙는 칩(ON/OFF). 이름 바로 뒤가 제자리다 — 줄마다 다른 데 두면
+   눈이 칩을 찾아 헤맨다. 크기는 `.chip` 기본값이 줄에 비해 너무 커서
+   여기서 눌러 둔다(`.strow` 를 앞에 붙여 `.chip` 을 이긴다). */
+.strow .stchip{flex:0 0 auto;margin-left:5px;height:34px;min-height:34px;
+  padding:0 13px;font-size:10px;letter-spacing:.08em}
+/* 머리글 오른쪽의 곁단추(전체/접기)와 곁말(마지막 백업 날짜) */
+.sxmore{margin-left:auto;background:none;border:0;color:var(--dim);
+  font-size:9px;font-weight:800;letter-spacing:.12em;min-height:34px;padding:0 8px}
+.sxmore:active{opacity:.6}
+.sxsub{margin-left:7px;font-style:normal;font-size:9px;font-weight:700;
+  letter-spacing:.06em;color:var(--dim);text-transform:none}
+.stfull{margin:8px 0}
+.stfull .stnm{display:block;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
 /* 단위 — 이름이 아니라 값에 붙는 것이라 값 바로 앞에, 물린 색으로 */
-.strow .stu{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;font-weight:700;
+/* 단위 칸은 **너비를 고정**한다 — 비어 있어도 자리를 잡아야 줄마다 칸이
+   같은 자리에 선다. auto 로 두면 cm · g/kg · kg/주 가 저마다 다른 폭이 된다. */
+.strow .stu{flex:0 0 38px;text-align:right;font-family:var(--mono);font-size:9.5px;font-weight:700;
   color:var(--dim);letter-spacing:0;margin-right:1px}
-.strow.wide .stin.dt{width:104px;letter-spacing:-.02em}
+.strow .stin.dt{width:104px;letter-spacing:-.02em}
 /* 한꺼번에 적는 입력칸 — 설정 줄보다 작게. 값 셋을 나란히 두는 자리다 */
 .wtg.sm input{padding:7px 0;font-size:15px}
 .wtg.sm b{font-size:8.5px;margin-bottom:3px}
@@ -3916,7 +3936,11 @@ html{color-scheme:dark}
    흰 바탕에 회색 얼룩이 지고, 모서리 3px·테두리는 시안 토큰을 안 받아
    그 칸만 다른 앱에서 온 것처럼 보였다.
    위 입력칸(.wtg input)과 같은 자를 쓴다 — 평평한 면에 테두리 하나. */
-.strow .stin,.mmrow .stin{width:40px;height:30px;
+/* 칸 높이는 뒤에 오는 이 규칙이 정한다 — 위에서 .strow .stin 에 height 를
+   적어도 여기 같은 특정도의 뒤 규칙에 덮인다(§3 '여백은 눈으로 재라'). */
+.strow .stin{height:38px}
+.mmrow .stin{height:30px}
+.strow .stin,.mmrow .stin{width:40px;
   background:rgba(var(--tx-rgb),.045);border:var(--bw) solid rgba(var(--tx-rgb),.18);
   border-radius:var(--rad-s);color:var(--acc-br);font-family:var(--mono);
   font-size:12px;font-weight:700;text-align:center}
@@ -4600,7 +4624,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',sx:'',jord:'',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',dta:'bk',sx:'',jord:'',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -6627,6 +6651,31 @@ function sxHd(lb,k,top){
     +'</div>';
 }
 function sxBox(k,t){return UI.sx===k?'<div class="note sxn">'+t+'</div>':'';}
+/* 설정의 입력 줄은 **이 함수 하나로만** 만든다 — `.strow` 를 손으로 적지 마라.
+   차례가 고정이다: 이름 · [칩] · 점선 · [앞수] · 단위 · 칸.
+   - **단위는 늘 칸 앞**이고 자리를 비워서라도 잡는다. 예전에는 DIET 가
+     `신장 ⋯ cm [170]`, GOALS 가 `최대심박 ⋯ [190] bpm` 으로 뒤집혀 있었다.
+   - 이름 너비는 내용대로 두고 **칸과 단위를 오른쪽에 고정**해 맞춘다. 예전에는
+     이름 칸이 58px · auto · 70px 셋이 섞여 칸이 줄마다 다른 자리에 섰다.
+   긴 글(API 키처럼 한 줄에 안 들어가는 값)은 `sfull()` 을 쓴다 — 그것만이
+   이름을 위에 두는 꼴이고, 짧은 값에는 쓰지 마라. */
+function srow(id,lb,unit,val,o){
+  o=o||{};
+  return '<div class="strow'+(o.cls?' '+o.cls:'')+'">'
+    +'<b class="stnm">'+lb+'</b>'+(o.chip||'')
+    +'<div class="strest"></div>'+(o.pre||'')
+    +'<i class="stu">'+(unit||'')+'</i>'
+    +'<input id="'+id+'" class="stin'+(o.icls?' '+o.icls:'')+'"'
+    +' inputmode="'+(o.im||'decimal')+'" maxlength="'+(o.ml||4)+'"'
+    +(o.ro?' readonly data-act="'+o.ro+'"':'')
+    +(o.off?' disabled':'')
+    +(o.ph!=null?' placeholder="'+o.ph+'"':'')
+    +' value="'+val+'"></div>';
+}
+/* 한 줄 칸에 안 들어가는 긴 값(API 키·파일 이름). 이름을 위에 둔다. */
+function sfull(lb,inner){
+  return '<div class="stfull"><b class="stnm">'+lb+'</b>'+inner+'</div>';
+}
 /* 프리셋의 수는 여기에만 적는다 — 핸들러와 presetNow 가 각자 들면 한쪽만
    고쳐져 단추가 안 켜진다.
    리컴프 = 체중을 줄이면서 근육을 올리는 것(벌크 아님). 적자는 하루 500 을
@@ -6932,11 +6981,6 @@ function renderSheet(){
        어느 한 갈래 안에 넣으면 거기 숨는다. 예전에는 채워질 칸들
        '아래' 에 있어서, 다 읽고 난 뒤에야 단추가 있다는 것을 알았다. */
     var dts=UI.dts||'body',mpn=presetNow();
-    function srow(id,lb,unit,val,ml){
-      return '<div class="strow wide"><b class="stnm">'+lb+'</b><div class="strest"></div>'
-        +(unit?'<i class="stu">'+unit+'</i>':'')
-        +'<input id="'+id+'" class="stin" inputmode="decimal" maxlength="'+(ml||4)+'" value="'+val+'"></div>';
-    }
     /* 단추 둘(감량·리컴프)이 아니라 스위치 하나다 — 둘 중 하나만 고르는 것은
        칸을 둘 쓸 일이 아니다(요청). 끈 쪽이 감량이다.
        켜짐 판정은 프리셋이 아니라 '지금 값이 리컴프인가' 다. 값을 손대 '직접
@@ -6944,14 +6988,14 @@ function renderSheet(){
        스위치가 켜져 있는데 값은 리컴프가 아닌 상태를 만들지 않는다.
        부위 점(Part dots)이 이미 쓰는 줄 + ON/OFF 칩 꼴을 그대로 쓴다. */
     h+=sxHd(TX('프리셋'),'pre',2)
-      +'<div class="strow"><b class="stnm" style="flex:0 0 auto">'+TX('리컴프')+'</b>'
-      +'<button class="chip'+(mpn==='lean'?' on':'')+'" data-act="mpre" data-v="'
-      +(mpn==='lean'?'cut':'lean')+'" style="flex:0 0 auto;margin-left:9px">'
-      +(mpn==='lean'?'ON':'OFF')+'</button>'
+      /* 칸이 없는 줄도 같은 꼴을 쓴다 — 칩은 이름 바로 뒤(`.stchip`),
+         곁말은 점선 뒤. 이 줄은 **단추를 누르면 무엇이 되는지**다.
+         꺼져 있는데 '끄면 감량' 이라 적어 두어, 이미 감량인 사람에게 하라는
+         말을 또 하고 있었다. 지금 무엇인지는 바로 아래 결과 줄이 적는다. */
+      +'<div class="strow"><b class="stnm">'+TX('리컴프')+'</b>'
+      +'<button class="chip stchip'+(mpn==='lean'?' on':'')+'" data-act="mpre" data-v="'
+      +(mpn==='lean'?'cut':'lean')+'">'+(mpn==='lean'?'ON':'OFF')+'</button>'
       +'<div class="strest"></div>'
-      /* 이 줄은 **단추를 누르면 무엇이 되는지**다. 꺼져 있는데 '끄면 감량' 이라
-         적어 두어, 이미 감량인 사람에게 하라는 말을 또 하고 있었다.
-         지금 무엇으로 먹고 있는지는 바로 아래 결과 줄이 적는다. */
       +'<span class="stsl">'+(mpn==='lean'?TX('끄면 감량'):TX('켜면 리컴프'))+'</span></div>'
       +sxBox('pre',TX('누르면 아래 세 탭의 값이 문헌 값으로 한꺼번에 채워짐. <b>감량</b> = 제지방 기준 단백질 2.5 · 탄수 3.0 · 지방 0.8 g/kg, 주당 −0.5kg. 상한이 없어 고리가 셋 다 <b>적정</b>임. <b>리컴프</b> = 체중을 줄이면서 근육을 올리는 것으로, 체중 기준 단백질 2.0 · 탄수 1.5~2.5 · 지방 0.6~1.0 g/kg, 주당 −0.25kg. 탄수·지방에 상한이 있어 그 둘은 <b>범위</b>가 되고, 100% 가 상한임. 적자가 하루 500kcal 를 넘으면 리컴프가 안 됨. 한 칸이라도 손대면 아래 줄이 <b>직접 설정</b>으로 바뀜.'))
       /* 지금 무엇으로 먹고 있는지는 단추가 아니라 이 줄이 말한다 — 단추는
@@ -6962,7 +7006,7 @@ function renderSheet(){
             :TX1('주당 +{0}kg · 하루 {1}kcal 잉여',Math.abs(WR),Math.abs(Math.round(WR*7700/7))))
       +'</div>'
       +'<div class="dsrow">'
-      +subNav('dts',dts,[['body',TX('신체')],['goal',TX('목표')],['macro',TX('영양')]])
+      +subNav('dts',dts,[['body',TX('신체')],['goal',TX('목표')],['macro',TX('영양')],['bh',TX('기록'),bhLoad().length]])
       +'<button class="sxq'+(UI.sx===dts?' on':'')+'" data-act="sx" data-v="'+dts+'" aria-label="?">?</button>'
       +'</div>'
       +sxBox('body',TX('<b>신장</b>은 보폭을 정하고, 보폭이 걸음당 kcal 을 정함(신장 × 0.415). <b>활동 계수</b>는 걸음 자료가 아예 없는 날에만 쓰는 기본값 — 걸음이 들어오는 날은 소비가 기초대사 + 소화 + 걸음으로 나와 이 수가 결과를 안 바꿈. 올린다고 더 먹을 수 있게 되지 않음.'))
@@ -6980,39 +7024,44 @@ function renderSheet(){
         +'</div>'
         +srow('ac0',TX('활동 계수'),'×',ACT)
         +'<div class="note" id="bdInfo" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:4px">Save</button>';
+        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:4px">'+TX('저장')+'</button>';
+    }
+
+    /* 인바디 기록은 **설정이 아니라 자료**다. 신체 갈래에 같이 두었더니 한
+       화면에 설정 둘 + 목록 + 입력폼이 겹쳐 1,038px 가 됐다(지적).
+       제 갈래로 뺀다 — 신체 갈래에는 신장·활동 계수만 남는다. */
+    if(dts==='bh'){
       h+=(function(){
         var all=bhLoad().slice().reverse();
         var open=!!UI.bhAll;
         var a=open?all:all.slice(0,3);
         var hh='',i;
-        hh+='<div class="sh-l" style="margin-top:16px;display:flex;align-items:baseline">InBody Records'
-          +(all.length>3?('<button data-act="bhv" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:9px;font-weight:800;letter-spacing:.12em;min-height:34px;padding:0 8px">'+(open?'COLLAPSE':'ALL · '+all.length)+'</button>'):'')
-          +'</div>';
+        hh+=sxHd(TX('인바디 기록')
+          +(all.length>3?('<button class="sxmore" data-act="bhv">'+(open?TX('접기'):TX1('전체 {0}',all.length))+'</button>'):''),
+          null,16);
         hh+='<div style="'+(open?'max-height:180px;overflow-y:auto;':'')+'margin:0 -2px;padding:0 2px">';
         for(i=0;i<a.length;i++){
           /* 줄 사이에 가는 선을 둔다 — 네댓 줄이 붙어 있으면 한 덩이 글로 읽힌다 */
           hh+='<div class="bhr">'
             +'<span style="color:var(--dim)">'+a[i].d.slice(2)+'</span>'
             +'<b style="color:var(--acc-br)">'+fmtW(a[i].w)+'kg</b><span>'+fmtW(a[i].f)+'%</span>'
-            +(a[i].m>0?('<span style="opacity:.8">SMM '+fmtW(a[i].m)+'</span>'):'')
+            +(a[i].m>0?('<span style="opacity:.8">'+TX('골격근')+' '+fmtW(a[i].m)+'</span>'):'')
             +'<button data-act="bhd" data-v="'+a[i].d+'" style="margin-left:auto;background:none;border:none;color:var(--dim);font-size:15px;min-width:38px;min-height:36px;padding:0">×</button></div>';
         }
         hh+='</div>';
         /* 날짜 하나에 폭 전체짜리 상자를 주고 있었다 — 값은 열 글자인데 칸은
            343px 였다. 줄로 내린다. 아래 셋은 한꺼번에 적는 입력이라 나란히
            두되, 키를 46 에서 38 로 낮춘다. */
-        hh+='<div class="strow wide" style="margin-top:8px"><b class="stnm">DATE</b><div class="strest"></div>'
-          +'<input id="bhD" class="stin dt" readonly data-act="calo" value="'+today()+'" style="cursor:pointer"></div>'
-          +'<div class="wtg sm" style="margin-top:6px">'
-          /* 힌트가 고정 숫자면 옆의 실제 기록과 어긋나 보인다 — 지금 값을 비춘다 */
-          +'<div><b>WT</b><input id="bhW" inputmode="decimal" maxlength="5" placeholder="'+fmtW(BW)+'"></div>'
-          +'<div><b>FAT%</b><input id="bhF" inputmode="decimal" maxlength="4" placeholder="'+fmtW(BF)+'"></div>'
-          +'<div><b>SMM</b><input id="bhM" inputmode="decimal" maxlength="4" placeholder="-"></div>'
-          +'</div>'
-          +'<div style="display:flex;gap:8px;margin:8px 0 12px">'
-          +'<button class="okbtn pri" data-act="bha" style="flex:1;font-size:11px;letter-spacing:.22em">ADD RECORD</button>'
-          +'<button class="okbtn" data-act="bhoc" style="flex:1;font-size:11px;font-weight:800;letter-spacing:.22em">SCAN INBODY</button>'
+        /* 예전에는 이 셋만 이름을 **위에** 두고(`.wtg`) 나머지 설정은 왼쪽에
+           뒀다 — 한 화면에 이름 자리가 둘이었다. 셋 다 짧은 값이라 제자리는
+           왼쪽이다. 힌트는 지금 값을 비춘다(고정 숫자면 옆의 기록과 어긋나 보인다). */
+        hh+=srow('bhD',TX('날짜'),'',today(),{icls:'dt',ro:'calo'})
+          +srow('bhW',TX('체중'),'kg','',{ml:5,ph:fmtW(BW)})
+          +srow('bhF',TX('체지방'),'%','',{ph:fmtW(BF)})
+          +srow('bhM',TX('골격근'),'kg','',{ph:'-'})
+          +'<div style="display:flex;gap:8px;margin:10px 0 12px">'
+          +'<button class="okbtn pri" data-act="bha" style="flex:1">'+TX('기록 추가')+'</button>'
+          +'<button class="okbtn" data-act="bhoc" style="flex:1">'+TX('인바디 스캔')+'</button>'
           +'</div>'
           +'<input type="file" id="bhFile" accept="image/*" style="display:none">'
           +'<div class="note" id="bhSt" style="min-height:14px;margin:-6px 0 8px"></div>';
@@ -7035,7 +7084,7 @@ function renderSheet(){
             +(WR>0?TX1('하루 {0}kcal 적자',Math.round(WR*7700/7))
                   :TX1('하루 {0}kcal 잉여 — 증량',Math.abs(Math.round(WR*7700/7))))+'</div>')
         +'<div class="note" style="margin:6px 0 12px;line-height:1.65">'+bodyLine(BW,BF,GF,HRM,ACT)+'</div>'
-        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save</button>';
+        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">'+TX('저장')+'</button>';
     }
 
     if(dts==='macro'){
@@ -7053,7 +7102,7 @@ function renderSheet(){
         /* 0 은 '0g 까지' 가 아니라 '안 막음' 이다 — 칸만 봐서는 알 수 없다 */
         +((CARB_MAX_KG<=0||FAT_MAX_KG<=0)?'<div class="note" style="margin:2px 0 0">'+TX('최대가 0 이면 상한 없음')+'</div>':'')
         +'<div class="note" id="mgInfo" style="margin:8px 0 12px;line-height:1.65">'+macroLine(PRO_PER_KG,FAT_PER_KG,CARB_PER_KG)+'</div>'
-        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">Save</button>';
+        +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-bottom:14px">'+TX('저장')+'</button>';
     }
     }
     if(tb==='goals'){
@@ -7082,15 +7131,14 @@ function renderSheet(){
       hh+=sxBox('wk',TX('부위별로 이번 주에 몇 세트를 할지. 왼쪽 수는 지금까지 한 유효 세트(RIR 0~3), 오른쪽 칸이 목표. 유산소는 세트가 아니라 분.'));
       for(ri=0;ri<ROWS.length;ri++){
         var rw=ROWS[ri],goal=gpWt(rw[1]),cur=pcNow[rw[1]];
-        hh+='<div class="strow"><b class="stnm">'+TX(rw[2])+'</b>'
-          +'<div class="strest"></div>'
-          +'<span class="stv">'+cur+'</span><span class="stsl">/</span>'
-          +'<input id="'+rw[0]+'" class="stin" inputmode="numeric" maxlength="'+rw[3]+'" value="'+goal+'">'
-          +'</div>';
+        /* 지금까지 한 세트는 이름 바로 뒤에 붙인다 — 점선 뒤에 두면 단위 칸과
+           엉켜 '6 / 세트 8' 처럼 읽힌다 */
+        hh+=srow(rw[0],TX(rw[2]),TX(rw[1]==='CARDIO'?'분':'세트'),goal,
+          {im:'numeric',ml:rw[3],chip:'<span class="stv">'+cur+'</span>'});
       }
       return hh;
     })()
-      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">Save</button>';
+      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">'+TX('저장')+'</button>';
     }
     if(gts==='mm'){
       h+=(function(){
@@ -7129,10 +7177,10 @@ function renderSheet(){
         }
         return hh;
       })()
-      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">Save</button>';
+      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">'+TX('저장')+'</button>';
     }
     if(gts==='etc'){
-    h+='<div class="sh-l" style="margin-top:0">Rest days</div>'
+    h+=sxHd(TX('휴식 요일'),null,0)
       +'<div class="wrapchips">'
       +(function(){
         var DN=TX('일,월,화,수,목,금,토').split(','),hh='',i;
@@ -7140,41 +7188,36 @@ function renderSheet(){
         return hh;
       })()
       +'</div>'
-      +'<div class="strow" style="margin-top:10px"><b class="stnm" style="flex:0 0 70px">'+TX('최대심박')+'</b>'
-      +'<div class="strest"></div>'
-      +'<input id="hr0" class="stin" inputmode="numeric" maxlength="3" value="'+HRM+'">'
-      +'<span class="stsl">bpm</span></div>'
-      +'<div class="strow"><b class="stnm" style="flex:0 0 70px">'+TX('알림 간격')+'</b>'
-      +'<div class="strest"></div>'
-      +'<input id="iv0" class="stin" inputmode="numeric" maxlength="3" value="'+IVs+'">'
-      +'<span class="stsl">'+TX('초')+'</span></div>'
-      +sxHd('Part dots','dot')
-      +'<div class="strow"><b class="stnm" style="flex:0 0 70px"><span style="color:var(--sig)">●</span> '+TX('레드')+'</b>'
-      +'<button class="chip'+(DOT.r?' on':'')+'" data-act="dtr" style="flex:0 0 auto">'+(DOT.r?'ON':'OFF')+'</button>'
-      +'<div class="strest"></div>'
-      +'<input id="dr0" class="stin" inputmode="numeric" maxlength="1" value="'+DOT.rd+'"'+(DOT.r?'':' disabled style="opacity:.3"')+'>'
-      +'<span class="stsl">'+TX('일 연속 수행')+'</span></div>'
-      +'<div class="strow"><b class="stnm" style="flex:0 0 70px"><span style="color:var(--chrome)">●</span> '+TX('골드')+'</b>'
-      +'<button class="chip'+(DOT.y?' on':'')+'" data-act="dty" style="flex:0 0 auto">'+(DOT.y?'ON':'OFF')+'</button>'
-      +'<div class="strest"></div>'
-      +'<input id="dy0" class="stin" inputmode="numeric" maxlength="1" value="'+DOT.yd+'"'+(DOT.y?'':' disabled style="opacity:.3"')+'>'
-      +'<span class="stsl">'+TX('일 미수행')+'</span></div>'
+      +sxHd(TX('심박 · 알림'),null,16)
+      /* 예전에는 이 넷만 단위를 칸 **뒤**에 뒀다(`[190] bpm`). 앞으로 옮겼다 —
+         '며칠' 인지는 단위 칸의 '일' 이 말하고, 무엇을 세는 날인지는 이름이 말한다. */
+      +srow('hr0',TX('최대심박'),'bpm',HRM,{im:'numeric',ml:3})
+      +srow('iv0',TX('알림 간격'),TX('초'),IVs,{im:'numeric',ml:3})
+      +sxHd(TX('부위 점'),'dot')
+      +srow('dr0','<span style="color:var(--sig)">●</span> '+TX('레드 · 연속 수행'),TX('일'),DOT.rd,
+        {im:'numeric',ml:1,off:!DOT.r,
+         chip:'<button class="chip stchip'+(DOT.r?' on':'')+'" data-act="dtr">'+(DOT.r?'ON':'OFF')+'</button>'})
+      +srow('dy0','<span style="color:var(--chrome)">●</span> '+TX('골드 · 미수행'),TX('일'),DOT.yd,
+        {im:'numeric',ml:1,off:!DOT.y,
+         chip:'<button class="chip stchip'+(DOT.y?' on':'')+'" data-act="dty">'+(DOT.y?'ON':'OFF')+'</button>'})
       +sxBox('dot',TX('종목 목록의 부위 이름 옆에 붙는 점. <b>레드</b>는 같은 부위를 며칠 내리 했을 때의 과자극 경고, <b>골드</b>는 며칠 손 안 댄 부위의 방치 경고. 오늘 수행한 부위에는 안 붙음. 기록에는 영향 없음.'))
-      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">Save</button>';
+      +'<button class="okbtn pri" data-act="wg" style="width:100%;margin-top:12px;margin-bottom:12px">'+TX('저장')+'</button>';
     }
     }
     if(tb==='ai'){
     /* 리포트를 걷어낸 뒤로 키가 하는 일은 하나다 — 결과지 사진에서 체중·
        체지방을 읽는 것. 그러니 그 말을 여기 적는다. */
-    h+='<div class="sh-l" style="margin-top:2px">API keys</div>'
+    h+=sxHd(TX('API 키'),null,2)
       +'<div class="note" style="margin:0 0 4px">'+TX('인바디 결과지 사진 판독에 씀. 하나만 넣으면 됨.')+'</div>'
-      +'<input id="akg" type="password" class="akin" placeholder="Gemini key (AIza...)" value="'+KS.gem.replace(/"/g,'')+'">'
-      +'<input id="ako" type="password" class="akin" placeholder="OpenAI key (sk-...)" value="'+KS.oai.replace(/"/g,'')+'">'
-      +'<input id="aka" type="password" class="akin" placeholder="Claude key (sk-ant-...)" value="'+KS.ant.replace(/"/g,'')+'">'
-      +'<button class="okbtn" data-act="aksv" style="width:100%">Save keys</button>'
+      /* 키는 한 줄 칸에 안 들어가는 긴 값이라 이름을 위에 둔다(`sfull`) —
+         설정에서 이름이 위로 가는 꼴은 이것뿐이다. */
+      +sfull('Gemini','<input id="akg" type="password" class="akin" placeholder="AIza..." value="'+KS.gem.replace(/"/g,'')+'">')
+      +sfull('OpenAI','<input id="ako" type="password" class="akin" placeholder="sk-..." value="'+KS.oai.replace(/"/g,'')+'">')
+      +sfull('Claude','<input id="aka" type="password" class="akin" placeholder="sk-ant-..." value="'+KS.ant.replace(/"/g,'')+'">')
+      +'<button class="okbtn" data-act="aksv" style="width:100%">'+TX('키 저장')+'</button>'
       /* 엔진 고르개는 ANALYZE 의 실행줄에 붙어 있었다. 그 줄이 사라졌으므로
          키 옆으로 옮긴다 — 키와 엔진은 같은 것을 정하는 한 쌍이다. */
-      +'<div class="sh-l" style="margin-top:16px">'+TX('판독 엔진')+'</div>'
+      +sxHd(TX('판독 엔진'),null,16)
       +'<div class="gmwrap">'
       +'<button class="gmbtn'+(GMOPEN?' open':'')+'" data-act="gmopen">'
       +'<span class="cval">'+engShort()+'</span></button>';
@@ -7197,33 +7240,43 @@ function renderSheet(){
     /* 예전에는 이 탭이 if(tb==='data') 두 토막으로 나뉘어, 백업은 DIET 블록
        위에서 그리고 '여기 기록은 이 기기에만 있다'는 경고와 초기화 단추는
        AI 블록 아래에서 그렸다. 같은 탭이 소스의 두 군데에 있을 이유가
-       없었다 — 한 자리로 모은다. */
-    h+='<div class="sh-l" style="margin-top:2px">Backup · last '+(bk?dayLbl(bk):'never')+'</div>'
+       없었다 — 한 자리로 모았다.
+       그 뒤에도 한 화면이 2,368px · 단추 78개로 다른 탭의 세 배였다(지적).
+       다른 탭과 같이 갈래로 나눈다 — 한 번에 한 갈래만 그린다. */
+    var dta=UI.dta||'bk';
+    h+='<div class="dsrow">'
+      +subNav('dta',dta,[['bk',TX('백업')],['sub',TX('세부 부위')],['app',TX('앱')]])
+      +'</div>';
+    if(dta==='bk'){
+    h+=sxHd(TX('백업')+'<i class="sxsub">'+(bk?TX1('마지막 {0}',dayLbl(bk)):TX('한 적 없음'))+'</i>',null,2)
       +'<textarea class="ta" id="ioTa">'+esc(bkText())+'</textarea>'
-      +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">Copy</button>'
-      +'<button class="okbtn" data-act="ap">Apply Input</button></div>'
+      +'<div class="iorow"><button class="okbtn" data-act="cp" id="cpBtn">'+TX('복사')+'</button>'
+      +'<button class="okbtn" data-act="ap">'+TX('붙여 넣은 것 적용')+'</button></div>'
       +(snapInfo()?'<div class="note" style="margin-top:8px">'+TX1('자동 스냅샷 {0} — 본 데이터가 깨졌을 때 <b class="xlink" data-act="snapld">불러오기</b>',snapInfo())+'</div>':'')
       /* 손상 원본은 파싱이 안 되는 문자열이라 바로 적용하지 않는다. 입력칸에
          꽂아 주기만 한다 — 들여다보고 살릴 수 있는 만큼 살리라는 뜻이다. */
       +(corruptSize()?'<div class="note" style="margin-top:6px">'
         +TX1('읽지 못한 원본이 보관돼 있음 ({0}자) — <b class="xlink" data-act="corruptld">위 칸에 꺼내기</b>',
              corruptSize().toLocaleString())+'</div>':'')
-      +'<div class="iorow"><button class="okbtn" data-act="fx">Save File</button>'
-      +'<button class="okbtn" data-act="fi">Load File</button></div>'
+      +'<div class="iorow"><button class="okbtn" data-act="fx">'+TX('파일로 저장')+'</button>'
+      +'<button class="okbtn" data-act="fi">'+TX('파일 불러오기')+'</button></div>'
       +(function(){var mi=mirrorInfo();return mi?'<div class="note" style="margin-top:6px">'+TX1('앱 저장소 사본 {0} — 캐시를 지워도 이 사본으로 자동 복구됨',esc(mi))+'</div>':'';})()
       +'<input type="file" id="impF" accept=".json,application/json" style="display:none">';
-    h+=clsCheckHtml()+subEditHtml();
+    }
+    if(dta==='sub')h+=clsCheckHtml()+subEditHtml();
+    if(dta==='app'){
     /* 앱 안에서 이 링크를 누르면 시스템 브라우저가 열린다.
        채팅앱 같은 데서 주소를 열면 인앱 브라우저가 APK 내려받기를 막아
        주소를 복사해 옮겨야 했다. */
-    h+='<div class="sh-l" style="margin-top:16px">App</div>'
+    h+=sxHd(TX('앱'),null,2)
       +'<div class="note">'+TX('새 버전이 나오면 여기서 받으면 됨. 기존 앱 위에 덮어써도 기록은 남음.')
       +' <a class="xlink" href="'+APKURL+'">'+TX('최신 APK 내려받기 &#9656;')+'</a></div>'
       +'<div class="note" style="margin-top:6px">'+TX1('화면 판 <b>{0}</b>',BUILD)
       +' <button class="xlink" data-act="rlod" style="background:none;border:0;padding:0">'+TX('새로고침 &#9656;')+'</button></div>'
-      +'<div class="sh-l" style="margin-top:16px">Reset</div>'
-      +'<div class="note">Data lives only on this device (browser). Clearing cache erases it — copy or save a file regularly. A red dot appears on ⋯ after 2 weeks without backup.</div>'
-      +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?'Tap again to reset all':'Reset all')+'</button>';
+      +sxHd(TX('초기화'),null,16)
+      +'<div class="note">'+TX('기록은 이 기기(브라우저)에만 있음. 캐시를 지우면 같이 지워지므로 가끔 복사하거나 파일로 저장할 것. 2주 넘게 백업이 없으면 ⋯ 에 빨간 점이 붙음.')+'</div>'
+      +'<button class="reset'+(armed?' armed':'')+'" data-act="rs">'+(armed?TX('한 번 더 누르면 전부 지움'):TX('전부 지우기'))+'</button>';
+    }
     }
     h+='</div></div>';
   }
@@ -10773,9 +10826,8 @@ function subEditHtml(){
      더 붙어 한 목록이 두 가지 모양이었다. 단추는 줄마다 똑같이 세 개 — ▲ ▼ 지움. */
   var nh=0;
   for(i=0;i<SUBS.length;i++)if(subHidden(SUBS[i].k))nh++;
-  var h='<div class="sh-l" style="margin-top:16px">'+TX('세부 부위 항목')
-    +'<span style="font-weight:400;letter-spacing:0;color:var(--dim)"> '
-    +TX1('{0}개',SUBS.length-nh)+'</span></div>'
+  var h=sxHd(TX('세부 부위 항목')
+    +'<i class="sxsub">'+TX1('{0}개',SUBS.length-nh)+'</i>',null,16)
     +'<div class="note" style="margin:0 0 7px">'
     /* '메인에 안 뜬다' 는 까닭은 줄마다 되풀이할 말이 아니라 규칙이다.
        여기 한 번 적고, 줄에는 수만 둔다 — 그래야 모든 줄이 같은 모양이 된다. */
@@ -12830,7 +12882,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-02 23:50';
+var BUILD='2026-10-03 00:06';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14331,6 +14383,16 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
+'날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
+'인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
+'접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
+'레드 · 연속 수행':'Red · in a row','골드 · 미수행':'Gold · untouched',
+'API 키':'API keys','심박 · 알림':'Heart rate · timer','키 저장':'Save keys','저장':'Save',
+'백업':'Backup','세부 부위':'Sub-parts','앱':'App','초기화':'Reset',
+'한 적 없음':'never','복사':'Copy','붙여 넣은 것 적용':'Apply input',
+'파일로 저장':'Save file','파일 불러오기':'Load file',
+'전부 지우기':'Reset all','한 번 더 누르면 전부 지움':'Tap again to reset all',
+'세트':'sets','분':'min','일':'d','초':'s',
 '남은 몫':'left over','{0}{1} 넘김':'{0}{1} over','{0}{1} 여유':'{0}{1} left',
 '기본값으로':'Reset',
 '근육 항목을 기본값으로 되돌림':'Muscle list restored to defaults',
@@ -16209,6 +16271,7 @@ document.addEventListener('click',function(e){
        화면에는 옛 값이 돌아오고, 사람은 저장이 된 줄 안다.
        setSave 는 보이는 칸만 건드리므로 지금 안 그려진 갈래는 안전하다. */
     case 'dts':UI.dts=v;setSave(true);renderSheet();break;
+    case 'dta':UI.dta=v;setSave(true);renderSheet();break;
     case 'gts':UI.gts=v;setSave(true);renderSheet();break;
     /* 설명 접기 — 같은 것을 다시 누르면 닫힌다 */
     case 'sx':UI.sx=(UI.sx===v?'':v);renderSheet();break;
