@@ -3785,6 +3785,12 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jro{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;font-family:var(--mono);text-align:right}
 .jro b{font-size:11px;font-weight:700;color:var(--acc-br);letter-spacing:.02em}
 .jro em{font-style:normal;font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* 예열 배지. 브랜드 배지(.jb)와 **다른 꼴**이어야 한다 — 저쪽은 강조색 실선으로
+   '무엇으로 했나' 를 말하고 이쪽은 점선으로 '셈에 안 드는 몫' 을 말한다.
+   점선은 세트 목록의 예열 고리와 같아, 한 낱말이 두 화면에서 같은 생김새다. */
+.jro i.jw{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.04em;
+  color:var(--dim);border:var(--bw) dashed rgba(var(--tx-rgb),.3);
+  border-radius:var(--rad-s);padding:1px 5px;white-space:nowrap;align-self:center}
 /* 그 날 부위가 지나간 차례 — 날짜 바로 밑, 줄들보다 먼저 읽히는 자리 */
 .jflow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:-1px 0 8px;
   font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.02em}
@@ -6210,13 +6216,15 @@ function journalHtml(){
          읽는 데 드는 값이다(부위가 바뀌는 자리가 곧 흐름의 마디다). */
       var jm=e.m,jhd,jdt;
       jhd=TX(PN_KO[jm.p]||'유산소');
-      /* 종목마다 예열과 본세트를 갈라 적는다(요청). **예열이 왼쪽**이다 —
-         실제로 한 차례가 예열 다음 본세트이므로 읽는 차례도 그래야 한다(요청).
-         예열이 없으면 안 적는다 — 늘 적으면 '예열 0' 이 줄마다 붙어
-         차례를 읽는 눈에 걸린다. */
+      /* 예열은 **작은 배지**로 세트 수 왼쪽에 붙인다(요청: 표기가 지저분함).
+         `예열 1 · 본 3세트` 처럼 산문으로 적었더니 글귀 셋이 오른쪽에 몰려
+         줄마다 길이가 들쭉날쭉했다. 배지로 빼면 세트 수가 어느 줄이든
+         `3세트` 한 꼴이라, 예열이 있고 없고가 **덧붙은 표식 하나**로만 갈린다.
+         점선 테두리는 세트 목록의 예열 고리와 같은 꼴이다 — 한 낱말이
+         두 화면에서 같은 생김새를 갖는다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
-      jdt=isCard(jm.p)?TX1('{0}회',e.s.length)
-        :(jwm>0?TX1('예열 {0} · 본 {1}세트',jwm,jws):TX1('{0}세트',jws));
+      jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',jws);
+      var jwb=(!isCard(jm.p)&&jwm>0)?'<i class="jw">'+TX1('예열 {0}',jwm)+'</i>':'';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -6228,7 +6236,7 @@ function journalHtml(){
            지나갔나' 이고, 거기에 라인은 아무 말도 안 보탠다. 같은 자리에서
            브랜드와 붙어 한 낱말로 읽히기만 했다. 종목을 열면 거기 있다. */
         +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')+'</span>'
-        +'<span class="jro"><b>'+jhd+'</b><em>'+jdt+'</em></span></div>';
+        +'<span class="jro"><b>'+jhd+'</b>'+jwb+'<em>'+jdt+'</em></span></div>';
     }
     /* 걸음은 **늘 맨 뒤**다. 차례를 받지 않고(번호 자리를 비운다) 위 세트 수에도
        안 든다 — 종목이 아니라 그 날 하루 내내 쌓인 NEAT 라서, 차례에 끼우면
@@ -7996,6 +8004,9 @@ function saveMachine(){
     render();
     return;
   }
+  /* 예열을 맨 위로 — 저장이 기록을 확정하는 자리다(요청). RIR 을 누르는
+     동안에는 안 옮긴다(줄이 손가락 밑에서 움직인다), 대신 여기서 한 번 세운다. */
+  if(!isCardId(id)&&warmCnt(d)>0){d=warmFirst(d,-1).a;UI.draft[id]=d;}
   var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,5));
   upsertSess(id,UI.wd,copy);
   /* 기기에 못 썼으면 판을 닫지 않는다. 닫고 'Saved' 를 띄우면 새로고침
@@ -13190,7 +13201,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:37';
+var BUILD='2026-10-03 16:44';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14691,7 +14702,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
-'예열':'Warm','본 {0} · 총 {1}세트':'{0} work · {1} total sets','예열 {0} · 본 {1}세트':'{0} warm · {1} work sets',
+'예열':'Warm','본 {0} · 총 {1}세트':'{0} work · {1} total sets','예열 {0}':'{0} warm',
 '날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
 '인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
 '접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
@@ -16266,11 +16277,13 @@ document.addEventListener('click',function(e){
            editSet 이 열 때 붙잡아 둔 값을 addSet 이 그대로 쓰므로, 안 옮기면
            화면에서 3 으로 바뀐 것을 보고 Update 를 눌렀는데 2 로 저장된다. */
         if(UI.esIdx===j)UI.rirHold=nx;
-        /* 예열을 찍거나 풀면 줄을 다시 세운다 — 예열은 늘 위다(요청).
-           고치는 중인 줄이 있으면 그 줄을 따라가게 번호를 고쳐 준다. */
-        var fr=warmFirst(d,UI.esIdx==null?-1:UI.esIdx);
-        UI.draft[id]=fr.a;
-        if(UI.esIdx!=null)UI.esIdx=(fr.at>=0?fr.at:null);
+        /* **여기서는 줄을 옮기지 않는다.** 한때 찍는 순간 올렸는데, 순환
+           첫 칸이 예열이라 RIR 을 매기려고 한 번 누르는 것만으로 그 줄이
+           맨 위로 튀었다 — 0 을 주려고 두 번째를 누를 때는 이미 다른 줄이
+           그 자리에 와 있었다(사용자 지적: '3세트짜리 기록 중인데 2세트
+           기록이 바뀐다'). 줄은 손가락 밑에서 움직이면 안 된다.
+           올리는 것은 기록을 **확정할 때**다 — addSet(＋Set·Update)과
+           saveMachine(SAVE). */
         UI.arm=null;
         UI.dirty[id]=true;
         saveDraft();render();
