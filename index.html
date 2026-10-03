@@ -4886,6 +4886,21 @@ function warmCnt(s){var n=0,i;for(i=0;i<(s||[]).length;i++)if(isWarm(s[i]))n++;r
    `x.s.length` 로 바로 재던 자리를 전부 이걸로 바꿨다. 자리마다 따로 재면
    한 곳만 빠뜨려 '부위 공백은 비었다는데 종목에는 오늘 함이 떠 있는' 꼴이 된다. */
 function sesDone(x){var w=x&&x.s?workSets(x.s):null;return !!(w&&w.length);}
+/* 예열을 **늦게** 찍는 일이 잦다 — 본세트를 먼저 적어 두고 나중에 앞의 두어
+   줄을 예열로 돌린다. 그때 예열 줄이 가운데 끼어 있으면 '예열 다음 본세트'
+   라는 그 날의 차례가 화면에서 깨진다. 찍는 순간 위로 올린다(요청).
+   **안정 분할이다** — 예열끼리, 본세트끼리의 차례는 그대로 둔다. 섞어 놓으면
+   같은 무게를 두 번 든 차례가 뒤바뀌어 기록이 거짓이 된다.
+   `keep` 은 따라다녀야 할 줄 번호(고치는 중인 줄). 옮긴 뒤 자리를 같이
+   돌려준다 — 안 옮기면 `UI.esIdx` 가 남의 줄을 가리켜, 고치던 값이 엉뚱한
+   세트에 덮인다. */
+function warmFirst(d,keep){
+  var w=[],b=[],i;
+  for(i=0;i<(d||[]).length;i++)(isWarm(d[i])?w:b).push({x:d[i],j:i});
+  var out=w.concat(b),at=-1;
+  for(i=0;i<out.length;i++)if(out[i].j===keep)at=i;
+  return {a:out.map(function(o){return o.x;}),at:at};
+}
 function hardOf(s){
   var n=0,unk=0,easy=0,i;
   for(i=0;i<(s||[]).length;i++){
@@ -4966,9 +4981,10 @@ function gainTag(cur,prev,ordA,ordB){
   if(g.pct===0)return '<i class="eq">'+TX('유지')+'</i>'+mv;
   return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>'+mv;
 }
-/* RIR(남은 반복) — 미입력 → 0 → 1 → 2 → 3 → 4+ → 예열 순환. 0=실패 직전.
-   **예열을 맨 뒤에 둔 까닭**: 앞에 끼우면 한 번 눌렀을 때 나오던 0(실패 직전)이
-   뒤로 밀려, 이미 몸에 익은 조작이 통째로 바뀐다(요청). */
+/* RIR(남은 반복) — 미입력 → **예열** → 0 → 1 → 2 → 3 → 4+ 순환. 0=실패 직전.
+   한때 예열을 맨 뒤에 뒀다. 0(실패 직전)이 밀리지 않게 하려는 것이었는데,
+   예열은 한 종목에 두세 번씩 찍는 값이라 여섯 번 눌러 닿는 자리에 있으면
+   안 쓰게 된다 — 맨 앞으로 옮겼다(요청). */
 function rirBtn(v,j){
   if(v===RIR_WARM)
     return '<button class="rir warm" data-act="rr" data-v="'+j+'">'
@@ -4981,13 +4997,13 @@ function rirBtn(v,j){
 }
 /* 4+ 가 없으면 '이 세트는 쉬웠다'를 적을 방법이 없어 유효 세트를 가릴 수 없다 */
 function rirNext(v){
+  if(v===RIR_WARM)return 0;
   if(v===0)return 1;
   if(v===1)return 2;
   if(v===2)return 3;
   if(v===3)return 4;
-  if(v===4)return RIR_WARM;
-  if(v===RIR_WARM)return null;
-  return 0;
+  if(v===4)return null;
+  return RIR_WARM;      /* 미입력 다음이 예열이다 */
 }
 /* 세션 평균 RIR — 입력된 세트만 대상, 없으면 null */
 function rirAvg(s){
@@ -6186,11 +6202,13 @@ function journalHtml(){
          읽는 데 드는 값이다(부위가 바뀌는 자리가 곧 흐름의 마디다). */
       var jm=e.m,jhd,jdt;
       jhd=TX(PN_KO[jm.p]||'유산소');
-      /* 종목마다 예열과 본세트를 갈라 적는다(요청). 예열이 없으면 안 적는다 —
-         늘 적으면 '예열 0' 이 줄마다 붙어 차례를 읽는 눈에 걸린다. */
+      /* 종목마다 예열과 본세트를 갈라 적는다(요청). **예열이 왼쪽**이다 —
+         실제로 한 차례가 예열 다음 본세트이므로 읽는 차례도 그래야 한다(요청).
+         예열이 없으면 안 적는다 — 늘 적으면 '예열 0' 이 줄마다 붙어
+         차례를 읽는 눈에 걸린다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
       jdt=isCard(jm.p)?TX1('{0}회',e.s.length)
-        :(jwm>0?TX1('{0}세트 · 예열 {1}',jws,jwm):TX1('{0}세트',jws));
+        :(jwm>0?TX1('예열 {0} · 본세트 {1}',jwm,jws):TX1('{0}세트',jws));
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -7574,6 +7592,7 @@ function addSet(){
   }else if(UI.rirHold===RIR_WARM||UI.rirHold===0||UI.rirHold>0){
     set.push(UI.rirHold);
   }
+  var wasWarm=(set[2]===RIR_WARM);
   UI.rirHold=null;
   if(cd){
     var mC=machById(UI.open);
@@ -7605,6 +7624,11 @@ function addSet(){
     if(!cd){TMR.b=0;TMR.ts=Date.now();tmrMark=0;tmrSave();tmrDraw();restNotify();}
   }
   UI.dirty[UI.open]=true;
+  /* 예열이 섞였으면 줄을 다시 세운다 — 예열은 늘 위다(요청). 고쳐 올린
+     경우에도 돌아야 한다: 가운데 줄을 예열로 바꿔 Update 하면 그대로
+     가운데 남는다. */
+  if(!cd&&(wasWarm||warmCnt(UI.draft[UI.open])>0))
+    UI.draft[UI.open]=warmFirst(UI.draft[UI.open],-1).a;
   /* 다음 세트 칸은 방금 넣은 세트로 채운다 — 이어서 넣을 때 손에 쥔 무게가
      이미 적혀 있다. 고치는 중이면 fillNext 가 스스로 빠진다. */
   fillNext();
@@ -13158,7 +13182,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:22';
+var BUILD='2026-10-03 16:28';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14659,7 +14683,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
-'예열':'Warm','본 {0} · 총 {1}':'{0} work · {1} total','{0}세트 · 예열 {1}':'{0} sets · {1} warm',
+'예열':'Warm','본 {0} · 총 {1}':'{0} work · {1} total','예열 {0} · 본세트 {1}':'{0} warm · {1} work',
 '날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
 '인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
 '접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
@@ -16234,6 +16258,11 @@ document.addEventListener('click',function(e){
            editSet 이 열 때 붙잡아 둔 값을 addSet 이 그대로 쓰므로, 안 옮기면
            화면에서 3 으로 바뀐 것을 보고 Update 를 눌렀는데 2 로 저장된다. */
         if(UI.esIdx===j)UI.rirHold=nx;
+        /* 예열을 찍거나 풀면 줄을 다시 세운다 — 예열은 늘 위다(요청).
+           고치는 중인 줄이 있으면 그 줄을 따라가게 번호를 고쳐 준다. */
+        var fr=warmFirst(d,UI.esIdx==null?-1:UI.esIdx);
+        UI.draft[id]=fr.a;
+        if(UI.esIdx!=null)UI.esIdx=(fr.at>=0?fr.at:null);
         UI.arm=null;
         UI.dirty[id]=true;
         saveDraft();render();
