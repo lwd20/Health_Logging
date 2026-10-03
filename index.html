@@ -3751,12 +3751,20 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jdh{display:flex;align-items:center;flex-wrap:wrap;gap:7px 9px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:7px}
 .jdh b{font-size:13px;font-weight:800;letter-spacing:.03em;white-space:nowrap}
 /* 날짜(.jdh b)와 같은 자리에 서지만 저쪽은 '언제' 고 이쪽은 '얼마나' 다.
-   10px dim 으로 두었더니 통째로 묻혔고, 굵기만 올려서도 안 떠올랐고,
-   **알약으로 담았더니 단추처럼 보였다**(지적) — 바로 옆에 진짜 단추 둘이
-   같은 모서리로 서 있어서다. 담지 말고 **수 하나만 크게** 세운다(요청).
+   시안 54개를 그려 고른 꼴이 **형광펜**이다(요청) — 글자 밑동에만 칠이
+   깔린다. 담는 것이 아니라 그어 둔 것이라, 바로 옆 단추들과 모양이 안 겹친다.
+   거쳐 온 판: 10px dim 한 톤(통째로 묻힘) → 수만 13px/800(글자 속성만
+   바꾸니 여전히 같은 글줄) → **채움 알약**(단추처럼 보였다 — 옆에 진짜
+   단추 둘이 같은 모서리로 서 있어서다).
    `.jdh i b` 가 `.jdh b`(날짜)보다 특정도가 높아 날짜 규칙에 안 먹힌다. */
-.jdh i{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
-.jdh i b{font-size:17px;font-weight:800;color:var(--acc-br);letter-spacing:-.02em}
+.jdh i{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap;line-height:1}
+/* 형광펜은 **수에만** 긋는다. 한때 꼬리(`/12세트`)까지 덮었는데, 꼬리는
+   일부러 흐린 10px 이라 칠 위에서는 28 팔레트 가운데 일곱에서 대비가
+   1.7~2.0 까지 떨어졌다(solar·cyber·mono·mint·steel·olive·hide).
+   수에만 그으면 꼬리가 판 위에 남아 어디서나 4.6 이상이고, 긋는 뜻도
+   맞는다 — 이 줄을 보는 까닭은 본세트 수다. */
+.jdh i b{font-size:17px;font-weight:800;color:var(--acc-br);letter-spacing:-.02em;
+  background:linear-gradient(transparent 45%,rgba(var(--acc-rgb),.35) 45%)}
 .jdb{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .jdb .jso,.jdb .jgo{margin-left:0}
 .jgo{margin-left:auto;min-height:34px;display:flex;align-items:center;font-size:10px;font-weight:700;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 11px;color:var(--mut);letter-spacing:.08em}
@@ -13246,7 +13254,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 17:21';
+var BUILD='2026-10-03 17:59';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
