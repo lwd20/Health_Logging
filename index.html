@@ -5845,10 +5845,28 @@ function rowHtml(m,noBadge,inMc,dc){
         sub='<span class="sub">'+cSpdSum(la.s,m.n)+(kmv>0?' · '+kmv+'km':'')
           +(badC?' <i class="badv">'+TX('확인')+'</i>':'')+'</span>';
       }else{
+        /* **평소 날에는 평소 세션을 기준으로 삼는다.**
+           보고 있는 날에 한 것이 없으면 마지막 기록을 보이는데, 그것이
+           디로딩·가볍게 세션이면 그 내린 무게가 이 줄의 닻이 됐다 — 복귀
+           첫 날 목록이 `50kg 디로딩` 이라 적고, 정작 들 무게는 80 이었다.
+           이 줄의 수는 **다음에 들 무게를 가늠하는 자리**인데 여기만 다른
+           세션을 보고 있었다: 지시줄(nextRx) · 칸 채움(lastSet·fillNext) ·
+           성장률(prevSess) 은 전부 soft 를 건너뛴다.
+           건너뛴 사실은 꼬리말로 적는다 — 안 적으면 '그 사이 아무 일도
+           없었다' 로 읽혀 디로딩이 기록에서 사라진 것처럼 보인다.
+           유산소는 안 건드린다: 거기서 견줄 것은 무게가 아니라 '얼마나
+           자주' 라, 가볍게 간 날도 똑같이 한 날이다. */
+        var skipped='';
+        if(!td2&&la&&isSoft(la.d)&&!isSoft(UI.wd)){
+          var lw=prevSess(m.i,UI.wd);
+          if(lw){skipped=softWhy(la.d);la=lw;}
+        }
         /* 계획해서 내린 무게에 빨간 '▼18%' 를 다는 것은 틀린 말이다 —
            그 줄이 말할 것은 하락이 아니라 '디로딩' 이다. */
         var lp=prevSess(m.i,la.d);
-        var gt=softTag(la.d)||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d),la.o,lp.o):'');
+        var gt=softTag(la.d)
+          ||(skipped?'<i class="eq soft">'+TX1('{0} 뒤',TX(skipped))+'</i>':'')
+          ||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d),la.o,lp.o):'');
         right=rgt(fmtW(topOfM(m,la.s)),'kg',gt);
       }
     }else{
@@ -13201,7 +13219,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:44';
+var BUILD='2026-10-03 16:59';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14702,7 +14720,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
-'예열':'Warm','본 {0} · 총 {1}세트':'{0} work · {1} total sets','예열 {0}':'{0} warm',
+'예열':'Warm','본 {0} · 총 {1}세트':'{0} work · {1} total sets','예열 {0}':'{0} warm','{0} 뒤':'after {0}',
 '날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
 '인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
 '접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
