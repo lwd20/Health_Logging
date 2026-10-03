@@ -3750,7 +3750,11 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    라 넘어간 줄에서도 오른쪽에 붙는다. */
 .jdh{display:flex;align-items:center;flex-wrap:wrap;gap:7px 9px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:7px}
 .jdh b{font-size:13px;font-weight:800;letter-spacing:.03em;white-space:nowrap}
+/* 이름표는 조용히, **수는 굵고 밝게.** 날짜(.jdh b)와 같은 자리에 서지만
+   저쪽은 '언제' 고 이쪽은 '얼마나' 라, 둘 다 읽혀야 한다 — 수를 10px dim 으로
+   두었더니 줄 전체가 묻혔다. `.jdh i b` 가 `.jdh b`(날짜)보다 특정도가 높다. */
 .jdh i{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
+.jdh i b{font-size:13px;font-weight:800;color:var(--tx);letter-spacing:-.01em}
 .jdb{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .jdb .jso,.jdb .jgo{margin-left:0}
 .jgo{margin-left:auto;min-height:34px;display:flex;align-items:center;font-size:10px;font-weight:700;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 11px;color:var(--mut);letter-spacing:.08em}
@@ -6214,8 +6218,10 @@ function journalHtml(){
          단추가 아랫줄로 밀렸다 — 날 카드마다 한 줄씩 키가 자란다.
          이 탭은 바로 밑에 종목이 나열되므로 수를 또 적을 까닭이 적다.
          메인 머리줄에는 밑에 목록이 없으므로 거기서는 그대로 적는다. */
-      +'<i>'+(nw>0?TX1('본 {0} · 총 {1}세트',ns,ns+nw)
-          :TX1('{0}세트',ns))+'</i>'
+      /* 수만 굵게·밝게 싸고 이름표(본·총·세트)는 조용히 둔다 — 이 줄을
+         보는 까닭이 수인데 10px dim 으로 통째로 묻혀 있었다(지적). */
+      +'<i>'+(nw>0?TX1('본 {0} · 총 {1}세트','<b>'+ns+'</b>','<b>'+(ns+nw)+'</b>')
+          :TX1('{0}세트','<b>'+ns+'</b>'))+'</i>'
       /* 단추 둘을 한 덩이로 묶는다 — 따로 두면 각자 margin-left:auto 라
          줄이 넘어갈 때 하나는 윗줄 오른쪽, 하나는 아랫줄 오른쪽에 떨어진다 */
       +'<span class="jdb">'
@@ -13219,7 +13225,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:59';
+var BUILD='2026-10-03 17:01';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
