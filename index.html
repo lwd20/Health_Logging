@@ -5285,10 +5285,13 @@ function render(){
        두 표시가 한 자리에 붙어 있어 이름으로 구분된다. 디로딩은 그 날 기록이
        있든 없든 이번 주의 성격이므로 늘 나온다. */
     +'<span class="dsum">'
-    /* 예열이 없는 날에는 '총' 을 안 적는다 — 본세트와 같은 수를 두 번 적는 꼴이다 */
+    /* 예열이 없는 날에는 '총' 을 안 적는다 — 본세트와 같은 수를 두 번 적는 꼴이다.
+       **단위는 줄 끝에 한 번만.** 수마다 '세트' 를 붙이면 줄이 두 배로 길어지고,
+       어떤 수에만 붙이면 화면이 세 가지 꼴로 갈린다(지적) — 앞의 수는 맨수로
+       두고 마지막 수가 단위를 안는다. */
     +(tc?'<em>'+tc+' ex · '+(wc>0
-        ?TX1('본 {0} · 총 {1}',sc,sc+wc)
-        :sc+' set'+(sc>1?'s':''))+'</em>'
+        ?TX1('본 {0} · 총 {1}세트',sc,sc+wc)
+        :TX1('{0}세트',sc))+'</em>'
         :'<em class="doff">'+TX('운동 없음')+'</em>')
     /* 평소인 날에는 이 스위치가 제 줄을 쓸 값이 없다 — 일주일에 한 번
        누를까 말까 한 것이 매일 한 줄을 차지했다. 세트 요약 끝에 붙이면
@@ -6182,8 +6185,13 @@ function journalHtml(){
       /* 그 주가 디로딩인지, 그 날을 가볍게 갔는지 — 무게를 뺐으니 '왜 가벼웠나'
          를 여기서 말해야 한다. 안 적으면 차례만 남고 까닭이 사라진다. */
       +(softWhy(d)?'<em class="jdl">'+TX(softWhy(d))+'</em>':'')
-      +'<i>'+ents.length+' ex · '+(nw>0?TX1('본 {0} · 총 {1}',ns,ns+nw)
-          :ns+' set'+(ns>1?'s':''))+'</i>'
+      /* 여기만 종목 수('N ex')를 안 적는다. 폭을 재 보면 쓸 수 있는 자리가
+         124px 인데 `4 ex · 본 10 · 총 12세트` 가 136px 라 차례·Open this day
+         단추가 아랫줄로 밀렸다 — 날 카드마다 한 줄씩 키가 자란다.
+         이 탭은 바로 밑에 종목이 나열되므로 수를 또 적을 까닭이 적다.
+         메인 머리줄에는 밑에 목록이 없으므로 거기서는 그대로 적는다. */
+      +'<i>'+(nw>0?TX1('본 {0} · 총 {1}세트',ns,ns+nw)
+          :TX1('{0}세트',ns))+'</i>'
       /* 단추 둘을 한 덩이로 묶는다 — 따로 두면 각자 margin-left:auto 라
          줄이 넘어갈 때 하나는 윗줄 오른쪽, 하나는 아랫줄 오른쪽에 떨어진다 */
       +'<span class="jdb">'
@@ -6208,7 +6216,7 @@ function journalHtml(){
          차례를 읽는 눈에 걸린다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
       jdt=isCard(jm.p)?TX1('{0}회',e.s.length)
-        :(jwm>0?TX1('예열 {0} · 본세트 {1}',jwm,jws):TX1('{0}세트',jws));
+        :(jwm>0?TX1('예열 {0} · 본 {1}세트',jwm,jws):TX1('{0}세트',jws));
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -13182,7 +13190,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:28';
+var BUILD='2026-10-03 16:37';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14683,7 +14691,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
-'예열':'Warm','본 {0} · 총 {1}':'{0} work · {1} total','예열 {0} · 본세트 {1}':'{0} warm · {1} work',
+'예열':'Warm','본 {0} · 총 {1}세트':'{0} work · {1} total sets','예열 {0} · 본 {1}세트':'{0} warm · {1} work sets',
 '날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
 '인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
 '접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
