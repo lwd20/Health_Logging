@@ -2091,6 +2091,16 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .setr .rir.off{font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--dim);border:1px dashed var(--line)}
 .setr .rir.on{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.4);background:rgba(var(--acc-rgb),.09)}
 .setr .rir.hard{color:var(--neg);border-color:rgba(var(--sig-rgb),.45);background:rgba(var(--sig-rgb),.12)}
+/* 예열. 'RIR 4+' 와 달리 **아예 셈 밖**이라 더 눌러 둔다 — 점선 테두리로
+   미입력과 같은 '값이 아님' 을 말하되, 글자가 '예열' 이라 둘이 안 헷갈린다.
+   46px 칸에 두 글자가 들어가도록 글자를 줄인다. */
+.setr .rir.warm{font-size:10px;font-weight:800;color:var(--dim);
+  border:1px dashed rgba(var(--tx-rgb),.3);background:rgba(var(--tx-rgb),.04)}
+.setr .rir.warm b{font-size:10px;font-weight:800}
+/* 예열 줄 전체를 흐리게. 고리 단추는 덜 흐리게 둔다 — 눌러서 되돌릴
+   자리라 안 보이면 못 고친다. */
+.setr.warm .sete{opacity:.45}
+.setr.warm .rir{opacity:.85}
 /* 볼륨에 안 들어가는 세트 — 켜져 있지만 강조색을 안 준다 */
 .setr .rir.easy{color:var(--dim);border-color:var(--line);background:rgba(var(--tx-rgb),.04)}
 .setr .rir:active{opacity:.5}
@@ -4752,7 +4762,11 @@ function effOf(m,w,ds){
   if(!isAssist(m))return +w||0;
   return Math.max(0,Math.round((bwOn(ds)-(+w||0))*10)/10);
 }
+/* e1RM·증감 판정으로 가는 **길목**이다(열네 자리가 이걸 거친다). 어시스트
+   무게 환산이 본래 일이고, 예열 거르기도 여기서 한다 — 호출하는 쪽마다
+   따로 거르면 한 곳을 빠뜨려 그 화면만 다른 수를 말한다. */
 function effSets(m,s,ds){
+  s=workSets(s);
   if(!isAssist(m)||!s)return s;
   var o=[],i;
   for(i=0;i<s.length;i++){var c=s[i].slice();c[0]=effOf(m,c[0],ds);o.push(c);}
@@ -4821,8 +4835,12 @@ function cardDetail(s,n){
    같은 무게가 이어지면 무게를 한 번만 적는다: '40×12  42.5×12·12'.
    묶음이 셋을 넘으면 거기서 끓고 남은 세트 수를 적는다 — 줄임표로
    숨기는 것보다 몇 개가 더 있는지를 말하는 편이 낫다. */
+/* 지난 세션 요약은 '무엇을 들었나' 다 — 예열은 안 적는다. 지금 적고 있는
+   줄(draft)은 흐리게나마 보여 주지만, 지나간 날의 한 줄 요약에까지 넣으면
+   그 날 뭘 들었는지가 묻힌다. */
 function detailOf(s){
-  if(!s.length)return '';
+  s=workSets(s);
+  if(!s||!s.length)return '';
   if(sameW(s))return repsOf(s);
   var g=[],i;
   for(i=0;i<s.length;i++){
@@ -4842,10 +4860,39 @@ function detailOf(s){
    그렇게 정의된 값이다. 30kg 20회와 60kg 근접실패는 톤수가 같아도 자극이 다르다.
    톤수(무게x횟수)는 판정에서 완전히 뺐다. */
 var RIR_HARD=3;   /* 실패 3회 이내 = 유효 세트 (문헌의 hard set) */
+/* ── 예열 세트 ──
+   본세트에 들어가기 전 가볍게 올리는 세트. **기록은 하되 어느 셈에도 안 든다**
+   (요청) — 유효 세트 · 최고 기록 · 볼륨 · ACSM 반복 · 증량 판정 전부에서 빠지고,
+   로그탭 머리줄의 'N sets' 와 주간 세트 목표에도 안 든다. 예열만 하고 만 날은
+   그 부위를 '한 날' 로도 안 친다.
+   RIR 자리에 `-1` 로 적는다. 옛 기록은 미입력(undefined)이나 0~4 뿐이라 섞이지
+   않고, **유산소는 같은 자리가 경사(incline)** 라 음수가 올 일이 없다
+   (게다가 유산소 줄에는 RIR 단추 자체를 안 그린다).
+   거르는 자리를 늘리지 말고 `workSets()` 하나로 모은다 — 셈마다 따로 걸러
+   두면 한 곳만 고쳐지고 화면이 서로 다른 수를 말한다. */
+var RIR_WARM=-1;
+function isWarm(x){return !!x&&x[2]===RIR_WARM;}
+/* 본세트만. 예열이 없으면 **원본을 그대로 돌려준다** — 쓸데없이 새 배열을
+   만들면 호출하는 쪽이 == 로 견주던 자리가 조용히 틀어진다. */
+function workSets(s){
+  if(!s||!s.length)return s;
+  var i;for(i=0;i<s.length;i++)if(isWarm(s[i]))break;
+  if(i===s.length)return s;
+  return s.filter(function(x){return !isWarm(x);});
+}
+function warmCnt(s){var n=0,i;for(i=0;i<(s||[]).length;i++)if(isWarm(s[i]))n++;return n;}
+/* 그 세션을 **훈련으로 치는가.** 본세트가 하나라도 있어야 한다 — 예열만 적은
+   세션은 기록으로는 남지만 '그 부위를 한 날' 로는 안 친다(요청).
+   `x.s.length` 로 바로 재던 자리를 전부 이걸로 바꿨다. 자리마다 따로 재면
+   한 곳만 빠뜨려 '부위 공백은 비었다는데 종목에는 오늘 함이 떠 있는' 꼴이 된다. */
+function sesDone(x){var w=x&&x.s?workSets(x.s):null;return !!(w&&w.length);}
 function hardOf(s){
   var n=0,unk=0,easy=0,i;
   for(i=0;i<(s||[]).length;i++){
     var v=s[i][2];
+    /* 예열은 유효도 미확인도 아니다 — 통째로 건너뛴다. 여기서 안 거르면
+       미입력으로 떨어져 'unk' 로 세어지고, 주간 세트 목표가 부풀어 오른다. */
+    if(v===RIR_WARM)continue;
     /* 버린 세트를 세어 둔다. 안 세면 '가볍게 여덟 세트' 와 '아예 안 함' 이
        화면에서 똑같이 'MEV 미만' 으로 보이고, 처방이 정반대로 나간다 —
        앞은 무게를 올릴 일이고 뒤는 세트를 늘릴 일이다. */
@@ -4857,9 +4904,11 @@ function hardOf(s){
   return {n:n,unk:unk,easy:easy};
 }
 /* 세션 e1RM(Epley): 세트 수에 불변인 진전 지표 — 증감 판정에 사용 */
-function e1rm(s){var b=0;for(var i=0;i<s.length;i++){var v=(+s[i][0]||0)*(1+(+s[i][1]||0)/30);if(v>b)b=v;}return Math.round(b*10)/10;}
+/* 예열을 넣으면 최고 기록이 낮아지는 게 아니라 **판정이 흔들린다** — 가벼운
+   세트가 평균을 끌어내려, 예열을 적은 날만 '내려갔다' 로 찍힌다. */
+function e1rm(s){s=workSets(s);var b=0;for(var i=0;i<(s||[]).length;i++){var v=(+s[i][0]||0)*(1+(+s[i][1]||0)/30);if(v>b)b=v;}return Math.round(b*10)/10;}
 /* 세트별 e1RM 내림차순 배열 */
-function e1rmArr(s){var a=[],i;for(i=0;i<(s||[]).length;i++){var w=+s[i][0]||0,r=+s[i][1]||0;if(w>0&&r>0)a.push(w*(1+r/30));}a.sort(function(x,y){return y-x;});return a;}
+function e1rmArr(s){s=workSets(s);var a=[],i;for(i=0;i<(s||[]).length;i++){var w=+s[i][0]||0,r=+s[i][1]||0;if(w>0&&r>0)a.push(w*(1+r/30));}a.sort(function(x,y){return y-x;});return a;}
 /* 상위 n세트 평균 e1RM — n 생략 시 전 세트 평균 */
 function e1rmTopN(s,n){
   var a=e1rmArr(s);
@@ -4917,8 +4966,13 @@ function gainTag(cur,prev,ordA,ordB){
   if(g.pct===0)return '<i class="eq">'+TX('유지')+'</i>'+mv;
   return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>'+mv;
 }
-/* RIR(남은 반복) — 미입력/0/1/2/3+ 순환. 0=실패 직전 */
+/* RIR(남은 반복) — 미입력 → 0 → 1 → 2 → 3 → 4+ → 예열 순환. 0=실패 직전.
+   **예열을 맨 뒤에 둔 까닭**: 앞에 끼우면 한 번 눌렀을 때 나오던 0(실패 직전)이
+   뒤로 밀려, 이미 몸에 익은 조작이 통째로 바뀐다(요청). */
 function rirBtn(v,j){
+  if(v===RIR_WARM)
+    return '<button class="rir warm" data-act="rr" data-v="'+j+'">'
+      +'<b>'+TX('예열')+'</b></button>';
   var has=(v===0||v>0);
   /* RIR_HARD 를 넘은 세트는 볼륨에 안 들어가므로 눈으로도 갈라 보인다 */
   var cls=has?(v>RIR_HARD?' easy':(v<=1?' hard':' on')):' off';
@@ -4931,12 +4985,14 @@ function rirNext(v){
   if(v===1)return 2;
   if(v===2)return 3;
   if(v===3)return 4;
-  if(v===4)return null;
+  if(v===4)return RIR_WARM;
+  if(v===RIR_WARM)return null;
   return 0;
 }
 /* 세션 평균 RIR — 입력된 세트만 대상, 없으면 null */
 function rirAvg(s){
   var t=0,n=0,i;
+  /* 예열(-1)은 `v===0||v>0` 에 안 걸려 저절로 빠진다 — 그래도 뜻을 적어 둔다 */
   for(i=0;i<(s||[]).length;i++){var v=s[i][2];if(v===0||v>0){t+=v;n++;}}
   return n?Math.round(t/n*10)/10:null;
 }
@@ -4960,7 +5016,7 @@ function famLastD(m){
   var r=famRows(m),best='',i,j,a;
   for(i=0;i<r.length;i++){
     a=S.l[r[i].i]||[];
-    for(j=0;j<a.length;j++)if(a[j].s&&a[j].s.length&&a[j].d>best)best=a[j].d;
+    for(j=0;j<a.length;j++)if(sesDone(a[j])&&a[j].d>best)best=a[j].d;
   }
   return best;
 }
@@ -4970,7 +5026,7 @@ function famSessD(m){
   var r=famRows(m),seen={},out=[],i,j,a,k;
   for(i=0;i<r.length;i++){
     a=S.l[r[i].i]||[];
-    for(j=0;j<a.length;j++)if(a[j].s&&a[j].s.length)seen[a[j].d]=1;
+    for(j=0;j<a.length;j++)if(sesDone(a[j]))seen[a[j].d]=1;
   }
   for(k in seen)out.push(k);
   out.sort();out.reverse();
@@ -4980,7 +5036,7 @@ function famDays(m,within){
   var r=famRows(m),seen={},i,j,a,c=0,k;
   for(i=0;i<r.length;i++){
     a=S.l[r[i].i]||[];
-    for(j=0;j<a.length;j++)if(a[j].s&&a[j].s.length&&daysAgo(a[j].d)<within)seen[a[j].d]=1;
+    for(j=0;j<a.length;j++)if(sesDone(a[j])&&daysAgo(a[j].d)<within)seen[a[j].d]=1;
   }
   for(k in seen)c++;
   return c;
@@ -5183,12 +5239,15 @@ function hsubHtml(){
 /* ── 렌더 ── */
 function render(){
   var isT=UI.wd===today();
-  var tc=0,sc=0,k,se;
+  var tc=0,sc=0,wc=0,k,se;
   for(k in S.l){
     /* 산책 한 번 적었다고 '1 ex · 1 set' 이 뜨면 훈련한 날처럼 보인다 */
     if(isWalkId(k))continue;
     se=sessOn(k,UI.wd);
-    if(se&&se.s.length){tc++;sc+=se.s.length;}
+    /* 로그에는 **본세트와 총세트를 갈라 적는다**(요청). 셈에 드는 것은 본세트
+       뿐이지만, 그 날 실제로 몇 세트를 했는지도 알아야 한다.
+       종목 수는 본세트가 있을 때만 센다 — 예열만 적은 종목은 '한 종목' 이 아니다. */
+    if(sesDone(se)){tc++;sc+=workSets(se.s).length;wc+=warmCnt(se.s);}
   }
   /* 날짜가 워드마크 바로 아래 왼쪽에 선다 — 아래 모든 숫자가 '어느 날' 것인지의
      전제이므로 가장 먼저 읽혀야 한다. 세트 요약은 같은 줄 오른쪽. */
@@ -5210,7 +5269,10 @@ function render(){
        두 표시가 한 자리에 붙어 있어 이름으로 구분된다. 디로딩은 그 날 기록이
        있든 없든 이번 주의 성격이므로 늘 나온다. */
     +'<span class="dsum">'
-    +(tc?'<em>'+tc+' ex · '+sc+' set'+(sc>1?'s':'')+'</em>'
+    /* 예열이 없는 날에는 '총' 을 안 적는다 — 본세트와 같은 수를 두 번 적는 꼴이다 */
+    +(tc?'<em>'+tc+' ex · '+(wc>0
+        ?TX1('본 {0} · 총 {1}',sc,sc+wc)
+        :sc+' set'+(sc>1?'s':''))+'</em>'
         :'<em class="doff">'+TX('운동 없음')+'</em>')
     /* 평소인 날에는 이 스위치가 제 줄을 쓸 값이 없다 — 일주일에 한 번
        누를까 말까 한 것이 매일 한 줄을 차지했다. 세트 요약 끝에 붙이면
@@ -5619,7 +5681,7 @@ function brandSecs(sg,bgs,sj){
   for(q=0;q<vis.length;q++){
     (function(g,gi){
       var bit=favFirst(g.items),hue=bHue(g.n),fk=gk+'|'+g.n,tdc=0,j2,ss2;
-      for(j2=0;j2<g.items.length;j2++){ss2=sessOn(g.items[j2].i,UI.wd);if(ss2&&ss2.s&&ss2.s.length)tdc++;}
+      for(j2=0;j2<g.items.length;j2++){ss2=sessOn(g.items[j2].i,UI.wd);if(sesDone(ss2))tdc++;}
       /* 접힘 — 46 은 누른 것만 접히고, 91 은 첫 브랜드만 펴 두고 나머지는 요약 줄로 */
       var op=(UI.bopen&&(fk in UI.bopen))?!!UI.bopen[fk]:(q===0);
       var fold=(d.x==='fold')?!!(UI.bfold&&UI.bfold[fk]):(d.x==='sum'?!op:false);
@@ -5791,7 +5853,7 @@ function rowHtml(m,noBadge,inMc,dc){
      없다 — 'Overhead Extensi… A…' 처럼 둘 다 잘리는 것보다 하나를 온전히 */
   var line=(!m.v&&!inMc&&!(noBadge&&mcn)&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
-  var ts2=sessOn(m.i,UI.wd),done=!!(ts2&&ts2.s&&ts2.s.length);
+  var ts2=sessOn(m.i,UI.wd),done=sesDone(ts2);
   if(done&&!dirty)dtag='<i class="dtag done">'+(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',ts2.s.length))+'</i>';
   /* 브랜드 구분 시안의 줄 표식(설정 · DISPLAY · 브랜드) — 제목줄 대신 줄이 브랜드를 말한다.
      dc={b:브랜드, k:표식 종류, first:그 브랜드의 첫 줄인가, hue:색상} */
@@ -5854,7 +5916,9 @@ function panelHtml(m){
   if(draft.length){
     h+='<div class="setwrap">';
     for(var j=0;j<draft.length;j++){
-      h+='<div class="setr'+(UI.esIdx===j?' editing':'')+'">'
+      /* 예열 줄은 흐리게(요청). 색만으로 가르지 않는다 — 고리 글자가 '예열'
+         이라 글귀로도 읽히고, 흐림은 '이건 셈에 안 든다' 를 말한다. */
+      h+='<div class="setr'+(UI.esIdx===j?' editing':'')+(isWarm(draft[j])?' warm':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+'</span>')
@@ -6072,10 +6136,10 @@ function journalHtml(){
   if(dates.length>30)dates=dates.slice(0,30);
   if(!dates.length)return '<div class="empty">No records</div>';
   if(dates.length>60)dates=dates.slice(0,60);
-  var h='',d,ents,ns,e;
+  var h='',d,ents,ns,nw,e;
   for(i=0;i<dates.length;i++){
-    d=dates[i];ents=jOrder(d,map[d]);ns=0;
-    for(j=0;j<ents.length;j++)ns+=ents[j].s.length;
+    d=dates[i];ents=jOrder(d,map[d]);ns=0;nw=0;
+    for(j=0;j<ents.length;j++){ns+=workSets(ents[j].s).length;nw+=warmCnt(ents[j].s);}
     /* 차례 고치기 — 시각이 없는 옛 기록은 기억으로만 되살릴 수 있다.
        종목이 하나뿐인 날은 바꿀 것이 없으므로 단추도 안 낸다. */
     var ordOn=(UI.jord===d),hasOrd=!!(S.o&&S.o[d]);
@@ -6102,7 +6166,8 @@ function journalHtml(){
       /* 그 주가 디로딩인지, 그 날을 가볍게 갔는지 — 무게를 뺐으니 '왜 가벼웠나'
          를 여기서 말해야 한다. 안 적으면 차례만 남고 까닭이 사라진다. */
       +(softWhy(d)?'<em class="jdl">'+TX(softWhy(d))+'</em>':'')
-      +'<i>'+ents.length+' ex · '+ns+' set'+(ns>1?'s':'')+'</i>'
+      +'<i>'+ents.length+' ex · '+(nw>0?TX1('본 {0} · 총 {1}',ns,ns+nw)
+          :ns+' set'+(ns>1?'s':''))+'</i>'
       /* 단추 둘을 한 덩이로 묶는다 — 따로 두면 각자 margin-left:auto 라
          줄이 넘어갈 때 하나는 윗줄 오른쪽, 하나는 아랫줄 오른쪽에 떨어진다 */
       +'<span class="jdb">'
@@ -6121,7 +6186,11 @@ function journalHtml(){
          읽는 데 드는 값이다(부위가 바뀌는 자리가 곧 흐름의 마디다). */
       var jm=e.m,jhd,jdt;
       jhd=TX(PN_KO[jm.p]||'유산소');
-      jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',e.s.length);
+      /* 종목마다 예열과 본세트를 갈라 적는다(요청). 예열이 없으면 안 적는다 —
+         늘 적으면 '예열 0' 이 줄마다 붙어 차례를 읽는 눈에 걸린다. */
+      var jws=workSets(e.s).length,jwm=warmCnt(e.s);
+      jdt=isCard(jm.p)?TX1('{0}회',e.s.length)
+        :(jwm>0?TX1('{0}세트 · 예열 {1}',jws,jwm):TX1('{0}세트',jws));
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -7499,7 +7568,10 @@ function addSet(){
   if(cd){
     var iv=parseFloat(String(UI.ci).replace(',','.'));
     if(iv>0)set.push(Math.round(iv*10)/10);
-  }else if(UI.rirHold===0||UI.rirHold>0){
+  /* 예열(-1)도 들고 와야 한다. `===0||>0` 만 보던 때는 예열 세트를 눌러 고치고
+     Update 를 누르면 표식이 조용히 사라져 본세트로 바뀌었다 — 셈에 들어가
+     버리는데 화면에는 아무 말도 없었다. */
+  }else if(UI.rirHold===RIR_WARM||UI.rirHold===0||UI.rirHold>0){
     set.push(UI.rirHold);
   }
   UI.rirHold=null;
@@ -7850,7 +7922,8 @@ function editSet(i){
   UI.w=fmtW(d[i][0]);UI.r=String(d[i][1]);
   var cdE=isCardId(UI.open);
   UI.ci=(cdE&&d[i][2]>0)?fmtW(d[i][2]):'';
-  UI.rirHold=(!cdE&&(d[i][2]===0||d[i][2]>0))?d[i][2]:null;
+  /* 예열(-1)도 집어 둔다 — 안 집으면 고치는 순간 본세트로 바뀐다 */
+  UI.rirHold=(!cdE&&(d[i][2]===RIR_WARM||d[i][2]===0||d[i][2]>0))?d[i][2]:null;
   UI.esIdx=i;
   UI.arm=null;
   render();
@@ -8475,7 +8548,7 @@ function dayLogged(ds){
      것이 NEAT 의 뜻 그대로다. 지금은 걷기 기록 하나에 단추가 안 나왔다. */
   for(k in S.l){
     if(isWalkId(k))continue;
-    se=sessOn(k,ds);if(se&&se.s&&se.s.length)return true;
+    se=sessOn(k,ds);if(sesDone(se))return true;
   }
   return false;
 }
@@ -9522,7 +9595,7 @@ function wkDone(){
 /* 그 날 근력이든 유산소든 세트가 하나라도 있나 */
 function hasLogOn(ds){
   var k,a,j;
-  for(k in S.l){a=S.l[k];for(j=0;j<a.length;j++){if(a[j].d===ds&&a[j].s&&a[j].s.length)return true;if(a[j].d<ds)break;}}
+  for(k in S.l){a=S.l[k];for(j=0;j<a.length;j++){if(a[j].d===ds&&sesDone(a[j]))return true;if(a[j].d<ds)break;}}
   return false;
 }
 /* 훈련할 수 있었던 날 — 쉬는 요일을 뺀다. RD 는 일=0 기준이라 월=0 으로 옮긴다.
@@ -13085,7 +13158,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 16:05';
+var BUILD='2026-10-03 16:22';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -14586,6 +14659,7 @@ var EN={
 '주동근 · 이번 주 · MEV~MRV':'Prime movers · week · MEV–MRV',
 '<i class="s1"></i>MEV~MAV <i class="s2"></i>MAV존 <i class="s4"></i>MV <i class="s3"></i>MRV':'<i class="s1"></i>MEV–MAV <i class="s2"></i>MAV zone <i class="s4"></i>MV <i class="s3"></i>MRV',
 '적정':'target','최소':'min','충족':'met','범위 안':'in range',
+'예열':'Warm','본 {0} · 총 {1}':'{0} work · {1} total','{0}세트 · 예열 {1}':'{0} sets · {1} warm',
 '날짜':'Date','체중':'Weight','체지방':'Body fat','골격근':'SMM',
 '인바디 기록':'InBody records','기록 추가':'Add record','인바디 스캔':'Scan InBody',
 '접기':'Collapse','휴식 요일':'Rest days','부위 점':'Part dots','기타':'Other',
