@@ -2175,6 +2175,25 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 적자는 accent 로 옅게 깔고 넘긴 날만 --sig. --pos 초록은 면적이 커서
    강조가 아니라 배경이 되고, 팔레트를 바꾸면 더 어긋난다.
    눈이 가야 할 곳은 넘긴 날이지 잘한 날이 아니다. */
+/* ── 걸음(NEAT) 막대 ──
+   자료 없는 날은 0 짜리 막대가 아니라 바닥의 얇은 표식이다 — 0 으로 그리면
+   '안 움직였다' 는 거짓이 된다(§1 모르는 것과 0은 다르다). */
+/* 오늘은 흐리게만 두면 안 된다 — 밝은 판에서 러닝머신 몫(연한 회색)과 같은
+   색이 되어 둘을 못 가른다. 테두리를 같이 준다(§3-2 색으로만 가르지 마라).
+   자료 없는 날(점선 테두리 · 속 빔)과도 갈린다 — 이쪽은 실선에 속이 찼다. */
+.trg .nBar{fill:var(--acc-br);fill-opacity:.85}
+.trg .nBar.part{fill-opacity:.28;stroke:var(--acc-br);stroke-width:1.3;stroke-opacity:.9}
+/* 러닝머신 몫은 막대 위에 **판 색**으로 덮는다. 글자색·회색으로 칠했더니
+   밝은 판에서 막대와 둘 다 어두워 겹친 자리가 안 갈렸다(chalk 막대 #2e373e).
+   판 색은 어느 팔레트에서나 막대의 반대쪽이라 늘 갈린다 — 고리의 최소
+   눈금(`.mn.on`)과 같은 수다. */
+.trg .nCut{fill:var(--plate);opacity:.55}
+.trg .nNo{fill:none;stroke:var(--dim);stroke-width:1;stroke-dasharray:2 2;opacity:.7}
+.trg .nMed{stroke:var(--mut);stroke-width:1.4;stroke-dasharray:4 3;opacity:.8}
+
+.trg .nDow{fill:var(--acc-br);opacity:.8}
+.trg .nDow.rest{fill:rgba(var(--tx-rgb),.3)}
+.trg text.rest{opacity:.5}
 .trg .bOK{fill:var(--acc-br);opacity:.13}
 .trg .bNG{fill:var(--sig);opacity:.20}
 /* 색만으로 가르면 밝은 팔레트에서 둘 다 진한 회색으로 앉는다. 몸 그림처럼
@@ -2277,6 +2296,17 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .trgl i{display:inline-flex;align-items:center;gap:4px;font-style:normal}
 .trgl i::before{content:'';width:12px;height:0;border-top:2px dashed var(--mut)}
 .trgl i.k1::before{border-top:2.2px solid var(--acc-br)}
+/* 걸음 갈래는 막대 그림이다 — 범례 표식도 선이 아니라 네모여야 한다.
+   선 표식을 쓰면 그림에 없는 선이 있는 것처럼 읽힌다(섭취·소비 범례에서
+   한 번 당한 자리다). */
+.trgl i.kB::before{border-top:0;width:10px;height:10px;border-radius:2px;background:var(--acc-br);opacity:.85}
+.trgl i.kC::before{border-top:0;width:10px;height:10px;border-radius:2px;background:var(--acc-br);opacity:.42}
+.trgl i.kN::before{border-top:0;width:10px;height:9px;border-radius:2px;background:none;
+  border:1px dashed var(--dim);opacity:.7}
+.trgl i.kR::before{border-top:0;width:10px;height:10px;border-radius:2px;background:rgba(var(--tx-rgb),.3)}
+.trgl i.kT::before{border-top:0;width:10px;height:10px;border-radius:2px;
+  background:rgba(var(--acc-rgb),.28);border:1.3px solid var(--acc-br)}
+.trgl i.kM2::before{border-top:1.4px dashed var(--mut);width:12px;opacity:.8}
 .trgl b{color:var(--tx);font-weight:600}
 .trgl u{text-decoration:none;opacity:.7;font-size:10px}
 /* 요약. 표식이 붙으면 안 되므로 범례와 다른 칸이다 */
@@ -10921,7 +10951,10 @@ var VZD=[['pro','단백질'],['eat','섭취']];
    버리지 않고 추세 맨 아래로 내렸다. 날마다 볼 수가 아니라 이따금 '내 계수가
    맞나' 를 물을 때 보는 값이라 그 자리가 맞다.
    '오늘' 이 앞이다 — 갈래를 열자마자 할 일이 보여야 한다. */
-var VZB=[['today','오늘'],['chg','추세']];
+/* '걸음' 갈래는 NEAT 를 따로 본다. 걸음은 운동 소비와 다른 셈으로 들어가고
+   (기초 + 소화 + 걸음), 적자의 상당 몫을 차지하는데 어느 화면도 그것만
+   따로 보여 주지 않았다 — 추세 갈래의 쪼갠 막대에 한 도막으로 섞여 있었다. */
+var VZB=[['today','오늘'],['chg','추세'],['neat','걸음']];
 /* 갈래 고르는 줄. 예전 아홉 모드가 관심사별 창구였던 것을 여기서 되살린다 —
    다만 AI 호출이 아니라 보기 전환이라 기다림도 한도도 없다. */
 function vzTabs(list,cur,act){
@@ -11668,12 +11701,182 @@ function chartBody(win){
     +'aria-label="'+TX('체중 체지방률 골격근량의 시작 대비 변화')+'">'+g+'</svg>';
 }
 /* 몸 — 체중이 어디로 가고 있나, 그리고 그것을 무엇이 밀고 있나 */
+/* 가운뎃값. 평균이 아닌 까닭은 하루 크게 걸은 날이 평균을 통째로 끌어올려
+   '보통 이만큼 걷는다' 가 아니게 되기 때문이다 — 부위 공백이 쓰던 자와 같다. */
+function medOf(a){
+  if(!a.length)return 0;
+  var b=a.slice().sort(function(x,y){return x-y;}),m=Math.floor(b.length/2);
+  return b.length%2?b[m]:Math.round((b[m-1]+b[m])/2);
+}
+/* 창 안 날마다의 걸음.
+   **trendRows 를 쓰면 안 된다** — 그것은 먹은 것이나 체중이 적힌 날만 준다.
+   걸음은 그 둘과 상관없이 들어오므로, 먹은 것을 안 적은 날의 걸음이 통째로
+   빠져 그림에 구멍이 난다. 창의 날을 하나씩 훑는다.
+   **자료가 없는 날은 `n:null` 이다. 0 이 아니다** — 0 으로 두면 '그 날 안
+   움직였다' 가 되는데 사실은 '폰이 안 넘겼다' 다(§1 모르는 것과 0은 다르다). */
+function stepRows(win){
+  if(!win)win=trWin();
+  var out=[],t,td0=today();
+  for(t=win.t0;t<=win.t1;t+=86400000){
+    var d=new Date(t),
+        ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),
+        n=stepsOn(ds),tm=Math.round(treadMinOn(ds));
+    out.push({d:ds,t:t,n:(n>0?n:null),k:stepKcal(ds),
+      /* 러닝머신 분은 걸음에서 빠진다(중복 방지). 얼마가 빠졌는지 안 보이면
+         '만 보를 걸었는데 왜 0kcal 인가' 를 설명할 길이 없다. */
+      cut:Math.min(n,tm*100),part:(ds===td0),dow:d.getDay()});
+  }
+  return out;
+}
+/* 날마다 걸음 막대. 0 에서 시작한다 — 걸음은 0 이 뜻을 갖는 값이라
+   축을 띄우면 '조금 걸은 날' 과 '많이 걸은 날' 의 차이가 부풀어 보인다. */
+function chartSteps(win){
+  /* 범례가 가운뎃값을 적어야 하므로 밖에서도 같은 수를 낼 수 있어야 한다 */
+  if(!win)win=trWin();
+  var a=stepRows(win),i;
+  var has=a.filter(function(r){return r.n!=null&&!r.part;});
+  if(has.length<2)return '';
+  var W=320,H=126,L=36,R=7,T=14,B=19,CBOT=H-B,VH=H-B+18;
+  var med=medOf(has.map(function(r){return r.n;}));
+  var hi=0;for(i=0;i<a.length;i++)if(a[i].n>hi)hi=a[i].n;
+  hi=Math.max(hi,med)*1.12||1000;
+  var span=win.span,t0=win.t0;
+  function X(t){return L+(W-L-R)*(t-t0)/(win.t1-t0);}
+  function Y(v){return T+(hi-v)/hi*(H-T-B);}
+  var bw=Math.max(5,Math.min(15,(W-L-R)/(span+1)-3));
+  var g='',st=niceStep(hi,3),v=0,gi=0;
+  while(v<=hi+1e-9&&gi<12){
+    g+='<line class="gr" x1="'+L+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(v).toFixed(1)+'"/>'
+      +'<text x="'+(L-4)+'" y="'+(Y(v)+3).toFixed(1)+'" text-anchor="end">'+Math.round(v).toLocaleString()+'</text>';
+    v+=st;gi++;
+  }
+  /* 단위는 그림 맨 위에. 마지막 눈금 바로 위에 뒀더니 '보' 와 '10,000' 이
+     세로로 붙어 한 덩이로 읽혔다. */
+  g+='<text x="'+(L-4)+'" y="'+(T-3)+'" text-anchor="end">'+TX('보')+'</text>';
+  g+=trAxis(t0,span,L,W,R,T,CBOT);
+  for(i=0;i<a.length;i++){
+    /* 마지막 날 막대가 그림 밖으로 반쯤 나가 잘렸다 — 축 안으로 끌어 넣는다 */
+    var r=a[i],x=Math.max(L,Math.min(W-R-bw,X(r.t)-bw/2));
+    if(r.n==null){
+      /* 자료가 없는 날. 0 짜리 막대를 그리면 '안 움직였다' 는 거짓이 된다 —
+         바닥에 빈 표식만 둔다. */
+      /* 3px 짜리 채운 막대로 뒀더니 '거의 안 걸은 날' 로 읽혔다 — 속을 비우고
+         테두리만 점선으로 둬서 '여기엔 아무것도 없다' 가 보이게 한다. */
+      g+='<rect class="nNo" x="'+x.toFixed(1)+'" y="'+(CBOT-11)+'" width="'+bw.toFixed(1)+'" height="11" rx="1.5"/>';
+      continue;
+    }
+    var yT=Y(r.n),hT=Math.max(1,CBOT-yT);
+    g+='<rect class="nBar'+(r.part?' part':'')+'" x="'+x.toFixed(1)+'" y="'+yT.toFixed(1)
+      +'" width="'+bw.toFixed(1)+'" height="'+hT.toFixed(1)+'" rx="1.5"/>';
+    /* 러닝머신으로 빠진 몫을 막대 **아래쪽**에 겹쳐 둔다 — 그 몫은 걸음 수에는
+       있지만 걸음 kcal 에는 안 들어간 부분이다. */
+    if(r.cut>0){
+      var hC=Math.min(hT,(CBOT-Y(r.cut)));
+      g+='<rect class="nCut" x="'+x.toFixed(1)+'" y="'+(CBOT-hC).toFixed(1)
+        +'" width="'+bw.toFixed(1)+'" height="'+hC.toFixed(1)+'" rx="1.5"/>';
+    }
+  }
+  /* 가운뎃값 선. 바깥에서 가져온 '하루 만 보' 같은 수가 아니라 그 사람의
+     기록에서 낸 수다 — 주 5일로 도는 사람에게 남의 수를 들이밀지 않는다. */
+  if(med>0){
+    /* 수는 **그림 안에 안 적는다.** 한글 글자 폭을 못 재서 판을 깔아도 막대에
+       걸쳤고, 어차피 같은 수를 범례가 댄다 — 같은 수를 두 번 적지 않는다.
+       그림에는 선만, 그 선이 무엇인지는 범례가 말한다. */
+    g+='<line class="nMed" x1="'+L+'" y1="'+Y(med).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(med).toFixed(1)+'"/>';
+  }
+  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('날마다 걸음')+'">'+g+'</svg>';
+}
+/* 요일별 평균 걸음. '언제 안 움직이는가' 는 날짜별 그림으로는 안 보인다 —
+   같은 요일이 2주에 두 번뿐이라 눈이 못 모은다. */
+function chartDow(){
+  var a=stepRows({t0:new Date(dsAgo(27)).getTime(),t1:new Date(today()).getTime(),span:27});
+  var sum=[0,0,0,0,0,0,0],cnt=[0,0,0,0,0,0,0],i;
+  for(i=0;i<a.length;i++){
+    var r=a[i];
+    if(r.n==null||r.part)continue;          /* 모르는 날과 안 끝난 오늘은 뺀다 */
+    sum[r.dow]+=r.n;cnt[r.dow]++;
+  }
+  var ORD=[1,2,3,4,5,6,0],NM=['일','월','화','수','목','금','토'];
+  var av=ORD.map(function(d){return cnt[d]?Math.round(sum[d]/cnt[d]):null;});
+  if(av.filter(function(x){return x!=null;}).length<3)return '';
+  var W=320,H=96,L=36,R=7,T=12,B=17,CBOT=H-B,VH=H-B+16;
+  var hi=Math.max.apply(null,av.map(function(x){return x||0;}))*1.12||1000;
+  function Y(v){return T+(hi-v)/hi*(H-T-B);}
+  var g='',st=niceStep(hi,2),v=0,gi=0;
+  while(v<=hi+1e-9&&gi<10){
+    g+='<line class="gr" x1="'+L+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(v).toFixed(1)+'"/>'
+      +'<text x="'+(L-4)+'" y="'+(Y(v)+3).toFixed(1)+'" text-anchor="end">'+Math.round(v).toLocaleString()+'</text>';
+    v+=st;gi++;
+  }
+  var cw=(W-L-R)/7,bw=Math.min(22,cw-7);
+  for(i=0;i<7;i++){
+    var cx=L+cw*(i+0.5),d=ORD[i],rest=(RD.indexOf(d)>=0);
+    if(av[i]!=null){
+      var yT=Y(av[i]);
+      g+='<rect class="nDow'+(rest?' rest':'')+'" x="'+(cx-bw/2).toFixed(1)+'" y="'+yT.toFixed(1)
+        +'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,CBOT-yT).toFixed(1)+'" rx="2"/>';
+    }
+    /* 쉬는 요일은 글자로도 갈라 적는다 — 색만으로 가르면 밝은 판에서 묻힌다 */
+    g+='<text x="'+cx.toFixed(1)+'" y="'+(CBOT+13)+'" text-anchor="middle"'
+      +(rest?' class="rest"':'')+'>'+TX(NM[d])+(rest?'·':'')+'</text>';
+  }
+  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('요일별 평균 걸음')+'">'+g+'</svg>';
+}
 function vzBody(tab){
   tab=tab||'today';
   var h='';
   /* 식단에 있던 '오늘' 을 그대로 부른다. 같은 화면을 두 벌로 두면 한쪽만
      고치는 날이 오고, 그때부터 두 곳이 다른 수를 말한다. */
   if(tab==='today')return vzDiet('today');
+  /* ── 걸음(NEAT) ──
+     시각화가 먼저다(요청). 그림 둘이 맨 위에 서고, 수는 그림이 말한 것을
+     못박는 자리로만 둔다. */
+  if(tab==='neat'){
+    var WN=trWin(),sa=stepRows(WN);
+    var fin=sa.filter(function(r){return r.n!=null&&!r.part;});   /* 끝난 날 · 자료 있는 날 */
+    var miss=sa.filter(function(r){return r.n==null&&!r.part;}).length;
+    if(fin.length<2)
+      return vzLine(TX('걸음'),TX('아직 모자람'),
+        TX('삼성헬스가 넘긴 걸음이 이틀치는 있어야 그림을 그림'),{t:'',c:''});
+    var avgN=Math.round(fin.reduce(function(x,r){return x+r.n;},0)/fin.length);
+    var avgK=Math.round(fin.reduce(function(x,r){return x+r.k;},0)/fin.length);
+    var cutT=fin.reduce(function(x,r){return x+r.cut;},0);
+    var dfc=0;try{var nfz=nutriFacts();if(nfz&&nfz.dailyDeficitTarget>0)dfc=Math.round(nfz.dailyDeficitTarget);}catch(e){}
+    var share=dfc>0?Math.round(avgK/dfc*100):null;
+    /* 새 낱말은 화면에서 한 번 풀어 준다(§3-1). NEAT 는 사용자가 쓰는 말이지만
+       '걸음' 과 같은 것인지가 안 적혀 있으면 두 낱말이 따로 논다. */
+    h+='<div class="note" style="margin:2px 0 2px">'
+      +TX('<b>걸음(NEAT)</b> = 운동 말고 그냥 움직여 쓰는 몫. 하루 소비에 기초대사 · 소화와 나란히 더해지고, 운동 소비와는 따로 셈.')
+      +'</div>';
+    /* 결론 먼저 — 이 갈래를 여는 까닭은 '걸어서 적자를 얼마나 파고 있나' 다 */
+    h+=vzLine(TX('걸음으로 판 적자'),avgK.toLocaleString()+' kcal',
+      share!=null?TX1('하루 평균 · 적자 목표 {0}kcal 의 {1}%',dfc.toLocaleString(),share)
+                 :TX('하루 평균 · 끝난 날만'),{t:'',c:''});
+    var medN=medOf(fin.map(function(r){return r.n;}));
+    var hasTd=sa.some(function(r){return r.part&&r.n!=null;});
+    h+=vzCap(TX('날마다 걸음'))+chartSteps(WN)
+      +'<div class="trgl"><i class="kB">'+TX('걸음')+'</i>'
+      +(hasTd?'<i class="kT">'+TX('오늘')+'</i>':'')
+      +(medN>0?'<i class="kM2">'+TX1('가운뎃값 {0}보',medN.toLocaleString())+'</i>':'')
+      /* 곁말(<u>)을 달았더니 바로 뒤 항목과 붙어 한 문장으로 읽혔다.
+         범례가 할 일은 '어느 표식이 무엇인가' 뿐이다 — 까닭은 아래 접힌 줄이 적는다. */
+      +(cutT>0?'<i class="kC">'+TX('러닝머신 몫')+'</i>':'')
+      +(miss>0?'<i class="kN">'+TX1('자료 없음 {0}일',miss)+'</i>':'')+'</div>';
+    var dw=chartDow();
+    if(dw)h+=vzCap(TX('요일별 평균 · 4주'))+dw
+      +'<div class="trgl"><i class="kB">'+TX('평균 걸음')+'</i><i class="kR">'+TX('쉬는 요일 ·')+'</i></div>';
+    /* 날마다 볼 수가 아니라 접는다 — 펴는 까닭은 '얼마나' 가 아니라 '무엇이' 다 */
+    h+=vzFold('nst',TX('걸음 자세히'),avgN.toLocaleString()+TX('보'),
+      vzLine(TX('하루 평균 걸음'),avgN.toLocaleString()+TX('보'),
+        TX1('끝난 날 {0}일 · 오늘과 자료 없는 날은 뺌',fin.length),{t:'',c:''})
+      +vzLine(TX('걸음당'),kcalPerStep(BW).toFixed(4)+' kcal',
+        TX1('신장 {0}cm → 보폭 {1}cm → {2}보/km',HT,Math.round(0.415*HT),Math.round(stepsPerKm()).toLocaleString()),{t:'',c:''})
+      +(cutT>0?vzLine(TX('러닝머신으로 빠진 걸음'),cutT.toLocaleString()+TX('보'),
+        TX('러닝머신은 운동 소비로 따로 잡히므로 걸음에서 뺌 — 분당 100보'),{t:'',c:''}):'')
+      +(miss>0?vzLine(TX('자료가 없는 날'),miss+TX('일'),
+        TX1('그 날은 걸음 대신 기초대사 × 활동 계수 {0} 으로 바닥을 깖',ACT),{t:TX('모름'),c:''}):''));
+    return h;
+  }
   if(tab==='chg'){
     /* 결론이 맨 위다 — 얼마 남았나 · 언제 닿나 · 지금 속도가 안전한가.
        아래 그림들은 그 수가 어떻게 나왔는지를 푸는 자리다. */
@@ -12882,7 +13085,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 00:06';
+var BUILD='2026-10-03 16:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
