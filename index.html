@@ -3750,11 +3750,16 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    라 넘어간 줄에서도 오른쪽에 붙는다. */
 .jdh{display:flex;align-items:center;flex-wrap:wrap;gap:7px 9px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:7px}
 .jdh b{font-size:13px;font-weight:800;letter-spacing:.03em;white-space:nowrap}
-/* 이름표는 조용히, **수는 굵고 밝게.** 날짜(.jdh b)와 같은 자리에 서지만
-   저쪽은 '언제' 고 이쪽은 '얼마나' 라, 둘 다 읽혀야 한다 — 수를 10px dim 으로
-   두었더니 줄 전체가 묻혔다. `.jdh i b` 가 `.jdh b`(날짜)보다 특정도가 높다. */
-.jdh i{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
-.jdh i b{font-size:13px;font-weight:800;color:var(--tx);letter-spacing:-.01em}
+/* 날짜(.jdh b)와 같은 자리에 서지만 저쪽은 '언제' 고 이쪽은 '얼마나' 라,
+   둘 다 읽혀야 한다. 10px dim 으로 두었더니 줄 전체가 묻혔고, 굵기·크기만
+   올려서는 여전히 안 떠올랐다(지적) — **알약에 담아 한 덩이로 세운다.**
+   수는 강조색, 이름표(본·총·세트)는 조용히 둬서 알약 안에서 again 갈린다.
+   같은 줄의 디로딩 알약(.jdl)과는 꼴이 다르다: 저쪽은 **테두리만**, 이쪽은
+   **채움만** — 한 줄에 둘이 같이 서도 안 섞인다(§3).
+   `.jdh i b` 가 `.jdh b`(날짜)보다 특정도가 높아 날짜 규칙에 안 먹힌다. */
+.jdh i{font-family:var(--mono);font-size:10px;color:var(--mut);white-space:nowrap;
+  background:rgba(var(--acc-rgb),.11);border-radius:999px;padding:3px 10px}
+.jdh i b{font-size:13px;font-weight:800;color:var(--acc-br);letter-spacing:-.01em}
 .jdb{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .jdb .jso,.jdb .jgo{margin-left:0}
 .jgo{margin-left:auto;min-height:34px;display:flex;align-items:center;font-size:10px;font-weight:700;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-s);padding:0 11px;color:var(--mut);letter-spacing:.08em}
@@ -13225,7 +13230,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 17:01';
+var BUILD='2026-10-03 17:05';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
