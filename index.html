@@ -3794,12 +3794,15 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jro{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;font-family:var(--mono);text-align:right}
 .jro b{font-size:11px;font-weight:700;color:var(--acc-br);letter-spacing:.02em}
 .jro em{font-style:normal;font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
-/* 예열 배지. 브랜드 배지(.jb)와 **다른 꼴**이어야 한다 — 저쪽은 강조색 실선으로
-   '무엇으로 했나' 를 말하고 이쪽은 점선으로 '셈에 안 드는 몫' 을 말한다.
-   점선은 세트 목록의 예열 고리와 같아, 한 낱말이 두 화면에서 같은 생김새다. */
-.jro i.jw{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.04em;
-  color:var(--dim);border:var(--bw) dashed rgba(var(--tx-rgb),.3);
-  border-radius:var(--rad-s);padding:1px 5px;white-space:nowrap;align-self:center}
+/* 본세트 수 — 이 칸에서 읽어야 할 수다. 줄 전체가 한 톤이라 가장 흐렸다(지적). */
+.jro em b{font-size:12.5px;font-weight:800;color:var(--tx);letter-spacing:-.01em}
+/* 예열 표식. 한때 점선 알약이었는데, 예열을 늘 하는 사람에게는 **모든 줄에**
+   붙어 알약 여섯 개가 세로로 서면서 소음만 됐다(지적: '허접해').
+   테두리를 떼고 가장 작은 글씨로 내린다 — 예외 표식이 아니라 곁수이고,
+   줄에서 눈에 먼저 들어와야 하는 것은 그 옆의 본세트 수다.
+   다 강조하면 아무것도 강조가 아니다(§3). */
+.jro i.jw{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.02em;
+  color:var(--dim);opacity:.75;white-space:nowrap;align-self:center}
 /* 그 날 부위가 지나간 차례 — 날짜 바로 밑, 줄들보다 먼저 읽히는 자리 */
 .jflow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:-1px 0 8px;
   font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.02em}
@@ -5824,14 +5827,18 @@ function rowHtml(m,noBadge,inMc,dc){
     return '<span class="rw"><b class="w">'+w2+'</b><i class="u">'+unit+'</i></span><span class="rp">'+(tag||'')+'</span>';
   }
   if(dirty){
-    var n=draft?draft.length:0,t=draft&&n?topOfM(m,draft):0;
+    /* 적는 중인 줄도 **본세트만** 센다. draft.length 를 그대로 쓰면 예열까지
+       세어, 예열만 올려 둔 종목이 '1세트 20kg' 으로 선다 — 셈에 안 드는
+       세트가 줄의 대표 무게가 되는 꼴이다(지적). 유산소는 예열이 없다. */
+    var dws=(draft&&!isCard(m.p))?workSets(draft):draft;
+    var n=dws?dws.length:0,t=dws&&n?topOfM(m,dws):0;
     dtag='<i class="dtag now">Editing</i>';
     if(isCard(m.p)){
       right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
       var dp=prevSess(m.i,UI.wd);
       right=rgt(fmtW(t),'kg',softTag(UI.wd)
-        ||(dp?gainTag(effSets(m,draft,UI.wd),effSets(m,dp.s,dp.d),partOrd(m.i,UI.wd),dp.o):''));
+        ||(dp?gainTag(effSets(m,dws,UI.wd),effSets(m,dp.s,dp.d),partOrd(m.i,UI.wd),dp.o):''));
     }else{
       right='<span class="none">—</span>';
     }
@@ -5865,10 +5872,19 @@ function rowHtml(m,noBadge,inMc,dc){
            없었다' 로 읽혀 디로딩이 기록에서 사라진 것처럼 보인다.
            유산소는 안 건드린다: 거기서 견줄 것은 무게가 아니라 '얼마나
            자주' 라, 가볍게 간 날도 똑같이 한 날이다. */
+        /* 되돌릴 까닭이 둘이다: (1) 그 세션이 디로딩·가볍게 날이고 지금은
+           평소 날이거나, (2) 그 세션에 본세트가 아예 없거나(예열만 저장).
+           둘 다 '그 무게를 다음 기준으로 삼으면 안 되는' 세션이다 —
+           예열만 저장한 날이 뒤에 서면 줄이 40kg 을 대표로 세운다. */
         var skipped='';
-        if(!td2&&la&&isSoft(la.d)&&!isSoft(UI.wd)){
-          var lw=prevSess(m.i,UI.wd);
-          if(lw){skipped=softWhy(la.d);la=lw;}
+        if(!td2&&la&&(!sesDone(la)||(isSoft(la.d)&&!isSoft(UI.wd)))){
+          var a2=sess(m.i),q2;
+          for(q2=0;q2<a2.length;q2++){
+            if(!sesDone(a2[q2]))continue;
+            if(!isSoft(UI.wd)&&isSoft(a2[q2].d))continue;
+            if(isSoft(la.d))skipped=softWhy(la.d);
+            la=a2[q2];break;
+          }
         }
         /* 계획해서 내린 무게에 빨간 '▼18%' 를 다는 것은 틀린 말이다 —
            그 줄이 말할 것은 하락이 아니라 '디로딩' 이다. */
@@ -5906,7 +5922,11 @@ function rowHtml(m,noBadge,inMc,dc){
   var line=(!m.v&&!inMc&&!(noBadge&&mcn)&&(noBadge||!m.b)&&lnm?'<i class="ln">'+esc(lnm)+'</i>':'');
   /* 작업 날짜에 저장된 세션이 있으면 완료 표시 */
   var ts2=sessOn(m.i,UI.wd),done=sesDone(ts2);
-  if(done&&!dirty)dtag='<i class="dtag done">'+(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',ts2.s.length))+'</i>';
+  /* 알약의 수는 **본세트만**이다 — 예열까지 세면 '3세트' 알약과 분석탭의
+     주간 세트가 서로 다른 수를 말한다(지적). 로그탭처럼 예열을 따로 적지는
+     않는다: 이 줄은 이름이 60px 인데 알약이 이미 40px 를 가져간다. */
+  if(done&&!dirty)dtag='<i class="dtag done">'
+    +(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',workSets(ts2.s).length))+'</i>';
   /* 브랜드 구분 시안의 줄 표식(설정 · DISPLAY · 브랜드) — 제목줄 대신 줄이 브랜드를 말한다.
      dc={b:브랜드, k:표식 종류, first:그 브랜드의 첫 줄인가, hue:색상} */
   var pre='',eye='',dot='',und='';
@@ -6252,7 +6272,10 @@ function journalHtml(){
          점선 테두리는 세트 목록의 예열 고리와 같은 꼴이다 — 한 낱말이
          두 화면에서 같은 생김새를 갖는다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
-      jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',jws);
+      /* **수를 굵게.** 이 칸에서 읽어야 할 것은 본세트 수인데 줄 전체가
+         한 톤이라 가장 흐렸다. 수만 올리고 '세트' 는 조용히 둔다. */
+      jdt=isCard(jm.p)?TX1('{0}회','<b>'+e.s.length+'</b>')
+                      :TX1('{0}세트','<b>'+jws+'</b>');
       var jwb=(!isCard(jm.p)&&jwm>0)?'<i class="jw">'+TX1('예열 {0}',jwm)+'</i>':'';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
@@ -13230,7 +13253,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-03 17:05';
+var BUILD='2026-10-03 17:11';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
