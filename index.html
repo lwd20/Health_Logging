@@ -4989,6 +4989,26 @@ function prevSess(id,ds){
   }
   return null;
 }
+/* **같은 순서로 든 세션을 먼저 찾는다**(요청). 증감 % 와 지시줄의 닻은
+   '직전 세션' 이 아니라 '그 부위에서 같은 번째로 든 가장 최근 세션' 이다 —
+   1번째로 든 무게와 4번째로 든 무게는 같은 자로 잰 수가 아니라서다.
+   - 같은 순서가 **최근 여섯 세션 안**에 없으면 직전 세션으로 떨어진다. 석 달
+     전 세션을 '지난번' 이라 부르면 그 사이 진전이 통째로 사라져 보인다.
+   - 순서를 모르는 옛 기록(`o` 없음)은 못 맞추므로 같은 길로 떨어진다.
+   - 디로딩 건너뛰기는 prevSess 와 같다.
+   돌려주는 `same` 이 거짓이면 부르는 쪽이 꼬리말(`3→1번째`)을 단다 — 그 수를
+   얼마나 믿을지는 읽는 사람이 정한다. 보정 계수는 쓰지 않는다: 사람·종목마다
+   달라 지어내야 하는 수다. */
+function prevSame(id,ds,ord){
+  var a=sess(id),soft=isSoft(ds),i,seen=0;
+  if(ord>0)for(i=0;i<a.length&&seen<6;i++){
+    if(!(a[i].d<ds&&a[i].s.length))continue;
+    if(!soft&&isSoft(a[i].d))continue;
+    seen++;
+    if(a[i].o===ord)return {s:a[i],same:true};
+  }
+  return {s:prevSess(id,ds),same:false};
+}
 /* 세션 전체 기준 성장률 배지 */
 /* ordA·ordB 는 두 세션이 그 날 그 부위에서 몇 번째였나. 다르면 같은 자로
    잰 두 수가 아니다 — 첫 종목으로 든 무게와 네 번째로 든 무게를 견줘 놓고
@@ -5840,9 +5860,11 @@ function rowHtml(m,noBadge,inMc,dc){
     if(isCard(m.p)){
       right=t>0?rgt(fmtW(t),'min',''):'<span class="none">—</span>';
     }else if(n&&t>0){
-      var dp=prevSess(m.i,UI.wd);
+      /* 오늘 몇 번째인지(partOrd)로 같은 순서 세션을 먼저 찾는다 — 없으면
+         직전 세션이고, 그때는 gainTag 가 순서 꼬리말을 단다. */
+      var po=partOrd(m.i,UI.wd),dp=prevSame(m.i,UI.wd,po).s;
       right=rgt(fmtW(t),'kg',softTag(UI.wd)
-        ||(dp?gainTag(effSets(m,dws,UI.wd),effSets(m,dp.s,dp.d),partOrd(m.i,UI.wd),dp.o):''));
+        ||(dp?gainTag(effSets(m,dws,UI.wd),effSets(m,dp.s,dp.d),po,dp.o):''));
     }else{
       right='<span class="none">—</span>';
     }
@@ -5892,7 +5914,7 @@ function rowHtml(m,noBadge,inMc,dc){
         }
         /* 계획해서 내린 무게에 빨간 '▼18%' 를 다는 것은 틀린 말이다 —
            그 줄이 말할 것은 하락이 아니라 '디로딩' 이다. */
-        var lp=prevSess(m.i,la.d);
+        var lp=prevSame(m.i,la.d,la.o).s;   /* 같은 순서 우선 — 없으면 직전 */
         var gt=softTag(la.d)
           ||(skipped?'<i class="eq soft">'+TX1('{0} 뒤',TX(skipped))+'</i>':'')
           ||(lp?gainTag(effSets(m,la.s,la.d),effSets(m,lp.s,lp.d),la.o,lp.o):'');
@@ -6073,7 +6095,10 @@ function panelHtml(m){
                              :'<b> \u2191 '+TX('증량')+'</b>'):'')
          /* 올리라는 지시가 있을 때는 '보조 줄임' 이 이미 같은 말을 한다 —
             둘을 다 적으면 '보조 줄임 보조 무게' 가 된다. 지시가 없을 때만 붙인다. */
-         +((isAssist(m)&&!rx.up)?'<u> '+TX('보조 무게')+'</u>':'')+'</div>';
+         +((isAssist(m)&&!rx.up)?'<u> '+TX('보조 무게')+'</u>':'')
+         /* 닻이 다른 순서에서 왔으면 적는다 — 안 적으면 '지난번과 같은 자리의
+            수' 로 읽힌다. 같은 순서를 찾았을 때는 아무 말도 안 한다. */
+         +(rx.po>0?'<u> · '+TX1('지난번 {0}번째 기준',rx.po)+'</u>':'')+'</div>';
      })()
     +'<div class="inrow">'
     +'<div class="cwrap"><span class="clab">'+(cd?'MIN ±5':'KG ±'+fmtW(st))+'</span>'
@@ -7538,7 +7563,14 @@ function nextRx(id,n){
      건너뛴다 — 가볍게 간 날끼리는 서로를 본다. 건너뛰다 아무것도 안 남으면
      그때는 가장 가까운 것을 쓴다: 기준이 없는 것보다 낫다. */
   var all=sess(id),prev=null,i,soft=isSoft(UI.wd),fb=null;
-  for(i=0;i<all.length;i++){
+  /* **닻은 같은 순서로 든 세션이 먼저다**(요청). 오늘 이 종목이 그 부위에서
+     몇 번째인지는 저장된 오늘 세션의 o 가 있으면 그것, 없으면 지금까지 끝낸
+     수로 센다(partOrd). 지난번 4번째(앞 종목 피로를 안고 든 무게)를 오늘
+     1번째의 기준으로 주면 너무 가볍고, 반대면 너무 무겁다. */
+  var ts0=sessOn(id,UI.wd),ord=(ts0&&ts0.o>0)?ts0.o:partOrd(id,UI.wd);
+  var ps=prevSame(id,UI.wd,ord),same=ps.same;
+  if(same)prev=ps.s;
+  else for(i=0;i<all.length;i++){
     if(!(all[i].d<UI.wd&&all[i].s.length))continue;
     if(!fb)fb=all[i];
     if(!soft&&isSoft(all[i].d))continue;
@@ -7546,6 +7578,8 @@ function nextRx(id,n){
   }
   if(!prev)prev=fb;
   if(!prev)return null;
+  /* 다른 순서에서 가져온 닻이면 그 사실을 실어 보낸다 — 지시줄이 꼬리말로 적는다 */
+  var po=(!same&&prev.o>0&&ord>0&&prev.o!==ord)?prev.o:0;
   /* 지난 세션에 그 자리가 없으면 마지막 세트로 떨어뜨린다 — 세트를 늘리는 날은
      기준이 없으니 가장 무거웠던 자리를 이어받는 게 맞다. */
   /* 오늘 이미 무게를 바꿨으면 그것을 이어받는다. 지난 세션만 보면, 1세트에서
@@ -7569,7 +7603,7 @@ function nextRx(id,n){
   /* 디로딩 주에는 올리라고 하지 않는다 — 덤 하기로 한 주다. 줄이라고도
      안 한다: 이 앱의 디로딩 표시는 세트를 줄이는 주를 뜻하게 만들었으므로
      (미달 판정을 누른다) 무게는 유지가 짝이다. 반복도 안 늘린다. */
-  if(isDeload(UI.wd))return {w:w,r:r,up:false,dl:true};
+  if(isDeload(UI.wd))return {w:w,r:r,up:false,dl:true,po:po};
   /* 어시스트는 설정 무게가 클수록 가벼워진다 — 진전은 빼는 쪽이다.
      안 뒤집으면 앱이 약해지라고 시킨다. */
   var dir=isAssist(m)?-1:1;
@@ -7580,9 +7614,9 @@ function nextRx(id,n){
     if((rir===0||rir>0)&&rir>=4)jump=2;
     var nw=w+dir*st*jump;
     if(nw<=0)nw=w;                              /* 어시스트가 0 밑으로 못 가게 */
-    return {w:Math.round(nw*10)/10,r:Math.max(6,Math.round(rx*0.7)),up:true};
+    return {w:Math.round(nw*10)/10,r:Math.max(6,Math.round(rx*0.7)),up:true,po:po};
   }
-  return {w:w,r:r+1,up:false};
+  return {w:w,r:r+1,up:false,po:po};
 }
 function openRow(id){
   UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
@@ -13293,7 +13327,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-04 00:52';
+var BUILD='2026-10-07 20:59';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
