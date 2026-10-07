@@ -2089,27 +2089,27 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 점만 찍어 두면 눌러서 값을 넣는 자리인 줄 모른다.
    글자를 보이고 점선 테두리로 아직 비었음을 알린다. */
 .setr .rir.off{font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--dim);border:1px dashed var(--line)}
-/* 백오프 토글(요청). 꺼진 꼴은 흐린 글자뿐이다 — 대부분의 줄이 꺼져 있는데
-   줄마다 점선 알약을 하나 더 세우면 RIR 꺼짐 알약과 둘이 나란히 서서
-   줄이 알약 더미가 된다. 켜지면 강조색 알약. 손가락 자리는 44px(::before). */
-.setr .bk{position:relative;flex:0 0 auto;height:28px;margin-right:9px;padding:0 7px;border:1px solid transparent;border-radius:999px;background:transparent;font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--dim);opacity:.6}
-.setr .bk::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px}
-.setr .bk.on{opacity:1;color:var(--acc-br);border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
-.setr .bk:active{opacity:.5}
-/* 같은 <button> 으로 두어야 상자가 같다 — <i> 로 뒀더니 글자 상자가 달라 16px 로 접혔다 */
-.setr .bk.ph{visibility:hidden;pointer-events:none}
+/* 종류 알약(요청: 예열·백오프·본을 한 알약에, RIR 은 따로). RIR 알약과 같은
+   46×28 이고 바로 왼쪽에 선다. 본은 가는 실선으로 조용히 — 대부분의 줄이
+   본이라 눈에 띄면 안 된다. 예열은 점선(예전 예열 알약과 같은 꼴, '셈에 안
+   듦'), 백오프는 강조색. 글자가 셋 다 달라 색만으로 가르지 않는다. */
+.setr .sk{position:relative;flex:0 0 auto;width:46px;height:28px;margin-right:7px;border:1px solid rgba(var(--tx-rgb),.14);border-radius:999px;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--dim)}
+.setr .sk::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px}
+.setr .sk b{font-size:10px;font-weight:800;letter-spacing:.02em;line-height:1}
+.setr .sk.warm{border-style:dashed;border-color:rgba(var(--tx-rgb),.3);background:rgba(var(--tx-rgb),.04)}
+.setr .sk.back{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.setr .sk:active{opacity:.6}
+/* 예열 줄의 RIR 자리 — 같은 <button> 으로 두어야 상자가 같다 */
+.setr .rir.ph{visibility:hidden;pointer-events:none}
 .setr .rir.on{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.4);background:rgba(var(--acc-rgb),.09)}
 .setr .rir.hard{color:var(--neg);border-color:rgba(var(--sig-rgb),.45);background:rgba(var(--sig-rgb),.12)}
 /* 예열. 'RIR 4+' 와 달리 **아예 셈 밖**이라 더 눌러 둔다 — 점선 테두리로
    미입력과 같은 '값이 아님' 을 말하되, 글자가 '예열' 이라 둘이 안 헷갈린다.
    46px 칸에 두 글자가 들어가도록 글자를 줄인다. */
-.setr .rir.warm{font-size:10px;font-weight:800;color:var(--dim);
-  border:1px dashed rgba(var(--tx-rgb),.3);background:rgba(var(--tx-rgb),.04)}
-.setr .rir.warm b{font-size:10px;font-weight:800}
 /* 예열 줄 전체를 흐리게. 고리 단추는 덜 흐리게 둔다 — 눌러서 되돌릴
    자리라 안 보이면 못 고친다. */
 .setr.warm .sete{opacity:.45}
-.setr.warm .rir{opacity:.85}
+.setr.warm .sk{opacity:.85}
 /* 볼륨에 안 들어가는 세트 — 켜져 있지만 강조색을 안 준다 */
 .setr .rir.easy{color:var(--dim);border-color:var(--line);background:rgba(var(--tx-rgb),.04)}
 .setr .rir:active{opacity:.5}
@@ -4904,8 +4904,16 @@ var RIR_HARD=3;   /* 실패 3회 이내 = 유효 세트 (문헌의 hard set) */
    (게다가 유산소 줄에는 RIR 단추 자체를 안 그린다).
    거르는 자리를 늘리지 말고 `workSets()` 하나로 모은다 — 셈마다 따로 걸러
    두면 한 곳만 고쳐지고 화면이 서로 다른 수를 말한다. */
-var RIR_WARM=-1;
-function isWarm(x){return !!x&&x[2]===RIR_WARM;}
+/* **세트 종류는 여섯째 칸 `[5]` 하나다**(요청): 비움=본 · 'w'=예열 · 'b'=백오프.
+   예전에는 예열을 RIR 자리의 -1 로 적었다. 백오프가 들어오면서 '종류' 가 RIR
+   알약 안(예열)과 글자 토글(백오프) 두 꼴로 갈려 있었다 — 같은 것이 두 자리에
+   있으면 하나는 늘 어긋난다(지적: '예열·백오프·본세트를 따로 묶고 RIR 을
+   따로 하는 게 낫다'). 지금은 종류 알약 하나가 셋을 돌고, RIR 알약은 RIR 만
+   돈다. **옛 기록의 -1 은 그대로 예열로 읽는다** — 되돌려 적을 수 없는
+   값이고, 읽는 자리는 isWarm 하나다. 새로 적을 때는 늘 [5] 다. */
+var RIR_WARM=-1,SET_WARM='w';
+function isWarm(x){return !!x&&(x[5]===SET_WARM||x[2]===RIR_WARM);}
+function setKind(x){return isWarm(x)?SET_WARM:(isBack(x)?SET_BACK:'');}
 /* 본세트만. 예열이 없으면 **원본을 그대로 돌려준다** — 쓸데없이 새 배열을
    만들면 호출하는 쪽이 == 로 견주던 자리가 조용히 틀어진다. */
 function workSets(s){
@@ -5061,10 +5069,15 @@ function gainTag(cur,prev,ordA,ordB){
    한때 예열을 맨 뒤에 뒀다. 0(실패 직전)이 밀리지 않게 하려는 것이었는데,
    예열은 한 종목에 두세 번씩 찍는 값이라 여섯 번 눌러 닿는 자리에 있으면
    안 쓰게 된다 — 맨 앞으로 옮겼다(요청). */
+/* 종류 알약 — RIR 알약과 같은 46×28 꼴로 바로 왼쪽에 선다. 본은 조용히
+   (가는 실선), 예열은 점선(셈에 안 듦 — 예전 예열 알약과 같은 꼴), 백오프는
+   강조색. 색만으로 안 가른다: 글자가 셋 다 다르다. */
+function kindBtn(x,j){
+  var k=setKind(x);
+  return '<button class="sk'+(k===SET_WARM?' warm':(k===SET_BACK?' back':''))
+    +'" data-act="sk" data-v="'+j+'"><b>'+TX(k===SET_WARM?'예열':(k===SET_BACK?'백오프':'본'))+'</b></button>';
+}
 function rirBtn(v,j){
-  if(v===RIR_WARM)
-    return '<button class="rir warm" data-act="rr" data-v="'+j+'">'
-      +'<b>'+TX('예열')+'</b></button>';
   var has=(v===0||v>0);
   /* RIR_HARD 를 넘은 세트는 볼륨에 안 들어가므로 눈으로도 갈라 보인다 */
   var cls=has?(v>RIR_HARD?' easy':(v<=1?' hard':' on')):' off';
@@ -5072,15 +5085,21 @@ function rirBtn(v,j){
     +(has?'<b>'+v+(v>RIR_HARD?'+':'')+'</b>':'RIR')+'</button>';
 }
 /* 4+ 가 없으면 '이 세트는 쉬웠다'를 적을 방법이 없어 유효 세트를 가릴 수 없다 */
+/* 미입력 → 0 → 1 → 2 → 3 → 4+ → 미입력. 예열은 더는 여기 없다 — 종류
+   알약(setKindNext)이 맡는다. 한때 맨 앞(그 전엔 맨 뒤)에 두었는데, 세트의
+   '종류' 와 '남은 반복' 은 다른 물음이라 한 순환에 섞여 있으면 RIR 을 매기려
+   누를 때마다 예열을 지나가야 했다. */
 function rirNext(v){
-  if(v===RIR_WARM)return 0;
+  if(v===RIR_WARM)return 0;   /* 옛 -1 에서 누르면 0 으로 — 되돌릴 길 */
   if(v===0)return 1;
   if(v===1)return 2;
   if(v===2)return 3;
   if(v===3)return 4;
   if(v===4)return null;
-  return RIR_WARM;      /* 미입력 다음이 예열이다 */
+  return 0;
 }
+/* 종류 순환: 본 → 예열 → 백오프 → 본 */
+function setKindNext(k){return k===''?SET_WARM:(k===SET_WARM?SET_BACK:'');}
 /* 세션 평균 RIR — 입력된 세트만 대상, 없으면 null */
 function rirAvg(s){
   var t=0,n=0,i;
@@ -6051,15 +6070,13 @@ function panelHtml(m){
       /* 예열 줄은 흐리게(요청). 색만으로 가르지 않는다 — 고리 글자가 '예열'
          이라 글귀로도 읽히고, 흐림은 '이건 셈에 안 든다' 를 말한다. */
       h+='<div class="setr'+(UI.esIdx===j?' editing':'')+(isWarm(draft[j])?' warm':'')+(isBack(draft[j])?' back':'')+'">'
-        +(cdRow?'':rirBtn(draft[j][2],j))
-        /* 백오프 토글(요청). RIR 처럼 줄마다 누른다 — 예열과 달리 줄을 옮기지
-           않는다(본세트 뒤에 오는 것이 제 자리다). 예열 줄에는 안 그린다:
-           예열이면서 백오프인 세트는 없다. */
+        /* 종류 · RIR 두 알약(요청). 예열 줄에는 RIR 이 뜻이 없어 안 그리되
+           같은 너비의 빈 자리를 둔다 — 안 두면 무게 글자가 줄마다 다른
+           자리에 서서 세로줄이 어긋난다(같은 <button> 이어야 상자가 같다). */
+        +(cdRow?'':kindBtn(draft[j],j))
         +(cdRow?'':(isWarm(draft[j])
-            /* 예열 줄에는 토글 대신 같은 너비의 빈 자리 — 안 두면 무게 글자가
-               줄마다 다른 자리에 서서 세로줄이 어긋난다. */
-            ?'<button class="bk ph" tabindex="-1" aria-hidden="true">'+TX('백오프')+'</button>'
-            :'<button class="bk'+(isBack(draft[j])?' on':'')+'" data-act="bk" data-v="'+j+'">'+TX('백오프')+'</button>'))
+            ?'<button class="rir ph" tabindex="-1" aria-hidden="true">RIR</button>'
+            :rirBtn(draft[j][2],j)))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+'</span>')
         +'</button>'
@@ -8106,7 +8123,9 @@ function editSet(i){
   UI.w=fmtW(d[i][0]);UI.r=String(d[i][1]);
   var cdE=isCardId(UI.open);
   UI.ci=(cdE&&d[i][2]>0)?fmtW(d[i][2]):'';
-  /* 예열(-1)도 집어 둔다 — 안 집으면 고치는 순간 본세트로 바뀐다 */
+  /* 종류(예열·백오프)는 [5] 에 있고 addSet 의 Update 경로가 old[5] 를 지킨다.
+     옛 꼴의 -1 이 RIR 자리에 있으면 그것도 집는다 — 안 집으면 고치는 순간
+     본세트가 된다. */
   UI.rirHold=(!cdE&&(d[i][2]===RIR_WARM||d[i][2]===0||d[i][2]>0))?d[i][2]:null;
   UI.esIdx=i;
   UI.arm=null;
@@ -13382,7 +13401,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-07 21:13';
+var BUILD='2026-10-07 21:38';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -16440,11 +16459,19 @@ document.addEventListener('click',function(e){
       UI.arm=null;delSet(parseInt(v,10));
       break;
     case 'es':editSet(parseInt(v,10));break;
-    case 'bk':{
-      var bkd=UI.draft[UI.open],bj=parseInt(v,10);
-      if(bkd&&bkd[bj]&&!isWarm(bkd[bj])){
-        while(bkd[bj].length<5)bkd[bj].push(null);
-        bkd[bj][5]=isBack(bkd[bj])?null:SET_BACK;
+    case 'sk':{
+      /* 종류 순환(본 → 예열 → 백오프). **줄은 안 옮긴다** — 예열로 바꿔도
+         올리는 것은 확정할 때(addSet·saveMachine)다. 손가락 밑에서 줄이
+         움직이면 다음 탭이 남의 줄을 친다. */
+      var skd=UI.draft[UI.open],sj=parseInt(v,10);
+      if(skd&&skd[sj]){
+        var nk=setKindNext(setKind(skd[sj]));
+        while(skd[sj].length<5)skd[sj].push(null);
+        skd[sj][5]=nk||null;
+        /* 옛 꼴(-1)에서 벗어나면 RIR 자리를 비운다 — 안 비우면 본으로 돌려도
+           isWarm 이 -1 을 보고 계속 예열이라 한다. */
+        if(skd[sj][2]===RIR_WARM)skd[sj][2]=null;
+        if(UI.esIdx===sj&&skd[sj][2]===null)UI.rirHold=null;
         UI.dirty[UI.open]=true;renderSheet();
       }
       break;}
