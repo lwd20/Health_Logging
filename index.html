@@ -2014,6 +2014,10 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .dsgl{flex:0 0 100%;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);opacity:.75;margin:4px 0 1px 2px}
 .dsgl:first-child{margin-top:1px}
+/* 줄바꿈만 하는 빈 칸 — 세부 조정을 펴면 색·질감·무늬가 제 줄로 내려간다 */
+.dsbr{flex:0 0 100%;height:0;margin:0}
+.dsb.dsadv{flex:0 0 auto;min-width:0;padding:0 12px;color:var(--mut)}
+.dsb.dsadv u{font-family:inherit;font-size:9px}
 .dsb{flex:1 1 calc(25% - 3px);min-width:74px;height:34px;display:flex;align-items:center;justify-content:center;
   gap:4px;border:var(--bw) solid rgba(var(--tx-rgb),.09);border-radius:var(--rad-m);
   background:none;color:var(--dim);font-size:10.5px;font-weight:700;letter-spacing:.02em;
@@ -2816,451 +2820,196 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .lmcap .sxq{order:1;margin-left:0;flex:0 0 22px;width:22px;height:22px;font-size:10px}
 .bhd{display:flex;align-items:baseline;gap:7px;margin:13px 3px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--chrome);opacity:.85;text-transform:uppercase}
 .bhd i{font-style:normal;font-size:9px;color:var(--dim);font-family:var(--mono)}
-/* ── 브랜드 구분 시안 50 (설정 · DISPLAY · 브랜드) ──
-   틀: .bsw.bsNN > [.grp] > .bsec(브랜드 한 구간) > .sbh(제목줄) + .bsb(종목 줄).
-   .sbh 안은 .sbn(이름 .sbt + 개수 i). 번호는 시안 페이지와 같다.
-   제목줄 기본은 굵은 이름·개수이고, 선·점·막대·띠는 번호마다 더한다.
-   (가로줄을 행 테두리처럼 카드 끝까지 그으면 빈 행이 낀 것처럼 보인다 —
-   선은 이름 뒤에서 시작한다.) 아래는 좁게 두어 제 종목들에 붙인다. */
+/* ── 브랜드 탭 시안 (설정 · DISPLAY · 브랜드) ──
+   **뼈대는 탭 하나다**(요청). 틀: .bsw.bsNN > .grp > .btabs(브랜드 탭 줄) +
+   .bsec(누른 브랜드 한 구간, --bh 색상) > .bsb(종목 줄). 번호마다 겉모습만
+   입힌다 — 탭의 테두리·채움·글자·자리. 브랜드가 하나면 탭 줄 대신 .sbh
+   제목줄 하나가 선다.
+   예전에는 열다섯 묶음 150가지(제목줄·띠·카드·줄 표식·목차·접기·장부·분담…)가
+   여기 있었고 탭은 101~125 였다. 걷어내고(요청) 01~25 로 다시 매겼다 — git 에 있다. */
 .bsw{--bl:72%;--bs:42%}
 :root[data-pal="paper"] .bsw,:root[data-pal="frost"] .bsw,:root[data-pal="chalk"] .bsw,
 :root[data-pal="sage"] .bsw,:root[data-pal="iris"] .bsw{--bl:36%}
+/* 브랜드가 하나뿐일 때의 제목줄 */
 .bsw .sbh{display:flex;align-items:baseline;gap:7px;width:100%;box-sizing:border-box;
-  padding:20px 1px 3px;margin:0;border:0;background:none;text-align:left;font-family:inherit;
+  padding:12px 1px 3px;margin:0;border:0;background:none;text-align:left;font-family:inherit;
   font-size:10.5px;font-weight:800;letter-spacing:.16em;color:var(--tx)}
-.bsw .f1>.sbh{padding-top:12px}
 .bsw .sbn{display:flex;align-items:baseline;gap:7px;min-width:0;font-weight:inherit}
 .bsw .sbt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bsw .sbn i{font-style:normal;font-family:var(--mono);font-size:9.5px;font-weight:400;
   letter-spacing:0;color:var(--dim)}
-/* 오늘 한 줄의 칠이 카드 맨 아래에서 둥근 모서리 밖으로 나가지 않게 —
-   한 카드면 마지막 구간 끝, 브랜드마다 카드면 카드마다 */
-.bsw>.grp>.l1>.bsb>.mc.did:last-child,.bmc .bsb>.mc.did:last-child{
+/* 오늘 한 줄의 칠이 카드 맨 아래에서 둥근 모서리 밖으로 나가지 않게 */
+.bsw>.grp>.l1>.bsb>.mc.did:last-child{
   border-bottom-left-radius:calc(var(--rad-card) - var(--bw));
   border-bottom-right-radius:calc(var(--rad-card) - var(--bw))}
-.bsw>.grp>.l1>.bsb>.mc.did:last-child::before,.bmc .bsb>.mc.did:last-child::before{
+.bsw>.grp>.l1>.bsb>.mc.did:last-child::before{
   bottom:max(5px,calc(var(--rad-card) - var(--bw)))}
-/* 이름 뒤 가는 선 — 여러 시안이 같이 쓴다 */
-.bs01 .sbh::after,.bs07 .sbh::after,.bs08 .sbh::after,.bs09 .sbh::after,.bs10 .sbh::after,
-.bs16 .sbh::after,.bs36 .sbh::after,.bs38 .sbh::after,.bs39 .main>.sbh::after,.bs40 .sbh::after,
-.bs42 .sbh::after,.bs43 .sbh::after,.bs44 .sbh::after,.bs50 .sbh::after{content:'';flex:1;
-  align-self:center;height:1px;margin-left:3px;background:rgba(var(--tx-rgb),.16)}
-/* 1 · 한 카드 안 제목줄 */
-.bs02 .sbh{padding:30px 1px 4px}
-.bs02 .f1>.sbh{padding-top:13px}
-.bs03 .bsec:not(.f1)>.sbh{margin:16px -13px 0;padding:12px 14px 3px;border-top:2px solid rgba(var(--tx-rgb),.55)}
-.bs04 .sbh{justify-content:center;align-items:center;gap:10px;padding-bottom:4px}
-.bs04 .sbh::before,.bs04 .sbh::after{content:'';flex:1;height:1px;background:rgba(var(--tx-rgb),.18)}
-.bs05 .sbh{padding:22px 1px 5px}
-.bs05 .f1>.sbh{padding-top:12px}
-.bs05 .sbt{padding-bottom:3px;border-bottom:2px solid var(--acc-br)}
-.bs06 .sbh{padding:22px 1px 2px}
-.bs06 .f1>.sbh{padding-top:12px}
-.bs06 .sbt{font-size:15px;letter-spacing:.02em}
-.bs06 .sbn i{font-size:10px;color:var(--mut);background:rgba(var(--tx-rgb),.08);border-radius:999px;padding:1px 7px}
-.bs07 .sbn{display:contents}
-.bs07 .sbh::after{order:1;margin-left:6px}
-.bs07 .sbn i{order:2}
-.bs08 .sbh::before{content:'';flex:0 0 7px;height:7px;border-radius:50%;background:var(--acc-br);align-self:center}
-.bs09 .sbh::before{content:'';flex:0 0 3px;height:13px;border-radius:1px;background:var(--acc-br);align-self:center}
-.bs10 .sbh{align-items:center;gap:8px;padding-top:18px}
-.bs10 .f1>.sbh{padding-top:12px}
-.bs10 .sbh::before{content:attr(data-i);flex:0 0 22px;height:22px;border-radius:50%;background:var(--acc-br);
-  color:var(--on-acc);font-size:11px;font-weight:800;letter-spacing:0;display:flex;align-items:center;justify-content:center}
-/* 2 · 한 카드 안 띠·면 */
-.bs11 .sbh{margin:0 -13px;padding:8px 14px 7px;background:rgba(var(--tx-rgb),.05)}
-.bs11 .f1>.sbh{padding-top:8px}
-.bs12 .sbh{margin:0 -13px;padding:7px 14px 6px;background:var(--acc-br);color:var(--on-acc)}
-.bs12 .f1>.sbh{padding-top:7px}
-.bs12 .sbn i{color:inherit;opacity:.7}
-.bs11 .f1>.sbh,.bs12 .f1>.sbh{border-radius:calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw)) 0 0}
-.bs13 .sbh{padding:16px 1px 2px}
-.bs13 .f1>.sbh{padding-top:13px}
-.bs13 .bsec.ev{margin:0 -13px;padding:0 13px 2px;background:rgba(var(--tx-rgb),.045)}
-.bs13 .bsec.ev.l1{border-radius:0 0 calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw))}
-.bs14 .bsec{margin:0 -6px 8px;padding:0 7px;background:var(--sunk);border-radius:10px}
-.bs14 .bsec.f1{margin-top:8px}
-.bs14 .sbh,.bs14 .f1>.sbh{padding:10px 1px 2px}
-.bs14 .mc.did{margin:0 -7px;padding:0 7px}
-.bs14 .fav{margin-left:-7px}
-.bs15 .sbh,.bs37 .sbh{margin:0 -13px;padding:10px 14px 3px;border-top:3px solid var(--acc-br)}
-.bs15 .bsec:not(.f1)>.sbh,.bs37 .bsec:not(.f1)>.sbh{margin-top:14px}
-.bs15 .f1>.sbh,.bs37 .f1>.sbh{padding-top:10px;
-  border-radius:calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw)) 0 0}
-.bs16 .sbh{align-items:center;gap:0;padding:16px 0 6px}
-.bs16 .f1>.sbh{padding-top:12px}
-.bs16 .sbh::after{margin-left:0;background:rgba(var(--tx-rgb),.18)}
-.bs16 .sbn{gap:6px;background:var(--acc-br);color:var(--on-acc);border-radius:999px;padding:3px 10px;font-size:10px}
-.bs16 .sbn i{color:inherit;opacity:.7;font-size:9px}
-.bs17 .sbh{margin:16px -13px 0;padding:0 13px;align-items:flex-end;border-bottom:1px solid rgba(var(--tx-rgb),.2)}
-.bs17 .f1>.sbh{margin-top:10px;padding-top:0}
-.bs17 .sbn{gap:6px;background:var(--inset);border:1px solid rgba(var(--tx-rgb),.2);border-bottom:0;
-  border-radius:7px 7px 0 0;padding:5px 11px 4px;margin-bottom:-1px;font-size:10px}
-.bs18 .sbh{padding-top:12px}
-.bs18 .bsec:not(.f1)::before{content:'';display:block;height:10px;margin:0 -14px;background:var(--bg);
-  border-top:1px solid rgba(var(--tx-rgb),.07);border-bottom:1px solid rgba(var(--tx-rgb),.07)}
-/* 3 · 브랜드마다 카드 — 카드는 .grp 그대로라 질감(TECH)이 카드마다 입혀진다 */
-.bmc>.bsec+.bsec{margin-top:8px}
-.bmc .sbh,.bmc .f1>.sbh{padding-top:12px}
-.bs20 .bsec+.bsec{margin-top:12px}
-.bs20 .sbh,.bs20 .f1>.sbh{padding:0 4px 5px;font-size:10px;letter-spacing:.14em;color:var(--chrome)}
-.bs20 .sbn i{font-size:9px}
-.bs21 .bsec+.bsec{margin-top:3px}
-.bsw.bs21 .bsec.grp{border-radius:4px}
-.bsw.bs21 .bsec.grp.f1{border-radius:var(--rad-card) var(--rad-card) 4px 4px}
-.bsw.bs21 .bsec.grp.l1{border-radius:4px 4px var(--rad-card) var(--rad-card)}
-.bs21 .bsec:not(.l1) .bsb>.mc.did:last-child{border-radius:0 0 3px 3px}
-.bs21 .bsec:not(.l1) .bsb>.mc.did:last-child::before{bottom:5px}
-.bs21 .sbh,.bs21 .f1>.sbh{padding-top:11px}
-.bsw.bs22 .bsec.grp{background:none;box-shadow:none;border:1px solid rgba(var(--tx-rgb),.24);
-  backdrop-filter:none;-webkit-backdrop-filter:none}
-.bs23 .sbh,.bs23 .f1>.sbh{padding:11px 0 3px}
-.bs23 .sbt{background:var(--acc-br);color:var(--on-acc);border-radius:999px;padding:3px 10px;font-size:10px}
-.bs24 .bsec+.bsec{margin-top:10px}
-.bs24 .sbh,.bs24 .f1>.sbh{display:inline-flex;width:auto;position:relative;top:1px;z-index:1;
-  padding:6px 12px 4px;background:var(--surf);border:var(--bw) solid rgba(var(--tx-rgb),.07);
-  border-bottom:0;border-radius:9px 9px 0 0;font-size:10px}
-.bsw.bs24 .bsb.grp{border-top-left-radius:0}
-.bs25 .sbh,.bs25 .f1>.sbh{margin:0 -13px;padding:10px 14px 9px;justify-content:space-between;
-  border-bottom:1px solid rgba(var(--tx-rgb),.1)}
-.bs25 .sbn{display:contents}
-/* 4 · 줄마다 표식 */
-.bey{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.16em;
-  color:var(--dim);line-height:1.2;margin-bottom:1px}
-.bini{flex:0 0 18px;height:18px;border-radius:4px;background:var(--inset);color:var(--acc-br);
-  font-style:normal;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.bs32 .fav{margin-left:-4px}
-.bdot{flex:0 0 7px;width:7px;height:7px;border-radius:50%;align-self:center;background:hsl(var(--bh) 55% 50%)}
-.blg{display:flex;flex-wrap:wrap;gap:4px 12px;padding:11px 1px 7px;border-bottom:1px solid rgba(var(--tx-rgb),.1)}
-.blg span{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--tx)}
-.blg i{width:7px;height:7px;border-radius:50%;background:hsl(var(--bh) 55% 50%)}
-.ln.btag b{font-weight:800;color:var(--chrome)}
-.bs30 .bsec,.bs31 .bsec{display:flex}
-.bs30 .bsec+.bsec,.bs31 .bsec+.bsec{border-top:1px solid rgba(var(--tx-rgb),.14)}
-.bs30 .bsec{gap:4px}
-.bs30 .sbh,.bs30 .f1>.sbh{flex:0 0 58px;width:auto;flex-direction:column;align-items:flex-start;gap:6px;
-  padding:16px 0 10px;font-size:9.5px;letter-spacing:.1em}
-.bs30 .sbh::after{content:'';flex:1;width:1px;margin-left:2px;background:rgba(var(--tx-rgb),.2)}
-.bs30 .sbn{flex-direction:column;gap:3px;max-width:100%}
-.bs30 .sbt{white-space:normal;word-break:break-all}
-.bs30 .bsb,.bs31 .bsb{flex:1;min-width:0}
-.bs30 .fav,.bs31 .fav,.bs47 .fav,.bs48 .fav{margin-left:-6px}
-.bs30 .mc.did,.bs31 .mc.did,.bs47 .mc.did,.bs49 .mc.did{margin-left:0;padding-left:2px}
-.bs31 .sbh,.bs31 .f1>.sbh{flex:0 0 18px;width:auto;padding:0;margin:8px 8px 8px 0;
-  justify-content:center;align-items:center;border-right:1px solid rgba(var(--tx-rgb),.2)}
-.bs31 .sbn{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:.2em;color:var(--chrome)}
-.bs31 .sbn i{display:none}
-/* 5 · 색으로 가르기 — 색상은 브랜드 이름에서(--bh). 밝은 판에선 진하게, 어두운 판에선 밝게(--bl) */
-.bs35 .bsec{margin:0 -13px;padding:0 13px 1px;background:hsl(var(--bh) 50% 50% / .09)}
-.bs35 .bsec.f1{border-radius:calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw)) 0 0}
-.bs35 .bsec.l1{border-radius:0 0 calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw))}
-.bs35 .sbh,.bs35 .f1>.sbh{padding-top:12px}
-.bs35 .sbh,.bs36 .sbt{color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs36 .sbh::after{background:hsl(var(--bh) 50% 50% / .45)}
-.bs37 .sbh{border-top-color:hsl(var(--bh) 50% 50%)}
-.bs38 .sbh{align-items:center;padding-top:18px}
-.bs38 .f1>.sbh{padding-top:11px}
-.bs38 .sbn{gap:6px;background:hsl(var(--bh) 50% 50% / .16);color:hsl(var(--bh) var(--bs) var(--bl));
-  border-radius:999px;padding:3px 10px;font-size:10px}
-.bs38 .sbn i{color:inherit;opacity:.8;font-size:9px}
-.bs39 .main>.sbh .sbt{font-size:14px;letter-spacing:.12em}
-.bs39 .main>.sbh .sbn i{font-size:10px}
-.bs39 .main:not(.f1)>.sbh{padding-top:22px}
-.bs39 .bsec:not(.main)>.sbh{padding:14px 1px 1px;font-size:9.5px;font-weight:700;letter-spacing:.14em;color:var(--dim)}
-.bs40 .sbh{padding-top:16px}
-.bs40 .f1>.sbh{padding-top:10px}
-.bs40 .wm0 .sbt{font-family:sans-serif-condensed,'Roboto Condensed','Arial Narrow',var(--sans);
-  font-stretch:condensed;font-size:16px;font-weight:800;letter-spacing:.02em}
-.bs40 .wm1 .sbt{font-family:Georgia,'Noto Serif',serif;font-size:15px;font-weight:400;letter-spacing:.08em}
-.bs40 .wm2 .sbt{font-size:15px;font-weight:900;font-style:italic;letter-spacing:-.01em}
-.bs40 .wm3 .sbt{font-size:11.5px;font-weight:700;letter-spacing:.34em}
-.bs41 .sbh{padding:17px 0 5px}
-.bs41 .f1>.sbh{padding-top:11px}
-.bs41 .sbn{align-items:center;background:var(--inset);border:1px solid rgba(0,0,0,.14);border-radius:4px;
-  padding:4px 8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);font-size:10px;letter-spacing:.18em}
-.bs41 .sbn::before,.bs41 .sbn::after{content:'';flex:0 0 4px;height:4px;border-radius:50%;background:rgba(var(--tx-rgb),.3)}
-/* 6 · 구조 바꾸기 */
-.bidx{display:flex;flex-wrap:wrap;gap:6px;padding:11px 0 4px}
-.bix{display:inline-flex;gap:5px;align-items:baseline;padding:5px 10px;border:1px solid rgba(var(--tx-rgb),.2);
-  border-radius:999px;background:none;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--tx)}
-.bix i,.bfc i,.btb i{font-style:normal;font-family:var(--mono);font-weight:400;letter-spacing:0}
-.bix i{font-size:9px;color:var(--dim)}
-.bix:active,.bfc:active,.btb:active,.bs46 .sbh:active{opacity:.6}
-.bs43 .sbh,.bs43 .f1>.sbh{padding-top:16px}
-.bflt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 9px}
-.bfc{display:inline-flex;gap:5px;align-items:baseline;min-height:32px;box-sizing:border-box;padding:6px 11px;
-  border-radius:999px;border:var(--bw) solid rgba(var(--tx-rgb),.12);background:var(--surf);font-family:inherit;
-  font-size:11px;font-weight:700;color:var(--mut)}
-.bfc.on{background:var(--acc-br);border-color:transparent;color:var(--on-acc)}
-.bfc i{font-size:10px;opacity:.75}
-.btabs{display:flex;margin:0 -13px;overflow-x:auto;border-bottom:1px solid rgba(var(--tx-rgb),.12)}
-/* 가로로 넘기는 줄(탭·77 카드)은 폭이 모자랄 때만 밀린다 — 막대는 숨기고 끝에 걸친 다음 칸으로 알린다 */
-.btabs,.bs77.bmc{scrollbar-width:none}
-.btabs::-webkit-scrollbar,.bs77.bmc::-webkit-scrollbar{display:none}
+/* 탭 줄 기본(01 밑줄 탭) — 폭이 모자랄 때만 가로로 밀리고, 막대는 숨긴다 */
+.btabs{display:flex;margin:0 -13px;overflow-x:auto;border-bottom:1px solid rgba(var(--tx-rgb),.12);scrollbar-width:none}
+.btabs::-webkit-scrollbar{display:none}
 .btb{flex:1 0 auto;min-width:64px;display:flex;flex-direction:column;align-items:center;gap:1px;
   padding:9px 6px 7px;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
   font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--dim)}
 .btb b{font-weight:inherit;white-space:nowrap}
-.btb i{font-size:9px}
+.btb i{font-style:normal;font-family:var(--mono);font-weight:400;letter-spacing:0;font-size:9px}
 .btb.on{color:var(--tx);border-bottom-color:var(--acc-br)}
-.bs46 .sbh{cursor:pointer}
-.sbc{margin-left:auto;text-decoration:none;font-size:11px;color:var(--dim);letter-spacing:0}
-.bs46 .fold>.sbh{padding-bottom:10px}
-.bs46 .bsec.fold:not(.l1){border-bottom:1px solid rgba(var(--tx-rgb),.055)}
-.bs47 .sbh{padding:16px 1px 2px}
-.bs47 .f1>.sbh{padding-top:12px}
-.bs47 .bsb{margin:0 0 4px 5px;padding-left:12px;border-left:1px solid rgba(var(--tx-rgb),.3)}
-.bs47 .bsb>.mcblk{position:relative}
-.bs47 .bsb>.mc::after,.bs47 .bsb>.mcblk::after{content:'';position:absolute;left:-12px;top:25px;
-  width:9px;height:1px;background:rgba(var(--tx-rgb),.3)}
-.bldh{display:flex;gap:8px;margin:0 -13px;padding:9px 14px 7px;border-bottom:1px solid rgba(var(--tx-rgb),.16);
-  font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
-.bldh span:first-child{flex:0 0 52px}
-.bldh span:nth-child(2){flex:1}
-.bled{flex:0 0 52px;font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--dim);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bled.b1{color:var(--tx)}
-.bs48 .bsec+.bsec{border-top:1px solid rgba(var(--tx-rgb),.18)}
-.bs48 .mch{padding-left:54px}
-.bs49>.grp{position:relative;padding-left:27px}
-.bs49>.grp::before{content:'';position:absolute;left:18px;top:22px;bottom:26px;width:1px;background:rgba(var(--tx-rgb),.25)}
-.bs49 .sbh{position:relative;padding-top:18px}
-.bs49 .f1>.sbh{padding-top:12px}
-.bs49 .sbh::before{content:'';position:absolute;left:-14px;bottom:5px;width:9px;height:9px;box-sizing:border-box;
-  border-radius:50%;background:var(--surf);border:2px solid var(--acc-br)}
-.bshr{padding:12px 0 6px}
-.bshb{display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden}
-.bshb i{display:block;min-width:4px}
-.bshl{display:flex;gap:2px;margin-top:5px}
-.bshl span{min-width:0;overflow:hidden;white-space:nowrap;font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--dim)}
-.bs50 .sbh,.bs50 .f1>.sbh{padding-top:16px}
-/* 51~60 · 제목줄 변형 */
-.bs52 .sbh::after,.bs53 .sbh::after,.bs58 .sbh::after,.bs59 .sbh::after,.bs60 .sbh::after,
-.bs92 .sbh::after,.bs93 .sbh::after,.bs94 .sbh::after,.bs95 .sbh::after,.bs96 .sbh::after,
-.bs97 .sbh::after{content:'';flex:1;align-self:center;height:1px;margin-left:3px;background:rgba(var(--tx-rgb),.16)}
-.bs51 .sbh{padding-top:18px}
-.bs51 .f1>.sbh{padding-top:12px}
-.bs51 .sbn{flex-direction:column;align-items:flex-start;gap:1px}
-.bs51 .sbt{font-size:13px;letter-spacing:.08em}
-.bs52 .sbh{flex-direction:row-reverse}
-.bs52 .sbh::after{margin:0 6px 0 0}
-.bs53 .sbh{align-items:center}
-.bs53 .sbn i{order:-1;min-width:20px;height:20px;box-sizing:border-box;padding:0 5px;border-radius:10px;
-  background:var(--acc-br);color:var(--on-acc);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.bs54 .sbh::after{content:'';flex:1;align-self:center;margin-left:3px;border-top:1px dashed rgba(var(--tx-rgb),.35)}
-.bs55 .sbh::after{content:'';flex:1;align-self:center;height:3px;margin-left:3px;
-  border-top:1px solid rgba(var(--tx-rgb),.25);border-bottom:1px solid rgba(var(--tx-rgb),.25)}
-.bs56 .sbh::after{content:'';flex:0 0 24px;align-self:center;height:2px;margin-left:3px;background:var(--acc-br)}
-.bs57 .sbn i::before{content:'('}
-.bs57 .sbn i::after{content:')'}
-.bs58 .sbt{font-family:Georgia,'Noto Serif',serif;font-size:13px;font-weight:700;letter-spacing:.06em}
-.bs59 .sbt{font-family:var(--mono);font-size:11px;letter-spacing:.08em}
-.bs60 .sbt::first-letter{font-size:19px;font-weight:900;letter-spacing:.02em}
-/* 61~70 · 구간 감싸기 */
-.bs61 .sbh{padding-top:14px}
-.bs61 .bsec:not(.f1){margin:6px -13px 0;padding:0 13px;border-top:1px solid rgba(var(--tx-rgb),.18)}
-.bs62 .bsec,.bs63 .bsec{margin:8px -5px 0;padding:0 6px;border-radius:10px}
-.bs62 .bsec.l1,.bs63 .bsec.l1{margin-bottom:8px}
-.bs62 .bsec{border:1px dashed rgba(var(--tx-rgb),.3)}
-.bs63 .bsec{border:1px solid rgba(var(--tx-rgb),.16)}
-.bs62 .sbh,.bs62 .f1>.sbh,.bs63 .sbh,.bs63 .f1>.sbh{padding-top:9px}
-.bs62 .mc.did,.bs63 .mc.did{margin:0 -6px;padding:0 6px}
-.bs62 .fav,.bs63 .fav,.bs64 .fav,.bs67 .fav{margin-left:-6px}
-.bs64 .bsb{position:relative;padding-left:12px}
-.bs64 .bsb::before{content:'';position:absolute;left:1px;top:6px;bottom:6px;width:6px;
-  border:2px solid rgba(var(--tx-rgb),.3);border-right:0;border-radius:3px 0 0 3px}
-.bs64 .mc.did,.bs67 .mc.did{margin-left:0;padding-left:2px}
-.bs65 .bsec{position:relative}
-.bs65 .bsec::after{content:'';position:absolute;right:-9px;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--acc-br)}
-.bs66 .bsec{position:relative}
-.bs66 .sbh::after{content:attr(data-i);position:absolute;right:6px;top:4px;font-size:58px;font-weight:900;
-  line-height:1;letter-spacing:0;color:rgba(var(--tx-rgb),.06);pointer-events:none}
-.bs67 .bsb{padding-left:14px}
-.bs68 .bsec:not(.f1){margin:0 -13px;padding:0 13px;box-shadow:inset 0 9px 8px -8px rgba(0,0,0,.2)}
-.bs69 .bsec{position:relative;margin:6px 0}
-.bs69 .bsec::before,.bs69 .bsec::after{content:'';position:absolute;width:10px;height:10px;border-color:rgba(var(--tx-rgb),.4);border-style:solid}
-.bs69 .bsec::before{left:-7px;top:6px;border-width:2px 0 0 2px}
-.bs69 .bsec::after{right:-7px;bottom:2px;border-width:0 2px 2px 0}
-.bs70 .sbh{margin:0 -13px;padding:8px 14px 7px;
-  background:repeating-linear-gradient(135deg,rgba(var(--tx-rgb),.07) 0 5px,transparent 5px 10px)}
-.bs70 .f1>.sbh{padding-top:8px;border-radius:calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw)) 0 0}
-/* 71~80 · 카드 변형 */
-.bsw.bs71 .bsec.grp{border-top:4px solid hsl(var(--bh) 50% 50%)}
-.bs72 .bsec{display:flex}
-.bs72 .sbh,.bs72 .f1>.sbh{flex:0 0 42px;width:auto;flex-direction:column;align-items:center;gap:3px;
-  margin-left:-13px;padding:12px 2px;border-right:1px solid rgba(var(--tx-rgb),.08)}
-.bs72 .sbh::before{content:attr(data-i);font-size:22px;font-weight:900;letter-spacing:0;line-height:1}
-.bs72 .sbn{flex-direction:column;align-items:center;gap:2px;max-width:100%}
-.bs72 .sbt{font-size:7.5px;letter-spacing:.04em;white-space:normal;word-break:break-all;text-align:center}
-.bs72 .bsb{flex:1;min-width:0;padding-left:6px}
-.bs72 .fav{margin-left:-6px}
-.bs72 .mc.did{margin-left:-6px;padding-left:8px}
-.bs73.bmc>.bsec+.bsec{margin-top:-5px}
-.bsw.bs73 .bsec.grp{position:relative;box-shadow:0 -3px 8px rgba(0,0,0,.1),var(--elev)}
-.bsw.bs74 .bsec.grp{border-color:transparent;box-shadow:0 2px 4px rgba(0,0,0,.08),0 12px 26px -8px rgba(0,0,0,.4)}
-.bsw.bs75 .bsec.grp{border-radius:0}
-.bs75 .bsb>.mc.did:last-child{border-radius:0}
-.bs75 .bsb>.mc.did:last-child::before{bottom:5px}
-.bs76.bmc>.bsec+.bsec{margin-top:14px}
-.bsw.bs76 .bsec.grp{position:relative}
-.bs76 .sbn i{position:absolute;right:-6px;top:-9px;min-width:22px;height:22px;box-sizing:border-box;padding:0 6px;
-  border-radius:11px;background:var(--acc-br);color:var(--on-acc);font-size:10px;font-weight:700;
-  display:flex;align-items:center;justify-content:center}
-.bs77.bmc{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -14px;padding:0 14px 6px}
-.bs77.bmc>.bsec{flex:0 0 86%;min-width:0;scroll-snap-align:start}
-.bs77.bmc>.bsec+.bsec{margin-top:0}
-.bsw.bs78 .bsec.grp{background:linear-gradient(hsl(var(--bh) 50% 50% / .1),hsl(var(--bh) 50% 50% / .1)),var(--surf)}
-.bs79 .bsec+.bsec{margin-top:16px}
-.bs79 .sbh,.bs79 .f1>.sbh{padding:0 3px 6px;font-size:14px;letter-spacing:.1em}
-.bs80.bmc>.bsec+.bsec{margin-top:4px}
-.bs80 .sbh,.bs80 .f1>.sbh{padding:8px 1px 0;font-size:9.5px}
-/* 81~90 · 줄 표식 더 — 색 줄은 구간의 --bh 를 이어받는다 */
-.bund{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dim);margin-top:2px}
-.btr{position:absolute;right:4px;top:4px;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.12em;
-  color:var(--dim);pointer-events:none}
-.mc.did .btr{right:17px}
-.bs84 .bsec .mc::after{content:'';position:absolute;right:-9px;top:8px;bottom:8px;width:3px;border-radius:2px;
-  background:hsl(var(--bh) 55% 50%)}
-.bs84 .bsec .mc.did::after{right:4px}
-.bs85 .bsec .mc::after{content:'';position:absolute;left:-9px;top:8px;bottom:8px;width:3px;border-radius:2px;
-  background:hsl(var(--bh) 55% 50%)}
-.bs85 .bsec .mc.did::after{left:5px}
-.bs86 .bini{border-radius:50%;background:hsl(var(--bh) 50% 42%);color:#ffffff}
-.bs32 .fav,.bs86 .fav{margin-left:-4px}
-.bs87 .bsec .mc{margin:0 -13px;padding:0 13px;background:hsl(var(--bh) 50% 50% / .07)}
-.bs87 .bsec .mc.did{background:hsl(var(--bh) 50% 50% / .15)}
-.bs88 .bsec .nm b{color:hsl(var(--bh) var(--bs) var(--bl))}
-.bcode{flex:0 0 auto;align-self:center;font-style:normal;font-family:var(--mono);font-size:9.5px;font-weight:700;
-  color:var(--chrome);border:1px solid rgba(var(--tx-rgb),.25);border-radius:4px;padding:0 4px}
-.bs90 .bsec .mc,.bs90 .bsec .mc:last-child{border-bottom:2px solid hsl(var(--bh) 50% 50% / .45)}
-/* 91~100 · 구조 더 */
-.bs92 .sbh::before,.bs93 .sbh::before,.bs94 .sbh::before,.bs95 .sbh::before,.bs96 .sbh::before{content:'';
-  flex:0 0 3px;height:13px;border-radius:1px;background:var(--acc-br);align-self:center}
-.sbl{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--dim)}
-.bs92 .sbh::after,.bs94 .sbh::after{order:1}
-.bs92 .sbl,.bs94 .sbl{order:2;margin-left:6px}
-.bs94 .tdy>.sbh{color:var(--acc-br)}
-.sbd{color:var(--acc-br);font-weight:800}
-.sbf{font-style:normal;font-size:10px;color:var(--acc-br)}
-.bs91 .sbh{cursor:pointer}
-.bs91 .sbl{margin-left:auto}
-.bs91 .sbc{margin-left:8px}
-.bs91 .fold>.sbh{padding-bottom:10px}
-.bs91 .bsec.fold:not(.l1){border-bottom:1px solid rgba(var(--tx-rgb),.055)}
-.bs91 .sbh:active{opacity:.6}
-.bixi{min-width:30px;justify-content:center;font-size:11px}
-/* ── 101~150 · 탭·칩·목차·접기 변형 ──────────────────────────────
-   틀(.btabs/.btb, .bflt/.bfc, .bidx/.bix, .sbh)은 그대로 두고 겉만 바꾼다.
-   고르는 짓은 한 곳에서만 하도록. */
-.bs102 .btb,.bs106 .btb,.bs124 .btb{border-bottom:0;margin:6px 4px 6px 0;padding:7px 12px;border-radius:999px}
-.bs102 .btabs,.bs106 .btabs,.bs124 .btabs{border-bottom:0;margin:0 -13px;padding:0 13px}
-.bs102 .btb.on{background:var(--acc-br);color:var(--on-acc)}
-.bs106 .btb.on{background:hsl(var(--bh) 55% 50% / .9);color:var(--on-acc)}
-.bs124 .btb.on{background:hsl(var(--bh) 55% 50% / .18);color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs103 .btabs{border-bottom:0;margin:6px 0;padding:2px;gap:2px;background:rgba(var(--tx-rgb),.06);border-radius:var(--rad-s)}
-.bs103 .btb{border-bottom:0;margin:0;border-radius:calc(var(--rad-s) - 2px);padding:7px 10px}
-.bs103 .btb.on{background:var(--surf);color:var(--tx)}
-.bs104 .btabs,.bs117 .btabs{border-bottom:0;margin:6px 0;gap:4px}
-.bs104 .btb{border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-s);margin:0;padding:7px 10px}
-.bs104 .btb.on{border-color:var(--acc-br);color:var(--tx)}
-.bs117 .btb{border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-s);margin:0}
-.bs117 .btb.on{border-color:var(--acc-br);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
-.bs105 .btb.on{border-bottom-color:hsl(var(--bh) 55% 50%);color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs107 .btb{padding:13px 10px 11px;font-size:11px}
-.bs108 .btb{padding:6px 5px 5px;min-width:48px;font-size:8.5px;letter-spacing:.06em}
-.bs109 .btabs,.bs118 .btabs{overflow-x:visible}
-.bs109 .btb,.bs118 .btb{flex:1 1 0;min-width:0}
-.bs109 .btb b,.bs118 .btb b{overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.bs110 .btabs{justify-content:center}
-.bs111 .btabs{justify-content:flex-end}
-.bs112 .btb i{display:none}
-.bs113 .btb{flex-direction:row;gap:5px;align-items:center}
-.bs113 .btb i{padding:1px 5px;border-radius:999px;background:rgba(var(--tx-rgb),.1);font-size:8.5px}
-.bs113 .btb.on i{background:rgba(var(--acc-rgb),.25);color:var(--acc-br)}
-.bs114 .btb b{display:none}
-.bs114 .btb::before{content:attr(data-ini);font-size:13px;font-weight:800;letter-spacing:0}
-.bs115 .btabs{border-bottom:0;border-top:1px solid rgba(var(--tx-rgb),.12);margin-top:8px}
-.bs115 .btb{border-bottom:0;border-top:2px solid transparent;margin:-1px 0 0}
-.bs115 .btb.on{border-top-color:var(--acc-br)}
-.bs116 .btabs{border-bottom:0}
-.bs116 .btb{border-bottom:0;margin:0;padding-bottom:12px;position:relative}
-.bs116 .btb.on::after{content:'';position:absolute;left:50%;bottom:5px;transform:translateX(-50%);
+.btb:active{opacity:.6}
+/* ── 02~25 · 탭 겉모습 변형 — 틀(.btabs/.btb)은 그대로 두고 겉만 바꾼다 ── */
+.bs02 .btb,.bs06 .btb,.bs24 .btb{border-bottom:0;margin:6px 4px 6px 0;padding:7px 12px;border-radius:999px}
+.bs02 .btabs,.bs06 .btabs,.bs24 .btabs{border-bottom:0;margin:0 -13px;padding:0 13px}
+.bs02 .btb.on{background:var(--acc-br);color:var(--on-acc)}
+.bs06 .btb.on{background:hsl(var(--bh) 55% 50% / .9);color:var(--on-acc)}
+.bs24 .btb.on{background:hsl(var(--bh) 55% 50% / .18);color:hsl(var(--bh) var(--bs) var(--bl))}
+.bs03 .btabs{border-bottom:0;margin:6px 0;padding:2px;gap:2px;background:rgba(var(--tx-rgb),.06);border-radius:var(--rad-s)}
+.bs03 .btb{border-bottom:0;margin:0;border-radius:calc(var(--rad-s) - 2px);padding:7px 10px}
+.bs03 .btb.on{background:var(--surf);color:var(--tx)}
+.bs04 .btabs,.bs17 .btabs{border-bottom:0;margin:6px 0;gap:4px}
+.bs04 .btb{border:var(--bw) solid rgba(var(--tx-rgb),.16);border-radius:var(--rad-s);margin:0;padding:7px 10px}
+.bs04 .btb.on{border-color:var(--acc-br);color:var(--tx)}
+.bs17 .btb{border:var(--bw) solid rgba(var(--tx-rgb),.1);border-radius:var(--rad-s);margin:0}
+.bs17 .btb.on{border-color:var(--acc-br);background:rgba(var(--acc-rgb),.1);color:var(--tx)}
+.bs05 .btb.on{border-bottom-color:hsl(var(--bh) 55% 50%);color:hsl(var(--bh) var(--bs) var(--bl))}
+.bs07 .btb{padding:13px 10px 11px;font-size:11px}
+.bs08 .btb{padding:6px 5px 5px;min-width:48px;font-size:8.5px;letter-spacing:.06em}
+.bs09 .btabs,.bs18 .btabs{overflow-x:visible}
+.bs09 .btb,.bs18 .btb{flex:1 1 0;min-width:0}
+.bs09 .btb b,.bs18 .btb b{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bs10 .btabs{justify-content:center}
+.bs11 .btabs{justify-content:flex-end}
+.bs12 .btb i{display:none}
+.bs13 .btb{flex-direction:row;gap:5px;align-items:center}
+.bs13 .btb i{padding:1px 5px;border-radius:999px;background:rgba(var(--tx-rgb),.1);font-size:8.5px}
+.bs13 .btb.on i{background:rgba(var(--acc-rgb),.25);color:var(--acc-br)}
+.bs14 .btb b{display:none}
+.bs14 .btb::before{content:attr(data-ini);font-size:13px;font-weight:800;letter-spacing:0}
+.bs15 .btabs{border-bottom:0;border-top:1px solid rgba(var(--tx-rgb),.12);margin-top:8px}
+.bs15 .btb{border-bottom:0;border-top:2px solid transparent;margin:-1px 0 0}
+.bs15 .btb.on{border-top-color:var(--acc-br)}
+.bs16 .btabs{border-bottom:0}
+.bs16 .btb{border-bottom:0;margin:0;padding-bottom:12px;position:relative}
+.bs16 .btb.on::after{content:'';position:absolute;left:50%;bottom:5px;transform:translateX(-50%);
   width:5px;height:5px;border-radius:50%;background:var(--acc-br)}
-.bs118 .btb.on{background:rgba(var(--acc-rgb),.12)}
-.bs119 .btb{border-bottom-width:3px}
-.bs120 .btb b{font-family:var(--mono);letter-spacing:.04em}
-.bs121 .btabs{border-bottom:0;margin:0 -13px -6px;padding:0 13px 8px}
-.bs121 .btb{border-bottom:0;margin:0 4px 0 0;padding:8px 12px;border-radius:var(--rad-s);
+.bs18 .btb.on{background:rgba(var(--acc-rgb),.12)}
+.bs19 .btb{border-bottom-width:3px}
+.bs20 .btb b{font-family:var(--mono);letter-spacing:.04em}
+.bs21 .btabs{border-bottom:0;margin:0 -13px -6px;padding:0 13px 8px}
+.bs21 .btb{border-bottom:0;margin:0 4px 0 0;padding:8px 12px;border-radius:var(--rad-s);
   background:var(--surf);box-shadow:var(--elev)}
-.bs121 .btb.on{background:var(--acc-br);color:var(--on-acc);box-shadow:none}
-.bs122 .btabs{border-bottom:0;background:rgba(var(--tx-rgb),.05);border-radius:var(--rad-s);margin:6px 0;padding:0 2px}
-.bs122 .btb{border-bottom:0;margin:0}
-.bs122 .btb.on{color:var(--acc-br)}
-.bs123 .btabs{border-bottom:0}
-.bs123 .btb{border-bottom:0;margin:0;padding:8px 6px}
-.bs125 .btb{padding:8px 9px 6px;gap:2px}
-.bs125 .btb b{font-size:10.5px;letter-spacing:.04em}
-.bs125 .btb i{font-size:8.5px;opacity:.7}
-/* 칩 — 126~135 */
-.bs126 .bfc{border-radius:var(--rad-s)}
-.bs127 .bfc{border-color:hsl(var(--bh) 55% 50% / .5);color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs127 .bfc.on{background:hsl(var(--bh) 55% 50%);border-color:transparent;color:var(--on-acc)}
-.bs128 .bfc{min-height:26px;padding:3px 8px;font-size:9.5px}
-.bs129 .bfc{background:none}
-.bs130 .bflt{gap:4px}
-.bs130 .bfc{flex:1 1 0;justify-content:center;min-width:0}
-.bs131 .bfc{flex-direction:column;gap:0;align-items:center;padding:5px 11px}
-.bs131 .bfc i{order:-1;font-size:12px;font-weight:700;color:var(--tx)}
-.bs132 .bfc b{display:none}
-.bs132 .bfc::before{content:attr(data-ini);font-weight:800;font-size:12px}
-.bs133 .bflt{justify-content:center}
-.bs134 .bfc{font-weight:800;letter-spacing:.06em}
-.bs135 .bfc{border-width:0;background:rgba(var(--tx-rgb),.05);font-weight:600}
-.bs135 .bfc.on{background:var(--acc-br);color:var(--on-acc)}
-/* 목차 — 136~142 */
-.bs136 .bix{border-color:hsl(var(--bh) 55% 50% / .55);color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs137 .bix{border-radius:var(--rad-s)}
-.bs138 .bix{border-radius:var(--rad-s)}
-.bs139 .bix{flex-direction:column;gap:0;align-items:center;padding:4px 10px}
-.bs139 .bix i{order:-1;font-size:13px;font-weight:700;color:var(--tx);font-family:var(--mono)}
-.bs140 .bidx{justify-content:center}
-.bs141 .bidx{gap:4px}
-.bs141 .bix{flex:1 1 0;justify-content:center;min-width:0}
-.bs141 .bix{overflow:hidden;white-space:nowrap}
-.bs142 .bidx{padding-bottom:10px;border-bottom:1px solid rgba(var(--tx-rgb),.1);margin-bottom:4px}
-/* 접기 — 143~150 */
-.bs143 .sbh{cursor:pointer}
-.bs143 .sbt{font-size:13px;font-weight:900;letter-spacing:.02em}
-.bs144 .sbh{cursor:pointer;border-bottom:1px solid rgba(var(--tx-rgb),.14);padding-bottom:7px}
-.bs145 .sbh{cursor:pointer}
-.bs145 .sbn{background:rgba(var(--tx-rgb),.07);border-radius:999px;padding:4px 11px}
-.bs146 .sbh{cursor:pointer}
-.bs146 .sbt{color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs147 .sbh{cursor:pointer}
-.bs147 .sbt{font-size:15px;letter-spacing:0;text-transform:none}
-.bs148 .sbh{cursor:pointer}
-.bs148 .sbc{margin-left:auto;font-size:14px}
-.bs149 .sbh{cursor:pointer;background:rgba(var(--tx-rgb),.05);margin:0 -13px;padding-left:13px;padding-right:13px;border-radius:var(--rad-s)}
-.bs150 .sbh{cursor:pointer}
-.bs150 .sbt{font-family:var(--mono);letter-spacing:.06em;font-size:11px}
+.bs21 .btb.on{background:var(--acc-br);color:var(--on-acc);box-shadow:none}
+.bs22 .btabs{border-bottom:0;background:rgba(var(--tx-rgb),.05);border-radius:var(--rad-s);margin:6px 0;padding:0 2px}
+.bs22 .btb{border-bottom:0;margin:0}
+.bs22 .btb.on{color:var(--acc-br)}
+.bs23 .btabs{border-bottom:0}
+.bs23 .btb{border-bottom:0;margin:0;padding:8px 6px}
+.bs25 .btb{padding:8px 9px 6px;gap:2px}
+.bs25 .btb b{font-size:10.5px;letter-spacing:.04em}
+.bs25 .btb i{font-size:8.5px;opacity:.7}
+/* ── 26~50 · 더한 겉모습(요청: 시안은 많이) ── */
+/* 26 폴더 — 켜진 탭이 윗모서리 둥근 폴더처럼 아래 구간과 이어진다 */
+.bs26 .btabs{border-bottom:0;margin:0 -13px -1px;padding:4px 13px 0;gap:3px;align-items:flex-end}
+.bs26 .btb{border:var(--bw) solid transparent;border-bottom:0;border-radius:var(--rad-s) var(--rad-s) 0 0;margin:0;padding:7px 11px 8px}
+.bs26 .btb.on{background:var(--surf);border-color:rgba(var(--tx-rgb),.14);color:var(--tx);
+  box-shadow:0 1px 0 var(--surf)}
+/* 27 짧은 밑줄 — 글자 폭의 반 */
+.bs27 .btb{border-bottom:0;position:relative;padding-bottom:9px}
+.bs27 .btb.on::after{content:'';position:absolute;left:30%;right:30%;bottom:4px;height:2px;background:var(--acc-br)}
+/* 28 둥근 막대 */
+.bs28 .btb{border-bottom:0;position:relative;padding-bottom:10px}
+.bs28 .btb.on::after{content:'';position:absolute;left:22%;right:22%;bottom:4px;height:3px;border-radius:2px;background:var(--acc-br)}
+/* 29 글자만 키움 — 선도 채움도 없이 크기로만 */
+.bs29 .btabs{border-bottom:0}
+.bs29 .btb{border-bottom:0;margin:0;font-size:9px;align-items:center}
+.bs29 .btb.on{font-size:12px;color:var(--tx)}
+/* 30 넓은 자간 */
+.bs30 .btb{font-size:8.5px;letter-spacing:.24em}
+.bs30 .btb i{letter-spacing:0}
+/* 31 이니셜 원 — 원 안 머리글자, 켜지면 채움. 이름은 숨긴다 */
+.bs31 .btabs{border-bottom:0;gap:8px;padding:6px 13px;justify-content:flex-start}
+.bs31 .btb{flex:0 0 auto;min-width:0;border-bottom:0;margin:0;padding:0;width:38px;height:38px;border-radius:50%;
+  border:var(--bw) solid rgba(var(--tx-rgb),.2);justify-content:center;gap:0}
+.bs31 .btb b{display:none}
+.bs31 .btb::before{content:attr(data-ini);font-size:13px;font-weight:800;letter-spacing:0}
+.bs31 .btb i{display:none}
+.bs31 .btb.on{background:var(--acc-br);border-color:transparent;color:var(--on-acc)}
+/* 32 번호 — 앞에 01 02 … */
+.bs32 .btb{flex-direction:row;gap:6px;align-items:baseline}
+.bs32 .btb::before{content:attr(data-n);font-family:var(--mono);font-size:8.5px;font-weight:400;opacity:.55;letter-spacing:0}
+.bs32 .btb.on::before{opacity:1;color:var(--acc-br)}
+/* 33 밑줄 + 바탕 */
+.bs33 .btb.on{background:rgba(var(--acc-rgb),.1)}
+/* 34 색 글자 — 켜진 탭 글자가 브랜드 색, 선 없음 */
+.bs34 .btabs{border-bottom:0}
+.bs34 .btb{border-bottom:0;margin:0}
+.bs34 .btb.on{color:hsl(var(--bh) var(--bs) var(--bl))}
+/* 35 색 점 — 글자 앞 점이 브랜드 색 */
+.bs35 .btb{flex-direction:row;gap:6px;align-items:center}
+.bs35 .btb::before{content:'';width:7px;height:7px;border-radius:50%;background:hsl(var(--bh) 55% 50%);opacity:.45}
+.bs35 .btb.on::before{opacity:1}
+/* 36 꽉 찬 띠 — 탭 줄 전체가 강조색 */
+.bs36 .btabs{border-bottom:0;background:var(--acc-br);margin:0 -13px;padding:0;overflow:hidden;
+  border-radius:calc(var(--rad-card) - var(--bw)) calc(var(--rad-card) - var(--bw)) 0 0}  /* 띠가 카드 모서리를 따라 둥글게 — 좌우 여백을 두면 모서리 밖에 띠 조각이 남는다 */
+.bs36 .btb{color:var(--on-acc);opacity:.6;border-bottom:2px solid transparent}
+.bs36 .btb.on{opacity:1;color:var(--on-acc);border-bottom-color:var(--on-acc);background:rgba(0,0,0,.16)}  /* 띠 위에서 켜진 칸은 글자 농도만으로는 안 갈려 살짝 어둡게 */
+/* 37 역상 알약 — 꺼진 것이 채움, 켜진 것이 테두리 */
+.bs37 .btabs{border-bottom:0;margin:0 -13px;padding:0 13px}
+.bs37 .btb{border-bottom:0;margin:6px 4px 6px 0;padding:7px 12px;border-radius:999px;background:rgba(var(--tx-rgb),.06);
+  border:var(--bw) solid transparent}
+.bs37 .btb.on{background:none;border-color:var(--acc-br);color:var(--acc-br)}
+/* 38 겹선 */
+.bs38 .btb{border-bottom:3px double transparent}
+.bs38 .btb.on{border-bottom-color:var(--acc-br)}
+/* 39 위아래 선 */
+.bs39 .btb{border-top:1px solid transparent}
+.bs39 .btb.on{border-top-color:var(--acc-br);border-bottom-width:1px}
+/* 40 유리 — 흐린 트랙 위에 켜진 칸만 판 색으로 떠 있다 */
+.bs40 .btabs{border-bottom:0;margin:6px 0;padding:3px;gap:3px;background:rgba(var(--tx-rgb),.04);border-radius:var(--rad-s);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+.bs40 .btb{border-bottom:0;margin:0;border-radius:calc(var(--rad-s) - 3px);padding:7px 10px}
+.bs40 .btb.on{background:var(--plate);color:var(--tx);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+/* 41 화살표 — 켜진 탭 아래 작은 세모가 구간을 가리킨다 */
+.bs41 .btb{position:relative;border-bottom:0;margin:0}
+.bs41 .btb.on::after{content:'';position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);
+  border:6px solid transparent;border-bottom-color:var(--acc-br);border-top:0}  /* 흐린 색으로 뒀더니 세모가 안 보였다 */
+/* 42 윗첨자 개수 */
+.bs42 .btb{flex-direction:row;gap:2px;align-items:flex-start}
+.bs42 .btb i{font-size:7.5px;margin-top:-2px;padding:0 3px;border-radius:999px;background:rgba(var(--tx-rgb),.1)}
+.bs42 .btb.on i{background:rgba(var(--acc-rgb),.25);color:var(--acc-br)}
+/* 43 괄호 개수 */
+.bs43 .btb{flex-direction:row;gap:4px;align-items:baseline}
+.bs43 .btb i::before{content:'('}
+.bs43 .btb i::after{content:')'}
+/* 44 왼쪽 몰림 — 내용 폭대로, 왼쪽부터 */
+.bs44 .btabs{justify-content:flex-start}
+.bs44 .btb{flex:0 0 auto;min-width:0;padding:9px 10px 7px}
+/* 45 그라데이션 밑줄 — 강조색에서 브랜드 색으로 */
+.bs45 .btb{border-bottom:0;position:relative;padding-bottom:9px}
+.bs45 .btb.on::after{content:'';position:absolute;left:8px;right:8px;bottom:3px;height:2px;border-radius:1px;
+  background:linear-gradient(90deg,var(--acc-br),hsl(var(--bh) 55% 50%))}
+/* 46 띠 + 밑줄 — 가라앉은 트랙 위 밑줄 */
+.bs46 .btabs{background:var(--sunk);margin:0 -13px;padding:0 13px}
+/* 47 색 테두리 알약 — 테두리가 브랜드 색, 켜지면 채움 */
+.bs47 .btabs{border-bottom:0;margin:0 -13px;padding:0 13px}
+.bs47 .btb{border-bottom:0;margin:6px 4px 6px 0;padding:6px 11px;border-radius:999px;
+  border:var(--bw) solid hsl(var(--bh) 55% 50% / .55);color:hsl(var(--bh) var(--bs) var(--bl))}
+.bs47 .btb.on{background:hsl(var(--bh) 55% 50%);border-color:transparent;color:var(--on-acc)}
+/* 48 작은 네모 칩 */
+.bs48 .btabs{border-bottom:0;margin:4px 0;gap:4px}
+.bs48 .btb{flex:0 0 auto;min-width:0;border:var(--bw) solid rgba(var(--tx-rgb),.14);border-radius:4px;margin:0;
+  padding:5px 8px;font-size:8.5px;gap:0}
+.bs48 .btb i{display:none}
+.bs48 .btb.on{background:var(--acc-br);border-color:transparent;color:var(--on-acc)}
+/* 49 제목 글자 — 켜진 탭이 제목처럼 크고, 나머지는 작게 한 줄에 */
+.bs49 .btabs{border-bottom:0;align-items:baseline;gap:14px;padding:4px 13px 2px;justify-content:flex-start}
+.bs49 .btb{flex:0 0 auto;min-width:0;border-bottom:0;margin:0;padding:4px 0;flex-direction:row;gap:5px;align-items:baseline;
+  font-size:9px;letter-spacing:.08em}
+.bs49 .btb.on{font-size:14px;letter-spacing:.02em;color:var(--tx)}
+.bs49 .btb.on i{font-size:9px}
+/* 50 색 분절 — 분절 트랙, 켜진 칸이 브랜드 색 */
+.bs50 .btabs{border-bottom:0;margin:6px 0;padding:2px;gap:2px;background:rgba(var(--tx-rgb),.06);border-radius:var(--rad-s)}
+.bs50 .btb{border-bottom:0;margin:0;border-radius:calc(var(--rad-s) - 2px);padding:7px 10px}
+.bs50 .btb.on{background:hsl(var(--bh) 55% 50%);color:var(--on-acc)}
 
-.bs95 .sbh,.bs95 .f1>.sbh,.bs100 .sbh,.bs100 .f1>.sbh{padding-top:16px}
-.bs97 .sbn{display:contents}
-.bs97 .sbh::after{order:1}
-.bs97 .sbn i{order:2;font-size:16px;font-weight:700;color:var(--tx);margin-left:6px}
-.bs98 .sbh::after{content:'';flex:1;align-self:center;height:5px;margin-left:6px;border-radius:3px;
-  background:linear-gradient(var(--acc-br),var(--acc-br)) no-repeat left center/var(--sh) 100%,rgba(var(--tx-rgb),.1)}
-.bs99>.grp{position:relative;padding-left:27px}
-.bs99>.grp::before{content:'';position:absolute;left:18px;top:22px;bottom:26px;width:1px;background:rgba(var(--tx-rgb),.25)}
-.bs99 .sbh{position:relative;padding-top:18px}
-.bs99 .f1>.sbh{padding-top:12px}
-.bs99 .sbh::before{content:'';position:absolute;left:-14px;bottom:5px;width:9px;height:9px;box-sizing:border-box;
-  border-radius:50%;background:hsl(var(--bh) 55% 50%);border:2px solid var(--surf);box-shadow:0 0 0 1px hsl(var(--bh) 55% 50%)}
-.bs99 .sbt{color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs99 .mc.did{margin-left:0;padding-left:2px}
-.bs100 .bix{border-color:hsl(var(--bh) 50% 50% / .55);color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs100 .sbt{color:hsl(var(--bh) var(--bs) var(--bl))}
-.bs100 .sbh::after{content:'';flex:1;align-self:center;height:1px;margin-left:3px;background:hsl(var(--bh) 50% 50% / .45)}
+/* 칩 — 126~135 */
 /* 설정 · DISPLAY · 브랜드 — 이름이 길어 두 줄로 */
 .bstgrid{grid-template-columns:repeat(2,1fr)}
 /* 갈래 고르개 — 시안이 150가지라 한 자리에 다 펴 놓으면 고르는 일이 아니라
@@ -4342,7 +4091,15 @@ function thPreview(){
         +A[i][1]+'<u>'+A[i][2]+'</u></button>';
     return r;
   }
-  var tb='<i class="dsgl">'+TX('전체')+'</i>'+dsRow(TB1)
+  /* **윗줄은 시안 하나다**(요청: DISPLAY 가 너무 복잡하다). 색·질감·무늬는
+     시안이 한꺼번에 정하는 값이라, 따로 만지려는 사람만 '세부 조정' 을 열어
+     본다. 예전에는 넷이 한 줄에 나란히 서서 '시안을 골랐는데 색도 또 골라야
+     하나' 로 읽혔다. 색·질감·무늬 갈래에 서 있으면 접기는 늘 열려 있다 —
+     안 열면 지금 어디에 있는지가 안 보인다. */
+  var adv=!!UI.dsAdv||sub==='pal'||sub==='tech'||sub==='pat';
+  var tb='<i class="dsgl">'+TX('전체')+'</i>'+dsRow([TB1[0]])
+        +'<button class="dsb dsadv'+(adv?' on':'')+'" data-act="dsadv">'+TX('세부 조정')+'<u>'+(adv?'\u25be':'\u25b8')+'</u></button>'
+        +(adv?'<i class="dsbr"></i>'+dsRow(TB1.slice(1)):'')
         +'<i class="dsgl">'+TX('개별')+'</i>'+dsRow(TB2);
   /* 브랜드 탭에서는 테마 대신 목록을 보여 준다 — 그 탭이 바꾸는 것이 목록이다 */
   if(sub==='brand')return '<div class="thprev">'+bPrevHtml()+'<div class="dsubs">'+tb+'</div></div>';
@@ -4411,7 +4168,13 @@ var TECHS=[
 var PATS=[{k:'emgrid',n:'양각 격자',d:1},{k:'engrid',n:'음각 격자',d:1},{k:'dome',n:'리벳 판',d:1},{k:'tread3',n:'체커 플레이트',d:1},{k:'knurl3',n:'널링',d:1},{k:'corr',n:'골판',d:1},{k:'pleat',n:'주름',d:1},{k:'csink',n:'접시 구멍',d:1},{k:'brick',n:'블록',d:1},{k:'quilt',n:'쿠션',d:1},{k:'plate',n:'네임플레이트'},{k:'knurl',n:'널링'},{k:'tread',n:'체커 플레이트'},{k:'perf',n:'타공판'},{k:'hair',n:'헤어라인'},{k:'disc',n:'원판'},{k:'graph',n:'모눈'},{k:'blue',n:'청사진'},{k:'hatch',n:'사선'},{k:'cross',n:'크로스해치'},{k:'iso',n:'아이소메트릭'},{k:'herr',n:'헤링본'},{k:'pane',n:'윈도우페인'},{k:'pin',n:'핀스트라이프'},{k:'rib',n:'리브'},{k:'hex',n:'벌집'},{k:'carbon',n:'카본'},{k:'bead',n:'용접 비드'},{k:'stud',n:'리벳'},{k:'chain',n:'체인'},{k:'cable',n:'케이블'},{k:'chev',n:'셰브론'},{k:'barcode',n:'바코드'},{k:'wave',n:'파형'},{k:'scale',n:'비늘'},{k:'mesh',n:'철망'},{k:'zig',n:'지그재그'},{k:'tri',n:'삼각 타일'},{k:'dash',n:'파선 격자'},{k:'none',n:'없음'}];
 var PAL='bronze',TECH='flat',PAT='plate';
 /* 종목 목록의 브랜드 구분 시안(설정 · DISPLAY · 브랜드). 번호는 시안 페이지와 같다 */
-var BST=9,CST=1,TST=1;
+var BST=1,CST=1,TST=1;
+/* 옛 번호(1~150, 저장 키 `.bst`) → 새 번호(저장 키 `.bst2`). 탭 변형이던
+   45·96·101~125 만 자리가 있고 나머지는 밑줄 탭(1)로 떨어진다. 옛 1~25 는
+   제목줄·띠 시안이었지 탭이 아니라 그대로 쓰면 안 된다 — 그래서 키를 갈았다:
+   `.bst2` 가 있으면 새 번호, 없으면 `.bst` 를 이 표로 옮긴다.
+   **부팅 때 불린다 — BSTY 를 읽지 마라**(§2-1, 그 배열은 여기보다 아래다). */
+function bstMig(n){n=Math.floor(+n||0);if(n>=101&&n<=125)return n-100;return 1;}
 function patOk(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return true;return false;}
 function patOf(t){for(var i=0;i<PATS.length;i++)if(PATS[i].k===t)return PATS[i];return PATS[0];}
 function palOk(t){for(var i=0;i<PALS.length;i++)if(PALS[i].k===t)return true;return false;}
@@ -4449,10 +4212,11 @@ function applyTheme(){
     if(a2&&palOk(a2))PAL=a2;
     if(b2&&techOk(b2))TECH=b2;
     if(c2&&patOk(c2))PAT=c2;
-    var d2=localStorage.getItem(KEY+'.bst');
-    /* 상한을 100 으로 박아 두어 101~150 을 고르면 새로 켤 때 풀렸다.
-       BSTY 는 여기보다 아래에 있어 길이를 못 보므로 넉넉히 받고 bstOf 가 자른다. */
+    /* 새 키가 있으면 그대로(BSTY 는 아래에 있어 길이를 못 보므로 넉넉히 받고
+       bstOf 가 자른다). 없으면 옛 키를 표로 옮기고 새 키에 적는다 — 한 번만. */
+    var d2=localStorage.getItem(KEY+'.bst2'),d2o=localStorage.getItem(KEY+'.bst');
     if(d2&&+d2>=1&&+d2<=999)BST=Math.floor(+d2);
+    else if(d2o){BST=bstMig(d2o);try{localStorage.setItem(KEY+'.bst2',String(BST));}catch(eBm){}}
     var e2=localStorage.getItem(KEY+'.cst');
     if(e2&&+e2>=1&&+e2<=999)CST=Math.floor(+e2);
     /* TSTY 도 여기보다 아래에 있어 길이를 못 본다 — 넉넉히 받고 tstOf 가 자른다 */
@@ -4697,7 +4461,7 @@ var LS_WAS_EMPTY=(function(){
 })();
 var S=migrateLines(load());save();
 try{document.documentElement.setAttribute('lang',LANG);}catch(eL){}
-var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dts:'body',gts:'wk',dta:'bk',sx:'',jord:'',bgrp:null,cgrp:null,bflt:{},btab:{},subP:{},dmOpen:false,bfold:{},bopen:{},vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
+var UI={filter:'CHEST',open:null,hist:false,w:'',r:'',arm:null,sheet:null,addPart:'CHEST',addName:'',addBrand:'',addLine:'',addVar:'',addMc:'',ci:'',q:'',qOpen:false,favOnly:false,sub:'',skOpen:'',skAll:false,editId:null,editStep:2.5,editMm:'',editSk:'',editAs:false,lmOpen:'',vzHid:false,vzf:{},editCt:'tread',pickOpen:'',rirHold:null,esIdx:null,gpre:'',htab:'start',dsub:'set',dsAdv:false,dts:'body',gts:'wk',dta:'bk',sx:'',jord:'',cgrp:null,btab:{},subP:{},dmOpen:false,vzt:'vol',vzd:'pro',vzb:'today',pgt:'',draft:{},dirty:{},wd:''};
 UI.wd=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);})();
 loadDraft();
 
@@ -5732,172 +5496,74 @@ function bkBanner(){
    ★ 는 덩이 단위로 올린다 — 아이가 부모보다 위로 올라가면 줄이 끊긴다.
    dkf: 줄마다 붙일 브랜드 표식을 돌려주는 함수(브랜드 구분 시안), 없으면 null.
    mcb: 제목줄 없이 줄이 브랜드를 말하는 시안에서 덩이 머리에도 브랜드를 적는다. */
-function mcHtml(items,nb,dkf,mcb){
+function mcHtml(items,nb){
   var bk=mcBlocks(items),r='',bi,bx,q;
   bk=bk.filter(function(x){return x.items.some(function(m2){return m2.f;});})
        .concat(bk.filter(function(x){return !x.items.some(function(m2){return m2.f;});}));
   for(bi=0;bi<bk.length;bi++){
     bx=bk[bi];
-    if(!bx.mc){r+=rowHtml(bx.items[0],nb,false,dkf?dkf(bx.items[0]):null);continue;}
+    if(!bx.mc){r+=rowHtml(bx.items[0],nb,false);continue;}
     r+='<div class="mcblk"><div class="mch"><b>'+esc(bx.mc)+'</b>'
-      +(bx.b&&(!nb||mcb)?'<i>'+esc(bx.b)+'</i>':'')
+      +(bx.b&&!nb?'<i>'+esc(bx.b)+'</i>':'')
       +'<em>'+TX1('{0}종목',bx.items.length)+'</em>'
       +'<button class="mcadd" data-act="madd" data-v="'+esc(bx.items[0].i)+'">+ '+TX('운동')+'</button></div>';
     var bit2=favFirst(bx.items);
-    for(q=0;q<bit2.length;q++)r+=rowHtml(bit2[q],true,true,dkf?dkf(bit2[q]):null);
+    for(q=0;q<bit2.length;q++)r+=rowHtml(bit2[q],true,true);
     r+='</div>';
   }
   return r;
 }
-/* 브랜드가 둘 이상인 근육 묶음 하나를 고른 시안(bstOf)대로 그린다.
-   틀은 하나다: .bsw.bsNN > [.grp] > .bsec(브랜드 한 구간, --bh 색상)
-   > .sbh(제목줄: .sbn 안에 .sbt 이름과 i 개수) + .bsb(종목 줄).
-   모양은 CSS 가 번호마다 입히고, 짜임이 다른 것(BSD)만 여기서 가른다. */
+/* 브랜드가 둘 이상인 근육 묶음 하나를 **브랜드 탭**으로 그린다(요청 — 탭이 뼈대다).
+   틀: .bsw.bsNN > .grp > .btabs(탭 줄) + .bsec(누른 브랜드 한 구간, --bh 색상)
+   > .bsb(종목 줄). 겉모습은 CSS 가 번호(bstOf)마다 입힌다 — 짜임은 하나다.
+   예전에는 BSD 디스크립터로 짜임(제목줄·칩·목차·접기·장부·분담…)을 갈랐다.
+   탭을 뼈대로 못박으면서 그 갈래들과 도우미(bChips·bIdx·bLegend·bLedHead·
+   bShare·bMerge, 줄 표식 dc)를 걷어냈다 — git 에 있다.
+   누른 브랜드는 UI.btab[부위|세부] 에 남는다. 처음 열면 첫 브랜드. 기억한
+   브랜드가 없어졌으면(종목을 지웠거나 이름을 바꿈) 첫 브랜드로 돌아간다 —
+   없는 브랜드를 가리키면 빈 구간이 뜬다. */
 function brandSecs(sg,bgs,sj){
-  var s=bstOf(),d=BSD[s]||{},md=d.m||'one',gk=UI.filter+'|'+(sg.k||''),gs=bgs,i,q;
-  if(d.mg)gs=bMerge(bgs);
-  /* 브랜드 순서 — 최근에 쓴 것 먼저(92) · 즐겨찾기가 있는 것 먼저(93). 같으면 원래 순서 */
-  if(d.ord){
-    gs=gs.map(function(g,k){
-      var last='',fv=0,j,la;
-      for(j=0;j<g.items.length;j++){
-        la=latest(g.items[j].i);if(la&&la.d>last)last=la.d;
-        if(g.items[j].f)fv++;
-      }
-      return {g:g,k:k,last:last,fv:fv};
-    }).sort(function(x,y){
-      var c=(d.ord==='recent')?(x.last<y.last?1:(x.last>y.last?-1:0)):(y.fv-x.fv);
-      return c||(x.k-y.k);
-    }).map(function(x){x.g._last=x.last;x.g._fv=x.fv;return x.g;});
-  }
-  /* '전체' 단추는 두지 않는다 — 세부 부위 줄과 같은 규칙이다: 아무것도 안
-     켜진 것이 곧 전체이고, 켠 것을 한 번 더 누르면 풀린다.
-     다만 처음 열었을 때는 첫 갈래를 켜 둔다. 아무것도 안 켜진 채로 시작하면
-     그 줄이 무엇을 하는 줄인지 안 보이고, 켤 것이 있다는 것도 모른다.
-     한 번도 안 고른 것(undefined)과 손으로 푼 것('')은 다른 상태로 둔다 —
-     둘을 같게 보면 푸는 순간 첫 갈래가 도로 켜져 풀 수가 없다.
-     없어진 브랜드를 기억하고 있으면 빈 카드가 뜨므로 지금 있는 것만 받는다. */
-  var only=null,want=null,got=false;
-  if(d.x==='chip'||d.x==='tab'){
-    want=(d.x==='chip')?(UI.bflt&&UI.bflt[gk]):(UI.btab&&UI.btab[gk]);
-    for(i=0;i<gs.length;i++)if(gs[i].n===want){only=want;got=true;}
-    if(!got)only=gs[0]?gs[0].n:null;
-  }
-  /* 갈래가 하나면 고를 것이 없는데 줄만 는다 — 줄도 안 내고 다 보인다 */
-  if(gs.length<2)only=null;
-  var mainN='',mx=0,vis=[],tot=0;
-  for(i=0;i<gs.length;i++){
-    tot+=gs[i].items.length;
-    if(gs[i].items.length>mx){mx=gs[i].items.length;mainN=gs[i].n;}
-    if(!only||gs[i].n===only)vis.push(i);
+  var s=bstOf(),gk=UI.filter+'|'+(sg.k||''),gs=bgs,i;
+  var only=null;
+  if(gs.length>=2){
+    var want=UI.btab&&UI.btab[gk];
+    for(i=0;i<gs.length;i++)if(gs[i].n===want)only=want;
+    if(only===null)only=gs[0].n;
   }
   var secs='';
-  for(q=0;q<vis.length;q++){
-    (function(g,gi){
-      var bit=favFirst(g.items),hue=bHue(g.n),fk=gk+'|'+g.n,tdc=0,j2,ss2;
-      for(j2=0;j2<g.items.length;j2++){ss2=sessOn(g.items[j2].i,UI.wd);if(sesDone(ss2))tdc++;}
-      /* 접힘 — 46 은 누른 것만 접히고, 91 은 첫 브랜드만 펴 두고 나머지는 요약 줄로 */
-      var op=(UI.bopen&&(fk in UI.bopen))?!!UI.bopen[fk]:(q===0);
-      var fold=(d.x==='fold')?!!(UI.bfold&&UI.bfold[fk]):(d.x==='sum'?!op:false);
-      var cls=(md==='sec'?'grp ':'')+'bsec'+(q===0?' f1':'')+(q===vis.length-1?' l1':'')+(q%2?' ev':'')
-        +(g.n===mainN?' main':'')+' wm'+bWm(g.n)+(fold?' fold':'')+(tdc?' tdy':'');
-      var head='';
-      if(!d.nh&&!only){
-        var inner='<b class="sbn"><span class="sbt">'+esc(g.n)+'</span><i>'+bit.length+'</i></b>';
-        /* 머리에 덧붙는 한 마디 — 순서를 바꾼 시안은 그 까닭을 적는다 */
-        var ext='';
-        if(s===92&&g._last){
-          var ago=Math.round((new Date(UI.wd)-new Date(g._last))/86400000);
-          ext='<em class="sbl">'+(ago<=0?TX('오늘'):(ago===1?TX('어제'):TX1('{0}일 전',ago)))+'</em>';
-        }
-        if(s===93&&g._fv)ext='<em class="sbf">\u2605</em>';
-        if(s===94&&tdc)ext='<em class="sbl sbd">'+TX('오늘')+' '+tdc+'</em>';
-        if(d.x==='sum')ext='<em class="sbl">'+(tdc?TX('오늘')+' '+tdc:'')+'</em>';
-        head=(d.x==='fold'||d.x==='sum')
-          ?'<button class="sbh" data-act="'+(d.x==='sum'?'bopn':'bfld')+'" data-k="'+esc(gk)+'" data-v="'+esc(g.n)
-            +'" aria-expanded="'+(fold?'false':'true')+'">'+inner+ext+'<u class="sbc">'+(fold?'\u25b8':'\u25be')+'</u></button>'
-          :'<div class="sbh" data-i="'+esc(bIni(g.n))+'">'+inner+ext+'</div>';
-      }
-      /* 합친 '그 외' 는 줄마다 제 브랜드를 달아야 누가 누군지 안다 */
-      var n1=0,dkf=(d.row||g.mg)?function(mm){
-        var b=g.mg?String(mm.b||'').trim():g.n;
-        return {b:b,k:g.mg?'badge':d.row,first:(n1++===0),hue:bHue(b)};
-      }:null;
-      secs+='<div class="'+cls+'" id="bs'+sj+'_'+gi+'" style="--bh:'+hue+';--sh:'+Math.round(g.items.length*100/Math.max(1,tot))+'%">'+head
-        +(fold?'':'<div class="'+(md==='body'?'grp ':'')+'bsb">'+mcHtml(bit,true,dkf,!!(d.mcb||g.mg))+'</div>')
-        +'</div>';
-    })(gs[vis[q]],vis[q]);
+  for(i=0;i<gs.length;i++){
+    var g=gs[i];
+    if(only!==null&&g.n!==only)continue;
+    var bit=favFirst(g.items),hue=bHue(g.n),tdc=0,j2,ss2;
+    for(j2=0;j2<g.items.length;j2++){ss2=sessOn(g.items[j2].i,UI.wd);if(sesDone(ss2))tdc++;}
+    /* 브랜드가 하나라 탭 줄이 없을 때만 제목줄을 적는다 — 탭이 서면 탭이 이름이다 */
+    var head=only===null
+      ?'<div class="sbh" data-i="'+esc(bIni(g.n))+'"><b class="sbn"><span class="sbt">'+esc(g.n)+'</span><i>'+bit.length+'</i></b></div>'
+      :'';
+    secs+='<div class="bsec f1 l1 wm'+bWm(g.n)+(tdc?' tdy':'')+'" id="bs'+sj+'_'+i+'" style="--bh:'+hue+'">'
+      +head+'<div class="bsb">'+mcHtml(bit,true)+'</div></div>';
   }
-  var top='',ctop='';
-  if(d.x==='chip')top=bChips(gs,gk,only);
-  else if(d.x==='tab')ctop=bTabs(gs,gk,only);
-  else if(d.x==='idx')ctop=bIdx(gs,sj);
-  else if(d.x==='ini')ctop=bIdx(gs,sj,1);
-  else if(d.x==='legend')ctop=bLegend(gs);
-  else if(d.x==='ledger')ctop=bLedHead();
-  else if(d.x==='share')ctop=bShare(gs);
-  var cw='bsw bs'+(s<10?'0':'')+s+(md!=='one'?' bmc':'');
-  return md==='one'
-    ?'<div class="'+cw+'">'+top+'<div class="grp">'+ctop+secs+'</div></div>'
-    :'<div class="'+cw+'">'+top+ctop+secs+'</div>';
+  return '<div class="bsw bs'+(s<10?'0':'')+s+'"><div class="grp">'+bTabs(gs,gk,only)+secs+'</div></div>';
 }
+
 /* 종목이 하나뿐인 브랜드들을 '그 외' 하나로 — 제목이 종목 수만큼 늘어나지 않게.
    하나뿐이면 합칠 것이 없으니 그대로 둔다 */
-function bMerge(gs){
-  var multi=[],one=[],it=[],i;
-  for(i=0;i<gs.length;i++)(gs[i].items.length>1?multi:one).push(gs[i]);
-  if(one.length<2)return gs;
-  for(i=0;i<one.length;i++)it=it.concat(one[i].items);
-  return multi.concat([{n:TX('그 외'),items:it,mg:1}]);
-}
-function bChips(gs,gk,only){
-  var i,h='';
-  if(gs.length<2)return '';
-  for(i=0;i<gs.length;i++)
-    h+='<button class="bfc'+(only===gs[i].n?' on':'')+'" data-act="bflt" data-k="'+esc(gk)+'"'
-      +' data-v="'+esc(gs[i].n)+'" data-ini="'+esc(bIni(gs[i].n))+'">'
-      +'<b>'+esc(gs[i].n)+'</b><i>'+gs[i].items.length+'</i></button>';
-  return '<div class="bflt">'+h+'</div>';
-}
 function bTabs(gs,gk,only){
   var h='',i;
   if(gs.length<2)return '';
   for(i=0;i<gs.length;i++)
+    /* --bh(브랜드 색상)를 탭에도 싣는다 — 색 변형(05·06·24·34·35·45·47·50)이 쓴다.
+       구간(.bsec)에만 실려 있어 탭에서는 hsl() 이 깨져 투명이었다.
+       data-n 은 번호 탭(32)이 적는다. */
     h+='<button class="btb'+(only===gs[i].n?' on':'')+'" data-act="btab" data-k="'+esc(gk)+'"'
-      +' data-v="'+esc(gs[i].n)+'" data-ini="'+esc(bIni(gs[i].n))+'">'
+      +' data-v="'+esc(gs[i].n)+'" data-ini="'+esc(bIni(gs[i].n))+'" data-n="'+(i<9?'0':'')+(i+1)+'"'
+      +' style="--bh:'+bHue(gs[i].n)+'">'
       +'<b>'+esc(gs[i].n)+'</b><i>'+gs[i].items.length+'</i></button>';
   return '<div class="btabs">'+h+'</div>';
 }
-function bIdx(gs,sj,ini){
-  var h='',i;
-  for(i=0;i<gs.length;i++)
-    h+='<button class="bix'+(ini?' bixi':'')+'" data-act="bjmp" data-v="bs'+sj+'_'+i+'" style="--bh:'+bHue(gs[i].n)+'"'
-      +(ini?' aria-label="'+esc(gs[i].n)+'">'+esc(bIni(gs[i].n)):'>'+esc(gs[i].n)+'<i>'+gs[i].items.length+'</i>')+'</button>';
-  return '<div class="bidx">'+h+'</div>';
-}
-/* 브랜드 두 글자 — 영문·숫자 앞 두 자 */
-function bCode(n){var t=String(n||'').replace(/[^A-Za-z0-9\uac00-\ud7a3]/g,'');return t.slice(0,2).toUpperCase()||'?';}
-function bLegend(gs){
-  var h='',i;
-  for(i=0;i<gs.length;i++)h+='<span><i style="--bh:'+bHue(gs[i].n)+'"></i>'+esc(gs[i].n)+'</span>';
-  return '<div class="blg">'+h+'</div>';
-}
-function bLedHead(){
-  return '<div class="bldh"><span>'+TX('브랜드')+'</span><span>'+TX('종목')+'</span><span>'+TX('최근')+'</span></div>';
-}
-/* 막대는 종목 수 비율이다. 칸이 좁은 한 개짜리는 이름 대신 머리글자 */
-function bShare(gs){
-  var a='',b='',i,sh=[.75,.5,.34,.22,.14];
-  for(i=0;i<gs.length;i++){
-    var n=gs[i].items.length;
-    a+='<i style="flex:'+n+';background:rgba(var(--tx-rgb),'+sh[Math.min(i,sh.length-1)]+')"></i>';
-    b+='<span style="flex:'+n+'">'+esc(n>1||gs.length<4?gs[i].n:bIni(gs[i].n))+'</span>';
-  }
-  return '<div class="bshr"><div class="bshb">'+a+'</div><div class="bshl">'+b+'</div></div>';
-}
 /* inMc — 기구 덩이 안의 줄인가. 그러면 기계 이름은 바로 위 줄이 적었으므로
    줄에서는 뺀다. 한 칸 들여쓰기로 누구 밑인지를 말한다. */
-function rowHtml(m,noBadge,inMc,dc){
+function rowHtml(m,noBadge,inMc){
   var open=UI.open===m.i,right,sub='',dtag='',noRec=false;
   var dirty=!!UI.dirty[m.i],draft=UI.draft[m.i];
   function rgt(w2,unit,tag){
@@ -6006,22 +5672,8 @@ function rowHtml(m,noBadge,inMc,dc){
      않는다: 이 줄은 이름이 60px 인데 알약이 이미 40px 를 가져간다. */
   if(done&&!dirty)dtag='<i class="dtag done">'
     +(isCard(m.p)?TX1('{0}회',ts2.s.length):TX1('{0}세트',workSets(ts2.s).length))+'</i>';
-  /* 브랜드 구분 시안의 줄 표식(설정 · DISPLAY · 브랜드) — 제목줄 대신 줄이 브랜드를 말한다.
-     dc={b:브랜드, k:표식 종류, first:그 브랜드의 첫 줄인가, hue:색상} */
+  /* 줄 표식(dc: 배지·눈·점·장부…)은 브랜드 시안을 탭 하나로 못박으면서 걷어냈다 */
   var pre='',eye='',dot='',und='';
-  if(dc&&dc.b){
-    /* 덩이 안 줄은 덩이 머리가 이미 브랜드를 적었다 */
-    if(dc.k==='badge'){if(!inMc)badge='<i class="bd">'+esc(dc.b)+'</i>';}
-    else if(dc.k==='eye'||(dc.k==='eye1'&&dc.first))eye='<i class="bey">'+esc(dc.b)+'</i>';
-    else if(dc.k==='ini')pre='<i class="bini">'+esc(bIni(dc.b))+'</i>';
-    else if(dc.k==='dot')dot='<i class="bdot" style="--bh:'+dc.hue+'"></i>';
-    else if(dc.k==='tag'&&!inMc)line='<i class="ln btag"><b>'+esc(dc.b)+'</b>'+(lnm&&!m.v?' · '+esc(lnm):'')+'</i>';
-    else if(dc.k==='ledg')pre='<i class="bled'+(dc.first?' b1':'')+'">'+(dc.first?esc(dc.b):'〃')+'</i>';
-    else if(dc.k==='under')und='<i class="bund">'+esc(dc.b)+'</i>';
-    else if(dc.k==='tr')pre='<i class="btr">'+esc(dc.b)+'</i>';
-    else if(dc.k==='badge1'){if(dc.first&&!inMc)badge='<i class="bd">'+esc(dc.b)+'</i>';}
-    else if(dc.k==='code')dot='<i class="bcode">'+esc(bCode(dc.b))+'</i>';
-  }
 
   return '<section class="mc'+(open?' on':'')+(done?' did':'')+(inMc?' vr':'')+'">'
     +'<div style="display:flex;align-items:center">'+pre
@@ -6078,7 +5730,9 @@ function panelHtml(m){
             ?'<button class="rir ph" tabindex="-1" aria-hidden="true">RIR</button>'
             :rirBtn(draft[j][2],j)))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
-        +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+'</span>')
+        /* 세트 간 휴식은 적되 **보이지 않는다**(요청). 값은 [3] 에 그대로 남아
+           ACSM 간격 점수가 쓴다 — 표기만 걷었다. 자리(.sv)는 둬서 줄 꼴이 안 바뀐다. */
+        +(cdRow?'':'<span class="sv"></span>')
         +'</button>'
         +'<button class="del'+(UI.arm==='ds'+j?' armed':'')+'" data-act="ds" data-v="'+j+'">×</button></div>';
     }
@@ -7212,40 +6866,16 @@ function renderSheet(){
         h+='</div>';
       }
       if(dsub==='brand'){
-        h+='<div class="fgrp"><div class="ft">'+TX('브랜드 구분')+' <span class="ftn">'+TX('종목 목록')+'</span></div>';
-        /* 150가지를 한 자리에 늘어놓으면 고르는 것이 아니라 훑는 일이 된다 —
-           갈래를 먼저 고르고 그 안에서 고른다. 처음 열면 지금 쓰는 것이
-           있는 갈래가 열려 있다: 어디에 있는지부터 보여 주는 것이 순서다. */
-        var grps=[],gcnt={},bq,gsq;
-        for(bq=0;bq<BSTY.length;bq++){
-          gsq=BSTY[bq][0];
-          if(!gcnt[gsq]){gcnt[gsq]=0;grps.push(gsq);}
-          gcnt[gsq]++;
-        }
-        var cg=UI.bgrp;
-        if(cg==null)cg=BSTY[bstOf()-1][0];
-        h+='<div class="bglist">'
-          +'<button class="bgc'+(cg===''?' on':'')+'" data-act="bgrp" data-v="">'
-          +TX('전체')+'<i>'+BSTY.length+'</i></button>';
-        for(bq=0;bq<grps.length;bq++)
-          h+='<button class="bgc'+(cg===grps[bq]?' on':'')+'" data-act="bgrp" data-v="'+esc(grps[bq])+'">'
-            +esc(TX(grps[bq]))+'<i>'+gcnt[grps[bq]]+'</i></button>';
-        h+='</div>';
-        var bgq='',open=false;
-        for(bq=0;bq<BSTY.length;bq++){
-          if(cg!==''&&BSTY[bq][0]!==cg)continue;
-          if(BSTY[bq][0]!==bgq){
-            if(open)h+='</div>';
-            bgq=BSTY[bq][0];open=true;
-            /* 한 갈래만 볼 때는 바로 위 칩이 이미 그 이름을 말하고 있다 */
-            h+=(cg===''?'<div class="patsub">'+esc(TX(bgq))+'</div>':'')+'<div class="techgrid bstgrid">';
-          }
+        /* 탭이 뼈대라 묶음 칩이 없다 — 시안은 탭의 겉모습만 바꾼다(요청).
+           예전에는 열다섯 묶음 150가지였고 묶음 칩으로 먼저 골랐다. */
+        h+='<div class="fgrp"><div class="ft">'+TX('브랜드 탭')+' <span class="ftn">'+TX('종목 목록 · 탭의 모양')+'</span></div>'
+          +'<div class="techgrid bstgrid">';
+        for(var bq=0;bq<BSTY.length;bq++){
           var bno=bq+1;
           h+='<button class="thtech'+(bstOf()===bno?' on':'')+'" data-act="bstpick" data-v="'+bno+'">'
-            +'<b><u>'+(bno<100?(bno<10?'00':'0'):'')+bno+'</u> '+esc(TX(BSTY[bq][1]))+'</b></button>';
+            +'<b><u>'+(bno<10?'0':'')+bno+'</u> '+esc(TX(BSTY[bq][1]))+'</b></button>';
         }
-        if(open)h+='</div>';
-        h+='</div>';
+        h+='</div></div>';
       }
       h+='<div class="note">'+TX('보이는 것만 바뀌며 기록에는 영향이 없음. 백업에 함께 저장됨.')+'</div>';
     }
@@ -7845,60 +7475,64 @@ function mcLabel(m){
 /* ── 브랜드 구분 시안 50 ──
    브랜드가 둘 이상인 근육 묶음을 어떻게 가를지. 설정 · DISPLAY · 브랜드 에서
    고른다. [묶음, 이름] — 번호(1부터)는 시안 페이지의 번호와 같다. */
+/* **브랜드 구분의 뼈대는 탭이다**(요청). 부위 안에 브랜드가 둘 이상이면 브랜드
+   탭 줄이 서고, 누른 브랜드의 종목만 보인다. 첫 브랜드가 기본이고 '전체' 탭은
+   없다(요청) — 브랜드가 하나면 줄 자체를 안 낸다.
+   예전에는 열다섯 묶음 150가지(제목줄·띠·카드·줄 표식·목차·접기…)가 있었고
+   탭은 그중 한 묶음(101~125)이었다. 사용자가 탭을 뼈대로 못박으면서 나머지
+   123가지를 걷어냈다(요청) — git 에 있다. 번호는 1 부터 다시 매겼다. 옛 저장값은
+   bstMig 가 옮긴다. 시안은 **탭의 겉모습**만 바꾼다. */
 var BSTY=[
- ['한 카드 안 제목줄','굵은 이름 + 선'],['한 카드 안 제목줄','여백만'],['한 카드 안 제목줄','굵은 전폭 선'],
- ['한 카드 안 제목줄','가운데 이름'],['한 카드 안 제목줄','이름 밑줄'],['한 카드 안 제목줄','큰 제목 + 개수 알약'],
- ['한 카드 안 제목줄','선 끝에 개수'],['한 카드 안 제목줄','점 머리표'],['한 카드 안 제목줄','막대 머리표'],
- ['한 카드 안 제목줄','이니셜 원'],
- ['한 카드 안 띠·면','연한 띠'],['한 카드 안 띠·면','진한 띠'],['한 카드 안 띠·면','브랜드마다 교대 바탕'],
- ['한 카드 안 띠·면','안쪽 패널'],['한 카드 안 띠·면','굵은 윗선'],['한 카드 안 띠·면','선에 걸친 알약'],
- ['한 카드 안 띠·면','탭 이름표'],['한 카드 안 띠·면','틈으로 자른 카드'],
- ['브랜드마다 카드','브랜드마다 카드'],['브랜드마다 카드','카드 밖 제목'],['브랜드마다 카드','붙은 카드'],
- ['브랜드마다 카드','테두리만 카드'],['브랜드마다 카드','알약 제목 카드'],['브랜드마다 카드','폴더 탭 카드'],
- ['브랜드마다 카드','제목칸 카드'],['브랜드마다 카드','큰 브랜드만 카드'],
- ['줄마다 표식','줄마다 배지'],['줄마다 표식','줄마다 윗글씨'],['줄마다 표식','첫 줄만 윗글씨'],
- ['줄마다 표식','왼쪽 브랜드 칸'],['줄마다 표식','세로 글씨'],['줄마다 표식','이니셜 네모'],
- ['줄마다 표식','색점 + 범례'],['줄마다 표식','브랜드·라인 꼬리표'],
- ['색으로 가르기','브랜드 색 바탕'],['색으로 가르기','브랜드 색 이름'],['색으로 가르기','브랜드 색 윗선'],
- ['색으로 가르기','브랜드 색 알약'],['색으로 가르기','주력 브랜드 강조'],['색으로 가르기','워드마크'],
- ['색으로 가르기','명판'],
- ['구조 바꾸기','1개짜리 합치기'],['구조 바꾸기','목차 줄'],['구조 바꾸기','브랜드 필터 칩'],
- ['구조 바꾸기','브랜드 탭'],['구조 바꾸기','접는 제목'],['구조 바꾸기','트리'],
- ['구조 바꾸기','장부 (〃 표시)'],['구조 바꾸기','타임라인'],['구조 바꾸기','비율 막대'],
- ['제목줄 변형','두 줄 제목'],['제목줄 변형','오른쪽 이름'],['제목줄 변형','개수 원'],['제목줄 변형','점선'],
- ['제목줄 변형','이중선'],['제목줄 변형','짧은 선'],['제목줄 변형','괄호 개수'],['제목줄 변형','세리프 제목'],
- ['제목줄 변형','모노 제목'],['제목줄 변형','큰 머리글자'],
- ['구간 감싸기','전폭 가는 선'],['구간 감싸기','점선 상자'],['구간 감싸기','테두리 상자'],['구간 감싸기','대괄호'],
- ['구간 감싸기','구간 오른쪽 막대'],['구간 감싸기','머리글자 워터마크'],['구간 감싸기','들여쓴 줄'],
- ['구간 감싸기','안쪽 그림자'],['구간 감싸기','모서리 표식'],['구간 감싸기','빗금 제목'],
- ['카드 변형','색 윗띠 카드'],['카드 변형','이니셜 기둥 카드'],['카드 변형','겹친 카드'],['카드 변형','그림자만 카드'],
- ['카드 변형','각진 카드'],['카드 변형','개수 딱지 카드'],['카드 변형','가로 넘기기 카드'],['카드 변형','색 바탕 카드'],
- ['카드 변형','큰 제목 밖 카드'],['카드 변형','촘촘한 카드'],
- ['줄 표식 더','줄 아래 브랜드'],['줄 표식 더','오른쪽 위 브랜드'],['줄 표식 더','첫 줄만 알약'],
- ['줄 표식 더','줄 끝 색 막대'],['줄 표식 더','줄 앞 색 금'],['줄 표식 더','색 이니셜 원'],['줄 표식 더','줄 색 바탕'],
- ['줄 표식 더','이름 색'],['줄 표식 더','브랜드 두 글자'],['줄 표식 더','색 밑줄'],
- ['구조 더','요약 접기'],['구조 더','최근 쓴 브랜드 먼저'],['구조 더','즐겨찾기 브랜드 먼저'],
- ['구조 더','오늘 한 브랜드 강조'],['구조 더','머리글자 목차'],['구조 더','브랜드 탭'],['구조 더','개수 크게'],
- ['구조 더','제목 비율 막대'],['구조 더','색 타임라인'],['구조 더','색 목차'],
- /* 101~150 — 내부 탭을 쓰는 것에 무게를 두었다. 탭은 목록을 한 브랜드로
-    좁혀 주므로 종목이 많아질수록 다른 시안과 하는 일이 달라진다. */
- ['탭 변형','밑줄 탭'],['탭 변형','알약 탭'],['탭 변형','분절 탭'],
- ['탭 변형','네모 탭'],['탭 변형','색 밑줄 탭'],['탭 변형','색 알약 탭'],
- ['탭 변형','큰 탭'],['탭 변형','촘촘한 탭'],['탭 변형','균등 분할 탭'],
- ['탭 변형','가운데 탭'],['탭 변형','오른쪽 탭'],['탭 변형','개수 없는 탭'],
- ['탭 변형','개수 알약 탭'],['탭 변형','이니셜 탭'],['탭 변형','윗선 탭'],
- ['탭 변형','점 표시 탭'],['탭 변형','테두리 상자 탭'],['탭 변형','바탕 채운 탭'],
- ['탭 변형','굵은 밑줄 탭'],['탭 변형','모노 탭'],['탭 변형','카드 위 뜬 탭'],
- ['탭 변형','회색 길 탭'],['탭 변형','선 없는 탭'],['탭 변형','색 바탕 탭'],
- ['탭 변형','두 줄 탭'],['칩 변형','네모 칩'],['칩 변형','색 칩'],
- ['칩 변형','작은 칩'],['칩 변형','테두리만 칩'],['칩 변형','꽉 찬 칩'],
- ['칩 변형','개수 위 칩'],['칩 변형','이니셜 칩'],['칩 변형','가운데 칩'],
- ['칩 변형','굵은 칩'],['칩 변형','얇은 칩'],['목차 변형','색 목차'],
- ['목차 변형','네모 목차'],['목차 변형','이니셜 목차'],['목차 변형','개수 큰 목차'],
- ['목차 변형','가운데 목차'],['목차 변형','꽉 찬 목차'],['목차 변형','선 밑 목차'],
- ['접기 변형','접기 · 굵은 제목'],['접기 변형','접기 · 선 제목'],['접기 변형','접기 · 알약 제목'],
- ['접기 변형','접기 · 색 제목'],['접기 변형','접기 · 큰 제목'],['접기 변형','접기 · 오른쪽 화살표'],
- ['접기 변형','접기 · 바탕 제목'],['접기 변형','접기 · 모노 제목']
+ ['탭','밑줄 탭'],
+ ['탭','알약 탭'],
+ ['탭','분절 탭'],
+ ['탭','네모 탭'],
+ ['탭','색 밑줄 탭'],
+ ['탭','색 알약 탭'],
+ ['탭','큰 탭'],
+ ['탭','촘촘한 탭'],
+ ['탭','균등 분할 탭'],
+ ['탭','가운데 탭'],
+ ['탭','오른쪽 탭'],
+ ['탭','개수 없는 탭'],
+ ['탭','개수 알약 탭'],
+ ['탭','이니셜 탭'],
+ ['탭','윗선 탭'],
+ ['탭','점 표시 탭'],
+ ['탭','테두리 상자 탭'],
+ ['탭','바탕 채운 탭'],
+ ['탭','굵은 밑줄 탭'],
+ ['탭','모노 탭'],
+ ['탭','카드 위 뜬 탭'],
+ ['탭','회색 길 탭'],
+ ['탭','선 없는 탭'],
+ ['탭','색 바탕 탭'],
+ ['탭','두 줄 탭'],
+ ['탭','폴더 탭'],
+ ['탭','짧은 밑줄 탭'],
+ ['탭','둥근 막대 탭'],
+ ['탭','글자만 키운 탭'],
+ ['탭','넓은 자간 탭'],
+ ['탭','이니셜 원 탭'],
+ ['탭','번호 탭'],
+ ['탭','밑줄 + 바탕 탭'],
+ ['탭','색 글자 탭'],
+ ['탭','색 점 탭'],
+ ['탭','꽉 찬 띠 탭'],
+ ['탭','역상 알약 탭'],
+ ['탭','겹선 탭'],
+ ['탭','위아래 선 탭'],
+ ['탭','유리 탭'],
+ ['탭','화살표 탭'],
+ ['탭','윗첨자 개수 탭'],
+ ['탭','괄호 개수 탭'],
+ ['탭','왼쪽 몰린 탭'],
+ ['탭','그라데이션 밑줄 탭'],
+ ['탭','띠 + 밑줄 탭'],
+ ['탭','색 테두리 알약 탭'],
+ ['탭','작은 네모 칩 탭'],
+ ['탭','제목 글자 탭'],
+ ['탭','색 분절 탭']
 ];
 /* 모양만 다른 시안은 CSS(.bsNN)가 입힌다. 짜임이 다른 것만 여기 적는다.
    m: 'one' 한 카드(기본) · 'sec' 브랜드마다 카드 · 'body' 제목은 카드 밖
@@ -8031,18 +7665,7 @@ function tstOf(){
   if(typeof TSTY==='undefined'||!TSTY)return n;
   return n<=TSTY.length?n:1;
 }
-var BSD={19:{m:'sec'},20:{m:'body'},21:{m:'sec'},22:{m:'sec'},23:{m:'sec'},24:{m:'body'},25:{m:'sec'},
-  26:{m:'sec',mg:1},27:{nh:1,row:'badge',mcb:1},28:{nh:1,row:'eye'},29:{nh:1,row:'eye1'},
-  32:{nh:1,row:'ini'},33:{nh:1,row:'dot',x:'legend'},34:{nh:1,row:'tag',mcb:1},42:{mg:1},
-  43:{x:'idx'},44:{x:'chip'},45:{x:'tab'},46:{x:'fold'},48:{nh:1,row:'ledg',x:'ledger'},50:{x:'share'},
-  71:{m:'sec'},72:{m:'sec'},73:{m:'sec'},74:{m:'sec'},75:{m:'sec'},76:{m:'sec'},77:{m:'sec'},78:{m:'sec'},
-  79:{m:'body'},80:{m:'sec'},
-  /* 색만으로 가르는 줄 표식은 이름이 어디에도 없으므로 맨 위에 범례를 둔다 */
-  81:{nh:1,row:'under'},82:{nh:1,row:'tr'},83:{nh:1,row:'badge1',mcb:1},84:{nh:1,x:'legend'},
-  85:{nh:1,x:'legend'},86:{nh:1,row:'ini',x:'legend'},87:{nh:1,x:'legend'},88:{nh:1,x:'legend'},
-  89:{nh:1,row:'code'},90:{nh:1,x:'legend'},
-  91:{x:'sum'},92:{ord:'recent'},93:{ord:'fav'},95:{x:'ini'},96:{x:'tab'},100:{x:'idx'},
-  101:{x:'tab'},102:{x:'tab'},103:{x:'tab'},104:{x:'tab'},105:{x:'tab'},106:{x:'tab'},107:{x:'tab'},108:{x:'tab'},109:{x:'tab'},110:{x:'tab'},111:{x:'tab'},112:{x:'tab'},113:{x:'tab'},114:{x:'tab'},115:{x:'tab'},116:{x:'tab'},117:{x:'tab'},118:{x:'tab'},119:{x:'tab'},120:{x:'tab'},121:{x:'tab'},122:{x:'tab'},123:{x:'tab'},124:{x:'tab'},125:{x:'tab'},126:{x:'chip'},127:{x:'chip'},128:{x:'chip'},129:{x:'chip'},130:{x:'chip'},131:{x:'chip'},132:{x:'chip'},133:{x:'chip'},134:{x:'chip'},135:{x:'chip'},136:{x:'idx'},137:{x:'idx'},138:{x:'ini'},139:{x:'idx'},140:{x:'idx'},141:{x:'idx'},142:{x:'idx'},143:{x:'fold'},144:{x:'fold'},145:{x:'fold'},146:{x:'fold'},147:{x:'fold'},148:{x:'fold'},149:{x:'fold'},150:{x:'fold'}};
+/* BSD(짜임 디스크립터)는 걷어냈다 — 짜임이 탭 하나뿐이라 가를 것이 없다. */
 function bstOf(){var n=Math.floor(+BST)||9;return (n>=1&&n<=BSTY.length)?n:9;}
 /* 브랜드마다 늘 같은 색 — 이름에서 뽑는다. 순서로 매기면 브랜드를 하나 더할 때
    다른 브랜드의 색이 바뀐다. 황금각으로 흩어 가까운 이름끼리도 색이 갈리게 */
@@ -8836,7 +8459,7 @@ function bkText(){
        DEMO 일 때 가짜 6건을 돌려주므로(4622행), 그대로 담으면 자기 기록은
        없이 남의 감량 곡선만 든 파일이 나온다 — 되돌리면 그것이 실측이 되어
        체중·기초대사·단백질 목표가 전부 거기서 나온다. */
-    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst:BST,cst:CST,tst:TST,
+    st:{v:2,t:STG},rd:RD,off:OFF,bh:(DEMO?[]:bhLoad()),pr:PR||'',dot:DOT,pal:PAL,tech:TECH,pat:PAT,bst2:BST,cst:CST,tst:TST,
     /* 손으로 넣은 설정인데 빠져 있었다 — 재설치하면 조용히 기본값으로 돌아간다.
        API 키(.ak*)는 일부러 안 담는다: 백업이 Downloads 에 평문으로 남는다. */
     ppk:PRO_PER_KG,fpk:FAT_PER_KG,cpk:CARB_PER_KG,cmx:CARB_MAX_KG,fmx:FAT_MAX_KG,
@@ -8890,10 +8513,10 @@ function applyBackup(o){
         if(canLS){try{localStorage.setItem(KEY+'.tst',String(TST));}catch(eT3){}}
         applyTheme();
       }
-      if(+c.bst>=1&&+c.bst<=BSTY.length){
-        BST=Math.floor(+c.bst);
-        if(canLS){try{localStorage.setItem(KEY+'.bst',String(BST));}catch(eB2){}}
-      }
+      /* 백업은 새 칸(bst2)이 있으면 그것, 없으면 옛 칸(bst)을 표로 옮긴다 */
+      if(+c.bst2>=1&&+c.bst2<=BSTY.length)BST=Math.floor(+c.bst2);
+      else if(+c.bst>=1)BST=bstMig(c.bst);
+      if(canLS){try{localStorage.setItem(KEY+'.bst2',String(BST));}catch(eB2){}}
       if(c.wt)for(var k in WTGT)if(+c.wt[k]>=1)WTGT[k]=Math.min(k==='CARDIO'?600:60,Math.floor(+c.wt[k]));
       if(+c.hrm>=120&&+c.hrm<=220)HRM=Math.floor(+c.hrm);
       if(+c.bw>=30&&+c.bw<=200)BW=Math.round(+c.bw*10)/10;
@@ -13397,7 +13020,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-07 22:31';
+var BUILD='2026-10-07 23:01';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -16814,6 +16437,12 @@ document.addEventListener('click',function(e){
     case 'gts':UI.gts=v;setSave(true);renderSheet();break;
     /* 설명 접기 — 같은 것을 다시 누르면 닫힌다 */
     case 'sx':UI.sx=(UI.sx===v?'':v);renderSheet();break;
+    case 'dsadv':
+      /* 접기를 닫을 때 색·질감·무늬 갈래에 서 있었으면 시안으로 돌아간다 —
+         닫힌 접기 안의 갈래가 켜져 있으면 화면이 그 갈래를 그리는데 칩은 안 보인다 */
+      UI.dsAdv=!UI.dsAdv;
+      if(!UI.dsAdv&&(UI.dsub==='pal'||UI.dsub==='tech'||UI.dsub==='pat'))UI.dsub='set';
+      renderSheet();break;
     case 'dsub':
       UI.dsub=v;render();
       /* 이름줄을 없앤 대신 지금 고른 것을 보이는 자리로 데려온다 — 40개 목록
@@ -16932,56 +16561,22 @@ document.addEventListener('click',function(e){
         renderSheet();render();
       })();
       break;
-    case 'bgrp':UI.bgrp=v;renderSheet();break;
     case 'bstpick':
       (function(){
         var n=Math.floor(+v);
         if(!(n>=1&&n<=BSTY.length))return;
         BST=n;
-        if(canLS){try{localStorage.setItem(KEY+'.bst',String(n));}catch(eB){}}
+        if(canLS){try{localStorage.setItem(KEY+'.bst2',String(n));}catch(eB){}}
         render();
       })();
       break;
     /* 브랜드 칩 — 고른 것을 켠다. 세부 부위 줄과 같이 하나는 늘 켜져 있다. */
-    case 'bflt':
-      (function(){
-        var k=t.getAttribute('data-k')||'';
-        UI.bflt=UI.bflt||{};
-        UI.bflt[k]=v||'';
-        render();
-      })();
-      break;
     case 'btab':
       (function(){
         var k=t.getAttribute('data-k')||'';
         UI.btab=UI.btab||{};
         UI.btab[k]=v||'';
         render();
-      })();
-      break;
-    case 'bfld':
-      (function(){
-        var k=(t.getAttribute('data-k')||'')+'|'+(v||'');
-        UI.bfold=UI.bfold||{};
-        if(UI.bfold[k])delete UI.bfold[k];else UI.bfold[k]=1;
-        render();
-      })();
-      break;
-    case 'bopn':
-      (function(){
-        var k=(t.getAttribute('data-k')||'')+'|'+(v||'');
-        UI.bopen=UI.bopen||{};
-        UI.bopen[k]=t.getAttribute('aria-expanded')!=='true';
-        render();
-      })();
-      break;
-    /* 목차 줄 — 위에 붙은 판(.top)에 가리지 않게 그 높이만큼 덜 내려간다 */
-    case 'bjmp':
-      (function(){
-        var el=document.getElementById(v);
-        if(!el)return;
-        var tp=document.querySelector('.top'),off=tp?tp.getBoundingClientRect().height:0;
-        window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+window.scrollY-off-8));
       })();
       break;
     case 'sxadd':{
