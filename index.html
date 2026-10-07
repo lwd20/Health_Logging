@@ -2089,6 +2089,15 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 점만 찍어 두면 눌러서 값을 넣는 자리인 줄 모른다.
    글자를 보이고 점선 테두리로 아직 비었음을 알린다. */
 .setr .rir.off{font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--dim);border:1px dashed var(--line)}
+/* 백오프 토글(요청). 꺼진 꼴은 흐린 글자뿐이다 — 대부분의 줄이 꺼져 있는데
+   줄마다 점선 알약을 하나 더 세우면 RIR 꺼짐 알약과 둘이 나란히 서서
+   줄이 알약 더미가 된다. 켜지면 강조색 알약. 손가락 자리는 44px(::before). */
+.setr .bk{position:relative;flex:0 0 auto;height:28px;margin-right:9px;padding:0 7px;border:1px solid transparent;border-radius:999px;background:transparent;font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--dim);opacity:.6}
+.setr .bk::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px}
+.setr .bk.on{opacity:1;color:var(--acc-br);border-color:rgba(var(--acc-rgb),.55);background:rgba(var(--acc-rgb),.1)}
+.setr .bk:active{opacity:.5}
+/* 같은 <button> 으로 두어야 상자가 같다 — <i> 로 뒀더니 글자 상자가 달라 16px 로 접혔다 */
+.setr .bk.ph{visibility:hidden;pointer-events:none}
 .setr .rir.on{color:var(--acc-br);border-color:rgba(var(--acc-rgb),.4);background:rgba(var(--acc-rgb),.09)}
 .setr .rir.hard{color:var(--neg);border-color:rgba(var(--sig-rgb),.45);background:rgba(var(--sig-rgb),.12)}
 /* 예열. 'RIR 4+' 와 달리 **아예 셈 밖**이라 더 눌러 둔다 — 점선 테두리로
@@ -3807,6 +3816,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jro i.jw{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.04em;
   color:var(--dim);border:var(--bw) dashed rgba(var(--tx-rgb),.3);
   border-radius:var(--rad-s);padding:1px 5px;white-space:nowrap;align-self:center}
+/* 백오프 배지는 실선 — 점선은 '셈에 안 든다'(예열)의 꼴이고, 백오프는 세트 수에 든다 */
+.jro i.jw.jk{border-style:solid}
 /* 그 날 부위가 지나간 차례 — 날짜 바로 밑, 줄들보다 먼저 읽히는 자리 */
 .jflow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:-1px 0 8px;
   font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.02em}
@@ -4788,7 +4799,7 @@ function effOf(m,w,ds){
    무게 환산이 본래 일이고, 예열 거르기도 여기서 한다 — 호출하는 쪽마다
    따로 거르면 한 곳을 빠뜨려 그 화면만 다른 수를 말한다. */
 function effSets(m,s,ds){
-  s=workSets(s);
+  s=topSets(s);   /* 예열·백오프 둘 다 뺀다 — 여기가 e1RM·증감·최고 기록의 관문이다 */
   if(!isAssist(m)||!s)return s;
   var o=[],i;
   for(i=0;i<s.length;i++){var c=s[i].slice();c[0]=effOf(m,c[0],ds);o.push(c);}
@@ -4809,6 +4820,7 @@ function prOf(m,ds){
   return {cur:cur,best:best,bestDate:bd,isPR:(best>0&&cur>best),gain:best>0?Math.round((cur-best)/best*1000)/10:0};
 }
 function topOfM(m,s){
+  var t2=topSets(s);if(t2&&t2.length)s=t2;   /* 백오프는 대표 무게가 아니다 — 다 백오프면 그거라도 */
   if(!isAssist(m))return topOf(s);
   var t=null,i;
   for(i=0;i<s.length;i++){var w=+s[i][0]||0;if(t===null||w<t)t=w;}
@@ -4903,6 +4915,28 @@ function workSets(s){
   return s.filter(function(x){return !isWarm(x);});
 }
 function warmCnt(s){var n=0,i;for(i=0;i<(s||[]).length;i++)if(isWarm(s[i]))n++;return n;}
+/* **백오프 세트**(요청) — 본세트 뒤에 일부러 무게를 내려 더 한 세트. 여섯째 칸
+   `[5]==='b'` 에 적는다. 예열은 RIR 자리의 -1 로 적고 있어 두 표식의 자리가
+   다른데, 백오프는 **RIR 값이 실제로 있는 힘든 세트**라 그 순환에 넣을 수가
+   없다 — 그래서 제 칸을 받았다.
+   셈에서의 자리는 예열과 다르다(요청):
+   - 유효 세트(hardOf) · 볼륨 · 주간 세트 목표 · 세트 수 → **든다**. 힘든
+     세트라 근비대 볼륨이다. 이쪽은 workSets 를 그대로 쓴다.
+   - e1RM · 최고 기록 · 증감 % · 지시줄의 닻 → **안 든다**. 일부러 내린
+     무게를 기록의 닻으로 삼으면 가짜 '▼' 가 찍히고 다음 지시가 내려간다.
+     이쪽은 topSets 를 쓴다 — effSets 가 그 관문이다. */
+var SET_BACK='b';
+function isBack(x){return !!x&&x[5]===SET_BACK;}
+function backCnt(s){var n=0,i;for(i=0;i<(s||[]).length;i++)if(isBack(s[i]))n++;return n;}
+/* 기록의 닻이 되는 세트 — 예열도 백오프도 뺀 것. 다 백오프뿐이면(드물다)
+   그 세션의 닻이 없는 것이므로 빈 배열을 돌려준다. */
+function topSets(s){
+  s=workSets(s);
+  if(!s||!s.length)return s;
+  var i;for(i=0;i<s.length;i++)if(isBack(s[i]))break;
+  if(i===s.length)return s;
+  return s.filter(function(x){return !isBack(x);});
+}
 /* 그 세션을 **훈련으로 치는가.** 본세트가 하나라도 있어야 한다 — 예열만 적은
    세션은 기록으로는 남지만 '그 부위를 한 날' 로는 안 친다(요청).
    `x.s.length` 로 바로 재던 자리를 전부 이걸로 바꿨다. 자리마다 따로 재면
@@ -4943,9 +4977,9 @@ function hardOf(s){
 /* 세션 e1RM(Epley): 세트 수에 불변인 진전 지표 — 증감 판정에 사용 */
 /* 예열을 넣으면 최고 기록이 낮아지는 게 아니라 **판정이 흔들린다** — 가벼운
    세트가 평균을 끌어내려, 예열을 적은 날만 '내려갔다' 로 찍힌다. */
-function e1rm(s){s=workSets(s);var b=0;for(var i=0;i<(s||[]).length;i++){var v=(+s[i][0]||0)*(1+(+s[i][1]||0)/30);if(v>b)b=v;}return Math.round(b*10)/10;}
+function e1rm(s){s=topSets(s);var b=0;for(var i=0;i<(s||[]).length;i++){var v=(+s[i][0]||0)*(1+(+s[i][1]||0)/30);if(v>b)b=v;}return Math.round(b*10)/10;}
 /* 세트별 e1RM 내림차순 배열 */
-function e1rmArr(s){s=workSets(s);var a=[],i;for(i=0;i<(s||[]).length;i++){var w=+s[i][0]||0,r=+s[i][1]||0;if(w>0&&r>0)a.push(w*(1+r/30));}a.sort(function(x,y){return y-x;});return a;}
+function e1rmArr(s){s=topSets(s);var a=[],i;for(i=0;i<(s||[]).length;i++){var w=+s[i][0]||0,r=+s[i][1]||0;if(w>0&&r>0)a.push(w*(1+r/30));}a.sort(function(x,y){return y-x;});return a;}
 /* 상위 n세트 평균 e1RM — n 생략 시 전 세트 평균 */
 function e1rmTopN(s,n){
   var a=e1rmArr(s);
@@ -6016,8 +6050,16 @@ function panelHtml(m){
     for(var j=0;j<draft.length;j++){
       /* 예열 줄은 흐리게(요청). 색만으로 가르지 않는다 — 고리 글자가 '예열'
          이라 글귀로도 읽히고, 흐림은 '이건 셈에 안 든다' 를 말한다. */
-      h+='<div class="setr'+(UI.esIdx===j?' editing':'')+(isWarm(draft[j])?' warm':'')+'">'
+      h+='<div class="setr'+(UI.esIdx===j?' editing':'')+(isWarm(draft[j])?' warm':'')+(isBack(draft[j])?' back':'')+'">'
         +(cdRow?'':rirBtn(draft[j][2],j))
+        /* 백오프 토글(요청). RIR 처럼 줄마다 누른다 — 예열과 달리 줄을 옮기지
+           않는다(본세트 뒤에 오는 것이 제 자리다). 예열 줄에는 안 그린다:
+           예열이면서 백오프인 세트는 없다. */
+        +(cdRow?'':(isWarm(draft[j])
+            /* 예열 줄에는 토글 대신 같은 너비의 빈 자리 — 안 두면 무게 글자가
+               줄마다 다른 자리에 서서 세로줄이 어긋난다. */
+            ?'<button class="bk ph" tabindex="-1" aria-hidden="true">'+TX('백오프')+'</button>'
+            :'<button class="bk'+(isBack(draft[j])?' on':'')+'" data-act="bk" data-v="'+j+'">'+TX('백오프')+'</button>'))
         +'<button class="sete" data-act="es" data-v="'+j+'"><b>'+fmtW(draft[j][0])+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cUnitN(draft[j],m.n):('× '+draft[j][1]))+'</span>'
         +(cdRow?'':'<span class="sv">'+(draft[j][3]>0?'<u class="rst">'+tmrShort(draft[j][3])+'</u>':'')+'</span>')
         +'</button>'
@@ -6305,6 +6347,10 @@ function journalHtml(){
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
       jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',jws);
       var jwb=(!isCard(jm.p)&&jwm>0)?'<i class="jw">'+TX1('예열 {0}',jwm)+'</i>':'';
+      /* 백오프는 실선 배지 — 점선(예열)은 '셈에 안 든다' 는 뜻이라 같은 꼴을
+         쓰면 거짓말이 된다. 백오프는 세트 수에 든다. */
+      var jbm=isCard(jm.p)?0:backCnt(e.s);
+      if(jbm>0)jwb+='<i class="jw jk">'+TX1('백오프 {0}',jbm)+'</i>';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -7595,7 +7641,10 @@ function nextRx(id,n){
       if(pw>0&&pr>0)return {w:pw,r:pr,up:false,dl:isDeload(UI.wd)};
     }
   }
-  var src=prev.s[Math.min(n,prev.s.length-1)];
+  /* 지난 세션의 백오프 자리를 오늘 n번째의 기준으로 주면 안 된다 — 4세트 뒤에
+     60 으로 내린 백오프가 오늘 4세트 지시가 된다. 닻이 되는 세트만 본다. */
+  var pts=topSets(prev.s);if(!pts||!pts.length)pts=prev.s;
+  var src=pts[Math.min(n,pts.length-1)];
   var w=+src[0]||0,r=+src[1]||0,rir=src[2];
   if(!(w>0)||!(r>0))return null;
   var rx=(m.rx>0)?m.rx:12;
@@ -7622,7 +7671,7 @@ function openRow(id){
   UI.open=id;UI.hist=false;UI.arm=null;UI.esIdx=null;
   if(!UI.draft[id]){
     var ts=sessOn(id,UI.wd),c=[];
-    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,5));
+    if(ts)for(var i=0;i<ts.s.length;i++)c.push(ts.s[i].slice(0,6));   /* [5]=백오프 */
     UI.draft[id]=c;
   }
   var src=lastSet(id);
@@ -7640,11 +7689,14 @@ function lastSet(id){
   all=sess(id);
   /* 칸에 채우는 값도 같은 자를 쓴다 — 지시줄은 평소 무게를 말하는데 칸에는
      디로딩 무게가 들어 있으면 둘이 어긋난다. */
+  /* 지난 세션의 마지막이 백오프면 그 앞의 본세트를 준다 — 첫 칸에 내린
+     무게가 들어가면 오늘 1세트부터 가볍게 시작한다. */
+  var tail=function(x){var t=topSets(x.s);if(!t||!t.length)t=x.s;return t[t.length-1];};
   for(j=0;j<all.length;j++){
     if(!(all[j].d<UI.wd&&all[j].s.length))continue;
-    if(!fb)fb=all[j].s[all[j].s.length-1];
+    if(!fb)fb=tail(all[j]);
     if(!soft&&isSoft(all[j].d))continue;
-    return all[j].s[all[j].s.length-1];
+    return tail(all[j]);
   }
   return fb;
 }
@@ -7721,6 +7773,9 @@ function addSet(){
     if(prevR!=null&&!cd){while(set.length<3)set.push(null);set[3]=prevR;}
     /* 고친 세트는 처음 올린 시각을 지킨다 — 고친 시각으로 덮으면 순서가 바뀐다 */
     if(old[4]!=null){while(set.length<4)set.push(null);set[4]=old[4];}
+    /* 백오프 표식도 지킨다 — 안 지키면 무게를 고쳐 Update 하는 순간 본세트가
+       되어 기록의 닻에 들어간다(예열 -1 이 같은 꼴로 사라진 적이 있다). */
+    if(old[5]!=null){while(set.length<5)set.push(null);set[5]=old[5];}
     UI.draft[UI.open][UI.esIdx]=set;
     UI.esIdx=null;
   }else{
@@ -8096,7 +8151,7 @@ function saveMachine(){
   /* 예열을 맨 위로 — 저장이 기록을 확정하는 자리다(요청). RIR 을 누르는
      동안에는 안 옮긴다(줄이 손가락 밑에서 움직인다), 대신 여기서 한 번 세운다. */
   if(!isCardId(id)&&warmCnt(d)>0){d=warmFirst(d,-1).a;UI.draft[id]=d;}
-  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,5));
+  var copy=[];for(var i=0;i<d.length;i++)copy.push(d[i].slice(0,6));   /* [5]=백오프 */
   upsertSess(id,UI.wd,copy);
   /* 기기에 못 썼으면 판을 닫지 않는다. 닫고 'Saved' 를 띄우면 새로고침
      한 번에 그 세트가 통째로 없어진다 — 백업을 받을 기회조차 없다. */
@@ -13327,7 +13382,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-07 20:59';
+var BUILD='2026-10-07 21:13';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -16385,6 +16440,14 @@ document.addEventListener('click',function(e){
       UI.arm=null;delSet(parseInt(v,10));
       break;
     case 'es':editSet(parseInt(v,10));break;
+    case 'bk':{
+      var bkd=UI.draft[UI.open],bj=parseInt(v,10);
+      if(bkd&&bkd[bj]&&!isWarm(bkd[bj])){
+        while(bkd[bj].length<5)bkd[bj].push(null);
+        bkd[bj][5]=isBack(bkd[bj])?null:SET_BACK;
+        UI.dirty[UI.open]=true;renderSheet();
+      }
+      break;}
     case 'ec':editCancel();break;
     case 'rr':
       (function(){
@@ -16449,7 +16512,7 @@ document.addEventListener('click',function(e){
         /* 판을 연 채로 지웠으면 draft 도 같이 되살린다. 안 그러면 'Restored'
            만 뜨고 화면은 빈 채로 남아, 다음 Save 가 방금 되살린 세션을 덮는다. */
         if(UNDO.wd&&UNDO.wd===UI.wd&&UNDO.e&&UNDO.e.s&&UI.open===UNDO.id){
-          var rc=[];for(var ri=0;ri<UNDO.e.s.length;ri++)rc.push(UNDO.e.s[ri].slice(0,5));
+          var rc=[];for(var ri=0;ri<UNDO.e.s.length;ri++)rc.push(UNDO.e.s[ri].slice(0,6));
           /* 지운 뒤에 새로 넣은 세트가 있으면 그 위에 덮지 않는다 — 덮으면
              방금 친 세트가 'Restored' 라는 말과 함께 조용히 사라진다.
              되살린 세션이 먼저, 그 뒤에 새로 넣은 것이 붙는다. */
