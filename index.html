@@ -12028,14 +12028,14 @@ function chartSteps(win){
   var has=a.filter(function(r){return r.n!=null&&!r.part;});
   if(has.length<2)return '';
   var W=320,H=126,L=36,R=7,T=14,B=19,CBOT=H-B,VH=H-B+18;
-  /* **kcal 로 그린다**(요청). 이 갈래를 여는 까닭이 '걸어서 적자를 얼마나
-     팠나' 인데, 결론 줄만 kcal 이고 그림은 보라 큰 수와 그림이 따로 놀았다.
-     걸음 kcal 은 러닝머신 몫을 이미 뺀 값(stepKcal)이라, 보로 그릴 때 막대
-     안에 겹쳐 두던 '러닝머신 몫' 칸이 통째로 필요 없어진다 — 그 칸이
-     '든 몫인지 빠진 몫인지' 안 읽힌다는 지적이 있었다. 보는 아래 접힌
-     '걸음 자세히' 가 적는다. */
-  var med=medOf(has.map(function(r){return r.k;}));
-  var hi=0;for(i=0;i<a.length;i++)if(a[i].k>hi)hi=a[i].k;
+  /* **y 축은 걸음 수다**(요청). 한때 kcal 로 그렸다 — 결론 줄이 kcal 이라
+     그림도 맞추려던 것인데, 사용자가 되돌렸다: 걸음 그림은 폰이 세어 준
+     그 수로 읽어야 한다. 결론 줄은 kcal 그대로다(다른 물음이다).
+     막대는 **폰이 센 걸음 전부**(r.n)다. 러닝머신 몫을 막대 안에 겹쳐 그리던
+     때가 있었는데 '든 몫인지 빠진 몫인지' 안 읽혔다(지적) — 그 몫은 접힌
+     '걸음 자세히' 가 수로 적는다. */
+  var med=medOf(has.map(function(r){return r.n;}));
+  var hi=0;for(i=0;i<a.length;i++)if(a[i].n>hi)hi=a[i].n;
   hi=Math.max(hi,med)*1.12||1000;
   var span=win.span,t0=win.t0;
   /* 막대 너비를 먼저 구한다 — X 가 그 반만큼 안쪽으로 들여 그리기 때문이다. */
@@ -12050,7 +12050,7 @@ function chartSteps(win){
   }
   /* 단위는 그림 맨 위에. 마지막 눈금 바로 위에 뒀더니 '보' 와 '10,000' 이
      세로로 붙어 한 덩이로 읽혔다. */
-  g+='<text x="'+(L-4)+'" y="'+(T-3)+'" text-anchor="end">kcal</text>';
+  g+='<text x="'+(L-4)+'" y="'+(T-3)+'" text-anchor="end">'+TX('보')+'</text>';
   g+=trAxis(t0,span,L,W,R,T,CBOT,bw/2);
   for(i=0;i<a.length;i++){
     /* 예전에는 `max(L, min(W-R-bw, …))` 로 양끝 막대를 축 안으로 밀어 넣었다.
@@ -12066,13 +12066,11 @@ function chartSteps(win){
       g+='<rect class="nNo" x="'+x.toFixed(1)+'" y="'+(CBOT-11)+'" width="'+bw.toFixed(1)+'" height="11" rx="1.5"/>';
       continue;
     }
-    var yT=Y(r.k),hT=Math.max(1,CBOT-yT);
+    var yT=Y(r.n),hT=Math.max(1,CBOT-yT);
     g+='<rect class="nBar'+(r.part?' part':'')+'" x="'+x.toFixed(1)+'" y="'+yT.toFixed(1)
       +'" width="'+bw.toFixed(1)+'" height="'+hT.toFixed(1)+'" rx="1.5"/>';
-    /* 예전에는 러닝머신 몫을 막대 아래쪽에 짙게 겹쳐 뒀다. 보로 그리던 때라
-       '걸음 수에는 있지만 kcal 에는 안 든 몫' 을 보일 데가 거기뿐이었는데,
-       막대 안에 든 칸이라 오히려 '포함된 몫' 으로 읽혔다(지적).
-       kcal 로 그리는 지금은 그 몫이 애초에 막대에 없다 — 겹칠 것이 없다. */
+    /* 러닝머신 몫을 막대 아래쪽에 짙게 겹쳐 두지 않는다 — 막대 안에 든 칸이라
+       '포함된 몫' 으로 읽혔다(지적). 그 몫은 접힌 줄이 수로 적는다. */
   }
   /* 가운뎃값 선. 바깥에서 가져온 '하루 만 보' 같은 수가 아니라 그 사람의
      기록에서 낸 수다 — 주 5일로 도는 사람에게 남의 수를 들이밀지 않는다. */
@@ -12082,7 +12080,7 @@ function chartSteps(win){
        그림에는 선만, 그 선이 무엇인지는 범례가 말한다. */
     g+='<line class="nMed" x1="'+L+'" y1="'+Y(med).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(med).toFixed(1)+'"/>';
   }
-  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('날마다 걸음 kcal')+'">'+g+'</svg>';
+  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('날마다 걸음')+'">'+g+'</svg>';
 }
 /* 요일별 평균 걸음. '언제 안 움직이는가' 는 날짜별 그림으로는 안 보인다 —
    같은 요일이 2주에 두 번뿐이라 눈이 못 모은다. */
@@ -12092,7 +12090,7 @@ function chartDow(){
   for(i=0;i<a.length;i++){
     var r=a[i];
     if(r.n==null||r.part)continue;          /* 모르는 날과 안 끝난 오늘은 뺀다 */
-    sum[r.dow]+=r.k;cnt[r.dow]++;   /* 날마다 그림과 같은 단위 — kcal */
+    sum[r.dow]+=r.n;cnt[r.dow]++;   /* 날마다 그림과 같은 단위 — 보 */
   }
   var ORD=[1,2,3,4,5,6,0],NM=['일','월','화','수','목','금','토'];
   var av=ORD.map(function(d){return cnt[d]?Math.round(sum[d]/cnt[d]):null;});
@@ -12106,7 +12104,7 @@ function chartDow(){
       +'<text x="'+(L-4)+'" y="'+(Y(v)+3).toFixed(1)+'" text-anchor="end">'+Math.round(v).toLocaleString()+'</text>';
     v+=st;gi++;
   }
-  g+='<text x="'+(L-4)+'" y="'+(T-3)+'" text-anchor="end">kcal</text>';
+  g+='<text x="'+(L-4)+'" y="'+(T-3)+'" text-anchor="end">'+TX('보')+'</text>';
   var cw=(W-L-R)/7,bw=Math.min(22,cw-7);
   for(i=0;i<7;i++){
     var cx=L+cw*(i+0.5),d=ORD[i],rest=(RD.indexOf(d)>=0);
@@ -12119,7 +12117,7 @@ function chartDow(){
     g+='<text x="'+cx.toFixed(1)+'" y="'+(CBOT+13)+'" text-anchor="middle"'
       +(rest?' class="rest"':'')+'>'+TX(NM[d])+(rest?'·':'')+'</text>';
   }
-  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('요일별 평균 걸음 kcal')+'">'+g+'</svg>';
+  return '<svg class="trg" viewBox="0 0 '+W+' '+VH+'" role="img" aria-label="'+TX('요일별 평균 걸음')+'">'+g+'</svg>';
 }
 function vzBody(tab){
   tab=tab||'today';
@@ -12148,8 +12146,9 @@ function vzBody(tab){
     (function(){var t=0,n=0;fin.forEach(function(r){var b=dayBase(r.d);if(b>0){t+=b;n++;}});
       if(n)baseK=Math.round(t/n);})();
     /* 결론 먼저 — 이 갈래를 여는 까닭은 '걸어서 적자를 얼마나 파고 있나' 다(요청).
-       **그래서 단위는 kcal 하나로 간다.** 예전에는 결론만 kcal 이고 그림 둘이
-       보라, 큰 수가 그림과 따로 놀았다(지적). 보는 아래 접힌 줄로 내렸다. */
+       결론 줄은 kcal, **그림 둘은 걸음 수**(요청 — 한때 kcal 로 그렸다가
+       되돌렸다). 둘은 다른 물음이다: 위는 '얼마나 팠나', 아래는 '얼마나
+       걸었나'. */
     h+=vzLine(TX('걸음으로 판 적자'),avgK.toLocaleString()+' kcal',
       /* **눈금 없는 수는 거짓말이다**(§1). 256kcal 이 많은지 적은지를 화면이
          말해야 한다 — 적자 목표가 있으면 그 몫으로, 없으면 하루 소비의 몫으로.
@@ -12157,34 +12156,31 @@ function vzBody(tab){
       share!=null?TX1('하루 평균 · 적자 목표 {0}kcal의 {1}%',dfc.toLocaleString(),share)
                  :(baseK>0?TX1('하루 평균 · 하루 소비 {0}kcal의 {1}%',baseK.toLocaleString(),Math.round(avgK/baseK*100))
                           :TX1('끝난 날 {0}일 평균',fin.length)),{t:'',c:''});
-    var medK=medOf(fin.map(function(r){return r.k;}));
+    var medN=medOf(fin.map(function(r){return r.n;}));
     var hasTd=sa.some(function(r){return r.part&&r.n!=null;});
     /* 정의문은 물음표 뒤로 접는다(요청: 맨 위 설명문이 길다). 날마다 볼 글이
        아닌데 벽처럼 서서 그림을 아래로 밀고 있었다. */
-    h+=vzCap(TX('날마다 · 걸음으로 판 kcal'),'neat')+chartSteps(WN)
+    h+=vzCap(TX('날마다 걸음'),'neat')+chartSteps(WN)
       /* 범례는 **그림이 이름을 못 대는 것만**. 보통 막대는 바로 위 이름줄이
          이미 '걸음으로 판 kcal' 이라 적고 있어 표식을 또 달면 다섯이 된다
          (지적: 범례가 너무 많다). 러닝머신 몫은 kcal 막대에 아예 없다. */
       +'<div class="trgl">'
       +(hasTd?'<i class="kT">'+TX('오늘')+'</i>':'')
-      +(medK>0?'<i class="kM2">'+TX1('가운뎃값 {0}kcal',medK.toLocaleString())+'</i>':'')
+      +(medN>0?'<i class="kM2">'+TX1('가운뎃값 {0}보',medN.toLocaleString())+'</i>':'')
       +(miss>0?'<i class="kN">'+TX1('자료 없음 {0}일',miss)+'</i>':'')+'</div>'
       /* 설명은 **범례 뒤**다. 그림 바로 밑에 끼우면 펴는 순간 범례가 아래로
          밀려 제 그림에서 떨어진다 — 범례는 늘 제 그림 바로 밑이어야 한다. */
-      +sxBox('neat',TX('<b>걸음(NEAT)</b> = 운동 말고 그냥 움직여 쓰는 몫. 하루 소비에 기초대사 · 소화와 나란히 더해지고, 운동 소비와는 따로 셈. 러닝머신은 운동으로 따로 잡히므로 그 몫은 여기서 빠져 있음.'));
+      +sxBox('neat',TX('<b>걸음(NEAT)</b> = 운동 말고 그냥 움직여 쓰는 몫. 하루 소비에 기초대사 · 소화와 나란히 더해지고, 운동 소비와는 따로 셈. 러닝머신은 운동으로 따로 잡히므로 위의 kcal 에서는 그 몫이 빠짐 — 막대는 폰이 센 걸음 전부.'));
     var dw=chartDow();
     /* 끝에 가운뎃점만 덜렁 남아 있었다('쉬는 요일 ·'). 요일 이름 뒤에 붙는
        점과 짝이라 적은 것인데, 범례가 할 일은 표식의 이름을 대는 것뿐이다. */
     if(dw)h+=vzCap(TX('요일별 평균 · 4주'))+dw
       +'<div class="trgl"><i class="kR">'+TX('쉬는 요일')+'</i></div>';
     /* 날마다 볼 수가 아니라 접는다 — 펴는 까닭은 '얼마나' 가 아니라 '무엇이' 다 */
-    /* 머리글이 이미 하루 평균을 적는다 — 안쪽 첫 줄에 같은 수를 또 적고
-       있었다(§1 '같은 수를 두 번 적지 마라'). 그 자리에는 머리글이 못 적는
-       수를 둔다: 가운뎃값. 위 그림의 가운뎃값 선과 같은 날들에서 낸 수이고,
-       거기서는 kcal 이라 보로는 여기서만 읽을 수 있다. */
+    /* 머리글이 하루 평균을, 위 그림 범례가 가운뎃값을 적는다 — 안쪽에 둘 중
+       어느 것도 또 적지 않는다(§1 '같은 수를 두 번 적지 마라'). */
     h+=vzFold('nst',TX('걸음 자세히'),avgN.toLocaleString()+TX('보'),
-      vzLine(TX('가운뎃값 걸음'),medOf(fin.map(function(r){return r.n;})).toLocaleString()+TX('보'),
-        TX1('끝난 날 {0}일의 한가운데 · 하루 평균은 위에',fin.length),{t:'',c:''})
+      ''
       +vzLine(TX('걸음당'),kcalPerStep(BW).toFixed(4)+' kcal',
         TX1('신장 {0}cm → 보폭 {1}cm → {2}보/km',HT,Math.round(0.415*HT),Math.round(stepsPerKm()).toLocaleString()),{t:'',c:''})
       +(cutT>0?vzLine(TX('러닝머신으로 빠진 걸음'),cutT.toLocaleString()+TX('보'),
@@ -13401,7 +13397,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-07 21:38';
+var BUILD='2026-10-07 22:31';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
