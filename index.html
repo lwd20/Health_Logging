@@ -3530,6 +3530,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    1.7~2.0 까지 떨어졌다(solar·cyber·mono·mint·steel·olive·hide).
    수에만 그으면 꼬리가 판 위에 남아 어디서나 4.6 이상이고, 긋는 뜻도
    맞는다 — 이 줄을 보는 까닭은 본세트 수다. */
+.jdh i.jnone{color:var(--dim);opacity:.8}
 .jdh i b{font-size:17px;font-weight:800;color:var(--acc-br);letter-spacing:-.02em;
   background:linear-gradient(transparent 45%,rgba(var(--acc-rgb),.35) 45%)}
 .jdb{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto}
@@ -5969,13 +5970,19 @@ function journalHtml(){
   var map=jMap(),i,j,e2;
   var dates=[],k;
   for(k in map)dates.push(k);
+  /* **운동은 없고 걸음만 있는 날도 카드가 선다**(요청). 날은 세션 날짜와
+     걸음 날짜의 합이다 — 쉬는 날도 그 날 하루 움직인 것은 남아야 한다.
+     오늘보다 뒤의 날(시계가 어긋난 폰)은 안 올린다. */
+  var td0=today();
+  if(typeof HC!=='undefined'&&HC&&HC.s)
+    for(k in HC.s)if(!map[k]&&stepsOn(k)>0&&k<=td0)dates.push(k);
   dates.sort();dates.reverse();
   if(dates.length>30)dates=dates.slice(0,30);
-  if(!dates.length)return '<div class="empty">No records</div>';
+  if(!dates.length)return '<div class="empty">'+TX('기록 없음')+'</div>';
   if(dates.length>60)dates=dates.slice(0,60);
   var h='',d,ents,ns,nw,e;
   for(i=0;i<dates.length;i++){
-    d=dates[i];ents=jOrder(d,map[d]);ns=0;nw=0;
+    d=dates[i];ents=map[d]?jOrder(d,map[d]):[];ns=0;nw=0;
     for(j=0;j<ents.length;j++){ns+=workSets(ents[j].s).length;nw+=warmCnt(ents[j].s);}
     /* 차례 고치기 — 시각이 없는 옛 기록은 기억으로만 되살릴 수 있다.
        종목이 하나뿐인 날은 바꿀 것이 없으므로 단추도 안 낸다. */
@@ -6012,14 +6019,19 @@ function journalHtml(){
          예열이 있으면 분수로 총을 뒤에 작게 붙인다 — `본`·`총` 이라는
          이름표를 떼도 분수 꼴이 그 관계를 말한다(요청).
          예열이 없는 날은 분모를 안 적는다: 같은 수를 두 번 적는 꼴이다. */
-      +'<i>'+(nw>0?TX1('{0}/{1}세트','<b>'+ns+'</b>',ns+nw)
+      /* 운동이 없는 날(걸음만)은 '0세트' 가 아니라 '운동 없음' — 0 은 '했는데
+         못 셌다' 로도 읽힌다. 큰 수 자리는 비운다. */
+      +(ents.length?'<i>'+(nw>0?TX1('{0}/{1}세트','<b>'+ns+'</b>',ns+nw)
           :TX1('{0}세트','<b>'+ns+'</b>'))+'</i>'
+        :'<i class="jnone">'+TX('운동 없음')+'</i>')
       /* 단추 둘을 한 덩이로 묶는다 — 따로 두면 각자 margin-left:auto 라
          줄이 넘어갈 때 하나는 윗줄 오른쪽, 하나는 아랫줄 오른쪽에 떨어진다 */
       +'<span class="jdb">'
       +(ents.length>1?'<button class="jso'+(ordOn?' on':'')+'" data-act="jord" data-v="'+d+'">'
         +TX(ordOn?'마침':'차례')+(hasOrd&&!ordOn?'<u>✓</u>':'')+'</button>':'')
       +(ordOn&&hasOrd?'<button class="jso" data-act="jocl" data-v="'+d+'">'+TX('지움')+'</button>':'')
+      /* 운동이 없는 날은 '차례' 는 없지만 'Open this day' 는 둔다 — 그 날 기록을
+         보태러 가는 길이다. */
       +(ordOn?'':'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button>')
       +'</span></div>'
       +(flow.length>1?'<div class="jflow">'+flow.join('<u>\u2192</u>')+'</div>':'');
@@ -13043,7 +13055,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-08 16:27';
+var BUILD='2026-10-08 22:24';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
