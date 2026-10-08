@@ -2445,6 +2445,13 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 .hr2 b{flex:0 0 62px;font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
 .hr2 u{font-size:10px;color:var(--dim)}
 .hr2 span{flex:1;font-size:12px;color:var(--mut);word-break:keep-all}
+/* 세트별 RIR 아래첨자 — 반복 수 바로 뒤에 작게. 수가 아니라 꼬리표라 흐리게 */
+.hr2 span sub,.exsub u sub{font-size:8px;line-height:0;vertical-align:-3px;margin:0 1px 0 1px;color:var(--dim);font-weight:400}
+.hr2 span .bo,.exsub u .bo{font-style:normal;opacity:.55}
+/* 이름이 .hrcap 인 까닭: .hcap 은 이미 있다(§2-1 — 또 걸렸다. grep 먼저). */
+.hrcap{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.04em;margin:0 2px 6px}
+.hrcap sub{font-size:7.5px;line-height:0;vertical-align:-3px;margin-left:1px}
+.hrcap .bo{font-style:normal;opacity:.6}
 .hr2 .hdel{flex:0 0 auto;width:40px;height:40px;color:var(--dim);font-size:15px;margin-right:-8px}
 .hr2 .hdel:active{color:var(--sig)}
 .hr2 .hdel.armed{color:var(--sig);font-weight:900;font-size:11px;letter-spacing:.04em}
@@ -4636,19 +4643,33 @@ function cardDetail(s,n){
 /* 지난 세션 요약은 '무엇을 들었나' 다 — 예열은 안 적는다. 지금 적고 있는
    줄(draft)은 흐리게나마 보여 주지만, 지나간 날의 한 줄 요약에까지 넣으면
    그 날 뭘 들었는지가 묻힌다. */
-function detailOf(s){
+/* detailOf(글자만) 는 detailHtml 로 갈아 치웠다 — 세트별 RIR 을 달려면 마크업이 필요하다 */
+/* 이력 줄용 — detailOf 와 같은 묶음인데 **세트마다 RIR 을 아래첨자로 단다**(요청:
+   '10/3 25kg 12 12 9' 에 세트별 RIR 까지). RIR 이 없는 세트에는 아무것도 안 단다.
+   대표 무게(rep, 그 줄 왼쪽에 이미 굵게 적힌 수)와 같은 첫 묶음은 무게를 또
+   안 적는다 — `25kg 25×12·12·9` 처럼 같은 수가 두 번 서 있었다. 다른 무게
+   묶음만 `20×12` 로 적는다. 백오프 묶음은 흐리게(.bo) — 내린 무게라는 것이
+   이미 수로 보이므로 글자는 안 단다. */
+function detailHtml(s,rep){
   s=workSets(s);
   if(!s||!s.length)return '';
-  if(sameW(s))return repsOf(s);
   var g=[],i;
   for(i=0;i<s.length;i++){
-    if(g.length&&g[g.length-1].w===s[i][0])g[g.length-1].r.push(s[i][1]);
-    else g.push({w:s[i][0],r:[s[i][1]]});
+    var bk=isBack(s[i]);
+    if(g.length&&g[g.length-1].w===s[i][0]&&g[g.length-1].bk===bk)g[g.length-1].s.push(s[i]);
+    else g.push({w:s[i][0],bk:bk,s:[s[i]]});
+  }
+  function one(x){
+    var r=+x[1]||0,v=x[2];
+    var sub=(v===0||v>0)?'<sub>'+(v>=4?'4+':v)+'</sub>':'';
+    return r+sub;
   }
   var CAP=3,out=[],used=0;
   for(i=0;i<g.length&&i<CAP;i++){
-    out.push(fmtW(g[i].w)+'×'+g[i].r.join('·'));
-    used+=g[i].r.length;
+    var body=g[i].s.map(one).join('·');
+    var pre=(i===0&&g[i].w===rep)?'':fmtW(g[i].w)+'×';
+    out.push(g[i].bk?'<em class="bo">'+pre+body+'</em>':pre+body);
+    used+=g[i].s.length;
   }
   if(g.length>CAP)out.push('+'+(s.length-used));
   return out.join('  ');
@@ -5695,7 +5716,7 @@ function lastLine(m){
      이 줄에 붙인다. 안 붙이면 어긋난 두 수만 남는다. */
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
     +(cd?('<span>'+cardDetail(p.s,m.n)+'</span>')
-        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailOf(p.s)+'</u>'))
+        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailHtml(p.s,topOfM(m,p.s))+'</u>'))
     +(softWhy(p.d)?'<i class="sfx">'+TX(softWhy(p.d))+'</i>':'')+'</div>';
 }
 function panelHtml(m){
@@ -5703,7 +5724,7 @@ function panelHtml(m){
   var cdRow=isCard(m.p);
   /* 세트를 적는 것이 먼저다. 요약은 저장 버튼 아래에서 그린다 */
   var statsHtml='';
-  if(UI.wd!==today())h+='<div class="pdate">✎ Editing '+jdate(UI.wd)+'</div>';
+  if(UI.wd!==today())h+='<div class="pdate">✎ '+jdate(UI.wd)+' '+TX('수정 중')+'</div>';
   /* 직전 세션 — 성장률 비교 기준 (요약 표시는 시트 헤더가 담당) */
   var past=[],pastAll=[],all=sess(id),softNow=isSoft(UI.wd);
   /* 견줄 대상에서는 뺀다 — 디로딩 주 기록을 기준으로 삼으면 그 다음 주에
@@ -5785,7 +5806,7 @@ function panelHtml(m){
     }
     h+='</div>';
   }else{
-    h+='<div class="empty">No sets yet</div>';
+    h+='<div class="empty">'+TX('아직 세트 없음')+'</div>';
   }
   /* 입력 — 시트는 아래가 고정이므로 컨트롤을 하단에 두어야 위치가 안 밀림 */
   var st=machStep(id);
@@ -5842,24 +5863,26 @@ function panelHtml(m){
     +'<button class="ord" data-act="mu"'+(canMove(id,-1)?'':' disabled')+' aria-label="Up">▲</button>'
     +'<button class="ord" data-act="md"'+(canMove(id,1)?'':' disabled')+' aria-label="Down">▼</button>'
     +'<button class="ghost" data-act="ed">Edit</button>'
-    +'<button class="ghost danger'+(armed?' armed':'')+'" data-act="dm">'+(armed?'Tap again to delete':'Delete')+'</button>'
+    +'<button class="ghost danger'+(armed?' armed':'')+'" data-act="dm">'+(armed?TX('한 번 더 누르면 삭제'):'Delete')+'</button>'
     +'</span>'
     +'</div>';
   if(UI.hist){
-    h+='<div class="hist">';
+    h+='<div class="hist">'
+      /* 새 표기(반복 뒤 작은 수 = RIR)는 한 번은 풀어 준다(§3-1). 이력을 편 사람만 본다. */
+      +'<div class="hrcap">'+TX('반복')+'<sub>RIR</sub> · <em class="bo">'+TX('흐린 것은 백오프')+'</em></div>';
     if(all.length>=2){
       var tops=[];
       for(var s=all.length-1;s>=0;s--)tops.push(cdRow?topOf(all[s].s):e1rmAvg(effSets(m,all[s].s,all[s].d)));
       if(tops.length>12)tops=tops.slice(tops.length-12);
       h+=spark(tops);
     }
-    if(!all.length)h+='<div class="empty">No records</div>';
+    if(!all.length)h+='<div class="empty">'+TX('기록 없음')+'</div>';
     for(var q=0;q<all.length;q++){
       var x=all[q];
       /* 그 날 이 부위에서 몇 번째로 했는지. 같은 무게라도 첫 종목으로 든 것과
          네 번째로 든 것은 다른 일이라, 줄마다 적어 두면 오르내림을 읽을 때
          순서 탓인지 아닌지가 보인다. 순서를 모르는 옛 기록에는 안 적는다. */
-      h+='<div class="hr2"><i>'+(x.d===today()?'Today':md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailOf(x.s))+'</span>'
+      h+='<div class="hr2"><i>'+(x.d===today()?TX('오늘'):md(x.d))+'</i><b>'+fmtW(topOfM(m,x.s))+'<u> '+(cdRow?'min':'kg')+'</u></b><span>'+(cdRow?cardDetail(x.s,m.n):detailHtml(x.s,topOfM(m,x.s)))+'</span>'
         +(x.o>0?'<em class="ordb">'+TX1('{0}번째',x.o)+'</em>':'')
         +(softWhy(x.d)?'<em class="sfx">'+TX(softWhy(x.d))+'</em>':'')
         +'<button class="hdel'+(UI.arm===('sd'+x.d)?' armed':'')+'" data-act="sd" data-v="'+x.d+'" aria-label="Delete session">'+(UI.arm===('sd'+x.d)?'OK?':'×')+'</button></div>';
@@ -13020,7 +13043,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-07 23:01';
+var BUILD='2026-10-08 16:27';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
