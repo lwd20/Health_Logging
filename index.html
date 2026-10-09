@@ -3567,14 +3567,16 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jro{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;font-family:var(--mono);text-align:right}
 .jro b{font-size:11px;font-weight:700;color:var(--acc-br);letter-spacing:.02em}
 .jro em{font-style:normal;font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
-/* 예열 배지. 브랜드 배지(.jb)와 **다른 꼴**이어야 한다 — 저쪽은 강조색 실선으로
-   '무엇으로 했나' 를 말하고 이쪽은 점선으로 '셈에 안 드는 몫' 을 말한다.
-   점선은 세트 목록의 예열 고리와 같아, 한 낱말이 두 화면에서 같은 생김새다. */
-.jro i.jw{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.04em;
-  color:var(--dim);border:var(--bw) dashed rgba(var(--tx-rgb),.3);
-  border-radius:var(--rad-s);padding:1px 5px;white-space:nowrap;align-self:center}
-/* 백오프 배지는 실선 — 점선은 '셈에 안 든다'(예열)의 꼴이고, 백오프는 세트 수에 든다 */
-.jro i.jw.jk{border-style:solid}
+/* 세트 갈래 둘째 줄(예열·백오프가 있을 때만). 맨 글자에 가운뎃점뿐 — 상자도
+   색도 안 쓴다. 낱말이 셋 다 달라 가를 것이 없고, 꾸미면 바로 위 줄의 브랜드
+   배지와 겨룬다. 왼쪽은 이름 자리에 맞춘다(차례 번호 14px + 틈 9px).
+   `.jr` 의 gap 은 가로용이라 row-gap 을 0 으로 눌러야 줄이 안 벌어진다. */
+.jr .jsub{flex:0 0 100%;display:flex;margin-top:-2px;font-family:var(--mono);
+  font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums;line-height:1.3}
+.jr .jsub i{font-style:normal;white-space:nowrap}
+.jr .jsub i+i::before{content:'·';margin:0 6px;opacity:.5}
+.jr .jseq~.jsub{padding-left:23px}
+.jr.oedit .jsub{display:none}
 /* 그 날 부위가 지나간 차례 — 날짜 바로 밑, 줄들보다 먼저 읽히는 자리 */
 .jflow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:-1px 0 8px;
   font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.02em}
@@ -3584,7 +3586,7 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   border:var(--bw) solid rgba(var(--acc-rgb),.35);border-radius:999px;padding:2px 7px;white-space:nowrap}
 .jr.oedit .jn2{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
 /* 이름은 줄고 숫자는 온전히 — 잘려도 되는 쪽은 이름이다 */
-.jr{display:flex;justify-content:space-between;align-items:baseline;gap:9px;padding:6px 0;font-size:12px}
+.jr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 9px;padding:6px 0;font-size:12px}
 .jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.05)}
 .jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
@@ -6052,18 +6054,19 @@ function journalHtml(){
          두 화면에서 같은 생김새를 갖는다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
       jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',jws);
-      var jwb=(!isCard(jm.p)&&jwm>0)?'<i class="jw">'+TX1('예열 {0}',jwm)+'</i>':'';
-      /* 백오프는 실선 배지 — 점선(예열)은 '셈에 안 든다' 는 뜻이라 같은 꼴을
-         쓰면 거짓말이 된다. 백오프는 세트 수에 든다. */
+      /* 예열·백오프가 있으면 **둘째 줄**에 가른다(요청: 한 줄이 난잡하다 —
+         두 줄이 더 직관적이면 그렇게). 첫 줄은 어느 종목이든 `부위 N세트`
+         한 꼴이라 오른쪽 끝이 맞고, 둘째 줄은 그 N 이 어떻게 됐는지를
+         실제 차례대로 적는다: `예열 1 · 본 3 · 백오프 1`. 본 + 백오프 = N.
+         예전에는 같은 줄에 배지 둘(예열 점선 · 백오프 실선) + `본 3세트` 를
+         세웠는데 표식 셋이 오른쪽에 몰려 무거웠다(지적, 두 판). 없는 줄은
+         둘째 줄 자체가 없다 — 가를 것이 없는데 적으면 모든 줄이 자란다. */
       var jbm=isCard(jm.p)?0:backCnt(e.s);
-      if(jbm>0)jwb+='<i class="jw jk">'+TX1('백오프 {0}',jbm)+'</i>';
-      /* 예열·백오프 배지가 선 줄에서는 오른쪽 수에도 이름을 단다 — `예열 1 ·
-         백오프 1 · 3세트` 에서 3 만 이름이 없어 무엇의 수인지 안 읽혔다(지적).
-         배지가 없는 줄은 `3세트` 그대로다 — 가를 것이 없는데 '본' 을 달면
-         모든 줄이 한 낱말씩 길어진다. 본은 **배지가 아니라 맨 글자**다 —
-         상자 셋을 나란히 세워 봤더니 줄이 무거웠다. 본은 백오프를 뺀 수라
-         셋이 겹치지 않고, 단위는 마지막 수에만 붙는다(§1-1). */
-      if(jwb)jdt=TX1('본 {0}세트',jws-jbm);
+      var jsub='';
+      if(!isCard(jm.p)&&(jwm>0||jbm>0))
+        jsub='<div class="jsub">'+(jwm>0?'<i>'+TX1('예열 {0}',jwm)+'</i>':'')
+          +'<i>'+TX1('본 {0}',jws-jbm)+'</i>'
+          +(jbm>0?'<i>'+TX1('백오프 {0}',jbm)+'</i>':'')+'</div>';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -6076,7 +6079,7 @@ function journalHtml(){
            두 번 뺐다: 맨 글자로 옆에 두니 브랜드와 한 낱말로 읽혔고, 배지
            안에 칸을 갈라 넣으니 '난잡하다'(지적). 종목을 열면 거기 있다. */
         +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')+'</span>'
-        +'<span class="jro"><b>'+jhd+'</b>'+jwb+'<em>'+jdt+'</em></span></div>';
+        +'<span class="jro"><b>'+jhd+'</b><em>'+jdt+'</em></span>'+jsub+'</div>';
     }
     /* 걸음은 **늘 맨 뒤**다. 차례를 받지 않고(번호 자리를 비운다) 위 세트 수에도
        안 든다 — 종목이 아니라 그 날 하루 내내 쌓인 NEAT 라서, 차례에 끼우면
@@ -13063,7 +13066,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 15:52';
+var BUILD='2026-10-09 16:03';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
