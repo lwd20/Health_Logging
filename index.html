@@ -3575,10 +3575,17 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
    있어 글줄 아래로 2~3px 더 내려온다. 글자 기준으로 붙이면(한때 -2px)
    배지와 둘째 줄이 닿았다(지적: '글자 겹쳐'). 글꼴도 윗줄과 같은 것을 쓴다 —
    모노로 두니 같은 줄에서 높낮이가 달라 보였다. */
-.jr .jsub{flex:0 0 100%;display:flex;align-items:baseline;margin-top:4px;
+.jr .jsub{flex:0 0 100%;display:flex;align-items:center;gap:11px;margin-top:5px;
   font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums;line-height:1.2}
-.jr .jsub i{font-style:normal;white-space:nowrap}
-.jr .jsub i+i::before{content:'·';margin:0 6px;opacity:.5}
+.jr .jsub i{font-style:normal;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+/* 낱말 앞의 작은 네모가 종류를 말한다 — 세트 목록의 종류 알약과 같은 약속:
+   예열 점선 빈 칸, 본 채움, 백오프 강조색. 수는 글자색으로 한 단 올린다. */
+.jr .jsub i::before{content:'';width:7px;height:7px;border-radius:2px;flex:0 0 auto;
+  border:var(--bw) solid rgba(var(--tx-rgb),.45);box-sizing:border-box}
+.jr .jsub i.k-w::before{border-style:dashed;border-color:rgba(var(--tx-rgb),.4)}
+.jr .jsub i.k-m::before{background:rgba(var(--tx-rgb),.45);border-color:transparent}
+.jr .jsub i.k-b::before{background:rgba(var(--acc-rgb),.85);border-color:transparent}
+.jr .jsub b{font-weight:700;color:var(--tx);opacity:.8}
 .jr .jseq~.jsub{padding-left:23px}
 .jr.oedit .jsub{display:none}
 /* 그 날 부위가 지나간 차례 — 날짜 바로 밑, 줄들보다 먼저 읽히는 자리 */
@@ -6071,9 +6078,9 @@ function journalHtml(){
       var jbm=isCard(jm.p)?0:backCnt(e.s);
       var jsub='';
       if(!isCard(jm.p)&&(jwm>0||jbm>0))
-        jsub='<div class="jsub">'+(jwm>0?'<i>'+TX1('예열 {0}',jwm)+'</i>':'')
-          +'<i>'+TX1('본 {0}',jws-jbm)+'</i>'
-          +(jbm>0?'<i>'+TX1('백오프 {0}',jbm)+'</i>':'')+'</div>';
+        jsub='<div class="jsub">'+(jwm>0?'<i class="k-w">'+TX('예열')+'<b>'+jwm+'</b></i>':'')
+          +'<i class="k-m">'+TX('본')+'<b>'+(jws-jbm)+'</b></i>'
+          +(jbm>0?'<i class="k-b">'+TX('백오프')+'<b>'+jbm+'</b></i>':'')+'</div>';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
@@ -13084,7 +13091,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 16:13';
+var BUILD='2026-10-09 16:16';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
