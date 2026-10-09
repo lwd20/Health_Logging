@@ -3589,6 +3589,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jsub i.k-w::before{border-style:dashed;border-color:rgba(var(--tx-rgb),.4)}
 .jr .jsub i.k-m::before{background:rgba(var(--tx-rgb),.45);border-color:transparent}
 .jr .jsub i.k-b::before{background:rgba(var(--acc-rgb),.85);border-color:transparent}
+/* 유산소 둘째 줄(속도·경사)은 표식이 없다 — 종류를 가르는 줄이 아니다 */
+.jr .jsub i.k-c::before{display:none}
 .jr .jsub b{font-weight:700;color:var(--tx);opacity:.8;min-width:7px}
 .jr .jsub i.z{opacity:.45}
 .jr .jseq~.jsub{padding-left:23px}
@@ -6077,7 +6079,11 @@ function journalHtml(){
          점선 테두리는 세트 목록의 예열 고리와 같은 꼴이다 — 한 낱말이
          두 화면에서 같은 생김새를 갖는다. */
       var jws=workSets(e.s).length,jwm=warmCnt(e.s);
-      jdt=isCard(jm.p)?TX1('{0}회',e.s.length):TX1('{0}세트',jws);
+      /* 유산소는 '몇 회' 가 아니라 **몇 분**이다(지적: 1회는 무의미). 오른쪽은
+         그 날 합계 분(cMin), 둘째 줄은 속도·경사 요약(cSpdSum — 인터벌이면
+         `3구간 6–10km/h 3%`). 종목 시트와 같은 글귀라 두 화면이 같은 말을 한다. */
+      var jc=isCard(jm.p);
+      jdt=jc?TX1('{0}분',cMin(e.s)):TX1('{0}세트',jws);
       /* 예열·백오프가 있으면 **둘째 줄**에 가른다(요청: 한 줄이 난잡하다 —
          두 줄이 더 직관적이면 그렇게). 첫 줄은 어느 종목이든 `부위 N세트`
          한 꼴이라 오른쪽 끝이 맞고, 둘째 줄은 그 N 이 어떻게 됐는지를
@@ -6085,9 +6091,10 @@ function journalHtml(){
          예전에는 같은 줄에 배지 둘(예열 점선 · 백오프 실선) + `본 3세트` 를
          세웠는데 표식 셋이 오른쪽에 몰려 무거웠다(지적, 두 판). 없는 줄은
          둘째 줄 자체가 없다 — 가를 것이 없는데 적으면 모든 줄이 자란다. */
-      var jbm=isCard(jm.p)?0:backCnt(e.s);
+      var jbm=jc?0:backCnt(e.s);
       var jsub='';
-      if(!isCard(jm.p)&&(jwm>0||jbm>0))
+      if(jc&&e.s.length){var jcs=cSpdSum(e.s,jm.n);if(jcs)jsub='<div class="jsub"><i class="k-c">'+esc(jcs)+'</i></div>';}
+      if(!jc&&(jwm>0||jbm>0))
         /* 셋을 늘 다 적는다 — 0 이어도(요청: 가로 길이가 줄마다 안 바뀌게).
            있는 것만 적으면 `예열 1 · 본 3` 과 `본 3 · 백오프 1` 이 다른 자리에
            서서 눈이 줄마다 다시 찾는다. 0 은 흐리게(.z). */
@@ -13112,7 +13119,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 16:36';
+var BUILD='2026-10-09 17:41';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
