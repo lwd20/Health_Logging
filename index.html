@@ -6049,8 +6049,10 @@ function journalHtml(){
          줄이 넘어갈 때 하나는 윗줄 오른쪽, 하나는 아랫줄 오른쪽에 떨어진다 */
       +'<span class="jdb">'
       +(ents.length>1?'<button class="jso'+(ordOn?' on':'')+'" data-act="jord" data-v="'+d+'">'
-        +TX(ordOn?'마침':'차례')+(hasOrd&&!ordOn?'<u>✓</u>':'')+'</button>':'')
-      +(ordOn&&hasOrd?'<button class="jso" data-act="jocl" data-v="'+d+'">'+TX('지움')+'</button>':'')
+        /* 단추 글귀는 영어다(요청) — 옆의 `Open this day` 와 같은 결. 카드 안에서
+           단추만 영어라 한글 '차례' 가 혼자 떠 있었다. TX 를 안 거친다. */
+        +(ordOn?'Done':'Order')+(hasOrd&&!ordOn?'<u>✓</u>':'')+'</button>':'')
+      +(ordOn&&hasOrd?'<button class="jso" data-act="jocl" data-v="'+d+'">Clear</button>':'')
       /* 운동이 없는 날은 '차례' 는 없지만 'Open this day' 는 둔다 — 그 날 기록을
          보태러 가는 길이다. */
       +(ordOn?'':'<button class="jgo" data-act="jw" data-v="'+d+'">Open this day</button>')
@@ -13107,7 +13109,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 16:20';
+var BUILD='2026-10-09 16:35';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
