@@ -3564,9 +3564,13 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr.oedit .jrv,.jr.oedit .jro{display:none}
 /* 오른쪽 칸 — 무게가 아니라 부위와 세트 수. 무게 칸(min 104px)을 물려받으면
    '가슴 3세트' 옆에 빈 자리가 80px 남는다 */
-.jro{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;font-family:var(--mono);text-align:right}
-.jro b{font-size:11px;font-weight:700;color:var(--acc-br);letter-spacing:.02em}
-.jro em{font-style:normal;font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* 오른쪽 칸: 부위는 작은 이름표(강조색·자간), 수는 크게 글자색, 단위는 작게 흐리게.
+   예전에는 셋이 11/10.5px 한 키라 줄 끝이 묻혔다(요청: 키워서 강조). 날짜 줄의
+   `13/16세트` 와 같은 꼴 — 수만 크고 나머지는 꼬리. */
+.jro{flex:0 0 auto;display:flex;align-items:baseline;gap:9px;font-family:var(--mono);text-align:right}
+.jro b{font-size:10px;font-weight:800;color:var(--acc-br);letter-spacing:.08em}
+.jro em{font-style:normal;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.jro em strong{font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.02em;margin-right:1px}
 /* 세트 갈래 둘째 줄(예열·백오프가 있을 때만). 맨 글자에 가운뎃점뿐 — 상자도
    색도 안 쓴다. 낱말이 셋 다 달라 가를 것이 없고, 꾸미면 바로 위 줄의 브랜드
    배지와 겨룬다. 왼쪽은 이름 자리에 맞춘다(차례 번호 14px + 틈 9px).
@@ -3598,8 +3602,8 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
   border:var(--bw) solid rgba(var(--acc-rgb),.35);border-radius:999px;padding:2px 7px;white-space:nowrap}
 .jr.oedit .jn2{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
 /* 이름은 줄고 숫자는 온전히 — 잘려도 되는 쪽은 이름이다 */
-.jr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 9px;padding:6px 0;font-size:12px}
-.jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.05)}
+.jr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 9px;padding:8px 0;font-size:12.5px}
+.jr+.jr{border-top:1px solid rgba(var(--tx-rgb),.07)}
 .jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
@@ -6103,7 +6107,7 @@ function journalHtml(){
            두 번 뺐다: 맨 글자로 옆에 두니 브랜드와 한 낱말로 읽혔고, 배지
            안에 칸을 갈라 넣으니 '난잡하다'(지적). 종목을 열면 거기 있다. */
         +(jm.b?'<i class="jb">'+esc(jm.b)+'</i>':'')+'</span>'
-        +'<span class="jro"><b>'+jhd+'</b><em>'+jdt+'</em></span>'+jsub+'</div>';
+        +'<span class="jro"><b>'+jhd+'</b>'+jNum(jdt)+'</span>'+jsub+'</div>';
     }
     /* 걸음은 **늘 맨 뒤**다. 차례를 받지 않고(번호 자리를 비운다) 위 세트 수에도
        안 든다 — 종목이 아니라 그 날 하루 내내 쌓인 NEAT 라서, 차례에 끼우면
@@ -6117,12 +6121,19 @@ function journalHtml(){
            브랜드 칸(b:'NEAT')으로 이미 그렇게 쓰고 있다. 같은 뜻을 같은
            자리에 둬야 두 줄이 나란히 읽힌다. */
         +'<span class="jn2">'+TX('걸음')+'<i class="jb">NEAT</i></span>'
-        +'<span class="jro"><em>'+jst.toLocaleString()+TX('보')+'</em></span></div>';
+        +'<span class="jro">'+jNum(jst.toLocaleString()+TX('보'))+'</span></div>';
     h+='</div>';
   }
   return h;
 }
 
+/* 로그 줄 오른쪽의 수 — 수는 크게, 단위는 작게(`4` + `세트`). 날짜 줄의 큰 본세트
+   수(`.jdh i b`)와 같은 꼴이라 카드 안에서 '수' 가 한 목소리로 선다(요청: 부위·세트
+   를 키워 강조). `3,944보` 처럼 쉼표 든 수도 받는다 — 앞의 수·쉼표만 떼어 크게. */
+function jNum(t){
+  var m=/^([\d,\.]+)(.*)$/.exec(t);
+  return m?'<em><strong>'+m[1]+'</strong>'+esc(m[2])+'</em>':'<em>'+esc(t)+'</em>';
+}
 /* 로그 줄의 기구 머리(`기구 ›`) — 기구가 있고 종목 이름과 다를 때만 */
 function jMc(m){
   var mc=cleanMc(m.mc);
@@ -13096,7 +13107,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 16:18';
+var BUILD='2026-10-09 16:20';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
