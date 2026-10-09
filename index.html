@@ -3595,6 +3595,9 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jn2{flex:1 1 auto;min-width:0;font-weight:650;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
+/* 기구 머리 — 종목 이름보다 한 단 가볍고 흐리게, `›` 로 '이 안의' 를 말한다.
+   메인의 기구 덩이 머리(.mch)와 같은 낱말이 같은 자리(이름 앞)에 선다. */
+.jr .jn2 small.jmc{font-size:11px;font-weight:600;color:var(--dim);margin-right:4px}
 /* 브랜드와 라인은 위계가 다르다 — 집안(GYM80)과 그 안의 갈래(CORE).
    같은 색·같은 굵기로 나란히 두니 'GYM80 CORE' 가 한 낱말로 읽혔다.
    색과 굵기만 달리해 보았는데 9px 에서는 그것도 '똑같다' 였다 — 모양을
@@ -6076,7 +6079,12 @@ function journalHtml(){
         +(ordOn?'<span class="jmv">'
           +'<button data-act="jmu" data-v="'+d+'|'+jm.i+'"'+(j===0?' disabled':'')+'>▲</button>'
           +'<button data-act="jmd" data-v="'+d+'|'+jm.i+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
-        +'<span class="jn2">'+esc(jm.n)
+        /* 기구(`mc`)가 있으면 이름 앞에 `기구 ›` 를 붙인다(요청: 한 기구로 여러
+           이름의 운동을 한 날을 가르게). 메인은 기구 덩이 안에 종목이 들어
+           있어 저절로 갈리는데, 로그는 줄이 평평해 종목 이름만으로는 어느
+           기계였는지가 사라진다. 기구 이름이 종목 이름과 같으면 안 적는다 —
+           `Pullover › Pullover` 는 같은 말 두 번이다. */
+        +'<span class="jn2">'+jMc(jm)+esc(jm.n)
         +(jm.v?'<u class="vg2">'+esc(jm.v)+'</u>':'')
         /* 라인(제품 갈래)은 안 적는다 — 이 탭이 답하는 물음은 '어떤 차례로
            지나갔나' 이고, 거기에 라인은 아무 말도 안 보탠다. 두 번 넣었다
@@ -6103,6 +6111,12 @@ function journalHtml(){
   return h;
 }
 
+/* 로그 줄의 기구 머리(`기구 ›`) — 기구가 있고 종목 이름과 다를 때만 */
+function jMc(m){
+  var mc=cleanMc(m.mc);
+  if(!mc||mc.toLowerCase()===String(m.n||'').trim().toLowerCase())return '';
+  return '<small class="jmc">'+esc(mc)+' ›</small>';
+}
 /* 이 브랜드에 속한 라인 목록 — 내장 프리셋 + 사용자가 만든 값 */
 function lineListOf(b){
   b = normBrand(b);
@@ -13070,7 +13084,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 16:08';
+var BUILD='2026-10-09 16:13';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
