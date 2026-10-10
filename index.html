@@ -5837,7 +5837,7 @@ function panelHtml(m){
   }
   /* 입력 — 시트는 아래가 고정이므로 컨트롤을 하단에 두어야 위치가 안 밀림 */
   var st=machStep(id);
-  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
+  var rdy=setReady();
   var cd=isCardId(UI.open);
   h+='<div class="inzone">'
     /* '입력' 은 바로 밑 KG ±2.5 / REPS 가 이미 하는 말이라 아무것도 안
@@ -7481,8 +7481,8 @@ function addSet(){
   var r=cd?parseFloat(String(UI.r).replace(',','.')):parseInt(UI.r,10);
   /* 흐린 단추도 눌리기는 한다. 조용히 돌아가면 눌렀는데 아무 일도 안 일어난
      것이라, 무엇이 모자란지 화면 어디에도 없었다. */
-  if(!(w>0)||!(r>0)){
-    toast(TX(cd?'시간과 속도를 넣어야 세트가 올라감':'무게와 반복을 넣어야 세트가 올라감'));
+  if(!setReady()){
+    toast(TX(cd?'시간과 속도를 넣어야 세트가 올라감':'무게와 반복을 넣어야 세트가 올라감 (무게 0 도 됨)'));
     return;
   }
   var set=[Math.round(w*10)/10,cd?Math.round(r*10)/10:r];
@@ -13119,7 +13119,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-09 17:55';
+var BUILD='2026-10-10 14:26';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13919,7 +13919,7 @@ var EN={
 /* ── 초안 되살리기 ── */
 '저장 안 한 세트가 {0}종목 남아 있음 · {1}':'{0} exercises have unsaved sets · {1}',
 '되살리기':'Restore',
-'무게와 반복을 넣어야 세트가 올라감':'Enter weight and reps to add a set',
+'무게와 반복을 넣어야 세트가 올라감 (무게 0 도 됨)':'Enter weight and reps to add a set (0 kg is fine)',
 '시간과 속도를 넣어야 세트가 올라감':'Enter minutes and speed to add an interval',
 '올린 세트가 없음 — 무게·반복을 넣고 ＋ Set 을 먼저 누름':'No sets yet — enter weight and reps, then ＋ Set',
 '올린 구간이 없음 — 칸을 채우고 ＋ Set 을 먼저 누름':'No intervals yet — fill the fields, then ＋ Set',
@@ -16987,9 +16987,19 @@ function hintRefresh(){
   var m=machById(UI.open);
   if(m)el.innerHTML=hintHtml(m.n);
 }
+/* 세트를 올릴 수 있는가. 무게는 **0 도 된다**(요청: 원판 안 꽂은 빈 기구·맨몸) —
+   0 은 '안 적음' 이 아니라 '꽂은 게 없음' 이다. 빈 칸(NaN)만 막는다. 유산소는
+   시간·속도 둘 다 0 보다 커야 한다. e1RM·지시줄은 w>0 만 보므로 0kg 세트는
+   세트 수·볼륨에는 들되 최고 기록 셈에는 안 든다. */
+function setReady(){
+  var cd=isCardId(UI.open);
+  var w=parseFloat(String(UI.w).replace(',','.'));
+  var r=cd?parseFloat(String(UI.r).replace(',','.')):parseInt(UI.r,10);
+  return (cd?w>0:w>=0)&&r>0;
+}
 function syncBtns(){
   var b=document.querySelector('.plusbtn');if(!b)return;
-  var rdy=parseFloat(String(UI.w).replace(',','.'))>0&&parseInt(UI.r,10)>0;
+  var rdy=setReady();
   var wasUpd=b.classList.contains('upd');
   var nd=(UI.draft[UI.open]||[]).length;
   b.className='plusbtn'+(rdy?'':' dis')+(wasUpd?' upd':'')+((rdy&&!wasUpd&&!nd)?' go':'');
