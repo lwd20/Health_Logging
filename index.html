@@ -7916,7 +7916,10 @@ function step(kind,dir){
   if(kind==='w'){
     var st=machStep(UI.open);
     var w=parseFloat(String(UI.w).replace(',','.'))||0;w=Math.round((w+dir*st)*10)/10;
-    UI.w=w>0?fmtW(w):'';
+    /* 근력은 0 에서 멈춘다(0 도 세트다) — 밑으로 더 누르면 0 에 선다.
+       유산소는 0 이 뜻이 없어 비운다. */
+    if(!cd&&w<0)w=0;
+    UI.w=(cd?w>0:w>=0)?fmtW(w):'';
   }else if(kind==='i'){
     var iv=parseFloat(String(UI.ci).replace(',','.'))||0;iv=Math.round((iv+dir*0.5)*10)/10;
     UI.ci=iv>0?fmtW(iv):'';
@@ -13119,7 +13122,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-10 14:26';
+var BUILD='2026-10-10 14:29';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
