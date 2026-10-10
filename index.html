@@ -3612,9 +3612,13 @@ html[lang=en] .lmsec.lmpt{grid-template-columns:76px 1fr auto}
 .jr .jn2{flex:1 1 0;min-width:0;font-weight:650;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25}
 .jr .jn2 i{color:var(--chrome);opacity:.7;font-weight:700;font-size:9px;margin-left:5px;letter-spacing:.12em;text-transform:uppercase}
-/* 기구 머리 — 종목 이름보다 한 단 가볍고 흐리게, `›` 로 '이 안의' 를 말한다.
-   메인의 기구 덩이 머리(.mch)와 같은 낱말이 같은 자리(이름 앞)에 선다. */
-.jr .jn2 small.jmc{font-size:11px;font-weight:600;color:var(--dim);margin-right:4px}
+/* 기구 머리 — 이름 위 제 줄(줄 전체). 한 줄 말줄임 — 기구 이름은 메인에서
+   이미 아는 것이라 잘려도 된다. 차례 번호가 있는 날은 이름 자리(23px)에 맞춘다
+   (.k-ind) — 번호 자체는 그 밑 이름 줄에 선다. */
+.jr small.jmc{flex:0 0 100%;min-width:0;font-size:10px;font-weight:600;color:var(--dim);
+  letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:1px}
+.jr small.jmc.k-ind{padding-left:23px}
+.jr.oedit small.jmc{display:none}
 /* 브랜드와 라인은 위계가 다르다 — 집안(GYM80)과 그 안의 갈래(CORE).
    같은 색·같은 굵기로 나란히 두니 'GYM80 CORE' 가 한 낱말로 읽혔다.
    색과 굵기만 달리해 보았는데 9px 에서는 그것도 '똑같다' 였다 — 모양을
@@ -6094,15 +6098,18 @@ function journalHtml(){
       var jbm=jc?0:backCnt(e.s);
       var jsub='';
       if(jc&&e.s.length){var jcs=cSpdSum(e.s,jm.n);if(jcs)jsub='<div class="jsub"><i class="k-c">'+esc(jcs)+'</i></div>';}
-      if(!jc&&(jwm>0||jbm>0))
-        /* 셋을 늘 다 적는다 — 0 이어도(요청: 가로 길이가 줄마다 안 바뀌게).
-           있는 것만 적으면 `예열 1 · 본 3` 과 `본 3 · 백오프 1` 이 다른 자리에
-           서서 눈이 줄마다 다시 찾는다. 0 은 흐리게(.z). */
+      /* 근력 종목은 **늘** 둘째 줄을 그린다(요청: 예열·백오프가 없어도 구분이
+         떠야). 있는 줄만 그리면 카드 안에서 두 줄짜리와 한 줄짜리가 섞여
+         읽는 눈이 줄마다 다시 찾는다. 셋을 다 적고 0 은 흐리게(.z). */
+      if(!jc)
         jsub='<div class="jsub">'
           +'<i class="k-w'+(jwm?'':' z')+'">'+TX('예열')+'<b>'+jwm+'</b></i>'
           +'<i class="k-m">'+TX('본')+'<b>'+(jws-jbm)+'</b></i>'
           +'<i class="k-b'+(jbm?'':' z')+'">'+TX('백오프')+'<b>'+jbm+'</b></i></div>';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
+        /* 기구 줄이 맨 먼저 — 차례 번호는 그 밑 **이름 줄**에 선다. 번호가 기구
+           줄에 붙으면 '5번째가 기구' 로 읽힌다. */
+        +jMc(jm,anySeq)
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
           +'<button data-act="jmu" data-v="'+d+'|'+jm.i+'"'+(j===0?' disabled':'')+'>▲</button>'
@@ -6112,7 +6119,7 @@ function journalHtml(){
            있어 저절로 갈리는데, 로그는 줄이 평평해 종목 이름만으로는 어느
            기계였는지가 사라진다. 기구 이름이 종목 이름과 같으면 안 적는다 —
            `Pullover › Pullover` 는 같은 말 두 번이다. */
-        +'<span class="jn2">'+jMc(jm)+esc(jm.n)
+        +'<span class="jn2">'+esc(jm.n)
         +(jm.v?'<u class="vg2">'+esc(jm.v)+'</u>':'')
         /* 라인(제품 갈래)은 안 적는다 — 이 탭이 답하는 물음은 '어떤 차례로
            지나갔나' 이고, 거기에 라인은 아무 말도 안 보탠다. 두 번 넣었다
@@ -6146,11 +6153,14 @@ function jNum(t){
   var m=/^([\d,\.]+)(.*)$/.exec(t);
   return m?'<em><strong>'+m[1]+'</strong>'+esc(m[2])+'</em>':'<em>'+esc(t)+'</em>';
 }
-/* 로그 줄의 기구 머리(`기구 ›`) — 기구가 있고 종목 이름과 다를 때만 */
-function jMc(m){
+/* 로그 줄의 기구 머리 — 기구가 있고 종목 이름과 다를 때만. 이름 **위** 제 줄에
+   작게 선다(.jmc, 한 줄 말줄임). 한때 `기구 › 종목` 으로 한 줄에 이었는데
+   `DS Dual Adjustable Pulley › Overhead Extension Strap WATSON` 이 두 줄로
+   흘러 어디까지가 기구인지 안 읽혔다(지적: 글자가 길면 깔끔하게). */
+function jMc(m,ind){
   var mc=cleanMc(m.mc);
   if(!mc||mc.toLowerCase()===String(m.n||'').trim().toLowerCase())return '';
-  return '<small class="jmc">'+esc(mc)+' ›</small>';
+  return '<small class="jmc'+(ind?' k-ind':'')+'">'+esc(mc)+'</small>';
 }
 /* 이 브랜드에 속한 라인 목록 — 내장 프리셋 + 사용자가 만든 값 */
 function lineListOf(b){
@@ -13122,7 +13132,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-10 14:29';
+var BUILD='2026-10-10 15:26';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
