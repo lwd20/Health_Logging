@@ -4302,10 +4302,15 @@ function load(){
   return {m:m,l:l};
 }
 /* 미저장 작성분 보존 (오늘 날짜 작업분만) */
+/* o: 적는 중에 열어 둔 종목(종목 시트가 열려 있고 그 종목이 dirty 일 때만).
+   앱이 꺼졌다 켜지면 loadDraft 가 이 종목으로 바로 돌아간다(요청). */
 function saveDraft(){
   if(!canLS)return;
-  try{localStorage.setItem(KEY+'.d',JSON.stringify({t:today(),w:UI.wd,d:UI.draft,y:UI.dirty}));}catch(e){}
+  var op=(UI.sheet==='ex'&&UI.open&&UI.dirty[UI.open])?UI.open:'';
+  try{localStorage.setItem(KEY+'.d',JSON.stringify({t:today(),w:UI.wd,d:UI.draft,y:UI.dirty,o:op}));}catch(e){}
 }
+/* 켤 때 돌아갈 종목 — loadDraft 가 채우고 부팅 끝에서 한 번 쓴다 */
+var RESUME='';
 /* 어제 남은 초안. 버리지 않고 잡아 두었다가 알린다 — 되살릴지는 사람이 정한다 */
 var DRAFTLOST=null;
 function loadDraft(){
@@ -4328,6 +4333,10 @@ function loadDraft(){
       UI.draft={};UI.dirty={};
       for(kk in yy0)if(yy0[kk]&&dd0[kk]&&dd0[kk].length){UI.draft[kk]=dd0[kk];UI.dirty[kk]=true;}
       if(o.w&&o.w!==today()&&anyDirty())UI.wd=o.w;
+      /* 적다 만 종목이 열려 있었으면 거기로 돌아간다(요청: 기록 중에 앱이
+         꺼지면 바로 이동). 그 종목의 초안이 되살아났을 때만 — 초안이 없으면
+         돌아갈 까닭도 없다. */
+      if(o.o&&UI.dirty[o.o]&&machById(o.o))RESUME=o.o;
       return;
     }
     /* 예전엔 여기서 그냥 빠져나왔다. 토스트도 흔적도 없이 사라지니 없어진
@@ -13132,7 +13141,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-10 15:26';
+var BUILD='2026-10-10 22:45';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -17027,6 +17036,9 @@ try{bhSync();}catch(eBS){}
 /* 이제 설정이 다 올라왔다. 로드 중에 건너뛴 하루치 스냅샷을 여기서 찍는다 */
 cfgReady=true;
 try{autoSnap();}catch(eAS){}
+/* 적다 만 종목으로 바로 돌아간다(loadDraft 가 RESUME 에 적어 둔 것).
+   openRow 는 dirty 초안이 있으면 안 덮으므로 적던 세트가 그대로 선다. */
+if(RESUME){try{openRow(RESUME);UI.sheet='ex';UI.filter=machById(RESUME).p;}catch(eRS){}RESUME='';}
 /* 걷기 이력 정리는 **cfgReady 뒤**라야 한다. 앞에 두었더니 그 안의 autoSnap 이
    cfgReady 를 보고 그냥 돌아가, 되돌릴 사본이 안 찍힌 채로 지워졌다 —
    바로 위 autoSnap 이 오늘 치를 이미 잡아 두므로 여기서는 그것이 지우기 전
