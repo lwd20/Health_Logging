@@ -9517,7 +9517,16 @@ function wkKeys(off){
     a.push(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'));}
   return a;
 }
-/* ACSM 성인 권고를 100점으로. 배점: 유산소 30 · 빈도 30 · 반복 20 · 간격 20.
+/* ACSM 성인 권고를 100점으로. 배점: 유산소 30 · 빈도 40 · 반복 10 · 간격 20.
+   권고의 두 기둥이 유산소(주 150분 중강도)와 근력(부위마다 주 2~3일)이고,
+   반복 구간(8~12)은 '대부분의 성인에게' 라는 한 줄짜리 권고라 셋 가운데 가장
+   가볍다. 예전에는 빈도 30 · 반복 20 이었고 반복은 **세트의 70% 이상이면
+   만점**이었는데, 그 70 은 어디서도 안 나온 수였다 — 거의 공짜로 받는 20점이
+   점수를 부풀렸다(유산소 8/30 인 주가 68점 '보통'). 지금은 8~12 안에 든 세트
+   비율을 그대로 10점에 건다.
+   **유산소 30 은 가벼운 쪽이다.** 강도 자료(심박)가 없어 모든 유산소 분을
+   중강도로 세므로 격렬한 분(= 중강도 2분)이 손해를 보고, 권고의 '주 3~5일'
+   도 안 잰다 — 둘 다 자료가 있어야 잴 수 있는 것이라 안 올린다.
    **주 중간에는 주 하나치 목표로 재지 않는다** — 목요일에 150분을 분모로 두면
    아무리 잘해도 주말 전에는 만점이 안 나오고, 늘 '미흡' 인 점수는 아무 말도
    안 한다. 쌓이는 둘(유산소·빈도)은 끝난 날까지의 몫으로 잰다.
@@ -9574,7 +9583,7 @@ function acsmScore(){
   /* 1) 유산소 30 — 주 150분을 끝난 날수로 나눈 몫 */
   var carGoal=150*done/7;
   var sCar=carGoal>0?30*Math.min(1,ac.z2/carGoal):0;
-  /* 2) 근력 빈도 30 — 부위마다 주 2일을, 훈련할 수 있었던 날 비율로 */
+  /* 2) 근력 빈도 40 — 부위마다 주 2일을, 훈련할 수 있었던 날 비율로 */
   var frqGoal=td[1]>0?2*td[0]/td[1]:0;
   var nd=wkPartNd(0).nd,np=0,sf=0,act=0,viol=0,sumD=0;
   for(k in PN_KO){
@@ -9587,16 +9596,16 @@ function acsmScore(){
       for(q=1;q<7;q++)if(on[q]&&on[q-1]){viol++;break;}
     }
   }
-  var sFrq=30*(np?sf/np:0);
-  /* 3) 반복 8~12 — 세트의 70% 이상이면 만점 */
-  var sRep=20*Math.min(1,rz.pct/70);
+  var sFrq=40*(np?sf/np:0);
+  /* 3) 반복 8~12 — 안에 든 세트 비율 그대로 (문턱은 두지 않는다, 위 주석) */
+  var sRep=10*Math.min(1,rz.pct/100);
   /* 4) 부위 간격 20 — 한 부위 안에 이틀 연속이 없는 몫 */
   var sGap=act?20*(act-viol)/act:0;
   /* 아직 못 재는 항목은 분모에서 뺀다. 0 으로 세면 '못했다' 로 읽힌다. */
   var it=[
     {k:'car',n:'유산소',    s:'유산소 30',max:30,got:sCar,on:part&&carGoal>0},
-    {k:'frq',n:'근력 빈도', s:'빈도 30',  max:30,got:sFrq,on:part&&frqGoal>0},
-    {k:'rep',n:'반복 8~12', s:'반복 20',  max:20,got:sRep,on:rz.tot>0},
+    {k:'frq',n:'근력 빈도', s:'빈도 40',  max:40,got:sFrq,on:part&&frqGoal>0},
+    {k:'rep',n:'반복 8~12', s:'반복 10',  max:10,got:sRep,on:rz.tot>0},
     {k:'gap',n:'부위 간격', s:'간격 20',  max:20,got:sGap,on:act>0}
   ];
   var mx=0,gt=0,i;
@@ -9606,7 +9615,7 @@ function acsmScore(){
     done:done,td:td,carGoal:carGoal,frqGoal:frqGoal,scored:mx,it:it};
 }
 /* 점수만으로는 무엇을 할지가 안 나온다. '56점 · 미흡' 을 읽은 사람이 넷 가운데
-   어디를 손대야 가장 크게 오르는지를 눈으로 견주고 있었다 — 배점이 30·30·20·20
+   어디를 손대야 가장 크게 오르는지를 눈으로 견주고 있었다 — 배점이 30·40·10·20
    으로 달라서 '반만 찬 칸' 끼리도 값이 다르다.
    잃은 점수가 곧 그 한 수의 값이다. 가장 큰 것을 집어 할 일로 옮긴다.
    새 수는 안 만든다 — 넷 다 acsmScore 가 이미 낸 값에서 나온다. */
@@ -9635,7 +9644,7 @@ function acsmNext(sc){
       :TX('부위마다 주 2일'),g:g};
   }
   if(best.k==='rep')
-    return {t:sc.rz.tot?TX1('8~12회 세트 {0}% → 70%',sc.rz.pct)
+    return {t:sc.rz.tot?TX1('8~12회 세트 {0}% 올리기',sc.rz.pct)
                        :TX('반복 수를 기록'),g:g};
   var bad=[];
   for(k in PN_KO){
@@ -12559,7 +12568,7 @@ function vzTrain(tab){
   h+=vzCap(TX('ACSM 권고')+'<span class="rtsub">'
     +(sc.done>0?TX1('월~{0} {1}일치',TX('월,화,수,목,금,토,일').split(',')[sc.done-1],sc.done):TX('이번 주'))
     +'</span>','acsm')
-    +sxBox('acsm',TX('ACSM 성인 신체활동 권고에 이 앱 기록을 견준 점수. 배점은 <b>유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20</b>. 유산소·빈도는 주 하나치가 아니라 <b>지금까지 지난 날의 몫</b>으로 잰다')
+    +sxBox('acsm',TX('ACSM 성인 신체활동 권고에 이 앱 기록을 견준 점수. 배점은 <b>유산소 30 · 근력 빈도 40 · 반복 구간 10 · 부위 간격 20</b>. 유산소는 심박 자료가 없어 전부 중강도로 셈. 유산소·빈도는 주 하나치가 아니라 <b>지금까지 지난 날의 몫</b>으로 잰다')
       +(sc.tot!=null&&sc.done>0?TX1(' — 지금은 {0}일치라 유산소 {1}분 · 부위마다 {2}일이 기준.',sc.done,Math.round(sc.carGoal),Math.round(sc.frqGoal*10)/10):'.')
       +(sc.tot!=null&&sc.scored<100?' '+TX1('잴 수 있는 {0}점으로 환산.',sc.scored):'')
       +' '+TX('<b>다음 한 수</b>는 넷 가운데 가장 크게 잃고 있는 칸을 메우면 오르는 점수.'));
@@ -12589,7 +12598,7 @@ function vzTrain(tab){
   for(q2=0;q2<sc.it.length;q2++)
     h+='<span style="flex:'+sc.it[q2].max+' 0 0">'+TX(sc.it[q2].s)+'</span>';
   h+='</div>';
-  /* 칸 넷을 읽고 어디를 손댈지 스스로 고르게 두던 자리다. 배점이 30·30·20·20
+  /* 칸 넷을 읽고 어디를 손댈지 스스로 고르게 두던 자리다. 배점이 30·40·10·20
      으로 달라 '반만 찬 칸' 끼리도 값이 다르므로, 눈으로 견주면 틀리기 쉽다.
      가장 크게 잃는 하나를 집어 할 일과 그 값을 적는다. */
   var nx=acsmNext(sc);
@@ -12610,7 +12619,7 @@ function vzTrain(tab){
       ev=TX1('{0} / {1}일',Math.round(sc.avgD*10)/10,Math.round(sc.frqGoal*10)/10)
         +(lg.length?' · '+lg.slice(0,3).join('·'):'');
     }
-    else if(it.k==='rep')ev=sc.rz.tot?TX1('{0}% / 70%',sc.rz.pct):TX('기록 없음');
+    else if(it.k==='rep')ev=sc.rz.tot?TX1('{0}% / 100%',sc.rz.pct):TX('기록 없음');
     else if(!sc.act)ev=TX('기록 없음');
     else if(!sc.viol)ev=TX('연속 없음');
     else{
@@ -13140,7 +13149,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-11 15:44';
+var BUILD='2026-10-11 15:55';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
@@ -13798,16 +13807,16 @@ var EN={
 '보통':'Fair',
 '미흡':'Poor',
 '유산소 30':'Cardio 30',
-'빈도 30':'Days 30',
-'반복 20':'Reps 20',
+'빈도 40':'Days 40',
+'반복 10':'Reps 10',
 '간격 20':'Gap 20',
 '근력 빈도':'Strength',
 '중강도 {0}분 / 150분 · {1}회':'{0} of 150 min moderate · {1} sessions',
 '부위 평균 {0}일 / 2일':'{0} days per part avg / 2',
-'8~12 세트 {0}% / 70%':'{0}% of sets in 8–12 / 70%',
+'{0}% / 100%':'{0}% / 100%',
 '이틀 연속 {0}곳 / 5':'{0} of 5 parts back-to-back',
 '연속 없음':'No back-to-back',
-'ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20':'This app’s log measured against the ACSM adult activity guideline — weights: cardio 30 · strength frequency 30 · rep range 20 · part spacing 20',
+'ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 40 · 반복 구간 10 · 부위 간격 20':'This app’s log measured against the ACSM adult activity guideline — weights: cardio 30 · strength frequency 40 · rep range 10 · part spacing 20',
 '연속 자극 {0}':'{0} back-to-back',
 'RIR 0 많음':'Too many RIR 0',
 '세트 초과 {0}':'{0} over cap',
@@ -14022,7 +14031,7 @@ var EN={
 '유산소 {0}분 더':'{0} more cardio minutes',
 '{0} 하루씩 더':'one more day each for {0}',
 '부위마다 주 2일':'two days a week per part',
-'8~12회 세트 {0}% → 70%':'8–12 rep sets {0}% → 70%',
+'8~12회 세트 {0}% 올리기':'raise 8–12 rep sets from {0}%',
 '반복 수를 기록':'log rep counts',
 '{0} 이틀 연속 피하기':'avoid back-to-back {0}',
 '부위 사이 하루 띄우기':'leave a day between parts',
