@@ -12548,9 +12548,17 @@ function vzTrain(tab){
   var sc=acsmScore();
   /* 주가 아직 안 끝났으면 제목에 그렇게 적는다 — '이번 주' 라고만 두면
      100점이 주 하나치 목표로 읽혀, 목요일 점수가 왜 그런지 알 수 없다. */
+  /* 설명 산문은 전부 물음표 뒤로(요청: 불필요한 설명이 너무 많다). 화면에
+     남는 것은 점수 · 네 칸 · 다음 한 수 · 격자뿐이다. 분모 이야기('지난 6일치로
+     잼 — 유산소 129분 · 부위마다 1.6일'), 배점 설명, 다음 한 수의 까닭은
+     한 번 읽으면 되는 말이라 펴서 보게 둔다. */
   h+=vzCap(TX('ACSM 권고')+'<span class="rtsub">'
     +(sc.done>0?TX1('월~{0} {1}일치',TX('월,화,수,목,금,토,일').split(',')[sc.done-1],sc.done):TX('이번 주'))
-    +'</span>');
+    +'</span>','acsm')
+    +sxBox('acsm',TX('ACSM 성인 신체활동 권고에 이 앱 기록을 견준 점수. 배점은 <b>유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20</b>. 유산소·빈도는 주 하나치가 아니라 <b>지금까지 지난 날의 몫</b>으로 잰다')
+      +(sc.tot!=null&&sc.done>0?TX1(' — 지금은 {0}일치라 유산소 {1}분 · 부위마다 {2}일이 기준.',sc.done,Math.round(sc.carGoal),Math.round(sc.frqGoal*10)/10):'.')
+      +(sc.tot!=null&&sc.scored<100?' '+TX1('잴 수 있는 {0}점으로 환산.',sc.scored):'')
+      +' '+TX('<b>다음 한 수</b>는 넷 가운데 가장 크게 잃고 있는 칸을 메우면 오르는 점수.'));
   if(sc.tot==null){
     h+=hNote(TX('아직 잴 것이 없음 — 이번 주 기록이 쌓이면 점수가 나옴. 월요일에는 지난 날이 없어 유산소·빈도를 재지 않음.'));
   }else{
@@ -12558,15 +12566,7 @@ function vzTrain(tab){
         :(sc.tot>=75?{t:'양호',c:'ok'}
         :(sc.tot>=60?{t:'보통',c:'mid'}:{t:'미흡',c:'ng'}));
   h+='<div class="acsc '+gr.c+'"><b>'+sc.tot+'</b><em>/100</em>'
-    +'<span class="gd">'+TX(gr.t)+'</span></div>'
-    /* 분모가 주 하나치가 아니라는 것을 한 줄로 못박는다 */
-    +'<div class="note" style="margin:2px 0 0">'
-    +(sc.done>0
-      ?TX1('지난 {0}일치로 잼 — 유산소 {1}분 · 부위마다 {2}일이 지금까지의 몫임',
-           sc.done,Math.round(sc.carGoal),Math.round(sc.frqGoal*10)/10)
-      :TX('오늘이 주의 첫날이라 쌓이는 항목은 아직 안 잼'))
-    +(sc.scored<100?' · '+TX1('잴 수 있는 {0}점으로 환산',sc.scored):'')
-    +'</div>';
+    +'<span class="gd">'+TX(gr.t)+'</span></div>';
   /* 점수가 어디서 깎였는지. 칸 너비가 곧 배점이고 채운 만큼이 받은 점수라,
      빈 자리가 그대로 잃은 점수다 — 넷을 한 줄에 놓아야 무게가 보인다.
      30점짜리를 반만 채운 것이 20점짜리를 반만 채운 것보다 크게 비어 보인다. */
@@ -12589,26 +12589,24 @@ function vzTrain(tab){
      으로 달라 '반만 찬 칸' 끼리도 값이 다르므로, 눈으로 견주면 틀리기 쉽다.
      가장 크게 잃는 하나를 집어 할 일과 그 값을 적는다. */
   var nx=acsmNext(sc);
-  if(nx)h+=vzLine(TX('다음 한 수'),nx.t,
-    TX1('넷 가운데 가장 크게 잃고 있음 — 메우면 약 +{0}점',nx.g),
-    {t:'+'+nx.g,c:'pos'});
+  if(nx)h+=vzLine(TX('다음 한 수'),nx.t,'',{t:'+'+nx.g,c:'pos'});
   /* 칸마다 무엇을 보고 매겼는지. 같은 수를 막대로 또 그리지 않는다 —
      위 칸이 이미 그 막대다. */
   for(q2=0;q2<sc.it.length;q2++){
     it=sc.it[q2];rt=it.max?it.got/it.max:0;
     var ev='';
     if(!it.on)ev=TX('아직 안 잼');
-    else if(it.k==='car')ev=TX1('중강도 {0}분 / 지금까지 {1}분 (주 150분)',
-      sc.ac.z2,Math.round(sc.carGoal));
+    /* 근거는 '한 수 / 기준' 만. '중강도 65분 / 지금까지 129분 (주 150분)' 은
+       한 줄에 수가 셋이라 어느 것이 내 것인지 되짚어야 했다. */
+    else if(it.k==='car')ev=TX1('{0} / {1}분',sc.ac.z2,Math.round(sc.carGoal));
     else if(it.k==='frq'){
       /* 평균 하나로는 어느 부위가 끌어내렸는지 모른다 — 모자란 쪽을 든다 */
       var lg=[],kk;
       for(kk in PN_KO)if(sc.nd[kk].n<2)lg.push(TX(PN_KO[kk]));
-      ev=TX1('부위 평균 {0}일 / 지금까지 {1}일 (주 2일)',
-          Math.round(sc.avgD*10)/10,Math.round(sc.frqGoal*10)/10)
+      ev=TX1('{0} / {1}일',Math.round(sc.avgD*10)/10,Math.round(sc.frqGoal*10)/10)
         +(lg.length?' · '+lg.slice(0,3).join('·'):'');
     }
-    else if(it.k==='rep')ev=sc.rz.tot?TX1('8~12 세트 {0}% / 70%',sc.rz.pct):TX('기록 없음');
+    else if(it.k==='rep')ev=sc.rz.tot?TX1('{0}% / 70%',sc.rz.pct):TX('기록 없음');
     else if(!sc.act)ev=TX('기록 없음');
     else if(!sc.viol)ev=TX('연속 없음');
     else{
@@ -12618,7 +12616,7 @@ function vzTrain(tab){
         var onb=sc.nd[kb].on,qb;
         for(qb=1;qb<7;qb++)if(onb[qb]&&onb[qb-1]){bd.push(TX(PN_KO[kb]));break;}
       }
-      ev=TX1('이틀 연속 {0}곳 / 5',sc.viol)+(bd.length?' · '+bd.slice(0,3).join('·'):'');
+      ev=TX1('연속 {0}곳',sc.viol)+(bd.length?' · '+bd.slice(0,3).join('·'):'');
     }
     h+='<div class="acsr'+(it.on?'':' off')+'"><i>'+TX(it.n)+'</i><span class="ev">'+ev+'</span>'
       +'<b class="'+(it.on&&rt>=0.8?'ok':'')+'">'
@@ -12657,9 +12655,6 @@ function vzTrain(tab){
   h+=vzCap(TX('부위 · 요일 · 주 2일 이상'))+gz
     +'<div class="lmlg" data-act="hgo" data-v="goal">'
     +TX('<i class="w1"></i>훈련한 날 <i class="w2"></i>이틀 연속 <i class="w3"></i>오늘')+'</div>';
-  h+='<div class="lmunk">'
-    +TX('ACSM 성인 신체활동 권고에 이 앱 기록을 견준 것임 — 배점은 유산소 30 · 근력 빈도 30 · 반복 구간 20 · 부위 간격 20')
-    +'</div>';
   }
   return '<div class="anlviz">'+h+'</div>';
 }
@@ -13141,7 +13136,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-10 22:45';
+var BUILD='2026-10-11 15:34';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
