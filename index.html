@@ -2448,6 +2448,22 @@ html[lang=en] .dbody .fk{flex-basis:70px}
 /* 세트별 RIR 아래첨자 — 반복 수 바로 뒤에 작게. 수가 아니라 꼬리표라 흐리게 */
 .hr2 span sub,.exsub u sub{font-size:8px;line-height:0;vertical-align:-3px;margin:0 1px 0 1px;color:var(--dim);font-weight:400}
 .hr2 span .bo,.exsub u .bo{font-style:normal;opacity:.55}
+/* 무게 묶음(detailHtml). 무게 굵게 글자색 · × 흐리게 · 반복은 틈으로 가른다.
+   묶음 사이는 세로 금 — 틈만으로는 `10₀ 30` 이 한 줄 수로 읽혔다. */
+.dgr{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
+.dgr+.dgr{margin-left:8px;padding-left:8px;border-left:1px solid rgba(var(--tx-rgb),.18)}
+.dgr>b{font-weight:800;color:var(--tx)}
+.dgr>b small{font-size:.75em;font-weight:600;color:var(--dim);margin-left:1px}
+.dgr>i{font-style:normal;color:var(--dim);font-size:.85em;margin:0 -1px}
+.dgr>span{color:var(--mut)}
+.dgr.k-more{color:var(--dim)}
+.hr2 span .dgr,.hr2 .dgr>span{flex:none;font-size:inherit}
+/* .hr2 의 b(62px 오른쪽 맞춤) · i(42px 날짜 칸) 규칙이 묶음 안의 무게·× 에도
+   걸려 칸이 벌어졌다 — 묶음 안에서는 끈다. */
+.hr2 .dgr>b,.hr2 .dgr>i{flex:none;text-align:left;font-size:inherit}
+.hr2 .dgr>b{font-weight:800}
+.hr2 .dgr>i{font-size:.85em}
+.hr2>span{display:flex;flex-wrap:wrap;row-gap:2px;align-items:baseline}
 /* 이름이 .hrcap 인 까닭: .hcap 은 이미 있다(§2-1 — 또 걸렸다. grep 먼저). */
 .hrcap{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.04em;margin:0 2px 6px}
 .hrcap sub{font-size:7.5px;line-height:0;vertical-align:-3px;margin-left:1px}
@@ -4690,6 +4706,16 @@ function cardDetail(s,n){
    안 적는다 — `25kg 25×12·12·9` 처럼 같은 수가 두 번 서 있었다. 다른 무게
    묶음만 `20×12` 로 적는다. 백오프 묶음은 흐리게(.bo) — 내린 무게라는 것이
    이미 수로 보이므로 글자는 안 단다. */
+/* **무게 묶음 하나가 한 덩이다**(지적: '직전 중량과 횟수, 다른 무게 사이 구분이
+   시각적으로 명확하지 않다'). 예전에는 `45kg 12₁·12₀·10₀ 30×10₁` 처럼 첫 무게는
+   앞 칸에 따로, 다음 무게는 `30×` 로 반복 수에 붙어 있어 어디까지가 한 무게인지
+   글자 굵기로도 틈으로도 안 갈렸다. 지금은 묶음마다 `무게(굵게) × 반복들` 이고
+   묶음 사이에 세로 금을 긋는다. 반복 사이는 가운뎃점 대신 틈 — 아래첨자 RIR
+   과 점이 겹쳐 수가 붙어 보였다.
+   rep 를 주면(이력 줄: 바로 왼쪽 칸이 굵게 그 무게를 적는다) 첫 묶음이 그
+   무게일 때 무게를 또 안 적는다 — `45 kg 45kg × 12…` 로 같은 수가 붙어 섰다.
+   둘째 묶음부터는 세로 금 + 굵은 무게가 경계를 말한다. 시트 머리줄은 rep 를
+   안 주므로(null) 묶음마다 무게가 선다. */
 function detailHtml(s,rep){
   s=workSets(s);
   if(!s||!s.length)return '';
@@ -4702,17 +4728,18 @@ function detailHtml(s,rep){
   function one(x){
     var r=+x[1]||0,v=x[2];
     var sub=(v===0||v>0)?'<sub>'+(v>=4?'4+':v)+'</sub>':'';
-    return r+sub;
+    return '<span>'+r+sub+'</span>';
   }
   var CAP=3,out=[],used=0;
   for(i=0;i<g.length&&i<CAP;i++){
-    var body=g[i].s.map(one).join('·');
-    var pre=(i===0&&g[i].w===rep)?'':fmtW(g[i].w)+'×';
-    out.push(g[i].bk?'<em class="bo">'+pre+body+'</em>':pre+body);
+    var body=g[i].s.map(one).join('');
+    var pre=(i===0&&g[i].w===rep)?''
+      :'<b>'+fmtW(g[i].w)+'<small>kg</small></b><i>×</i>';
+    out.push('<span class="dgr'+(g[i].bk?' bo':'')+'">'+pre+body+'</span>');
     used+=g[i].s.length;
   }
-  if(g.length>CAP)out.push('+'+(s.length-used));
-  return out.join('  ');
+  if(g.length>CAP)out.push('<span class="dgr k-more">+'+(s.length-used)+'</span>');
+  return out.join('');
 }
 /* 세션 볼륨: 전 세트 합산 Σ(무게×반복) — 주간 누적 일량 지표 */
 /* 볼륨은 톤수가 아니라 '실패 근처까지 간 세트 수'다 — MEV/MAV/MRV 가 원래
@@ -5760,7 +5787,9 @@ function lastLine(m){
      이 줄에 붙인다. 안 붙이면 어긋난 두 수만 남는다. */
   return '<div class="exsub"><em>'+md(p.d)+'</em>'
     +(cd?('<span>'+cardDetail(p.s,m.n)+'</span>')
-        :('<span>'+fmtW(topOfM(m,p.s))+'kg</span><u>'+detailHtml(p.s,topOfM(m,p.s))+'</u>'))
+        /* 무게는 묶음마다 detailHtml 이 적는다 — 앞에 대표 무게를 따로 세우면
+           첫 묶음의 무게만 반복 수와 떨어져 서서 구분이 흐려졌다(지적). */
+        :(detailHtml(p.s,null)?'<u>'+detailHtml(p.s,null)+'</u>':'<span>'+fmtW(topOfM(m,p.s))+'kg</span>'))
     +(softWhy(p.d)?'<i class="sfx">'+TX(softWhy(p.d))+'</i>':'')+'</div>';
 }
 function panelHtml(m){
@@ -13149,7 +13178,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-11 15:55';
+var BUILD='2026-10-12 16:53';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
