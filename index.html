@@ -4915,9 +4915,9 @@ function prevSame(id,ds,ord){
 function gainTag(cur,prev,ordA,ordB){
   var g=e1rmGain(cur,prev);
   if(!g)return '';                    /* 비교할 직전 세션이 없으면 표시하지 않음 */
-  var mv=(ordA>0&&ordB>0&&ordA!==ordB)
-    ?'<i class="eq ordm" title="'+esc(TX1('지난번 {0}번째 · 이번 {1}번째',ordB,ordA))+'">'
-      +TX1('{0}→{1}번째',ordB,ordA)+'</i>':'';
+  /* 순서 꼬리말(`2→1번째`)은 뺐다 — 사용자: "필요없어 이건 빼줘"(2026-10-12).
+     비교 기준(prevSame 의 같은 순서 우선)은 그대로 둔다. */
+  var mv='';
   if(g.pct===0)return '<i class="eq">'+TX('유지')+'</i>'+mv;
   return '<i class="'+(g.pct>0?'up':'dn')+'">'+(g.pct>0?'▲':'▼')+Math.abs(g.pct)+'%</i>'+mv;
 }
