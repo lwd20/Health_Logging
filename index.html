@@ -6000,7 +6000,10 @@ function jOrder(d,ents){
   for(i=0;i<ents.length;i++)ents[i]._i=i;
   for(i=0;i<ents.length;i++){
     if(ord&&ord.length){
-      p=ord.indexOf(ents[i].m.i);
+      p=ord.indexOf(ents[i].k);
+      /* 떼어 낸 예열 줄(`id#w`)은 차례를 손으로 정하던 때 없던 열쇠다 —
+         끝으로 밀지 말고 제 본세트 줄 바로 앞에 세운다. */
+      if(p<0&&/#w$/.test(ents[i].k)){p=ord.indexOf(ents[i].m.i);if(p>=0)p-=0.5;}
       ents[i]._k=(p<0)?1e9+ents[i]._i:p;
     }else{
       t=firstT(ents[i].s);
@@ -6010,23 +6013,61 @@ function jOrder(d,ents){
   ents.sort(function(a,b){return (a._k-b._k)||(a._i-b._i);});
   return ents;
 }
+/* 줄마다 차례 열쇠(k). 보통은 종목 id, 떼어 낸 예열 줄은 `id#w` —
+   손으로 정한 차례(S.o)·옮기기 단추가 이 열쇠로 줄을 집는다. 종목 id 로
+   집으면 한 종목의 두 줄이 같은 자리를 다퉈 하나가 사라진다. */
 function jMap(){
-  var map={},i,j,a,m;
+  var map={},i,j,a,m,d;
   for(i=0;i<S.m.length;i++){
     m=S.m[i];a=sess(m.i);
     for(j=0;j<a.length;j++){
       if(!a[j].s.length)continue;
-      (map[a[j].d]=map[a[j].d]||[]).push({m:m,s:a[j].s});
+      (map[a[j].d]=map[a[j].d]||[]).push({m:m,s:a[j].s,k:m.i});
     }
   }
+  for(d in map)map[d]=jSplitWarm(map[d]);
   return map;
+}
+/* **앞에 예열만 하고 다른 종목을 거친 뒤 돌아와 본세트를 한 종목은 두 줄로
+   가른다**(요청). 한 줄로 두면 그 종목이 첫 세트 시각(예열)의 자리에 서서
+   '1번째로 본세트까지 했다' 로 읽히는데, 실제 본세트는 끝에 했다 — 이 탭이
+   답하는 '어떤 차례로 지나갔나' 가 틀린다.
+   가르는 때는 **좁게** 잡는다: 세트를 시각순으로 놓고 맨 앞이 예열만으로 된
+   묶음이며, 그 묶음의 마지막 세트와 첫 본·백오프 세트 사이에 **다른 종목의
+   세트가 하나라도** 끼어 있을 때뿐이다. 슈퍼세트(A1 B1 A2 B2)처럼 본세트끼리
+   번갈아 한 것까지 가르면 한 종목이 줄 여럿으로 흩어진다 — 그건 요청이 아니다.
+   시각이 없는 세트가 하나라도 있으면 안 가른다(차례를 모르는 것을 지어내지
+   않는다). 세트 자체는 건드리지 않는다 — 화면에서만 나눈다. */
+function jSplitWarm(ents){
+  var out=[],i,j,q,all=[];
+  for(i=0;i<ents.length;i++)for(j=0;j<ents[i].s.length;j++)
+    if(ents[i].s[j][4]!=null)all.push({t:ents[i].s[j][4],e:i});
+  for(i=0;i<ents.length;i++){
+    var e=ents[i],ss=e.s.slice(),ok=ss.length>1;
+    for(j=0;j<ss.length;j++)if(ss[j][4]==null){ok=false;break;}
+    if(ok){
+      ss.sort(function(a,b){return a[4]-b[4];});
+      var n=0;while(n<ss.length&&isWarm(ss[n]))n++;
+      if(n>0&&n<ss.length){
+        var t0=ss[n-1][4],t1=ss[n][4],cut=false;
+        for(q=0;q<all.length;q++)if(all[q].e!==i&&all[q].t>t0&&all[q].t<t1){cut=true;break;}
+        if(cut){
+          out.push({m:e.m,s:ss.slice(0,n),k:e.m.i+'#w'});
+          out.push({m:e.m,s:ss.slice(n),k:e.m.i});
+          continue;
+        }
+      }
+    }
+    out.push(e);
+  }
+  return out;
 }
 /* 위아래로 옮기기 — 지금 보이는 차례를 그대로 집어 두 칸을 바꾼다.
    시각이 있는 날을 손으로 옮겨도 그 날은 손으로 정한 차례가 이긴다. */
 function jMove(v,dir){
   var p=String(v).split('|'),d=p[0],id=p[1];
   var ents=jOrder(d,jMap()[d]||[]),ord=[],i;
-  for(i=0;i<ents.length;i++)ord.push(ents[i].m.i);
+  for(i=0;i<ents.length;i++)ord.push(ents[i].k);
   i=ord.indexOf(id);
   var j=i+dir;
   if(i<0||j<0||j>=ord.length)return;
@@ -6063,7 +6104,7 @@ function journalHtml(){
        차례를 모르는 줄에 번호를 달면 없는 사실이 생긴다(루틴 탭과 같은 자). */
     var seq=[],sn=0,ol=hasOrd?S.o[d]:null,anySeq=false;
     for(j=0;j<ents.length;j++){
-      var kn=ol?(ol.indexOf(ents[j].m.i)>=0):(firstT(ents[j].s)!=null);
+      var kn=ol?(ents[j]._k<1e9):(firstT(ents[j].s)!=null);
       seq.push(kn?(++sn):0);
       if(kn)anySeq=true;
     }
@@ -6146,7 +6187,8 @@ function journalHtml(){
       if(!jc)
         jsub='<div class="jsub">'
           +'<i class="k-w'+(jwm?'':' z')+'">'+TX('예열')+'<b>'+jwm+'</b></i>'
-          +'<i class="k-m">'+TX('본')+'<b>'+(jws-jbm)+'</b></i>'
+          /* 본도 0 이면 흐리게 — 떼어 낸 예열 줄(jSplitWarm)은 본이 0 이다 */
+          +'<i class="k-m'+((jws-jbm)?'':' z')+'">'+TX('본')+'<b>'+(jws-jbm)+'</b></i>'
           +'<i class="k-b'+(jbm?'':' z')+'">'+TX('백오프')+'<b>'+jbm+'</b></i></div>';
       h+='<div class="jr'+(ordOn?' oedit':'')+'">'
         /* 기구 줄이 맨 먼저 — 차례 번호는 그 밑 **이름 줄**에 선다. 번호가 기구
@@ -6154,8 +6196,8 @@ function journalHtml(){
         +jMc(jm,anySeq)
         +(anySeq?'<u class="jseq">'+(seq[j]||'')+'</u>':'')
         +(ordOn?'<span class="jmv">'
-          +'<button data-act="jmu" data-v="'+d+'|'+jm.i+'"'+(j===0?' disabled':'')+'>▲</button>'
-          +'<button data-act="jmd" data-v="'+d+'|'+jm.i+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
+          +'<button data-act="jmu" data-v="'+d+'|'+e.k+'"'+(j===0?' disabled':'')+'>▲</button>'
+          +'<button data-act="jmd" data-v="'+d+'|'+e.k+'"'+(j===ents.length-1?' disabled':'')+'>▼</button></span>':'')
         /* 기구(`mc`)가 있으면 이름 앞에 `기구 ›` 를 붙인다(요청: 한 기구로 여러
            이름의 운동을 한 날을 가르게). 메인은 기구 덩이 안에 종목이 들어
            있어 저절로 갈리는데, 로그는 줄이 평평해 종목 이름만으로는 어느
@@ -13178,7 +13220,7 @@ function insISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 var APKURL='https://github.com/lwd20/gym-log-apk/releases/latest/download/plus25.apk';
 /* 지금 돌고 있는 화면이 언제 판인지 — 앱을 켜 둔 채로는 웹을 밀어 넣어도
    그 안의 코드가 안 바뀐다. 어긋났을 때 물어볼 것 없이 확인하려고 둔다. */
-var BUILD='2026-10-12 16:53';
+var BUILD='2026-10-13 14:08';
 
 /* ── 삼성헬스 섭취량 ────────────────────────────────────────────────
    앱은 오랫동안 섭취량을 TDEE 에서 역산했다. 그건 먹어야 할 양이지
